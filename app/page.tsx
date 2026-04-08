@@ -273,67 +273,82 @@ export default function Home() {
           <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
             {[
               {
-                name: 'Başlangıç',
+                name: '7 Günlük Deneme',
                 price: 'Ücretsiz',
-                sub: 'sonsuza kadar',
+                sub: '7 gün süre',
+                limits: ['7 gün süre', 'Maksimum 10 rezervasyon'],
                 features: [
                   '1 restoran profili',
-                  'Sınırsız rezervasyon',
                   'Mükerrer kayıt engeli',
                   'Mobil uyumlu form',
+                  'Anında rezervasyon onayı',
                 ],
-                cta: 'Hemen Başla',
+                cta: 'Denemeye Başla',
                 highlight: false,
+                badge: undefined,
               },
               {
                 name: 'Pro',
-                price: '₺499',
+                price: '₺4.499',
                 sub: '/ ay',
-                badge: 'Popüler',
+                badge: 'Kurumsal',
+                limits: [],
                 features: [
                   'Sınırsız restoran',
+                  'Sınırsız rezervasyon',
                   'Yönetim paneli',
                   'SMS & e-posta bildirimi',
+                  'Yapay Zeka ile Mesajdan Rezervasyon Kaydı',
+                  'Gelişmiş Raporlama',
+                  'Öncelikli Teknik Destek',
                   'Özel alan adı desteği',
-                  'Öncelikli destek',
                 ],
                 cta: 'Pro\'ya Geç',
                 highlight: true,
               },
-            ].map(({ name, price, sub, badge, features, cta, highlight }) => (
+            ].map(({ name, price, sub, badge, limits, features, cta, highlight }) => (
               <div
                 key={name}
                 className={`relative flex flex-col gap-6 rounded-2xl border p-8 ${
                   highlight
-                    ? 'border-zinc-900 bg-zinc-900 text-white shadow-2xl shadow-zinc-900/20'
+                    ? 'border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 text-white shadow-2xl shadow-zinc-900/30 ring-1 ring-white/10'
                     : 'border-zinc-200 bg-white text-zinc-900'
                 }`}
               >
                 {badge && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-emerald-500 px-3 py-0.5 text-xs font-semibold text-white">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-0.5 text-xs font-semibold text-white shadow-sm">
                     {badge}
                   </span>
                 )}
                 <div>
-                  <p className={`text-sm font-medium mb-2 ${highlight ? 'text-zinc-400' : 'text-zinc-500'}`}>{name}</p>
+                  <p className={`text-xs font-semibold uppercase tracking-widest mb-2 ${highlight ? 'text-blue-400' : 'text-zinc-400'}`}>{name}</p>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-4xl font-bold">{price}</span>
                     <span className={`text-sm ${highlight ? 'text-zinc-400' : 'text-zinc-400'}`}>{sub}</span>
                   </div>
+                  {limits.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {limits.map((l) => (
+                        <span key={l} className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs text-zinc-500">
+                          {l}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <ul className="flex flex-col gap-2.5">
                   {features.map((f) => (
-                    <li key={f} className={`text-sm flex items-center gap-2 ${highlight ? 'text-zinc-300' : 'text-zinc-600'}`}>
-                      <span className={`text-xs ${highlight ? 'text-emerald-400' : 'text-emerald-600'}`}>✓</span>
+                    <li key={f} className={`text-sm flex items-start gap-2 ${highlight ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                      <span className={`mt-0.5 shrink-0 text-xs ${highlight ? 'text-blue-400' : 'text-emerald-600'}`}>✓</span>
                       {f}
                     </li>
                   ))}
                 </ul>
                 <a
-                  href={highlight ? '#join' : '#join'}
-                  className={`rounded-full py-3.5 text-center text-sm font-semibold transition-colors ${
+                  href="#join"
+                  className={`rounded-xl py-3.5 text-center text-sm font-semibold transition-colors ${
                     highlight
-                      ? 'bg-white text-zinc-900 hover:bg-zinc-100'
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 shadow-md shadow-blue-900/30'
                       : 'bg-zinc-900 text-white hover:bg-zinc-700'
                   }`}
                 >
