@@ -37,7 +37,7 @@ export function ReservationForm({ restaurantId }: { restaurantId: string }) {
           type="text"
           required
           placeholder="Ahmet Yılmaz"
-          className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-100"
+          className="rounded-xl border border-zinc-200 bg-white px-4 py-3.5 text-base text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-100"
         />
       </div>
 
@@ -51,7 +51,7 @@ export function ReservationForm({ restaurantId }: { restaurantId: string }) {
           type="tel"
           required
           placeholder="0532 000 00 00"
-          className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-100"
+          className="rounded-xl border border-zinc-200 bg-white px-4 py-3.5 text-base text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-100"
         />
       </div>
 
@@ -66,7 +66,7 @@ export function ReservationForm({ restaurantId }: { restaurantId: string }) {
             type="date"
             required
             min={new Date().toISOString().split('T')[0]}
-            className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-100"
+            className="rounded-xl border border-zinc-200 bg-white px-4 py-3.5 text-base text-zinc-900 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-100"
           />
         </div>
 
@@ -79,7 +79,7 @@ export function ReservationForm({ restaurantId }: { restaurantId: string }) {
             name="reserved_time"
             type="time"
             required
-            className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-100"
+            className="rounded-xl border border-zinc-200 bg-white px-4 py-3.5 text-base text-zinc-900 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-100"
           />
         </div>
       </div>
@@ -92,7 +92,7 @@ export function ReservationForm({ restaurantId }: { restaurantId: string }) {
           id="party_size"
           name="party_size"
           defaultValue="2"
-          className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-100"
+          className="rounded-xl border border-zinc-200 bg-white px-4 py-3.5 text-base text-zinc-900 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-100"
         >
           {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
             <option key={n} value={n}>
@@ -111,7 +111,7 @@ export function ReservationForm({ restaurantId }: { restaurantId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-1 rounded-xl bg-zinc-900 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="mt-1 rounded-xl bg-zinc-900 px-6 py-4 text-base font-semibold text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99]"
       >
         {pending ? 'Gönderiliyor…' : 'Rezervasyon Yap'}
       </button>
