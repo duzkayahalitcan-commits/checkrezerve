@@ -45,9 +45,19 @@ export default async function AdminPage() {
             <h1 className="text-lg font-bold text-white">checkrezerve</h1>
             <p className="text-xs text-stone-500 mt-0.5">Admin Paneli</p>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-xs text-stone-400">Canlı</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-xs text-stone-400">Canlı</span>
+            </div>
+            <form action="/admin/logout" method="POST">
+              <button
+                type="submit"
+                className="text-xs text-stone-500 hover:text-stone-300 transition-colors px-2 py-1 rounded-lg hover:bg-white/5"
+              >
+                Çıkış
+              </button>
+            </form>
           </div>
         </div>
       </div>
