@@ -1,0 +1,15 @@
+.git
+.gitignore
+.next
+.vercel
+node_modules
+npm-debug.log*
+.env*
+!.env.example
+README.md
+docker-compose.yml
+Dockerfile
+.dockerignore
+supabase/.branches
+supabase/.temp
+coverage

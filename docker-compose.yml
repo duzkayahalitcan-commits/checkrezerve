@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Build-time public değişkenler (.env.local'dan veya CI/CD'den)
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+    image: checkrezerve:latest
+    container_name: checkrezerve
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # ── Supabase ────────────────────────────────────────────────────────────
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+
+      # ── Claude / Anthropic ───────────────────────────────────────────────
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+
+      # ── SMS Bildirimleri (Twilio) ────────────────────────────────────────
+      SMS_PROVIDER: ${SMS_PROVIDER:-twilio}          # twilio | netgsm | disabled
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_FROM_NUMBER: ${TWILIO_FROM_NUMBER:-}
+
+      # ── Netgsm (Türkiye yerel SMS) ───────────────────────────────────────
+      NETGSM_USERCODE: ${NETGSM_USERCODE:-}
+      NETGSM_PASSWORD: ${NETGSM_PASSWORD:-}
+      NETGSM_MSGHEADER: ${NETGSM_MSGHEADER:-}
+
+      # ── Uygulama ─────────────────────────────────────────────────────────
+      NODE_ENV: production
+      PORT: 3000
+
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ── Geliştirme ortamı için opsiyonel nginx reverse proxy ──────────────────
+  # nginx:
+  #   image: nginx:alpine
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #   depends_on:
+  #     - app
