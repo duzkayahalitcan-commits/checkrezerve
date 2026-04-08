@@ -110,9 +110,10 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
     console.error('[analyze-message]', err)
     return NextResponse.json(
-      { error: 'Sunucu hatası oluştu' },
+      { error: 'Sunucu hatası oluştu', _debug: msg },
       { status: 500 }
     )
   }
