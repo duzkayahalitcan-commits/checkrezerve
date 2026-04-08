@@ -1,7 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-// Lazy singleton — client yalnızca gerçekten çağrıldığında oluşturulur,
-// build-time'da env yoksa patlamaz.
+// Lazy singleton — build-time'da env yoksa patlamaz
 let _client: SupabaseClient | null = null
 
 export function getSupabase(): SupabaseClient {
@@ -13,33 +12,12 @@ export function getSupabase(): SupabaseClient {
   return _client
 }
 
-// Convenience shorthand (aynı API'yi korur)
+// Convenience shorthand
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_, prop) {
     return (getSupabase() as never)[prop]
   },
 })
 
-// Tip tanımları
-export type Restaurant = {
-  id: string
-  name: string
-  slug: string
-  phone: string | null
-  address: string | null
-  capacity: number
-  created_at: string
-}
-
-export type Reservation = {
-  id: string
-  restaurant_id: string
-  guest_name: string
-  guest_phone: string
-  party_size: number
-  reserved_date: string
-  reserved_time: string
-  notes: string | null
-  status: 'confirmed' | 'cancelled' | 'completed'
-  created_at: string
-}
+// Re-export types from central types file
+export type { Restaurant, Reservation } from '@/types'
