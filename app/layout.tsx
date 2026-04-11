@@ -86,7 +86,12 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#18181b',
+  // Açık sayfalarda amber, admin/panel sayfalarında koyu
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f59e0b' },
+    { media: '(prefers-color-scheme: dark)',  color: '#18181b' },
+  ],
+  viewportFit: 'cover', // iPhone notch/Dynamic Island için
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

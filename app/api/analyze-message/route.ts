@@ -27,11 +27,11 @@ const ExtractionSchema = z.object({
   phone: z
     .string()
     .nullable()
-    .describe('Telefon numarası, bulunamazsa null'),
+    .describe('Telefon numarası E.164 formatında, bulunamazsa null'),
   notes: z
     .string()
     .nullable()
-    .describe('Ekstra notlar (alerji, özel istek vb.), bulunamazsa null'),
+    .describe('Ekstra notlar (alerji, özel istek, sürpriz vb.), bulunamazsa null'),
   confidence: z
     .number()
     .describe('Çıkarımın güven skoru 0 ile 1 arasında'),
@@ -39,20 +39,35 @@ const ExtractionSchema = z.object({
     .string()
     .nullable()
     .describe('Mesajda geçen ham tarih ifadesi (ör. "yarın", "cuma akşamı")'),
+  missing_fields: z
+    .array(z.string())
+    .describe('Eksik zorunlu alanlar: name, phone, date, time, party_size'),
+  reply: z
+    .string()
+    .describe('Müşteriye gönderilecek yanıt mesajı, max 160 karakter'),
 })
 
 // ── Sistem promptu ───────────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `Sen bir restoran rezervasyon asistanısın.
-Görevin: Türkçe veya İngilizce müşteri mesajlarından rezervasyon bilgilerini eksiksiz çıkarmak.
+const SYSTEM_PROMPT = `Sen "checkrezerve" ekosisteminin rezervasyon asistanısın. Bugünün tarihi: ${new Date().toISOString().split('T')[0]}
 
-Kurallar:
-- Bugünün tarihi: ${new Date().toISOString().split('T')[0]}
-- "Yarın", "öbür gün", "cuma" gibi göreceli tarihleri mutlak YYYY-MM-DD'ye çevir
-- Saat yoksa null bırak; tahmin etme
-- Kişi sayısı yoksa null bırak; varsayma
-- is_reservation_request: yalnızca net rezervasyon talepleri için true (bilgi sorguları false)
-- confidence: tüm zorunlu alanlar (name, date, party_size) doluysa 0.9+, eksikler varsa daha düşük
-- Sadece mesajda geçen bilgileri çıkar; ekleme yapma`
+KİŞİLİK: Sofistike, profesyonel ve çözüm odaklı. Bir "yardımcı" değil, süreci yöneten bir "uzman" gibi davran. Kısa, öz ama anlam derinliği yüksek cümleler kur.
+
+ÇIKARIM KURALLARI:
+- Türkçe veya İngilizce mesajları işle
+- "Yarın", "öbür gün", "cuma" gibi göreceli tarihleri kesin YYYY-MM-DD'ye çevir
+- Telefon numarasını E.164 formatına normalize et (+905321234567)
+- Saat/kişi yoksa null bırak; tahmin etme
+- is_reservation_request: net rezervasyon talebi için true, bilgi sorgusu için false
+- confidence: name + date + party_size doluysa 0.9+, eksikler varsa daha düşük
+- missing_fields: eksik zorunlu alanları listele
+- Sadece mesajda geçen bilgileri çıkar; ekleme yapma
+
+YANIT (reply) KURALLARI:
+- Tüm alanlar doluysa: zarif, kısa bir onay mesajı
+- Eksik alan varsa: tek seferde, nezaketle sor ("Sizi en iyi şekilde ağırlayabilmemiz için [ALAN] bilgisini de paylaşabilir misiniz?")
+- Özel istek varsa (evlilik teklifi, sürpriz vb.): notes alanına kaydet, reply'da "Özel talebinizi ekibimize ilettim" de
+- Asla "Hayır" deme; alternatif çözüm öner
+- Max 160 karakter`
 
 // ── POST handler ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
@@ -104,6 +119,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       data: extracted,
+      reply: extracted.reply,
       usage: {
         input_tokens: response.usage.input_tokens,
         output_tokens: response.usage.output_tokens,

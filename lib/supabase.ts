@@ -12,6 +12,20 @@ export function getSupabase(): SupabaseClient {
   return _client
 }
 
+// RLS'yi bypass eden admin client — yalnızca sunucu tarafında kullan
+let _adminClient: SupabaseClient | null = null
+
+export function getSupabaseAdmin(): SupabaseClient {
+  if (_adminClient) return _adminClient
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) throw new Error('SUPABASE_SERVICE_ROLE_KEY eksik')
+  _adminClient = createClient(url, key, {
+    auth: { persistSession: false },
+  })
+  return _adminClient
+}
+
 // Convenience shorthand
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_, prop) {

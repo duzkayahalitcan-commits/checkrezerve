@@ -1,0 +1,31 @@
+name: Günlük Randevu Hatırlatmaları
+
+on:
+  schedule:
+    # Her gün 06:00 UTC = 09:00 Türkiye saati
+    - cron: '0 6 * * *'
+  workflow_dispatch: # Manuel tetikleme (test için)
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Hatırlatma endpoint'ini çağır
+        run: |
+          HTTP_STATUS=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X POST \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            "${{ secrets.APP_URL }}/api/send-reminders")
+
+          echo "HTTP Status: $HTTP_STATUS"
+          cat /tmp/response.json
+
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "Hata: HTTP $HTTP_STATUS"
+            exit 1
+          fi
+
+          echo "Hatırlatmalar başarıyla gönderildi."

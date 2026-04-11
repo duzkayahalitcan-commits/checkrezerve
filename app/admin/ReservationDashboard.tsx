@@ -79,12 +79,12 @@ export function ReservationDashboard({
   return (
     <div>
       {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-white/5 rounded-xl w-fit mb-5">
+      <div className="flex gap-1 p-1 bg-white/5 rounded-xl w-full sm:w-fit mb-5">
         {(['today', 'upcoming', 'all'] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               tab === t
                 ? 'bg-amber-500 text-white shadow'
                 : 'text-stone-400 hover:text-white'
@@ -190,12 +190,12 @@ function ReservationCard({
         </div>
 
         {/* Aksiyon butonları */}
-        <div className="flex flex-col gap-1.5 shrink-0">
+        <div className="flex sm:flex-col flex-row gap-1.5 shrink-0">
           {r.status !== 'completed' && (
             <button
               onClick={() => onStatusChange(r.id, 'completed')}
               disabled={updating}
-              className="px-3 py-1.5 rounded-lg bg-blue-500/15 text-blue-400 text-xs font-medium hover:bg-blue-500/25 transition-colors disabled:opacity-50"
+              className="px-3 py-2 sm:py-1.5 rounded-lg bg-blue-500/15 text-blue-400 text-xs font-medium hover:bg-blue-500/25 transition-colors disabled:opacity-50 touch-manipulation"
             >
               ✓ Tamamla
             </button>
@@ -204,7 +204,7 @@ function ReservationCard({
             <button
               onClick={() => onStatusChange(r.id, 'cancelled')}
               disabled={updating}
-              className="px-3 py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-medium hover:bg-red-500/25 transition-colors disabled:opacity-50"
+              className="px-3 py-2 sm:py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-medium hover:bg-red-500/25 transition-colors disabled:opacity-50 touch-manipulation"
             >
               ✕ İptal
             </button>
@@ -213,7 +213,7 @@ function ReservationCard({
             <button
               onClick={() => onStatusChange(r.id, 'confirmed')}
               disabled={updating}
-              className="px-3 py-1.5 rounded-lg bg-green-500/15 text-green-400 text-xs font-medium hover:bg-green-500/25 transition-colors disabled:opacity-50"
+              className="px-3 py-2 sm:py-1.5 rounded-lg bg-green-500/15 text-green-400 text-xs font-medium hover:bg-green-500/25 transition-colors disabled:opacity-50 touch-manipulation"
             >
               ↩ Geri Al
             </button>

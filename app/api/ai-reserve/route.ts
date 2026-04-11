@@ -23,16 +23,28 @@ const ExtractionSchema = z.object({
   special_requests: z.string().nullable(),
   confidence:       z.number(),
   raw_date_text:    z.string().nullable(),
+  missing_fields:   z.array(z.string()),     // Eksik zorunlu alanlar
+  reply:            z.string(),              // Müşteriye gönderilecek yanıt
 })
 
-const SYSTEM_PROMPT = `Sen bir restoran rezervasyon asistanısın.
-Bugünün tarihi: ${new Date().toISOString().split('T')[0]}
+const SYSTEM_PROMPT = `Sen "checkrezerve" ekosisteminin rezervasyon asistanısın. Bugünün tarihi: ${new Date().toISOString().split('T')[0]}
 
-Müşteri mesajlarından rezervasyon bilgilerini çıkar:
-- "Yarın", "cuma", "öbür gün" gibi göreceli tarihleri YYYY-MM-DD'ye çevir
-- Telefon numarasını uluslararası formata normalize et (ör: +905321234567)
-- Sadece mesajda açıkça belirtilen bilgileri doldur, tahmin etme
-- is_reservation_request: yalnızca net rezervasyon talebi için true`
+KİŞİLİK: Sofistike, profesyonel ve çözüm odaklı. Bir "yardımcı" değil, süreci yöneten bir "uzman" gibi davran. Kısa, öz ama anlam derinliği yüksek cümleler kur.
+
+ÇIKARIM KURALLARI:
+- "Yarın", "cuma", "öbür gün" gibi göreceli tarihleri kesin YYYY-MM-DD'ye çevir
+- Telefon numarasını E.164 formatına normalize et (+905321234567)
+- Sadece mesajda açıkça belirtilen bilgileri doldur; tahmin etme
+- is_reservation_request: net rezervasyon talebi için true, bilgi sorgusu için false
+- missing_fields: name/phone/date/time/party_size alanlarından hangileri eksik, listele
+
+YANIT (reply alanı) KURALLARI:
+- Tüm alanlar doluysa: rezervasyonu teyit eden zarif, kısa bir onay mesajı yaz
+- Eksik alan varsa: müşteriyi yormadan tek seferde, nezaketle sor ("Sizi en iyi şekilde ağırlayabilmemiz için [ALAN] bilgisini de paylaşabilir misiniz?")
+- Kapasite sorgusu gelirse: "Şu an kapasitemiz dolu, ancak sizi [ALTERNATİF SAAT] için öncelikli listeye alabilirim" gibi proaktif çözüm üret
+- Özel istek varsa (evlilik teklifi, sürpriz vb.): special_requests alanına kaydet, reply'da "Özel talebinizi ekibimize ilettim" de
+- Asla "Hayır" deme; her zaman alternatif çözümün parçası ol
+- SMS karakter sınırını gözet: reply 160 karakteri geçmesin`
 
 // ── POST /api/ai-reserve ──────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
@@ -70,7 +82,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: false,
         is_reservation_request: false,
-        message: 'Bu mesaj bir rezervasyon talebi içermiyor.',
+        reply: extracted.reply,
         extracted,
       })
     }
@@ -127,6 +139,7 @@ export async function POST(req: NextRequest) {
       success: true,
       reservation,
       extracted,
+      reply: extracted.reply,
       usage: {
         input_tokens:  aiResponse.usage.input_tokens,
         output_tokens: aiResponse.usage.output_tokens,

@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useState } from 'react'
 import { createReservation, type ActionState } from './actions'
+import { BOOKING_TERM, type BusinessType } from '@/types'
 
 const initialState: ActionState = {
   success: false,
@@ -11,18 +12,34 @@ const initialState: ActionState = {
 
 const PARTY_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8]
 
+type Service = { id: string; name: string; duration_minutes: number; price: number | null; currency: string }
+type StaffMember = { id: string; name: string; title: string | null }
+
 export function ReservationForm({
   restaurantId,
   restaurantName,
+  businessType = 'restaurant',
+  services = [],
+  staff = [],
 }: {
-  restaurantId: string
+  restaurantId:  string
   restaurantName: string
+  businessType?: BusinessType
+  services?:     Service[]
+  staff?:        StaffMember[]
 }) {
   const boundAction = createReservation.bind(null, restaurantId)
   const [state, formAction, pending] = useActionState(boundAction, initialState)
-  const [selectedParty, setSelectedParty] = useState(2)
-  const [showNotes, setShowNotes] = useState(false)
+  const [selectedParty, setSelectedParty]       = useState(2)
+  const [selectedService, setSelectedService]   = useState<string>(services[0]?.id ?? '')
+  const [selectedStaff, setSelectedStaff]       = useState<string>('')
+  const [showNotes, setShowNotes]               = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
+
+  const term         = BOOKING_TERM[businessType]
+  const isRestaurant = businessType === 'restaurant'
+  const hasServices  = services.length > 0
+  const hasStaff     = staff.length > 0
 
   if (state.success) {
     return (
@@ -33,7 +50,7 @@ export function ReservationForm({
           </svg>
         </div>
         <div>
-          <h2 className="text-xl font-bold text-stone-900">Rezervasyonunuz Alındı!</h2>
+          <h2 className="text-xl font-bold text-stone-900">{term.singular}unuz Alındı!</h2>
           <p className="mt-1 text-sm text-stone-500">
             Merhaba{' '}
             <span className="font-semibold text-stone-700">{state.guestName}</span>,<br />
@@ -41,14 +58,14 @@ export function ReservationForm({
           </p>
         </div>
         <div className="w-full rounded-2xl bg-green-50 border border-green-100 p-4 text-sm text-green-800">
-          Onay SMS&apos;i kısa süre içinde gönderilecektir.
+          WhatsApp onay mesajı kısa süre içinde gönderilecektir.
         </div>
         <button
           type="button"
           onClick={() => formRef.current?.reset()}
           className="text-sm text-stone-400 underline underline-offset-2"
         >
-          Yeni rezervasyon yap
+          Yeni {term.singular.toLowerCase()} yap
         </button>
       </div>
     )
@@ -58,6 +75,77 @@ export function ReservationForm({
 
   return (
     <form ref={formRef} action={formAction} className="flex flex-col gap-5">
+
+      {/* Hizmet Seçimi — restoran dışı sektörler için */}
+      {hasServices && (
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-stone-700">Hizmet Seçin</label>
+          <div className="flex flex-col gap-2">
+            {services.map(s => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setSelectedService(s.id)}
+                className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm transition-all ${
+                  selectedService === s.id
+                    ? 'border-amber-400 bg-amber-50 text-amber-800 font-medium'
+                    : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'
+                }`}
+              >
+                <span>{s.name}</span>
+                <span className="text-xs text-stone-400 flex items-center gap-2">
+                  {s.duration_minutes} dk
+                  {s.price != null && (
+                    <span className={selectedService === s.id ? 'text-amber-600 font-semibold' : ''}>
+                      {s.price.toLocaleString('tr-TR')} {s.currency}
+                    </span>
+                  )}
+                </span>
+              </button>
+            ))}
+          </div>
+          <input type="hidden" name="service_id" value={selectedService} />
+        </div>
+      )}
+
+      {/* Personel Seçimi */}
+      {hasStaff && (
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-stone-700">
+            Personel Seçin <span className="text-stone-400 font-normal">(opsiyonel)</span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedStaff('')}
+              className={`rounded-xl border px-3 py-2 text-sm transition-all ${
+                selectedStaff === ''
+                  ? 'border-amber-400 bg-amber-50 text-amber-800 font-medium'
+                  : 'border-stone-200 text-stone-500 hover:border-stone-300'
+              }`}
+            >
+              Fark etmez
+            </button>
+            {staff.map(s => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setSelectedStaff(s.id)}
+                className={`rounded-xl border px-3 py-2 text-sm transition-all ${
+                  selectedStaff === s.id
+                    ? 'border-amber-400 bg-amber-50 text-amber-800 font-medium'
+                    : 'border-stone-200 text-stone-500 hover:border-stone-300'
+                }`}
+              >
+                <span>{s.name}</span>
+                {s.title && <span className="text-xs text-stone-400 ml-1">· {s.title}</span>}
+              </button>
+            ))}
+          </div>
+          <input type="hidden" name="staff_id" value={selectedStaff} />
+        </div>
+      )}
+
       {/* Ad Soyad */}
       <Field label="Ad Soyad" htmlFor="guest_name">
         <input
@@ -108,41 +196,43 @@ export function ReservationForm({
         </Field>
       </div>
 
-      {/* Kişi Sayısı */}
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium text-stone-700">Kişi Sayısı</label>
-        <div className="flex gap-2 flex-wrap">
-          {PARTY_OPTIONS.map((n) => (
+      {/* Kişi Sayısı — sadece restoran için */}
+      {isRestaurant && (
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-stone-700">Kişi Sayısı</label>
+          <div className="flex gap-2 flex-wrap">
+            {PARTY_OPTIONS.map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setSelectedParty(n)}
+                className={`w-11 h-11 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
+                  selectedParty === n
+                    ? 'bg-amber-500 text-white shadow-md shadow-amber-200'
+                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                }`}
+              >
+                {n}
+              </button>
+            ))}
             <button
-              key={n}
               type="button"
-              onClick={() => setSelectedParty(n)}
-              className={`w-11 h-11 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
-                selectedParty === n
+              onClick={() => setSelectedParty(10)}
+              className={`px-3 h-11 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
+                selectedParty >= 9
                   ? 'bg-amber-500 text-white shadow-md shadow-amber-200'
                   : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
               }`}
             >
-              {n}
+              9+
             </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => setSelectedParty(10)}
-            className={`px-3 h-11 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
-              selectedParty >= 9
-                ? 'bg-amber-500 text-white shadow-md shadow-amber-200'
-                : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-            }`}
-          >
-            9+
-          </button>
+          </div>
+          <input type="hidden" name="party_size" value={selectedParty} />
         </div>
-        {/* Hidden input */}
-        <input type="hidden" name="party_size" value={selectedParty} />
-      </div>
+      )}
+      {!isRestaurant && <input type="hidden" name="party_size" value="1" />}
 
-      {/* Özel Not — açılır/kapanır */}
+      {/* Özel Not */}
       <div className="flex flex-col gap-2">
         <button
           type="button"
@@ -155,13 +245,17 @@ export function ReservationForm({
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
-          {showNotes ? 'Notu kaldır' : 'Özel not ekle'}
+          {showNotes ? 'Notu kaldır' : 'Not ekle'}
         </button>
         {showNotes && (
           <textarea
             name="notes"
             rows={3}
-            placeholder="Alerji, doğum günü, özel istek…"
+            placeholder={
+              isRestaurant
+                ? 'Alerji, doğum günü, özel istek…'
+                : 'Özel istek veya not…'
+            }
             className="rounded-xl border border-stone-200 bg-white px-4 py-3 text-base text-stone-900 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100 resize-none"
           />
         )}
@@ -192,12 +286,12 @@ export function ReservationForm({
             Gönderiliyor…
           </span>
         ) : (
-          'Rezervasyon Yap'
+          `${term.singular} Yap`
         )}
       </button>
 
       <p className="text-center text-xs text-stone-400">
-        Rezervasyon anında onaylanır • Ücretsiz iptal
+        {term.singular} anında onaylanır • Ücretsiz iptal
       </p>
     </form>
   )

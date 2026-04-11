@@ -1,5 +1,17 @@
 version: "3.9"
 
+# ─────────────────────────────────────────────────────────────────────────────
+# İzole ağ — tüm servisler bu ağda konuşur, dışa sadece nginx açıktır
+# n8n ayrı bir compose stack'te 5678 portunu kullanır — çakışma yok
+# ─────────────────────────────────────────────────────────────────────────────
+networks:
+  app-net:
+    driver: bridge
+
+volumes:
+  certbot-www:   # ACME challenge dosyaları için paylaşılan volume
+  certbot-conf:  # Let's Encrypt sertifikaları için kalıcı volume
+
 services:
   app:
     build:
@@ -27,12 +39,14 @@ services:
       NETGSM_MSGHEADER:              ${NETGSM_MSGHEADER:-}
       NODE_ENV:  production
       PORT:      3000
+    networks:
+      - app-net
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
       interval: 30s
       timeout:  10s
       retries:  3
-      start_period: 20s
+      start_period: 40s
 
   nginx:
     image: nginx:1.27-alpine
@@ -43,7 +57,27 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - certbot-www:/var/www/certbot:ro
+      - certbot-conf:/etc/letsencrypt:ro
+    networks:
+      - app-net
     depends_on:
       app:
         condition: service_healthy
+
+  # ─── Certbot: ilk kurulumda manuel çalıştırılır, sonra otomatik yeniler ───
+  certbot:
+    image: certbot/certbot:latest
+    container_name: checkrezerve-certbot
+    volumes:
+      - certbot-www:/var/www/certbot
+      - certbot-conf:/etc/letsencrypt
+    # Sürekli çalışarak her 12 saatte bir yenileme dener
+    entrypoint: >
+      /bin/sh -c "trap exit TERM;
+      while :; do
+        certbot renew --webroot -w /var/www/certbot --quiet;
+        sleep 12h & wait $${!};
+      done"
+    networks:
+      - app-net

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
 import { ReservationForm } from './ReservationForm'
+import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS, BOOKING_TERM, type BusinessType } from '@/types'
 
 export async function generateMetadata({
   params,
@@ -11,19 +12,23 @@ export async function generateMetadata({
   const { slug } = await params
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('name, address')
+    .select('name, address, business_type')
     .eq('slug', slug)
     .single()
 
-  if (!restaurant) return { title: 'Restoran Bulunamadı' }
+  if (!restaurant) return { title: 'İşletme Bulunamadı' }
+
+  const type  = (restaurant.business_type ?? 'restaurant') as BusinessType
+  const term  = BOOKING_TERM[type].singular
+  const label = BUSINESS_TYPE_LABELS[type]
 
   return {
-    title: `${restaurant.name} — Rezervasyon`,
-    description: `${restaurant.name} için online rezervasyon yapın.${restaurant.address ? ` ${restaurant.address}` : ''}`,
+    title: `${restaurant.name} — Online ${term}`,
+    description: `${restaurant.name} için online ${term.toLowerCase()} yapın. ${label}.${restaurant.address ? ` ${restaurant.address}` : ''}`,
   }
 }
 
-export default async function RestaurantPage({
+export default async function BusinessPage({
   params,
 }: {
   params: Promise<{ slug: string }>
@@ -38,7 +43,26 @@ export default async function RestaurantPage({
 
   if (!restaurant) notFound()
 
-  // Bugünün tarihini rezervasyon sayımı için al
+  const businessType = (restaurant.business_type ?? 'restaurant') as BusinessType
+  const term         = BOOKING_TERM[businessType]
+  const icon         = BUSINESS_TYPE_ICONS[businessType]
+
+  // Hizmetler ve personel (paralel)
+  const [{ data: services }, { data: staff }] = await Promise.all([
+    supabase
+      .from('services')
+      .select('id, name, duration_minutes, price, currency')
+      .eq('restaurant_id', restaurant.id)
+      .eq('is_active', true)
+      .order('sort_order'),
+    supabase
+      .from('staff')
+      .select('id, name, title')
+      .eq('restaurant_id', restaurant.id)
+      .eq('is_active', true)
+      .order('sort_order'),
+  ])
+
   const today = new Date().toISOString().split('T')[0]
   const { count } = await supabase
     .from('reservations')
@@ -50,17 +74,13 @@ export default async function RestaurantPage({
     <div className="min-h-screen bg-gradient-to-br from-stone-900 via-stone-800 to-amber-950">
       {/* Hero */}
       <div className="relative px-6 pt-14 pb-10 text-center">
-        {/* Ambient glow */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
         </div>
 
-        {/* Logo/İsim alanı */}
         <div className="relative flex flex-col items-center gap-4">
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-2xl shadow-amber-900/50">
-            <span className="text-3xl font-black text-white select-none">
-              {restaurant.name.charAt(0).toUpperCase()}
-            </span>
+            <span className="text-3xl select-none">{icon}</span>
           </div>
           <div>
             <h1 className="text-3xl font-bold text-white tracking-tight">
@@ -77,12 +97,11 @@ export default async function RestaurantPage({
             )}
           </div>
 
-          {/* Bugünkü doluluk rozeti */}
           {typeof count === 'number' && (
             <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/10 rounded-full px-3 py-1">
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
               <span className="text-xs text-stone-300">
-                Bugün <strong className="text-white">{count}</strong> rezervasyon
+                Bugün <strong className="text-white">{count}</strong> {term.singular.toLowerCase()}
               </span>
             </div>
           )}
@@ -94,16 +113,23 @@ export default async function RestaurantPage({
         <div className="mx-auto max-w-md">
           <div className="bg-white rounded-3xl shadow-2xl shadow-black/40 overflow-hidden">
             <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4">
-              <p className="text-sm font-semibold text-white/90">Masa Rezervasyonu</p>
+              <p className="text-sm font-semibold text-white/90">
+                Online {term.singular}
+              </p>
               <p className="text-xs text-white/70 mt-0.5">Ücretsiz • Anında onaylı</p>
             </div>
 
             <div className="p-6">
-              <ReservationForm restaurantId={restaurant.id} restaurantName={restaurant.name} />
+              <ReservationForm
+                restaurantId={restaurant.id}
+                restaurantName={restaurant.name}
+                businessType={businessType}
+                services={services ?? []}
+                staff={staff ?? []}
+              />
             </div>
           </div>
 
-          {/* Alt not */}
           <p className="mt-4 text-center text-xs text-stone-500">
             Powered by{' '}
             <span className="text-amber-400 font-medium">checkrezerve</span>

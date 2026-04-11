@@ -1,0 +1,233 @@
+{
+  "name": "checkrezerve — Rezervasyon Bildirimleri",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rezervasyon-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Rezervasyon Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "checkrezerve-reservation",
+      "notes": "Webhook URL: https://n8n.checkrezerve.com/webhook/rezervasyon-webhook\n\nNext.js uygulaman bu URL'e POST atar:\n{\n  customer_name, phone, date, time,\n  party_size, restaurant_name, restaurant_address,\n  reservation_id\n}"
+    },
+
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ received: true, reservation_id: $json.reservation_id }) }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Yanıtı",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [460, 160]
+    },
+
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "phone",
+              "name": "phone",
+              "value": "={{ $json.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "customer_name",
+              "name": "customer_name",
+              "value": "={{ $json.customer_name }}",
+              "type": "string"
+            },
+            {
+              "id": "restaurant_name",
+              "name": "restaurant_name",
+              "value": "={{ $json.restaurant_name }}",
+              "type": "string"
+            },
+            {
+              "id": "restaurant_address",
+              "name": "restaurant_address",
+              "value": "={{ $json.restaurant_address }}",
+              "type": "string"
+            },
+            {
+              "id": "date",
+              "name": "date",
+              "value": "={{ $json.date }}",
+              "type": "string"
+            },
+            {
+              "id": "time",
+              "name": "time",
+              "value": "={{ $json.time }}",
+              "type": "string"
+            },
+            {
+              "id": "party_size",
+              "name": "party_size",
+              "value": "={{ $json.party_size }}",
+              "type": "number"
+            },
+            {
+              "id": "reservation_id",
+              "name": "reservation_id",
+              "value": "={{ $json.reservation_id }}",
+              "type": "string"
+            },
+            {
+              "id": "maps_url",
+              "name": "maps_url",
+              "value": "=https://maps.google.com/?q={{ encodeURIComponent($json.restaurant_address) }}",
+              "type": "string"
+            },
+            {
+              "id": "cancel_url",
+              "name": "cancel_url",
+              "value": "=https://checkrezerve.com/cancel/{{ $json.reservation_id }}",
+              "type": "string"
+            },
+            {
+              "id": "reminder_time",
+              "name": "reminder_time",
+              "value": "={{ DateTime.fromISO($json.date + 'T' + $json.time).minus({ hours: 4 }).toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-variables",
+      "name": "Değişkenleri Hazırla",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+
+    {
+      "parameters": {},
+      "id": "split-node",
+      "name": "Dal Ayır",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [680, 300],
+      "notes": "Dal A: Anlık onay mesajı\nDal B: Zamanlı hatırlatma (4 saat önce)"
+    },
+
+    {
+      "parameters": {
+        "authentication": "credentials",
+        "from": "whatsapp:={{ $credentials.twilioWhatsappNumber }}",
+        "to": "=whatsapp:{{ $('Değişkenleri Hazırla').item.json.phone }}",
+        "message": "=Merhaba {{ $('Değişkenleri Hazırla').item.json.customer_name }} 👋\n\n✅ *Rezervasyonunuz onaylandı!*\n🍽️ *{{ $('Değişkenleri Hazırla').item.json.restaurant_name }}*\n\n📅 {{ DateTime.fromISO($('Değişkenleri Hazırla').item.json.date).toFormat('dd MMMM cccc', { locale: 'tr' }) }}  •  🕐 {{ $('Değişkenleri Hazırla').item.json.time }}\n👥 {{ $('Değişkenleri Hazırla').item.json.party_size }} kişi\n\n📍 Konum: {{ $('Değişkenleri Hazırla').item.json.maps_url }}\n\nDeğişiklik için restoranı arayın.\n\n_checkrezerve ile rezerve edildi._"
+      },
+      "id": "dal-a-whatsapp-onayi",
+      "name": "Dal A — WhatsApp Onay",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [900, 160],
+      "credentials": {
+        "twilioApi": {
+          "id": "twilio-credentials",
+          "name": "Twilio API"
+        }
+      },
+      "notes": "Anlık gönderim.\nKrediler: n8n → Credentials → Twilio API\n  - Account SID: TWILIO_ACCOUNT_SID\n  - Auth Token:  TWILIO_AUTH_TOKEN\n  - WhatsApp From Number: whatsapp:+14155238886"
+    },
+
+    {
+      "parameters": {
+        "resume": "specificTime",
+        "dateTime": "={{ $('Değişkenleri Hazırla').item.json.reminder_time }}"
+      },
+      "id": "dal-b-bekle",
+      "name": "Dal B — Rezervasyondan 4 Saat Önce Bekle",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [900, 420],
+      "webhookId": "checkrezerve-wait",
+      "notes": "n8n workflow'u burada duraklar ve\nbelirlenen saatte otomatik devam eder.\nSunucu yeniden başlasa bile çalışır (n8n DB'de saklar)."
+    },
+
+    {
+      "parameters": {
+        "authentication": "credentials",
+        "from": "whatsapp:={{ $credentials.twilioWhatsappNumber }}",
+        "to": "=whatsapp:{{ $('Değişkenleri Hazırla').item.json.phone }}",
+        "message": "=Merhaba {{ $('Değişkenleri Hazırla').item.json.customer_name }} 👋\n\n🔔 *Bugün rezervasyonunuz var!*\n🍽️ *{{ $('Değişkenleri Hazırla').item.json.restaurant_name }}*\n\n🕐 Saat: {{ $('Değişkenleri Hazırla').item.json.time }}\n👥 {{ $('Değişkenleri Hazırla').item.json.party_size }} kişi\n\n📍 Konum: {{ $('Değişkenleri Hazırla').item.json.maps_url }}\n❌ İptal: {{ $('Değişkenleri Hazırla').item.json.cancel_url }}\n\nGörüşmek üzere! 😊"
+      },
+      "id": "dal-b-whatsapp-hatirlatma",
+      "name": "Dal B — WhatsApp Hatırlatma",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [1120, 420],
+      "credentials": {
+        "twilioApi": {
+          "id": "twilio-credentials",
+          "name": "Twilio API"
+        }
+      },
+      "notes": "Rezervasyondan 4 saat önce gönderilir.\nMesajda: Konum linki + İptal linki var."
+    },
+
+    {
+      "parameters": {
+        "errorMessage": "WhatsApp gönderilemedi: {{ $json.error }}"
+      },
+      "id": "hata-yakalama",
+      "name": "Hata Yakala",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [1120, 160],
+      "notes": "Twilio hatası durumunda workflow durur.\nn8n üzerinden e-posta/Slack bildirimi ayarlayabilirsin."
+    }
+  ],
+
+  "connections": {
+    "Rezervasyon Webhook": {
+      "main": [
+        [
+          { "node": "Webhook Yanıtı", "type": "main", "index": 0 },
+          { "node": "Değişkenleri Hazırla", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Değişkenleri Hazırla": {
+      "main": [
+        [
+          { "node": "Dal A — WhatsApp Onay", "type": "main", "index": 0 },
+          { "node": "Dal B — Rezervasyondan 4 Saat Önce Bekle", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Dal B — Rezervasyondan 4 Saat Önce Bekle": {
+      "main": [
+        [{ "node": "Dal B — WhatsApp Hatırlatma", "type": "main", "index": 0 }]
+      ]
+    },
+    "Dal A — WhatsApp Onay": {
+      "main": [
+        [{ "node": "Hata Yakala", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+
+  "staticData": null,
+  "tags": ["checkrezerve", "whatsapp", "rezervasyon"],
+  "triggerCount": 1,
+  "updatedAt": "2026-04-10T00:00:00.000Z",
+  "versionId": "1"
+}
