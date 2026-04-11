@@ -1,0 +1,59 @@
+name: VPS Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: VPS'e bağlan ve deploy et
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_KEY }}
+          port:     22
+          timeout:  10m
+          script: |
+            set -e
+            cd /opt/checkrezerve
+
+            echo "→ Kod çekiliyor..."
+            git pull --ff-only origin main
+
+            echo "→ .env güncelleniyor..."
+            # Env değişkenleri /opt/checkrezerve/.env dosyasında kalıcı tutulur
+            # GitHub secret'lardan kritik değerleri senkronize et
+            sed -i "s|^CRON_SECRET=.*|CRON_SECRET=${{ secrets.CRON_SECRET }}|" .env || \
+              echo "CRON_SECRET=${{ secrets.CRON_SECRET }}" >> .env
+
+            echo "→ Docker imajı build ediliyor..."
+            docker compose build --no-cache app
+
+            echo "→ Servisler yeniden başlatılıyor..."
+            docker compose up -d --remove-orphans
+
+            echo "→ Sağlık kontrolü..."
+            for i in $(seq 1 12); do
+              if docker exec checkrezerve-app wget -qO- http://localhost:3000/api/health >/dev/null 2>&1; then
+                echo "✓ Uygulama hazır!"
+                break
+              fi
+              sleep 5
+              if [ "$i" -eq 12 ]; then
+                echo "✗ Uygulama 60 saniyede ayağa kalkmadı"
+                docker logs --tail=50 checkrezerve-app
+                exit 1
+              fi
+            done
+
+            echo "→ Çalışan servisler:"
+            docker compose ps
+
+            echo "✓ Deploy tamamlandı: $(date '+%Y-%m-%d %H:%M:%S')"

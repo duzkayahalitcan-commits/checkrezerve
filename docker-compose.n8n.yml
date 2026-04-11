@@ -1,0 +1,116 @@
+version: "3.9"
+
+# n8n ayrı bir compose stack'te çalışır
+# Başlatma: docker compose -f docker-compose.n8n.yml up -d
+# Ana uygulama ile aynı "app-net" external ağını paylaşır
+
+networks:
+  app-net:
+    external: true   # checkrezerve ana stack tarafından oluşturulur
+
+volumes:
+  n8n-data:
+  n8n-postgres:
+  n8n-redis:
+
+services:
+
+  n8n-postgres:
+    image: postgres:16-alpine
+    container_name: n8n-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       n8n
+      POSTGRES_USER:     n8n
+      POSTGRES_PASSWORD: ${N8N_DB_PASSWORD:-n8npassword}
+    volumes:
+      - n8n-postgres:/var/lib/postgresql/data
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  n8n-redis:
+    image: redis:7-alpine
+    container_name: n8n-redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    networks:
+      - app-net
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"          # Sadece güvenli IP'den erişilmeli (UFW ile kısıtla)
+    environment:
+      # Temel
+      N8N_HOST:             ${N8N_HOST:-localhost}
+      N8N_PORT:             5678
+      N8N_PROTOCOL:         https
+      WEBHOOK_URL:          ${N8N_WEBHOOK_URL:-https://n8n.checkrezerve.com}
+      N8N_EDITOR_BASE_URL:  ${N8N_WEBHOOK_URL:-https://n8n.checkrezerve.com}
+
+      # Veritabanı
+      DB_TYPE:              postgresdb
+      DB_POSTGRESDB_HOST:   n8n-postgres
+      DB_POSTGRESDB_PORT:   5432
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER:   n8n
+      DB_POSTGRESDB_PASSWORD: ${N8N_DB_PASSWORD:-n8npassword}
+
+      # Queue modu (Railway'deki gibi — WebSocket yerine SSE)
+      EXECUTIONS_MODE:      queue
+      QUEUE_BULL_REDIS_HOST: n8n-redis
+      QUEUE_BULL_REDIS_PORT: 6379
+      N8N_PUSH_BACKEND:     sse
+
+      # Güvenlik
+      N8N_BASIC_AUTH_ACTIVE:   false   # Subdomain arkasında reverse proxy auth yeterli
+      N8N_ENCRYPTION_KEY:      ${N8N_ENCRYPTION_KEY}
+
+      # Genel
+      GENERIC_TIMEZONE:     Europe/Istanbul
+      TZ:                   Europe/Istanbul
+      N8N_LOG_LEVEL:        info
+
+    volumes:
+      - n8n-data:/home/node/.n8n
+    networks:
+      - app-net
+    depends_on:
+      n8n-postgres:
+        condition: service_healthy
+      n8n-redis:
+        condition: service_started
+
+  n8n-worker:
+    image: n8nio/n8n:latest
+    container_name: n8n-worker
+    restart: unless-stopped
+    command: worker
+    environment:
+      DB_TYPE:              postgresdb
+      DB_POSTGRESDB_HOST:   n8n-postgres
+      DB_POSTGRESDB_PORT:   5432
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER:   n8n
+      DB_POSTGRESDB_PASSWORD: ${N8N_DB_PASSWORD:-n8npassword}
+      EXECUTIONS_MODE:      queue
+      QUEUE_BULL_REDIS_HOST: n8n-redis
+      QUEUE_BULL_REDIS_PORT: 6379
+      N8N_ENCRYPTION_KEY:   ${N8N_ENCRYPTION_KEY}
+      GENERIC_TIMEZONE:     Europe/Istanbul
+      TZ:                   Europe/Istanbul
+    volumes:
+      - n8n-data:/home/node/.n8n
+    networks:
+      - app-net
+    depends_on:
+      - n8n
+      - n8n-redis
+      - n8n-postgres
