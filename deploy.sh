@@ -54,10 +54,11 @@ if [ "$INIT_SSL" = true ]; then
 
   sleep 3
 
-  # Certbot ile sertifika al
-  log "Let's Encrypt sertifikası alınıyor: $DOMAIN"
+  # Certbot ile sertifika al (compose volume ismine dikkat: proje_prefix + certbot-conf)
+  CERTBOT_VOL="${COMPOSE_PROJECT_NAME:-checkrezerve}_certbot-conf"
+  log "Let's Encrypt sertifikası alınıyor: $DOMAIN (volume: $CERTBOT_VOL)"
   docker run --rm \
-    -v "certbot-conf:/etc/letsencrypt" \
+    -v "${CERTBOT_VOL}:/etc/letsencrypt" \
     -v "certbot-www:/var/www/certbot" \
     certbot/certbot certonly \
       --webroot \
@@ -69,7 +70,7 @@ if [ "$INIT_SSL" = true ]; then
       -d "www.$DOMAIN"
 
   # Geçici nginx'i durdur
-  docker stop nginx-init || true
+  docker stop nginx-init 2>/dev/null || true
   log "SSL sertifikası başarıyla alındı."
 fi
 
