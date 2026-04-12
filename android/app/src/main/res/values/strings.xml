@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CheckRezerve</string>
+    <string name="title_activity_main">CheckRezerve</string>
+    <string name="package_name">com.checkrezerve.app</string>
+    <string name="custom_url_scheme">com.checkrezerve.app</string>
+</resources>
