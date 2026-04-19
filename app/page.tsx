@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { PricingToggle } from './PricingToggle'
+import DemoCarousel from '../components/DemoCarousel'
 
 export const metadata: Metadata = {
   title: 'checkrezerve — Akıllı Randevu & Rezervasyon Sistemi',
@@ -24,16 +25,95 @@ export const metadata: Metadata = {
   },
 }
 
+// ─── Sector SVG icons ─────────────────────────────────────────────────────────
+const IconUtensils = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/>
+    <path d="M7 2v20"/>
+    <path d="M21 15V2a5 5 0 0 0-5 5v6h4v7"/>
+  </svg>
+)
+
+const IconScissors = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="6" cy="6" r="3"/>
+    <circle cx="6" cy="18" r="3"/>
+    <line x1="20" y1="4" x2="8.12" y2="15.88"/>
+    <line x1="14.47" y1="14.48" x2="20" y2="20"/>
+    <line x1="8.12" y1="8.12" x2="12" y2="12"/>
+  </svg>
+)
+
+const IconComb = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 2h14a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/>
+    <path d="M8 7v13"/>
+    <path d="M12 7v13"/>
+    <path d="M16 7v13"/>
+  </svg>
+)
+
+const IconBrain = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.24Z"/>
+    <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.24Z"/>
+  </svg>
+)
+
+const IconLeaf = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/>
+    <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+  </svg>
+)
+
+const IconSparkles = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+    <path d="M20 3v4M22 5h-4M4 17v2M5 18H3"/>
+  </svg>
+)
+
+const IconTooth = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 5.5C12 3.6 10.4 2 8.5 2S5 3.6 5 5.5c0 .7.2 1.3.5 1.8L6 9c.5 2 .5 4.5.5 5.5 0 2.5.7 4.5 2 4.5s1.5-1 2-1.5.7-1.5 1.5-1.5 1 1 1.5 1.5 1 1.5 2 1.5 2-2 2-4.5c0-1 0-3.5.5-5.5l.5-1.7c.3-.5.5-1.1.5-1.8C21 3.6 19.4 2 17.5 2S14 3.6 14 5.5"/>
+    <path d="M12 5.5v3"/>
+  </svg>
+)
+
+const IconDumbbell = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6.5 6.5h11"/>
+    <path d="M6.5 17.5h11"/>
+    <path d="M12 6.5v11"/>
+    <rect x="4" y="5" width="3" height="14" rx="1.5"/>
+    <rect x="17" y="5" width="3" height="14" rx="1.5"/>
+    <rect x="2" y="8" width="2" height="8" rx="1"/>
+    <rect x="20" y="8" width="2" height="8" rx="1"/>
+  </svg>
+)
+
+const IconPaw = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="4" r="2"/>
+    <circle cx="18" cy="8" r="2"/>
+    <circle cx="20" cy="16" r="2"/>
+    <circle cx="4" cy="16" r="2"/>
+    <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/>
+  </svg>
+)
+// ─────────────────────────────────────────────────────────────────────────────
+
 const SECTORS = [
-  { icon: '🍽️', label: 'Restoran',   color: 'bg-orange-50  text-orange-600  border-orange-100'  },
-  { icon: '✂️', label: 'Berber',     color: 'bg-blue-50    text-blue-600    border-blue-100'    },
-  { icon: '💇', label: 'Kuaför',     color: 'bg-pink-50    text-pink-600    border-pink-100'    },
-  { icon: '🧠', label: 'Psikolog',   color: 'bg-purple-50  text-purple-600  border-purple-100'  },
-  { icon: '💆', label: 'Spa',        color: 'bg-teal-50    text-teal-600    border-teal-100'    },
-  { icon: '💅', label: 'Güzellik',   color: 'bg-rose-50    text-rose-600    border-rose-100'    },
-  { icon: '🦷', label: 'Diş Hekimi', color: 'bg-sky-50     text-sky-600     border-sky-100'     },
-  { icon: '🏋️', label: 'Fitness',    color: 'bg-green-50   text-green-600   border-green-100'   },
-  { icon: '🐾', label: 'Veteriner',  color: 'bg-amber-50   text-amber-600   border-amber-100'   },
+  { icon: <IconUtensils className="w-7 h-7" />, label: 'Restoran',   color: 'bg-orange-50  text-orange-600  border-orange-100'  },
+  { icon: <IconScissors className="w-7 h-7" />, label: 'Berber',     color: 'bg-blue-50    text-blue-600    border-blue-100'    },
+  { icon: <IconComb     className="w-7 h-7" />, label: 'Kuaför',     color: 'bg-pink-50    text-pink-600    border-pink-100'    },
+  { icon: <IconBrain    className="w-7 h-7" />, label: 'Psikolog',   color: 'bg-purple-50  text-purple-600  border-purple-100'  },
+  { icon: <IconLeaf     className="w-7 h-7" />, label: 'Spa',        color: 'bg-teal-50    text-teal-600    border-teal-100'    },
+  { icon: <IconSparkles className="w-7 h-7" />, label: 'Güzellik',   color: 'bg-rose-50    text-rose-600    border-rose-100'    },
+  { icon: <IconTooth    className="w-7 h-7" />, label: 'Diş Hekimi', color: 'bg-sky-50     text-sky-600     border-sky-100'     },
+  { icon: <IconDumbbell className="w-7 h-7" />, label: 'Fitness',    color: 'bg-green-50   text-green-600   border-green-100'   },
+  { icon: <IconPaw      className="w-7 h-7" />, label: 'Veteriner',  color: 'bg-amber-50   text-amber-600   border-amber-100'   },
 ]
 
 const FEATURES = [
@@ -80,19 +160,22 @@ const TESTIMONIALS = [
     quote: 'Müşterilerime artık "sizi arayacağım" demiyorum. Link gönderiyorum, randevu geliyor. Çok pratik.',
     name: 'Hüseyin K.',
     business: 'HK Berber, Kadıköy',
-    icon: '✂️',
+    icon: <IconScissors className="w-5 h-5" />,
+    iconBg: 'bg-blue-500/20 text-blue-300',
   },
   {
     quote: 'Seans saatini unutan danışan yoktu artık. WhatsApp hatırlatması hayat kurtarıyor.',
     name: 'Dr. Elif T.',
     business: 'Psikoloji Danışmanlık, Ankara',
-    icon: '🧠',
+    icon: <IconBrain className="w-5 h-5" />,
+    iconBg: 'bg-purple-500/20 text-purple-300',
   },
   {
     quote: 'Hafta sonu cam kenarı masalarımız hep doluyordu ama bilmiyorduk. Artık ayrı takip ediyoruz.',
     name: 'Mehmet A.',
     business: 'Bosphorus Restaurant, İstanbul',
-    icon: '🍽️',
+    icon: <IconUtensils className="w-5 h-5" />,
+    iconBg: 'bg-orange-500/20 text-orange-300',
   },
 ]
 
@@ -169,7 +252,7 @@ export default function HomePage() {
               className="w-full sm:w-auto rounded-full border border-zinc-200 px-8 py-4 text-sm
                          font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
             >
-              Canlı Demo'yu Gör
+              Canlı Demo&apos;yu Gör
             </a>
           </div>
 
@@ -242,7 +325,7 @@ export default function HomePage() {
                 className={`flex flex-col items-center gap-2 rounded-2xl border p-4 cursor-default
                             hover:-translate-y-0.5 hover:shadow-sm transition-all ${color}`}
               >
-                <span className="text-2xl">{icon}</span>
+                <div className="w-7 h-7 flex items-center justify-center">{icon}</div>
                 <span className="text-[11px] font-medium text-center leading-tight">{label}</span>
               </div>
             ))}
@@ -252,23 +335,28 @@ export default function HomePage() {
           <div className="mt-12 grid sm:grid-cols-3 gap-5">
             {[
               {
-                icon: '🍽️',
+                icon: <IconUtensils className="w-5 h-5" />,
+                iconBg: 'bg-orange-50 text-orange-600',
                 title: 'Restoran & Kafe',
                 items: ['Masa & kişi sayısı', 'Cam kenarı / VIP alan takibi', 'Özel gün notu'],
               },
               {
-                icon: '✂️',
+                icon: <IconScissors className="w-5 h-5" />,
+                iconBg: 'bg-blue-50 text-blue-600',
                 title: 'Berber & Kuaför',
                 items: ['Hizmet seçimi (kesim, boyama…)', 'Usta/personel tercih', 'Seans süresi otomatik'],
               },
               {
-                icon: '🧠',
+                icon: <IconBrain className="w-5 h-5" />,
+                iconBg: 'bg-purple-50 text-purple-600',
                 title: 'Psikolog & Terapist',
                 items: ['Seans türü seçimi', '50/60/90 dk seans planı', 'Gizlilik ön plana, KVKK uyumlu'],
               },
-            ].map(({ icon, title, items }) => (
+            ].map(({ icon, iconBg, title, items }) => (
               <div key={title} className="rounded-2xl bg-white border border-zinc-100 p-6 hover:border-zinc-200 transition-all">
-                <div className="text-3xl mb-3">{icon}</div>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${iconBg}`}>
+                  {icon}
+                </div>
                 <h3 className="font-semibold text-zinc-900 mb-3">{title}</h3>
                 <ul className="flex flex-col gap-2">
                   {items.map(item => (
@@ -284,60 +372,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Canlı Mockup ────────────────────────────────────────────── */}
+      {/* ── Demo Carousel ───────────────────────────────────────────── */}
       <section className="py-20 px-6">
-        <div className="mx-auto max-w-sm sm:max-w-md">
-          <div className="rounded-3xl border border-zinc-200 bg-gradient-to-b from-zinc-50 to-white
-                          p-6 shadow-2xl shadow-zinc-900/5">
-            <div className="flex items-center gap-1.5 mb-5 pb-4 border-b border-zinc-100">
-              <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
-              <div className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
-              <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
-              <div className="ml-2 flex-1 rounded-full bg-zinc-100 px-3 py-1 text-[10px] text-zinc-400 font-mono">
-                checkrezerve.com/isyeriniz
-              </div>
-            </div>
-            <div className="flex flex-col gap-4">
-              <div>
-                <p className="text-base font-bold text-zinc-900">Elit Kuaför Salonu</p>
-                <p className="text-xs text-zinc-400 mt-0.5">Nişantaşı, İstanbul</p>
-              </div>
-              {/* Hizmet seçimi */}
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-medium text-zinc-500">Hizmet Seçin</span>
-                <div className="flex gap-2 flex-wrap">
-                  <div className="rounded-lg border-2 border-amber-400 bg-amber-50 px-2.5 py-2 text-xs text-amber-700 font-medium">
-                    Saç Kesimi · 45 dk
-                  </div>
-                  <div className="rounded-lg border border-zinc-200 bg-white px-2.5 py-2 text-xs text-zinc-400">
-                    Boya · 90 dk
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: 'Ad Soyad', placeholder: 'Zeynep Kaya'   },
-                  { label: 'Telefon',  placeholder: '0532 000 00 00' },
-                  { label: 'Tarih',    placeholder: '12.04.2026'     },
-                  { label: 'Saat',     placeholder: '14:30'          },
-                ].map(({ label, placeholder }) => (
-                  <div key={label} className="flex flex-col gap-1">
-                    <span className="text-[10px] font-medium text-zinc-500">{label}</span>
-                    <div className="rounded-lg border border-zinc-200 bg-white px-2.5 py-2 text-xs text-zinc-400">
-                      {placeholder}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="rounded-xl bg-zinc-900 py-3 text-center text-xs font-semibold text-white">
-                Randevu Al
-              </div>
-            </div>
-          </div>
-          <p className="text-center text-xs text-zinc-400 mt-4">
-            Gerçek randevu formu böyle görünür
-          </p>
-        </div>
+        <DemoCarousel />
       </section>
 
       {/* ── Özellikler ──────────────────────────────────────────────── */}
@@ -504,7 +541,9 @@ export default function HomePage() {
           <div className="w-full sm:w-80 flex-shrink-0">
             <div className="bg-[#ECE5DD] rounded-3xl p-4 space-y-3">
               <div className="flex items-center gap-2 bg-[#075E54] rounded-2xl px-3 py-2">
-                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-sm">✂️</div>
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                  <IconScissors className="w-4 h-4 text-white" />
+                </div>
                 <div>
                   <div className="text-xs font-semibold text-white">Elit Kuaför Salonu</div>
                   <div className="text-[10px] text-white/70">checkrezerve</div>
@@ -544,10 +583,12 @@ export default function HomePage() {
         <div className="mx-auto max-w-5xl">
           <h2 className="text-3xl font-bold text-center mb-12">İşletmeler ne diyor?</h2>
           <div className="grid sm:grid-cols-3 gap-6">
-            {TESTIMONIALS.map(({ quote, name, business, icon }) => (
+            {TESTIMONIALS.map(({ quote, name, business, icon, iconBg }) => (
               <div key={name} className="flex flex-col gap-4 rounded-2xl bg-white/5 border border-white/10 p-6">
-                <span className="text-3xl">{icon}</span>
-                <span className="text-amber-400 text-2xl -mt-2">"</span>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBg}`}>
+                  {icon}
+                </div>
+                <span className="text-amber-400 text-2xl -mt-2">&ldquo;</span>
                 <p className="text-sm text-zinc-300 leading-relaxed">{quote}</p>
                 <div className="mt-auto pt-4 border-t border-white/10">
                   <p className="text-sm font-semibold text-white">{name}</p>
@@ -566,8 +607,6 @@ export default function HomePage() {
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">Şeffaf fiyatlandırma</h2>
             <p className="text-zinc-500">Komisyon yok. Saklı ücret yok. İşletmenizin ölçeğine göre seçin.</p>
           </div>
-
-          {/* Yıllık / Aylık toggle */}
           <PricingToggle />
         </div>
       </section>
@@ -628,4 +667,3 @@ export default function HomePage() {
     </div>
   )
 }
-
