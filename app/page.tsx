@@ -578,6 +578,77 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── Müşteriler için ─────────────────────────────────────────── */}
+      <section className="py-24 px-6 bg-zinc-50">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center mb-14">
+            <span className="text-xs font-semibold uppercase tracking-widest text-amber-600">
+              Müşteriler İçin
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold mt-3 mb-4">
+              Rezervasyon artık 3 adımda.
+            </h2>
+            <p className="text-zinc-500 max-w-xl mx-auto">
+              Arama, seçme, onay. Telefon görüşmesi yok, bekleme yok.
+              Tüm işletmeler tek uygulamada.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-6 mb-16">
+            {[
+              {
+                step: '1',
+                emoji: '🔍',
+                title: 'İşletme Bul',
+                desc: 'Restoran, berber, spa veya psikolog — şehirdeki tüm işletmeleri göz at, filtrele, karşılaştır.',
+              },
+              {
+                step: '2',
+                emoji: '📅',
+                title: 'Tarih & Saat Seç',
+                desc: 'Müsait slotlar anlık güncellenir. Dolu saatler gri, boş saatler yeşil — kafa karışıklığı yok.',
+              },
+              {
+                step: '3',
+                emoji: '✅',
+                title: 'Onayla & Git',
+                desc: 'Rezervasyonunuz anında onaylanır, SMS ile bilgilendirilirsiniz. Randevularınızı uygulama üzerinden takip edin.',
+              },
+            ].map(({ step, emoji, title, desc }) => (
+              <div key={step} className="flex flex-col gap-4 rounded-2xl bg-white border border-zinc-100 p-6 hover:border-zinc-200 hover:shadow-sm transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-white">{step}</span>
+                  </div>
+                  <span className="text-2xl">{emoji}</span>
+                </div>
+                <h3 className="font-semibold text-zinc-900">{title}</h3>
+                <p className="text-sm text-zinc-500 leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-3xl bg-gradient-to-br from-amber-500 to-orange-500 p-8 sm:p-12 text-center text-white">
+            <div className="text-4xl mb-4">📱</div>
+            <h3 className="text-2xl sm:text-3xl font-bold mb-3">
+              Uygulama yakında App Store&apos;da
+            </h3>
+            <p className="text-white/80 max-w-md mx-auto mb-6 leading-relaxed">
+              iOS ve Android için checkrezerve uygulaması — tüm randevularınız tek yerde,
+              SMS bildirim, geçmiş görüntüleme ve iptal hepsi dahil.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <div className="rounded-2xl bg-black/30 border border-white/20 px-6 py-3 text-sm font-semibold backdrop-blur-sm cursor-default">
+                🍎 App Store — Yakında
+              </div>
+              <div className="rounded-2xl bg-black/30 border border-white/20 px-6 py-3 text-sm font-semibold backdrop-blur-sm cursor-default">
+                🤖 Google Play — Yakında
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Referanslar ─────────────────────────────────────────────── */}
       <section className="py-24 px-6 bg-zinc-900 text-white">
         <div className="mx-auto max-w-5xl">
