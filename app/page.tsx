@@ -101,7 +101,7 @@ export default function HomePage() {
       <MarketingHeader />
 
       {/* ── Hero ── */}
-      <section className="pt-24 pb-24 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800 text-white">
+      <section className="pt-24 pb-24 text-white relative" style={{backgroundImage:"linear-gradient(135deg,rgba(10,14,20,0.90) 0%,rgba(13,110,110,0.70) 100%),url('/hero-restaurant.jpg')",backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="mx-auto max-w-5xl px-6 text-center">
           <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/30 rounded-full px-4 py-1.5 text-sm mb-8 text-red-300 font-medium">
             Randevu &amp; Rezervasyon Yönetimi
