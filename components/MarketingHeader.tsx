@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 const NAV_LINKS = [
   { href: '/ozellikler',        label: 'Özellikler' },
@@ -19,9 +20,7 @@ export default function MarketingHeader() {
       <div className="mx-auto max-w-7xl flex items-center justify-between px-6 h-16">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group flex-shrink-0">
-          <div className="w-8 h-8 rounded-xl bg-red-600 flex items-center justify-center shadow-sm group-hover:bg-red-700 transition-colors">
-            <span className="text-white text-xs font-bold">CR</span>
-          </div>
+          <Image src="/logo-icon.png" alt="CheckRezerve" width={36} height={36} className="rounded-xl" priority />
           <span className="text-base font-bold tracking-tight text-zinc-900">CheckRezerve</span>
         </Link>
 

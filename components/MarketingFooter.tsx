@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function MarketingFooter() {
   return (
@@ -8,9 +9,7 @@ export default function MarketingFooter() {
 
           <div>
             <div className="flex items-center gap-2 mb-5">
-              <div className="w-8 h-8 rounded-xl bg-red-600 flex items-center justify-center">
-                <span className="text-white text-xs font-bold">CR</span>
-              </div>
+              <Image src="/logo-icon.png" alt="CheckRezerve" width={32} height={32} className="rounded-xl brightness-0 invert" />
               <span className="text-base font-bold">CheckRezerve</span>
             </div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-3">CheckRezerve Hakkında</h3>

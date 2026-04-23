@@ -9,26 +9,37 @@ const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin']
 export const metadata: Metadata = {
   metadataBase: new URL('https://checkrezerve.com'),
   title: {
-    default: 'checkrezerve — Restoran Rezervasyon Sistemi',
-    template: '%s | checkrezerve',
+    default: 'CheckRezerve — Randevu & Rezervasyon Yönetim Sistemi',
+    template: '%s | CheckRezerve',
   },
   description:
-    'Restoranınız için akıllı rezervasyon yönetimi. Tek link ile rezervasyon alın, mükerrer kayıtları engelleyin, müşterilerinizi yönetin.',
-  keywords: ['restoran rezervasyon', 'online rezervasyon', 'masa rezervasyonu', 'checkrezerve'],
-  authors: [{ name: 'checkrezerve' }],
-  creator: 'checkrezerve',
+    'Restoranlar, spalar ve oteller için yapay zeka destekli rezervasyon platformu. Doluluk oranınızı artırın, gelir kaybını önleyin. Komisyon yok.',
+  keywords: ['restoran rezervasyon', 'online rezervasyon', 'masa rezervasyonu', 'randevu sistemi', 'checkrezerve'],
+  authors: [{ name: 'CheckRezerve' }],
+  creator: 'CheckRezerve',
+  icons: {
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    shortcut: '/favicon-32x32.png',
+  },
   openGraph: {
     type: 'website',
     locale: 'tr_TR',
     url: 'https://checkrezerve.com',
-    siteName: 'checkrezerve',
-    title: 'checkrezerve — Restoran Rezervasyon Sistemi',
-    description: 'Restoranınız için akıllı rezervasyon yönetimi.',
+    siteName: 'CheckRezerve',
+    title: 'CheckRezerve — Akıllı Rezervasyon Yönetimi',
+    description: 'Restoranlar, spalar ve oteller için yapay zeka destekli rezervasyon platformu.',
+    images: [{ url: '/logo.png', width: 900, height: 900, alt: 'CheckRezerve Logo' }],
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'checkrezerve',
-    description: 'Restoranınız için akıllı rezervasyon yönetimi.',
+    card: 'summary',
+    title: 'CheckRezerve',
+    description: 'Restoranlar, spalar ve oteller için yapay zeka destekli rezervasyon platformu.',
+    images: ['/logo.png'],
   },
   appleWebApp: {
     capable: true,
@@ -88,7 +99,7 @@ export const viewport: Viewport = {
   userScalable: false,
   // Açık sayfalarda amber, admin/panel sayfalarında koyu
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f59e0b' },
+    { media: '(prefers-color-scheme: light)', color: '#dc2626' },
     { media: '(prefers-color-scheme: dark)',  color: '#18181b' },
   ],
   viewportFit: 'cover', // iPhone notch/Dynamic Island için
