@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import LegalSidebar from '@/components/LegalSidebar'
 
 type YanıtYontemi = 'adres' | 'eposta' | 'elden' | ''
 type IliskiTipi =
@@ -88,8 +89,8 @@ export default function KvkkBasvuruPage() {
     return (
       <main className="min-h-screen bg-white flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-5">
-            <svg className="w-8 h-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-5">
+            <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
@@ -97,7 +98,7 @@ export default function KvkkBasvuruPage() {
           <p className="text-zinc-500 text-sm mb-6">
             KVKK kapsamındaki talebiniz başarıyla iletildi. 30 gün içinde yanıtlanacaktır.
           </p>
-          <Link href="/" className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors">
+          <Link href="/" className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors">
             Ana Sayfaya Dön
           </Link>
         </div>
@@ -105,19 +106,23 @@ export default function KvkkBasvuruPage() {
     )
   }
 
-  const inputCls = "w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+  const inputCls = "w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
   const labelCls = "block text-xs font-semibold text-zinc-500 mb-1.5"
   const sectionCls = "mb-8"
   const sectionTitleCls = "text-base font-bold text-zinc-900 mb-4 pb-2 border-b border-zinc-100"
 
   return (
-    <main className="min-h-screen bg-zinc-50 px-4 py-12">
-      <div className="max-w-2xl mx-auto">
+    <main className="min-h-screen bg-zinc-50 px-4 py-16">
+      <div className="mx-auto max-w-6xl">
         <div className="mb-8">
-          <Link href="/" className="text-sm text-emerald-700 hover:underline">← Ana Sayfa</Link>
+          <Link href="/" className="text-sm text-red-600 hover:underline">← Ana Sayfa</Link>
         </div>
 
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 mb-8 text-sm text-emerald-800">
+        <div className="flex flex-col lg:flex-row gap-10">
+          <LegalSidebar activePath="/kvkk-basvuru" />
+
+          <div className="flex-1 min-w-0">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-5 mb-8 text-sm text-red-800">
           <strong>Bilgi:</strong> Bu form, 6698 sayılı KVKK&apos;nın 11. maddesinde sayılan
           haklarınızı kullanmak amacıyla CheckRezerve Teknoloji&apos;ye başvuruda bulunmanızı
           sağlar. Talebiniz <strong>30 gün</strong> içinde yanıtlanacaktır.
@@ -178,7 +183,7 @@ export default function KvkkBasvuruPage() {
                     value={opt.val}
                     checked={form.iliskiTipi === opt.val}
                     onChange={e => setForm(prev => ({ ...prev, iliskiTipi: e.target.value as IliskiTipi }))}
-                    className="accent-emerald-600"
+                    className="accent-red-600"
                   />
                   <span className="text-sm text-zinc-700">{opt.label}</span>
                 </label>
@@ -242,7 +247,7 @@ export default function KvkkBasvuruPage() {
                     value={opt.val}
                     checked={form.yanıtYontemi === opt.val}
                     onChange={e => setForm(prev => ({ ...prev, yanıtYontemi: e.target.value as YanıtYontemi }))}
-                    className="accent-emerald-600"
+                    className="accent-red-600"
                   />
                   <span className="text-sm text-zinc-700">{opt.label}</span>
                 </label>
@@ -259,17 +264,19 @@ export default function KvkkBasvuruPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-semibold py-3.5 rounded-xl text-sm transition-colors shadow-sm"
+            className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-semibold py-3.5 rounded-xl text-sm transition-colors shadow-sm"
           >
             {submitting ? 'Gönderiliyor...' : 'Başvuruyu Gönder'}
           </button>
 
           <p className="text-xs text-zinc-400 text-center">
             Başvurunuz 30 gün içinde yanıtlanacaktır.{' '}
-            <Link href="/kvkk" className="text-emerald-700 hover:underline">KVKK Politikamızı</Link>{' '}
+            <Link href="/kvkk" className="text-red-600 hover:underline">KVKK Politikamızı</Link>{' '}
             okuyabilirsiniz.
           </p>
         </form>
+          </div>
+        </div>
       </div>
     </main>
   )

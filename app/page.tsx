@@ -1,384 +1,305 @@
-'use client'
-import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '@/lib/supabase'
-import CustomerHeader from '@/components/CustomerHeader'
+import type { Metadata } from 'next'
 import Link from 'next/link'
+import MarketingHeader from '@/components/MarketingHeader'
+import { PricingToggle } from './PricingToggle'
+import FAQSection from './FAQSection'
 
-const CATEGORIES = [
-  { value: 'berber',          label: 'Berber',   icon: '💈' },
-  { value: 'kuafor',          label: 'Kuaför',   icon: '✂️' },
-  { value: 'guzellik_salonu', label: 'Güzellik', icon: '💅' },
-  { value: 'spa',             label: 'Spa',      icon: '🧖' },
-  { value: 'restoran',        label: 'Restoran', icon: '🍽️' },
-  { value: 'kafe',            label: 'Kafe',     icon: '☕' },
-  { value: 'bar',             label: 'Bar',      icon: '🍸' },
-  { value: 'diger',           label: 'Diğer',    icon: '🏪' },
-]
-
-const KAT_LABEL: Record<string, string> = {
-  berber: 'Berber', kuafor: 'Kuaför', guzellik_salonu: 'Güzellik Salonu',
-  spa: 'Spa', restoran: 'Restoran', kafe: 'Kafe', bar: 'Bar', diger: 'Diğer',
-}
-const KAT_ICON: Record<string, string> = {
-  berber: '💈', kuafor: '✂️', guzellik_salonu: '💅',
-  spa: '🧖', restoran: '🍽️', kafe: '☕', bar: '🍸', diger: '🏪',
-}
-const KAT_GRADIENT: Record<string, string> = {
-  berber: 'from-blue-900 to-blue-800',
-  kuafor: 'from-pink-900 to-rose-800',
-  guzellik_salonu: 'from-rose-900 to-pink-800',
-  spa: 'from-teal-900 to-emerald-800',
-  restoran: 'from-orange-900 to-amber-800',
-  kafe: 'from-amber-900 to-yellow-800',
-  bar: 'from-purple-900 to-violet-800',
-  diger: 'from-zinc-800 to-zinc-700',
+export const metadata: Metadata = {
+  title: 'CheckRezerve — Yeni Nesil Restoran Rezervasyon Altyapısı',
+  description:
+    'Rezervasyonlarınızı kontrol altına alın. No-show ve iptalleri azaltın, gelir kaybını durdurun. Komisyon yok.',
 }
 
-interface Business {
-  id: string
-  name: string
-  kategori: string | null
-  address: string | null
-  slug: string
-}
-
-const PLACEHOLDER_CARDS = [
-  { icon: '💈', label: 'Berber', city: 'İstanbul · Kadıköy' },
-  { icon: '✂️', label: 'Kuaför', city: 'İstanbul · Beşiktaş' },
-  { icon: '🧖', label: 'Spa',    city: 'İstanbul · Şişli' },
+const FEATURES = [
+  {
+    icon: '📅',
+    title: 'Rezervasyon Yönetimi',
+    desc: 'Kolay ve hızlı rezervasyon oluşturma, düzenleme ve iptal işlemleri. Tek sayfadan tüm rezervasyonlarınızı yönetin.',
+  },
+  {
+    icon: '💳',
+    title: 'Ön Provizyon / Ön Ödeme Alma',
+    desc: 'Rezervasyon sırasında ön ödeme alarak iptal riskini minimize edin. Güvenli ödeme entegrasyonları ile sorunsuz işlem yapın. Yerli ve yabancı tüm kredi kartlarından provizyon veya ödeme alabilirsiniz. Tüm işlemler 3D Secure sistemi ile gerçekleştirilir.',
+  },
+  {
+    icon: '⭐',
+    title: 'Deneyim Anketi Gönderimi',
+    desc: 'Müşteri deneyimini ölçmek ve geri bildirim toplamak için otomatik anket gönderimi. Müşteri memnuniyetini artırın.',
+  },
+  {
+    icon: '🗺️',
+    title: 'Masa ve Alan Yönetimi',
+    desc: 'Müşterileriniz masa ve alan seçimi yaparak rezervasyon oluşturabilir. Kroki üzerinden müşterinin oturacağı masa otomatik atanır.',
+  },
+  {
+    icon: '🚫',
+    title: 'Kara Liste Yönetimi',
+    desc: 'Daha önce iptal yapan veya gelmeyen müşterileri kolayca engelleyebilirsiniz. No-show oranlarını düşürün.',
+  },
+  {
+    icon: '📊',
+    title: 'Raporlama ve Analitik',
+    desc: 'Detaylı raporlar ve analizler ile işletmenizin performansını takip edin. Gelişmiş raporlama araçlarıyla doğru kararlar alın.',
+  },
 ]
 
 export default function HomePage() {
-  const [businesses, setBusinesses] = useState<Business[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [activeKat, setActiveKat] = useState<string | null>(null)
-  const [favorites, setFavorites] = useState<Set<string>>(new Set())
-  const [userId, setUserId] = useState<string | null>(null)
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUserId(session?.user?.id ?? null)
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUserId(session?.user?.id ?? null)
-    })
-    return () => subscription.unsubscribe()
-  }, [])
-
-  useEffect(() => {
-    supabase
-      .from('restaurants')
-      .select('id, name, kategori, address, slug')
-      .eq('is_active', true)
-      .order('name')
-      .then(({ data }) => {
-        setBusinesses((data ?? []) as Business[])
-        setLoading(false)
-      })
-  }, [])
-
-  const loadFavorites = useCallback(async (uid: string) => {
-    const { data } = await supabase
-      .from('user_favorites')
-      .select('restaurant_id')
-      .eq('user_id', uid)
-    setFavorites(new Set((data ?? []).map((f: { restaurant_id: string }) => f.restaurant_id)))
-  }, [])
-
-  useEffect(() => {
-    if (userId) loadFavorites(userId)
-    else setFavorites(new Set())
-  }, [userId, loadFavorites])
-
-  const toggleFavorite = async (id: string) => {
-    if (!userId) { window.location.href = '/giris'; return }
-    const isFav = favorites.has(id)
-    if (isFav) {
-      await supabase.from('user_favorites').delete()
-        .eq('user_id', userId).eq('restaurant_id', id)
-      setFavorites(prev => { const s = new Set(prev); s.delete(id); return s })
-    } else {
-      await supabase.from('user_favorites').insert({ user_id: userId, restaurant_id: id })
-      setFavorites(prev => new Set([...prev, id]))
-    }
-  }
-
-  const filtered = businesses.filter(b => {
-    const matchesSearch = !search.trim() || b.name.toLowerCase().includes(search.toLowerCase())
-    const matchesKat = !activeKat || b.kategori === activeKat
-    return matchesSearch && matchesKat
-  })
-
-  const sectionTitle = search
-    ? `"${search}" için sonuçlar`
-    : activeKat
-      ? (KAT_LABEL[activeKat] ?? 'Mekanlar')
-      : 'Tüm Mekanlar'
-
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <CustomerHeader />
+    <div className="min-h-screen bg-white">
+      <MarketingHeader />
 
-      {/* ── Hero ────────────────────────────────────────────────────────── */}
-      <section className="pt-16 bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-900 text-white">
-        <div className="mx-auto max-w-5xl px-6 py-20 text-center">
+      {/* ── Hero ── */}
+      <section className="pt-24 pb-24 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800 text-white">
+        <div className="mx-auto max-w-5xl px-6 text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-4 py-1.5 text-sm mb-8">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            İstanbul · {loading ? '...' : `${businesses.length}+ mekan aktif`}
+            <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+            Yeni Nesil Rezervasyon Altyapısı
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-extrabold leading-tight mb-5 tracking-tight">
-            İstanbul&apos;un en iyi<br />
-            <span className="text-emerald-300">mekanları</span> tek platformda
+          <h1 className="text-4xl sm:text-6xl font-extrabold leading-tight mb-6 tracking-tight">
+            Yeni Nesil Restoran<br />
+            <span className="text-red-400">Rezervasyon Altyapısı</span>
           </h1>
-          <p className="text-white/65 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
-            Berber, kuaför, spa, restoran — tüm rezervasyonlarınız anında.
-            Telefon yok, bekleme yok.
+          <p className="text-white/70 text-lg mb-4 max-w-2xl mx-auto leading-relaxed">
+            Rezervasyonlarınızı kontrol altına alın. No-show ve iptalleri azaltın, gelir kaybını durdurun.
+          </p>
+          <p className="text-red-400 text-sm font-semibold mb-10">
+            ✓ Rezervasyon ve no-show&apos;da komisyon yok.
           </p>
 
-          {/* Search */}
-          <div className="max-w-lg mx-auto">
-            <div className="flex bg-white rounded-2xl shadow-2xl shadow-black/30 overflow-hidden">
-              <div className="flex items-center pl-5 text-zinc-400">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Mekan veya kategori ara..."
-                className="flex-1 px-4 py-4 text-zinc-900 text-base outline-none bg-transparent"
-              />
-              {search && (
-                <button onClick={() => setSearch('')} className="pr-5 text-zinc-400 hover:text-zinc-600 text-lg">×</button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Category strip */}
-        <div id="categories" className="border-t border-white/10 bg-black/20">
-          <div className="mx-auto max-w-6xl px-6 py-4 flex gap-2 overflow-x-auto">
-            <button
-              onClick={() => setActiveKat(null)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all border ${
-                !activeKat
-                  ? 'bg-white text-emerald-800 border-white shadow-sm'
-                  : 'bg-white/8 text-white/80 border-white/15 hover:bg-white/15'
-              }`}
-            >
-              Tümü
-            </button>
-            {CATEGORIES.map(c => (
-              <button
-                key={c.value}
-                onClick={() => setActiveKat(prev => prev === c.value ? null : c.value)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all border ${
-                  activeKat === c.value
-                    ? 'bg-white text-emerald-800 border-white shadow-sm'
-                    : 'bg-white/8 text-white/80 border-white/15 hover:bg-white/15'
-                }`}
-              >
-                <span>{c.icon}</span> {c.label}
-              </button>
-            ))}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/kayit"
+              className="rounded-full bg-red-600 hover:bg-red-700 px-8 py-4 text-base font-semibold text-white transition-colors shadow-lg shadow-red-900/30">
+              Ücretsiz Deneyin →
+            </Link>
+            <Link href="#fiyatlar"
+              className="rounded-full border border-white/30 hover:border-white/60 px-8 py-4 text-base font-semibold text-white transition-colors">
+              Fiyatları Gör
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* ── Business Grid ────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-6 py-12">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-zinc-900">
-            {sectionTitle}
-            {!loading && (
-              <span className="text-zinc-400 font-normal text-sm ml-2">
-                {filtered.length} mekan
-              </span>
-            )}
-          </h2>
-          {(search || activeKat) && (
-            <button
-              onClick={() => { setSearch(''); setActiveKat(null) }}
-              className="text-sm text-emerald-600 hover:text-emerald-800 font-medium"
-            >
-              Filtreyi temizle ×
-            </button>
-          )}
-        </div>
-
-        {loading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="h-52 rounded-2xl bg-zinc-200 animate-pulse" />
-            ))}
-          </div>
-        ) : filtered.length === 0 && (search || activeKat) ? (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">🔍</div>
-            <h3 className="text-lg font-semibold text-zinc-700 mb-2">Mekan bulunamadı</h3>
-            <p className="text-zinc-400">Farklı bir arama veya kategori deneyin.</p>
-          </div>
-        ) : filtered.length === 0 ? (
-          /* Placeholder cards when no businesses */
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {PLACEHOLDER_CARDS.map((p, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-dashed border-zinc-200 p-8 text-center">
-                <div className="text-4xl mb-3">{p.icon}</div>
-                <p className="font-semibold text-zinc-600">{p.label} · {p.city}</p>
-                <p className="text-xs text-zinc-400 mt-1">Yakında açılıyor</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map(b => {
-              const kat = b.kategori ?? 'diger'
-              const gradient = KAT_GRADIENT[kat] ?? 'from-zinc-800 to-zinc-700'
-              const isFav = favorites.has(b.id)
-              return (
-                <div
-                  key={b.id}
-                  className="group bg-white rounded-2xl border border-zinc-100 hover:border-zinc-200 hover:shadow-lg transition-all duration-200 overflow-hidden"
-                >
-                  {/* Card visual */}
-                  <div className={`relative h-28 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-                    <span className="text-5xl drop-shadow-lg">{KAT_ICON[kat] ?? '🏪'}</span>
-                    {/* Favorite button */}
-                    <button
-                      onClick={() => toggleFavorite(b.id)}
-                      title={isFav ? 'Favoriden çıkar' : 'Favoriye ekle'}
-                      className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center hover:bg-white/40 transition-all hover:scale-110"
-                    >
-                      <span className="text-base leading-none">{isFav ? '❤️' : '🤍'}</span>
-                    </button>
-                  </div>
-
-                  {/* Card body */}
-                  <div className="p-5">
-                    <div className="flex items-start gap-2 mb-3">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-zinc-900 truncate text-base">{b.name}</h3>
-                        <p className="text-xs text-zinc-500 mt-0.5 font-medium">{KAT_LABEL[kat]}</p>
-                        {b.address && (
-                          <p className="text-xs text-zinc-400 mt-1 truncate">📍 {b.address}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 mb-4">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-                      <span className="text-xs text-emerald-700 font-medium">Rezervasyon açık</span>
-                    </div>
-
-                    <Link
-                      href={`/${b.slug}`}
-                      className="block w-full text-center bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
-                    >
-                      Rezervasyon Yap →
-                    </Link>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* ── İşletme CTA ─────────────────────────────────────────────────── */}
-      <section id="business" className="bg-zinc-900 text-white py-20 px-6">
-        <div className="mx-auto max-w-4xl flex flex-col sm:flex-row items-center gap-10">
-          <div className="flex-1 text-center sm:text-left">
-            <div className="text-4xl mb-4">🏪</div>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4 leading-snug">
-              İşletmenizi platforma<br />ekleyin
-            </h2>
-            <p className="text-zinc-400 leading-relaxed mb-8 max-w-md">
-              Komisyon yok. Anında kurulum. Berber, kuaför, spa veya restoran —
-              10 dakikada rezervasyon almaya başlayın.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center sm:justify-start">
-              <a
-                href="mailto:merhaba@checkrezerve.com?subject=İşletme Ekleme Talebi&body=İşletme Adı:%0D%0ASektör:%0D%0ATelefon:%0D%0AŞehir:"
-                className="rounded-full bg-emerald-600 hover:bg-emerald-700 px-8 py-4 text-sm font-semibold text-white transition-colors"
-              >
-                Demo İste →
-              </a>
-              <a
-                href="/admin"
-                className="rounded-full border border-zinc-600 hover:border-zinc-400 px-8 py-4 text-sm font-semibold text-zinc-300 hover:text-white transition-colors"
-              >
-                Yönetici Girişi
-              </a>
-            </div>
-          </div>
-          <div className="flex-shrink-0 grid grid-cols-2 gap-3 w-full sm:w-64">
-            {[
-              { icon: '⚡', title: '10 dk kurulum', desc: 'Teknik bilgi gerekmez' },
-              { icon: '💳', title: '%0 komisyon', desc: 'Saklı ücret yok' },
-              { icon: '📱', title: 'Mobil uygulama', desc: 'iOS & Android' },
-              { icon: '📊', title: 'Haftalık rapor', desc: 'CSV olarak indir' },
-            ].map(item => (
-              <div key={item.title} className="bg-white/5 border border-white/10 rounded-xl p-3">
-                <div className="text-xl mb-1">{item.icon}</div>
-                <div className="text-xs font-semibold text-white">{item.title}</div>
-                <div className="text-[10px] text-zinc-500 mt-0.5">{item.desc}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Footer ──────────────────────────────────────────────────────── */}
-      <footer className="bg-white border-t border-zinc-100 py-12 px-6">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
-            {/* Marka */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center">
-                  <span className="text-white text-[10px] font-bold">CR</span>
-                </div>
-                <span className="text-sm font-bold text-zinc-900">checkrezerve</span>
-              </div>
-              <p className="text-xs text-zinc-400 leading-5">
-                Türkiye&apos;nin çok sektörlü rezervasyon platformu.
+      {/* ── No-show Odaklı ── */}
+      <section className="py-20 bg-red-50">
+        <div className="mx-auto max-w-5xl px-6">
+          <div className="flex flex-col lg:flex-row gap-12 items-center">
+            <div className="flex-1">
+              <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-6 leading-snug">
+                Kronik no-show sorununa<br />kalıcı bir çözüm
+              </h2>
+              <p className="text-zinc-600 leading-relaxed mb-4">
+                Özellikle yoğun dönemlerde boş masaların can sıkıcı ve sinir bozucu olmasından
+                kurtulmak için Ön Ödemeli Rezervasyon özelliğimizle no-show oranlarını büyük
+                ölçüde azaltabilirsiniz.
               </p>
-              <p className="text-xs text-zinc-400 mt-1">© 2026 CheckRezerve Teknoloji</p>
+              <p className="text-zinc-600 leading-relaxed mb-8">
+                Müşterilerinize sorumluluk yükleyen, sizi de maddi kayıplardan koruyan bu
+                özelliği hemen kullanmaya başlayabilirsiniz.
+              </p>
+              <Link href="/kayit"
+                className="inline-flex items-center gap-2 text-red-600 font-semibold hover:text-red-700 transition-colors">
+                Devamı →
+              </Link>
             </div>
 
-            {/* Platform */}
+            <div className="flex-shrink-0 w-full lg:w-72 grid grid-cols-2 gap-4">
+              {[
+                { stat: '%60+', label: 'No-show azalması' },
+                { stat: '%100', label: '3D Secure güvenlik' },
+                { stat: '10 dk', label: 'Kurulum süresi' },
+                { stat: '₺0', label: 'Komisyon' },
+              ].map(item => (
+                <div key={item.label} className="bg-white rounded-2xl border border-red-100 p-5 text-center shadow-sm">
+                  <div className="text-2xl font-bold text-red-600 mb-1">{item.stat}</div>
+                  <div className="text-xs text-zinc-500 font-medium">{item.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Ön Provizyon Açıklama ── */}
+      <section className="py-20 bg-white">
+        <div className="mx-auto max-w-5xl px-6">
+          <div className="max-w-3xl mx-auto text-center mb-14">
+            <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4 leading-snug">
+              Tek bir tıklama ile misafirlerinizden<br />provizyon / ön ödeme talep edin
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
+            {[
+              {
+                step: '1',
+                title: 'Link Gönder',
+                desc: 'Rezervasyonu onaylamak için talep edeceğiniz provizyon veya ön ödeme için misafirinize bir link (bağlantı) gönderilir ve misafiriniz kart bilgilerini girerek işlemini kendisi gerçekleştirir.',
+              },
+              {
+                step: '2',
+                title: 'Provizyon Tutulur',
+                desc: 'Alınan provizyon rezervasyon gününe kadar misafirin kredi kartında tutulur. Siz güvende, misafiriniz sorumlu.',
+              },
+              {
+                step: '3',
+                title: 'Check-in & İptal',
+                desc: 'Misafir restoranınıza geldiği zaman check-in işlemi yapılır ve alınan provizyon otomatik olarak iptal edilir.',
+              },
+            ].map(item => (
+              <div key={item.step} className="rounded-2xl border border-zinc-100 bg-zinc-50 p-7">
+                <div className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-bold mb-4">
+                  {item.step}
+                </div>
+                <h3 className="text-base font-bold text-zinc-900 mb-2">{item.title}</h3>
+                <p className="text-sm text-zinc-600 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-sm text-zinc-500">
+            Yerli ve Yabancı tüm kredi kartlarından provizyon veya ödeme alabilirsiniz.
+            Yapılan tüm işlemler{' '}
+            <strong className="text-zinc-700">3D Secure (Güvenli Ödeme)</strong> sistemi ile gerçekleştirilir.
+          </p>
+        </div>
+      </section>
+
+      {/* ── No-show Kayıp Telafi ── */}
+      <section className="py-20 bg-zinc-900 text-white">
+        <div className="mx-auto max-w-5xl px-6">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-6 leading-snug">
+              No-Show sebebi ile oluşan<br />
+              <span className="text-red-400">kayıplarınızı telafi edin</span>
+            </h2>
+            <p className="text-zinc-400 leading-relaxed mb-4">
+              Müşterilerinizin hem rezervasyonu iptal etmediği hem de restoranınıza gelmediği durumlarda
+              bloke edilen ücreti, satış işlemine (payment) dönüştürerek no-show nedeni ile yaşadığınız
+              kayıpların azaltılması sağlayabilirsiniz.
+            </p>
+            <p className="text-zinc-400 leading-relaxed mb-10">
+              Misafirlerinize sorumluluk yükleyen, sizi de maddi kayıplardan koruyan Ön Ödeme
+              özelliğini hemen kullanmaya başlayabilirsiniz.
+            </p>
+            <Link href="/kayit"
+              className="inline-flex items-center gap-2 rounded-full bg-red-600 hover:bg-red-700 px-8 py-4 text-sm font-semibold text-white transition-colors">
+              Ücretsiz Deneyin →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Özellikler ── */}
+      <section id="ozellikler" className="py-20 bg-white">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">
+              Tüm ihtiyaçlarınız tek platformda
+            </h2>
+            <p className="text-zinc-500 max-w-xl mx-auto">
+              İşletmenizi büyütmek için ihtiyacınız olan tüm araçlar bir arada.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {FEATURES.map(f => (
+              <div key={f.title}
+                className="rounded-2xl border border-zinc-100 bg-zinc-50 p-7 hover:border-red-100 hover:shadow-sm transition-all duration-200">
+                <div className="text-3xl mb-4">{f.icon}</div>
+                <h3 className="text-base font-bold text-zinc-900 mb-2">{f.title}</h3>
+                <p className="text-sm text-zinc-600 leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Fiyatlandırma ── */}
+      <section id="fiyatlar" className="py-20 bg-zinc-50">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">Şeffaf Fiyatlandırma</h2>
+            <p className="text-zinc-500 max-w-xl mx-auto">
+              Komisyon yok, gizli ücret yok. Yalnızca seçtiğiniz planın sabit abonelik ücreti.
+            </p>
+          </div>
+          <PricingToggle />
+        </div>
+      </section>
+
+      {/* ── SSS ── */}
+      <section id="sss" className="py-20 bg-white">
+        <div className="mx-auto max-w-3xl px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">Sık Sorulan Sorular</h2>
+          </div>
+          <FAQSection />
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer id="iletisim" className="bg-zinc-900 text-white py-16 px-6">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+
+            {/* Brand */}
             <div>
-              <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Platform</h3>
-              <div className="flex flex-col gap-2 text-xs text-zinc-400">
-                <a href="/admin"                      className="hover:text-zinc-700 transition-colors">İşletme Girişi</a>
-                <a href="mailto:info@checkrezerve.com" className="hover:text-zinc-700 transition-colors">İletişim</a>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-xl bg-red-600 flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">CR</span>
+                </div>
+                <span className="text-base font-bold">CheckRezerve</span>
+              </div>
+              <p className="text-sm text-zinc-400 leading-6 mb-4">
+                Yeni nesil restoran rezervasyon altyapısı. Komisyon yok, kontrol tamamen sizde.
+              </p>
+              <a href="mailto:info@checkrezerve.com"
+                className="text-sm text-zinc-400 hover:text-white transition-colors">
+                info@checkrezerve.com
+              </a>
+              <p className="text-xs text-zinc-600 mt-3">© 2026 CheckRezerve Teknoloji</p>
+            </div>
+
+            {/* Hakkımızda */}
+            <div id="hakkimizda">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">Hakkımızda</h3>
+              <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
+                <a href="#" className="hover:text-white transition-colors">Kurumsal</a>
+                <a href="#" className="hover:text-white transition-colors">Başarı Hikayeleri</a>
+                <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>
               </div>
             </div>
 
-            {/* Yasal */}
+            {/* Kullanım Alanları */}
             <div>
-              <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Yasal Bilgiler</h3>
-              <div className="flex flex-col gap-2 text-xs text-zinc-400">
-                <a href="/kvkk"                               className="hover:text-zinc-700 transition-colors">KVKK</a>
-                <a href="/cerez-politikasi"                   className="hover:text-zinc-700 transition-colors">Çerez Politikası</a>
-                <a href="/kullanim-kosullari"                  className="hover:text-zinc-700 transition-colors">Kullanım Koşulları</a>
-                <a href="/kvkk-basvuru"                       className="hover:text-zinc-700 transition-colors">KVKK Başvuru Formu</a>
-                <a href="/yasal/basvuru-formu-aydinlatma"     className="hover:text-zinc-700 transition-colors">Başvuru Formu Aydınlatma</a>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">Kullanım Alanları</h3>
+              <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
+                <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Restoranlar</Link>
+                <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Kafeler</Link>
+                <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Oteller</Link>
+                <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Etkinlik Mekanları</Link>
+              </div>
+            </div>
+
+            {/* Özellikler */}
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">Özellikler</h3>
+              <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
+                <a href="#ozellikler" className="hover:text-white transition-colors">Ön Ödemeli Rezervasyon</a>
+                <a href="#ozellikler" className="hover:text-white transition-colors">Rezervasyon Yönetimi</a>
+                <a href="#ozellikler" className="hover:text-white transition-colors">Masa Yönetimi</a>
+                <a href="#ozellikler" className="hover:text-white transition-colors">CRM & Raporlama</a>
               </div>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-zinc-400">
-              Tüm hakları saklıdır. CheckRezerve Teknoloji.
-            </p>
-            <div className="flex gap-4 text-xs text-zinc-400">
-              <a href="/gizlilik" className="hover:text-zinc-700 transition-colors">Gizlilik</a>
-              <a href="/kullanim-sartlari" className="hover:text-zinc-700 transition-colors">Eski Kullanım Şartları</a>
+          {/* Bottom bar */}
+          <div className="pt-8 border-t border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-zinc-500">Tüm hakları saklıdır. CheckRezerve Teknoloji.</p>
+            <div className="flex flex-wrap justify-center gap-4 text-xs text-zinc-500">
+              <Link href="/kullanim-kosullari" className="hover:text-zinc-300 transition-colors">Kullanım Koşulları</Link>
+              <Link href="/cerez-politikasi" className="hover:text-zinc-300 transition-colors">Çerez Aydınlatma</Link>
+              <Link href="/kvkk" className="hover:text-zinc-300 transition-colors">Kişisel Verilerin Korunması</Link>
+              <Link href="/yasal/basvuru-formu-aydinlatma" className="hover:text-zinc-300 transition-colors">Başvuru Formu Aydınlatma</Link>
+              <Link href="/kvkk-basvuru" className="hover:text-zinc-300 transition-colors">KVKK Başvuru Formu</Link>
             </div>
           </div>
         </div>
