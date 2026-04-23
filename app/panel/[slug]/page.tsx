@@ -3,6 +3,7 @@ import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import WeeklyChart          from './WeeklyChart'
 import ExportButton         from './ExportButton'
+import ReservationList      from './ReservationList'
 import type { Reservation, SpecialArea } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -59,6 +60,7 @@ export default async function PanelDashboardPage({
     { data: specialAreas },
     { count: todayCount },
     { count: todayConfirmed },
+    { data: allReservations },
   ] = await Promise.all([
     // Bu haftaki tüm rezervasyonlar (grafik + istatistik)
     db
@@ -91,6 +93,20 @@ export default async function PanelDashboardPage({
       .eq('restaurant_id', restaurant.id)
       .eq('date', today)
       .eq('status', 'confirmed'),
+
+    // Tüm yakın rezervasyonlar (liste için) — son 7 gün + gelecek 30 gün
+    db
+      .from('reservations')
+      .select(`
+        id, guest_name, guest_phone, reserved_date, reserved_time,
+        party_size, notes, status, source, calisan_id, hizmet_id, created_at,
+        calisanlar(ad),
+        hizmetler(ad, fiyat)
+      `)
+      .eq('restaurant_id', restaurant.id)
+      .gte('reserved_date', new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10))
+      .order('reserved_date', { ascending: false })
+      .order('reserved_time', { ascending: false }),
   ])
 
   const allRes    = (weekReservations ?? []) as Pick<Reservation, 'id' | 'date' | 'status' | 'special_area_id' | 'party_size'>[]
@@ -193,6 +209,14 @@ export default async function PanelDashboardPage({
             </div>
           </section>
         )}
+
+        {/* Rezervasyon Listesi — Onayla / Reddet */}
+        <ReservationList
+          restaurantId={restaurant.id}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          initialReservations={(allReservations ?? []) as any}
+          today={today}
+        />
 
         {/* Haftalık Export */}
         <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">

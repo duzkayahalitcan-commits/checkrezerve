@@ -11,7 +11,7 @@ type Reservation = {
   reserved_time: string
   party_size: number
   special_requests: string | null
-  status: 'confirmed' | 'cancelled' | 'completed'
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
   source: string
   created_at: string
   restaurants?: { name: string; slug: string } | null
@@ -133,11 +133,12 @@ function ReservationCard({
   onStatusChange: (id: string, status: Reservation['status']) => void
 }) {
   const statusConfig = {
+    pending:   { label: 'Beklemede',  cls: 'bg-amber-500/15 text-amber-400 border-amber-500/20' },
     confirmed: { label: 'Onaylı',     cls: 'bg-green-500/15 text-green-400 border-green-500/20' },
     cancelled: { label: 'İptal',      cls: 'bg-red-500/15 text-red-400 border-red-500/20' },
     completed: { label: 'Tamamlandı', cls: 'bg-blue-500/15 text-blue-400 border-blue-500/20' },
   }
-  const { label, cls } = statusConfig[r.status] ?? statusConfig.confirmed
+  const { label, cls } = statusConfig[r.status] ?? statusConfig.pending
 
   const dateStr = new Date(r.reserved_date + 'T00:00:00').toLocaleDateString('tr-TR', {
     weekday: 'short', day: 'numeric', month: 'short',
@@ -191,29 +192,47 @@ function ReservationCard({
 
         {/* Aksiyon butonları */}
         <div className="flex sm:flex-col flex-row gap-1.5 shrink-0">
-          {r.status !== 'completed' && (
-            <button
-              onClick={() => onStatusChange(r.id, 'completed')}
-              disabled={updating}
-              className="px-3 py-2 sm:py-1.5 rounded-lg bg-blue-500/15 text-blue-400 text-xs font-medium hover:bg-blue-500/25 transition-colors disabled:opacity-50 touch-manipulation"
-            >
-              ✓ Tamamla
-            </button>
+          {r.status === 'pending' && (
+            <>
+              <button
+                onClick={() => onStatusChange(r.id, 'confirmed')}
+                disabled={updating}
+                className="px-3 py-2 sm:py-1.5 rounded-lg bg-green-500/20 text-green-400 text-xs font-medium hover:bg-green-500/35 transition-colors disabled:opacity-50 touch-manipulation"
+              >
+                ✓ Onayla
+              </button>
+              <button
+                onClick={() => onStatusChange(r.id, 'cancelled')}
+                disabled={updating}
+                className="px-3 py-2 sm:py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-medium hover:bg-red-500/25 transition-colors disabled:opacity-50 touch-manipulation"
+              >
+                ✕ Reddet
+              </button>
+            </>
           )}
           {r.status === 'confirmed' && (
-            <button
-              onClick={() => onStatusChange(r.id, 'cancelled')}
-              disabled={updating}
-              className="px-3 py-2 sm:py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-medium hover:bg-red-500/25 transition-colors disabled:opacity-50 touch-manipulation"
-            >
-              ✕ İptal
-            </button>
+            <>
+              <button
+                onClick={() => onStatusChange(r.id, 'completed')}
+                disabled={updating}
+                className="px-3 py-2 sm:py-1.5 rounded-lg bg-blue-500/15 text-blue-400 text-xs font-medium hover:bg-blue-500/25 transition-colors disabled:opacity-50 touch-manipulation"
+              >
+                ✓ Tamamla
+              </button>
+              <button
+                onClick={() => onStatusChange(r.id, 'cancelled')}
+                disabled={updating}
+                className="px-3 py-2 sm:py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-medium hover:bg-red-500/25 transition-colors disabled:opacity-50 touch-manipulation"
+              >
+                ✕ İptal
+              </button>
+            </>
           )}
           {r.status === 'cancelled' && (
             <button
-              onClick={() => onStatusChange(r.id, 'confirmed')}
+              onClick={() => onStatusChange(r.id, 'pending')}
               disabled={updating}
-              className="px-3 py-2 sm:py-1.5 rounded-lg bg-green-500/15 text-green-400 text-xs font-medium hover:bg-green-500/25 transition-colors disabled:opacity-50 touch-manipulation"
+              className="px-3 py-2 sm:py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-xs font-medium hover:bg-amber-500/25 transition-colors disabled:opacity-50 touch-manipulation"
             >
               ↩ Geri Al
             </button>
