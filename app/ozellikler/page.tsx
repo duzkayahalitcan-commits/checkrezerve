@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 const FEATURES = [
   {
     num: '01',
-    img: '/feat-ai-voice.png',
+    img: '/feat-ai-voice.jpg',
     title: 'Yapay Zeka Sesli Onay',
     desc: 'Rezervasyon tamamlandığı anda sistemimizin AI motoru müşteriyi otomatik olarak arar. Türkçe doğal dil konuşmasıyla rezervasyonu sesli onaylar ya da iptal eder — tüm görüşmeler kayıt altına alınır.',
     items: [
@@ -25,7 +25,7 @@ const FEATURES = [
   },
   {
     num: '02',
-    img: '/feat-human-agent.png',
+    img: '/feat-human-agent.jpg',
     title: 'İsteğe Bağlı Gerçek Kişi Aracılığı',
     desc: 'Her müşteri AI ile konuşmak istemez. CheckRezerve, müşteriye AI veya gerçek operatör seçeneği sunar. Resepsiyonist ekranında anlık bildirimle hiçbir çağrı kaçmaz.',
     items: [
@@ -38,7 +38,7 @@ const FEATURES = [
   },
   {
     num: '03',
-    img: '/feat-realtime.png',
+    img: '/feat-realtime.jpg',
     title: 'Anlık İşletme Takibi',
     desc: 'Hangi masalar dolu, toplam kaç kişi içeride, yoğunluk ne zaman zirveye ulaşacak? İşletmenizin gerçek zamanlı nabzını tek ekranda tutun.',
     items: [
@@ -51,7 +51,7 @@ const FEATURES = [
   },
   {
     num: '04',
-    img: '/feat-analytics.png',
+    img: '/feat-analytics.jpg',
     title: 'Rezervasyon & Ciro Analizi',
     desc: 'Sezgisel kararlar yerine veriye dayalı yönetim. Günlük, haftalık ve aylık raporlarla işletmenizin tüm metriklerini takip edin.',
     items: [
@@ -64,7 +64,7 @@ const FEATURES = [
   },
   {
     num: '05',
-    img: '/feat-service.png',
+    img: '/feat-service.jpg',
     title: 'Çoklu Hizmet & Uzman Seçimi',
     desc: 'Müşterileriniz rezervasyon yaparken hizmet türünü ve uzmanı bizzat seçebilir. Personel fotoğrafı, biyografi ve müsaitlik takvimi ile profesyonel bir deneyim sunun.',
     items: [
@@ -77,7 +77,7 @@ const FEATURES = [
   },
   {
     num: '06',
-    img: '/feat-mobile.png',
+    img: '/feat-mobile.jpg',
     title: 'Masa / Seans / Oda Seçimi',
     desc: 'Müşterileriniz interaktif haritadan istedikleri masayı ya da kabini seçebilir. Akıllı öneriler sayesinde çakışmalar ve boşluklar otomatik engellenir.',
     items: [

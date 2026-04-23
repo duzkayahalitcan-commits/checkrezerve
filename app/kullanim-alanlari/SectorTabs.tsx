@@ -98,7 +98,7 @@ const SECTORS = [
     id: 'fitness',
     icon: '🏋️',
     label: 'Fitness',
-    img: '/feat-mobile.png',
+    img: '/feat-mobile.jpg',
     title: 'Fitness & Yoga Stüdyoları İçin',
     desc: 'Ders takviminizi, eğitmen müsaitliğini ve üye rezervasyon haklarını tek platformda yönetin. Tekrarlayan seans otomasyonuyla idari yükü minimuma indirin.',
     features: [
