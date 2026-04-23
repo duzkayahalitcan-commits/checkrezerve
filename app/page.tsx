@@ -333,23 +333,52 @@ export default function HomePage() {
       </section>
 
       {/* ── Footer ──────────────────────────────────────────────────────── */}
-      <footer className="bg-white border-t border-zinc-100 py-10 px-6">
+      <footer className="bg-white border-t border-zinc-100 py-12 px-6">
         <div className="mx-auto max-w-6xl">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center">
-                <span className="text-white text-[10px] font-bold">CR</span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
+            {/* Marka */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center">
+                  <span className="text-white text-[10px] font-bold">CR</span>
+                </div>
+                <span className="text-sm font-bold text-zinc-900">checkrezerve</span>
               </div>
-              <span className="text-sm font-bold text-zinc-900">checkrezerve</span>
+              <p className="text-xs text-zinc-400 leading-5">
+                Türkiye&apos;nin çok sektörlü rezervasyon platformu.
+              </p>
+              <p className="text-xs text-zinc-400 mt-1">© 2026 CheckRezerve Teknoloji</p>
             </div>
-            <p className="text-xs text-zinc-400 text-center">
-              Türkiye&apos;nin çok sektörlü rezervasyon platformu. © 2026
+
+            {/* Platform */}
+            <div>
+              <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Platform</h3>
+              <div className="flex flex-col gap-2 text-xs text-zinc-400">
+                <a href="/admin"                      className="hover:text-zinc-700 transition-colors">İşletme Girişi</a>
+                <a href="mailto:info@checkrezerve.com" className="hover:text-zinc-700 transition-colors">İletişim</a>
+              </div>
+            </div>
+
+            {/* Yasal */}
+            <div>
+              <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Yasal Bilgiler</h3>
+              <div className="flex flex-col gap-2 text-xs text-zinc-400">
+                <a href="/kvkk"                               className="hover:text-zinc-700 transition-colors">KVKK</a>
+                <a href="/cerez-politikasi"                   className="hover:text-zinc-700 transition-colors">Çerez Politikası</a>
+                <a href="/kullanim-kosullari"                  className="hover:text-zinc-700 transition-colors">Kullanım Koşulları</a>
+                <a href="/kvkk-basvuru"                       className="hover:text-zinc-700 transition-colors">KVKK Başvuru Formu</a>
+                <a href="/yasal/basvuru-formu-aydinlatma"     className="hover:text-zinc-700 transition-colors">Başvuru Formu Aydınlatma</a>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-zinc-400">
+              Tüm hakları saklıdır. CheckRezerve Teknoloji.
             </p>
-            <div className="flex gap-6 text-xs text-zinc-400">
-              <a href="/gizlilik"          className="hover:text-zinc-700 transition-colors">Gizlilik</a>
-              <a href="/kullanim-sartlari" className="hover:text-zinc-700 transition-colors">Kullanım</a>
-              <a href="mailto:merhaba@checkrezerve.com" className="hover:text-zinc-700 transition-colors">İletişim</a>
-              <a href="/admin"             className="hover:text-zinc-700 transition-colors">İşletme Girişi</a>
+            <div className="flex gap-4 text-xs text-zinc-400">
+              <a href="/gizlilik" className="hover:text-zinc-700 transition-colors">Gizlilik</a>
+              <a href="/kullanim-sartlari" className="hover:text-zinc-700 transition-colors">Eski Kullanım Şartları</a>
             </div>
           </div>
         </div>
