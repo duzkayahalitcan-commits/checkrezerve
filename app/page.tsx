@@ -5,41 +5,92 @@ import { PricingToggle } from './PricingToggle'
 import FAQSection from './FAQSection'
 
 export const metadata: Metadata = {
-  title: 'CheckRezerve — Yeni Nesil Restoran Rezervasyon Altyapısı',
+  title: 'CheckRezerve — Randevu & Rezervasyon Yönetim Sistemi',
   description:
-    'Rezervasyonlarınızı kontrol altına alın. No-show ve iptalleri azaltın, gelir kaybını durdurun. Komisyon yok.',
+    'Doluluk oranınızı artırın, gelir kaybını önleyin. CheckRezerve ile işletmenizin rezervasyonlarını tek panelden yönetin. Komisyon yok.',
 }
+
+const SECTORS = [
+  {
+    icon: '🍽️',
+    title: 'Restoran & Kafe',
+    desc: 'Masa bazlı rezervasyon, kroki üzerinden oturma düzeni ve no-show koruması ile doluluk oranınızı maksimuma taşıyın.',
+  },
+  {
+    icon: '✂️',
+    title: 'Kuaför & Berber',
+    desc: 'Personel bazlı randevu takibi, müşteri geçmişi ve otomatik hatırlatmalarla salonunuzu verimli yönetin.',
+  },
+  {
+    icon: '💆',
+    title: 'Spa & Güzellik Salonu',
+    desc: 'Hizmet süresi ve kapasite yönetimi ile çakışan randevuların önüne geçin. Müşteri sadakatini artırın.',
+  },
+  {
+    icon: '🏨',
+    title: 'Otel & Konaklama',
+    desc: 'Oda rezervasyonlarını, erken check-in taleplerini ve ek hizmetleri tek panelden takip edin.',
+  },
+  {
+    icon: '🎭',
+    title: 'Etkinlik & Organizasyon',
+    desc: 'Kontenjan yönetimi, bilet satışı ve misafir listesi kontrolünü kolaylaştırın.',
+  },
+  {
+    icon: '🏋️',
+    title: 'Spor & Fitness',
+    desc: 'Ders, antrenör ve alan bazlı randevu sistemi ile üye deneyimini iyileştirin.',
+  },
+]
+
+const HOW_STEPS = [
+  {
+    num: '1',
+    title: 'Hesabınızı Oluşturun',
+    desc: 'Birkaç dakika içinde kaydınızı tamamlayın, işletme bilgilerinizi girin.',
+  },
+  {
+    num: '2',
+    title: 'Sistemi Yapılandırın',
+    desc: 'Hizmetlerinizi, personelinizi ve çalışma saatlerinizi tanımlayın.',
+  },
+  {
+    num: '3',
+    title: 'Rezervasyon Almaya Başlayın',
+    desc: 'Müşterileriniz online rezervasyon yapabilir, siz anında bildirim alırsınız.',
+  },
+]
 
 const FEATURES = [
   {
     icon: '📅',
-    title: 'Rezervasyon Yönetimi',
-    desc: 'Kolay ve hızlı rezervasyon oluşturma, düzenleme ve iptal işlemleri. Tek sayfadan tüm rezervasyonlarınızı yönetin.',
+    title: 'Akıllı Rezervasyon Yönetimi',
+    desc: 'Günlük, haftalık ve aylık görünümlerle tüm randevularınızı tek ekranda takip edin. Çakışma uyarıları ve otomatik kapasite kontrolü ile hiç hata yapmayın.',
   },
   {
     icon: '💳',
-    title: 'Ön Provizyon / Ön Ödeme Alma',
-    desc: 'Rezervasyon sırasında ön ödeme alarak iptal riskini minimize edin. Güvenli ödeme entegrasyonları ile sorunsuz işlem yapın. Yerli ve yabancı tüm kredi kartlarından provizyon veya ödeme alabilirsiniz. Tüm işlemler 3D Secure sistemi ile gerçekleştirilir.',
+    title: 'Ön Ödeme & Provizyon',
+    desc: 'Rezervasyon anında müşterinizden güvence bedeli alın. Gelmeyene kesinti uygulayın, gelene iade edin. Siz kuralı belirleyin.',
   },
   {
-    icon: '⭐',
-    title: 'Deneyim Anketi Gönderimi',
-    desc: 'Müşteri deneyimini ölçmek ve geri bildirim toplamak için otomatik anket gönderimi. Müşteri memnuniyetini artırın.',
+    icon: '📲',
+    title: 'SMS & E-posta Hatırlatmaları',
+    desc: 'Otomatik hatırlatma mesajları ile unutulan randevuları minimuma indirin. Onay, iptal ve değişiklik bildirimlerini anında iletin.',
   },
   {
-    icon: '🗺️',
-    title: 'Masa ve Alan Yönetimi',
-    desc: 'Müşterileriniz masa ve alan seçimi yaparak rezervasyon oluşturabilir. Kroki üzerinden müşterinin oturacağı masa otomatik atanır.',
-  },
-  {
-    icon: '🚫',
-    title: 'Kara Liste Yönetimi',
-    desc: 'Daha önce iptal yapan veya gelmeyen müşterileri kolayca engelleyebilirsiniz. No-show oranlarını düşürün.',
+    icon: '👥',
+    title: 'Müşteri Yönetimi (CRM)',
+    desc: 'Her müşterinizin geçmişini, tercihlerini ve ziyaret sıklığını kayıt altına alın. Kara liste özelliği ile sorunlu müşterileri kolayca yönetin.',
   },
   {
     icon: '📊',
-    title: 'Raporlama ve Analitik',
-    desc: 'Detaylı raporlar ve analizler ile işletmenizin performansını takip edin. Gelişmiş raporlama araçlarıyla doğru kararlar alın.',
+    title: 'Raporlama & Analiz',
+    desc: 'Doluluk oranı, iptal istatistikleri ve gelir raporlarını anlık takip edin. Doğru kararları veriye dayanarak alın.',
+  },
+  {
+    icon: '🖥️',
+    title: 'Online Rezervasyon Sayfası',
+    desc: 'Müşterileriniz size ait özel bir link üzerinden 7/24 rezervasyon yapabilir. Telefon trafiğini azaltın, dönüşümü artırın.',
   },
 ]
 
@@ -51,139 +102,125 @@ export default function HomePage() {
       {/* ── Hero ── */}
       <section className="pt-24 pb-24 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800 text-white">
         <div className="mx-auto max-w-5xl px-6 text-center">
-          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-4 py-1.5 text-sm mb-8">
-            <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-            Yeni Nesil Rezervasyon Altyapısı
+          <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/30 rounded-full px-4 py-1.5 text-sm mb-8 text-red-300 font-medium">
+            Randevu &amp; Rezervasyon Yönetimi
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-extrabold leading-tight mb-6 tracking-tight">
-            Yeni Nesil Restoran<br />
-            <span className="text-red-400">Rezervasyon Altyapısı</span>
+            Doluluk Oranınızı Artırın,<br />
+            <span className="text-red-400">Gelir Kaybını Önleyin</span>
           </h1>
-          <p className="text-white/70 text-lg mb-4 max-w-2xl mx-auto leading-relaxed">
-            Rezervasyonlarınızı kontrol altına alın. No-show ve iptalleri azaltın, gelir kaybını durdurun.
+          <p className="text-white/70 text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
+            CheckRezerve ile işletmenizin rezervasyonlarını tek panelden yönetin. Gelmeyenlere karşı ön ödeme alın, SMS ile hatırlatın, boş kalan zamanlarınızı geçmişe gömün.
           </p>
-          <p className="text-red-400 text-sm font-semibold mb-10">
-            ✓ Rezervasyon ve no-show&apos;da komisyon yok.
-          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10 text-sm text-white/70">
+            {[
+              'Rezervasyon başına hiçbir komisyon ödemezsiniz',
+              'Kurulum aynı gün, kullanım ilk dakikadan itibaren',
+              'Tüm sektörlere uygun esnek yapı',
+            ].map(t => (
+              <span key={t} className="flex items-center gap-1.5 justify-center">
+                <span className="text-red-400 font-bold">✓</span> {t}
+              </span>
+            ))}
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/kayit"
               className="rounded-full bg-red-600 hover:bg-red-700 px-8 py-4 text-base font-semibold text-white transition-colors shadow-lg shadow-red-900/30">
-              Ücretsiz Deneyin →
+              14 Gün Ücretsiz Dene →
             </Link>
-            <Link href="#fiyatlar"
+            <a href="#nasil-calisir"
               className="rounded-full border border-white/30 hover:border-white/60 px-8 py-4 text-base font-semibold text-white transition-colors">
-              Fiyatları Gör
-            </Link>
+              Nasıl Çalışır?
+            </a>
           </div>
         </div>
       </section>
 
-      {/* ── No-show Odaklı ── */}
+      {/* ── Kullanım Alanları ── */}
+      <section id="kullanim-alanlari" className="py-20 bg-white">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">
+              Her Sektöre Uygun Rezervasyon Altyapısı
+            </h2>
+            <p className="text-zinc-500 max-w-2xl mx-auto">
+              Restorandan spa&apos;ya, kuaförden etkinlik mekanına kadar CheckRezerve her işletme tipine kolayca adapte olur.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {SECTORS.map(s => (
+              <div key={s.title}
+                className="rounded-2xl border border-zinc-100 bg-zinc-50 p-7 hover:border-red-100 hover:shadow-sm transition-all duration-200">
+                <div className="text-3xl mb-4">{s.icon}</div>
+                <h3 className="text-base font-bold text-zinc-900 mb-2">{s.title}</h3>
+                <p className="text-sm text-zinc-600 leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Nasıl Çalışır ── */}
+      <section id="nasil-calisir" className="py-20 bg-zinc-50">
+        <div className="mx-auto max-w-5xl px-6">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">3 Adımda Hazırsınız</h2>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-8">
+            {HOW_STEPS.map(step => (
+              <div key={step.num} className="flex flex-col items-center text-center">
+                <div className="w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center text-xl font-extrabold mb-5 shadow-lg shadow-red-200">
+                  {step.num}
+                </div>
+                <h3 className="text-base font-bold text-zinc-900 mb-2">{step.title}</h3>
+                <p className="text-sm text-zinc-600 leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Ön Ödeme / No-Show ── */}
       <section className="py-20 bg-red-50">
         <div className="mx-auto max-w-5xl px-6">
           <div className="flex flex-col lg:flex-row gap-12 items-center">
             <div className="flex-1">
               <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-6 leading-snug">
-                Kronik no-show sorununa<br />kalıcı bir çözüm
+                Boş Kalan Her Seans<br />Bir Gelir Kaybıdır
               </h2>
               <p className="text-zinc-600 leading-relaxed mb-4">
-                Özellikle yoğun dönemlerde boş masaların can sıkıcı ve sinir bozucu olmasından
-                kurtulmak için Ön Ödemeli Rezervasyon özelliğimizle no-show oranlarını büyük
-                ölçüde azaltabilirsiniz.
+                Haber vermeden gelmeyen müşteriler, işletmenizin en sessiz düşmanıdır. CheckRezerve&apos;in
+                ön ödeme sistemi sayesinde rezervasyon anında güvence altına alınır.
+              </p>
+              <p className="text-zinc-600 leading-relaxed mb-4">
+                Müşteriniz randevusuna gelmediğinde aldığınız ön ödeme sizde kalır. Geldiğinde ise ödeme
+                otomatik olarak işleme dönüşür ya da iade edilir — siz karar verirsiniz.
               </p>
               <p className="text-zinc-600 leading-relaxed mb-8">
-                Müşterilerinize sorumluluk yükleyen, sizi de maddi kayıplardan koruyan bu
-                özelliği hemen kullanmaya başlayabilirsiniz.
+                Tüm işlemler 3D Secure altyapısıyla güvence altındadır. Yerli ve yabancı tüm kredi kartları
+                kabul edilir.
               </p>
               <Link href="/kayit"
                 className="inline-flex items-center gap-2 text-red-600 font-semibold hover:text-red-700 transition-colors">
-                Devamı →
+                Hemen Başla →
               </Link>
             </div>
 
-            <div className="flex-shrink-0 w-full lg:w-72 grid grid-cols-2 gap-4">
+            <div className="flex-shrink-0 w-full lg:w-72 flex flex-col gap-4">
               {[
-                { stat: '%60+', label: 'No-show azalması' },
-                { stat: '%100', label: '3D Secure güvenlik' },
-                { stat: '10 dk', label: 'Kurulum süresi' },
-                { stat: '₺0', label: 'Komisyon' },
+                { stat: '%60\'a kadar', label: 'No-show oranı düşüşü' },
+                { stat: 'Dakikalar içinde', label: 'Kurulum süresi' },
+                { stat: '7/24', label: 'Destek ve erişim' },
               ].map(item => (
-                <div key={item.label} className="bg-white rounded-2xl border border-red-100 p-5 text-center shadow-sm">
+                <div key={item.label} className="bg-white rounded-2xl border border-red-100 p-6 shadow-sm">
                   <div className="text-2xl font-bold text-red-600 mb-1">{item.stat}</div>
-                  <div className="text-xs text-zinc-500 font-medium">{item.label}</div>
+                  <div className="text-sm text-zinc-500 font-medium">{item.label}</div>
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Ön Provizyon Açıklama ── */}
-      <section className="py-20 bg-white">
-        <div className="mx-auto max-w-5xl px-6">
-          <div className="max-w-3xl mx-auto text-center mb-14">
-            <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4 leading-snug">
-              Tek bir tıklama ile misafirlerinizden<br />provizyon / ön ödeme talep edin
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6 mb-10">
-            {[
-              {
-                step: '1',
-                title: 'Link Gönder',
-                desc: 'Rezervasyonu onaylamak için talep edeceğiniz provizyon veya ön ödeme için misafirinize bir link (bağlantı) gönderilir ve misafiriniz kart bilgilerini girerek işlemini kendisi gerçekleştirir.',
-              },
-              {
-                step: '2',
-                title: 'Provizyon Tutulur',
-                desc: 'Alınan provizyon rezervasyon gününe kadar misafirin kredi kartında tutulur. Siz güvende, misafiriniz sorumlu.',
-              },
-              {
-                step: '3',
-                title: 'Check-in & İptal',
-                desc: 'Misafir restoranınıza geldiği zaman check-in işlemi yapılır ve alınan provizyon otomatik olarak iptal edilir.',
-              },
-            ].map(item => (
-              <div key={item.step} className="rounded-2xl border border-zinc-100 bg-zinc-50 p-7">
-                <div className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-bold mb-4">
-                  {item.step}
-                </div>
-                <h3 className="text-base font-bold text-zinc-900 mb-2">{item.title}</h3>
-                <p className="text-sm text-zinc-600 leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-          <p className="text-center text-sm text-zinc-500">
-            Yerli ve Yabancı tüm kredi kartlarından provizyon veya ödeme alabilirsiniz.
-            Yapılan tüm işlemler{' '}
-            <strong className="text-zinc-700">3D Secure (Güvenli Ödeme)</strong> sistemi ile gerçekleştirilir.
-          </p>
-        </div>
-      </section>
-
-      {/* ── No-show Kayıp Telafi ── */}
-      <section className="py-20 bg-zinc-900 text-white">
-        <div className="mx-auto max-w-5xl px-6">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-6 leading-snug">
-              No-Show sebebi ile oluşan<br />
-              <span className="text-red-400">kayıplarınızı telafi edin</span>
-            </h2>
-            <p className="text-zinc-400 leading-relaxed mb-4">
-              Müşterilerinizin hem rezervasyonu iptal etmediği hem de restoranınıza gelmediği durumlarda
-              bloke edilen ücreti, satış işlemine (payment) dönüştürerek no-show nedeni ile yaşadığınız
-              kayıpların azaltılması sağlayabilirsiniz.
-            </p>
-            <p className="text-zinc-400 leading-relaxed mb-10">
-              Misafirlerinize sorumluluk yükleyen, sizi de maddi kayıplardan koruyan Ön Ödeme
-              özelliğini hemen kullanmaya başlayabilirsiniz.
-            </p>
-            <Link href="/kayit"
-              className="inline-flex items-center gap-2 rounded-full bg-red-600 hover:bg-red-700 px-8 py-4 text-sm font-semibold text-white transition-colors">
-              Ücretsiz Deneyin →
-            </Link>
           </div>
         </div>
       </section>
@@ -193,7 +230,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">
-              Tüm ihtiyaçlarınız tek platformda
+              İşletmenizi Büyütecek Araçlar
             </h2>
             <p className="text-zinc-500 max-w-xl mx-auto">
               İşletmenizi büyütmek için ihtiyacınız olan tüm araçlar bir arada.
@@ -216,9 +253,9 @@ export default function HomePage() {
       <section id="fiyatlar" className="py-20 bg-zinc-50">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-10">
-            <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">Şeffaf Fiyatlandırma</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">Büyüklüğünüze Göre Fiyat</h2>
             <p className="text-zinc-500 max-w-xl mx-auto">
-              Komisyon yok, gizli ücret yok. Yalnızca seçtiğiniz planın sabit abonelik ücreti.
+              Uzun vadeli sözleşme yok. İstediğiniz zaman plan değiştirebilirsiniz.
             </p>
           </div>
           <PricingToggle />
@@ -229,7 +266,7 @@ export default function HomePage() {
       <section id="sss" className="py-20 bg-white">
         <div className="mx-auto max-w-3xl px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">Sık Sorulan Sorular</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">Sıkça Sorulan Sorular</h2>
           </div>
           <FAQSection />
         </div>
@@ -240,42 +277,33 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
 
-            {/* Brand */}
+            {/* CheckRezerve Hakkında */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-5">
                 <div className="w-8 h-8 rounded-xl bg-red-600 flex items-center justify-center">
                   <span className="text-white text-xs font-bold">CR</span>
                 </div>
                 <span className="text-base font-bold">CheckRezerve</span>
               </div>
-              <p className="text-sm text-zinc-400 leading-6 mb-4">
-                Yeni nesil restoran rezervasyon altyapısı. Komisyon yok, kontrol tamamen sizde.
-              </p>
-              <a href="mailto:info@checkrezerve.com"
-                className="text-sm text-zinc-400 hover:text-white transition-colors">
-                info@checkrezerve.com
-              </a>
-              <p className="text-xs text-zinc-600 mt-3">© 2026 CheckRezerve Teknoloji</p>
-            </div>
-
-            {/* Hakkımızda */}
-            <div id="hakkimizda">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">Hakkımızda</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-3">CheckRezerve Hakkında</h3>
               <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
-                <a href="#" className="hover:text-white transition-colors">Kurumsal</a>
+                <a href="#" className="hover:text-white transition-colors">Neden CheckRezerve?</a>
                 <a href="#" className="hover:text-white transition-colors">Başarı Hikayeleri</a>
                 <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>
+                <a href="mailto:info@checkrezerve.com" className="hover:text-white transition-colors">İletişim</a>
               </div>
             </div>
 
             {/* Kullanım Alanları */}
-            <div>
+            <div id="hakkimizda">
               <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">Kullanım Alanları</h3>
               <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
-                <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Restoranlar</Link>
-                <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Kafeler</Link>
-                <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Oteller</Link>
+                <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Restoran &amp; Kafe</Link>
+                <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Kuaför &amp; Berber</Link>
+                <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Spa &amp; Güzellik</Link>
+                <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Otel &amp; Konaklama</Link>
                 <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Etkinlik Mekanları</Link>
+                <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Spor &amp; Fitness</Link>
               </div>
             </div>
 
@@ -283,24 +311,29 @@ export default function HomePage() {
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">Özellikler</h3>
               <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
-                <a href="#ozellikler" className="hover:text-white transition-colors">Ön Ödemeli Rezervasyon</a>
+                <a href="#ozellikler" className="hover:text-white transition-colors">Ön Ödeme Sistemi</a>
                 <a href="#ozellikler" className="hover:text-white transition-colors">Rezervasyon Yönetimi</a>
-                <a href="#ozellikler" className="hover:text-white transition-colors">Masa Yönetimi</a>
-                <a href="#ozellikler" className="hover:text-white transition-colors">CRM & Raporlama</a>
+                <a href="#ozellikler" className="hover:text-white transition-colors">SMS Hatırlatmalar</a>
+                <a href="#ozellikler" className="hover:text-white transition-colors">Müşteri Yönetimi</a>
+                <a href="#ozellikler" className="hover:text-white transition-colors">Online Rezervasyon</a>
+              </div>
+            </div>
+
+            {/* Yasal */}
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">Yasal</h3>
+              <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
+                <Link href="/kullanim-kosullari" className="hover:text-white transition-colors">Kullanım Koşulları</Link>
+                <Link href="/gizlilik" className="hover:text-white transition-colors">Gizlilik Politikası</Link>
+                <Link href="/kvkk" className="hover:text-white transition-colors">KVKK Aydınlatma Metni</Link>
+                <Link href="/cerez-politikasi" className="hover:text-white transition-colors">Çerez Politikası</Link>
               </div>
             </div>
           </div>
 
           {/* Bottom bar */}
-          <div className="pt-8 border-t border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-zinc-500">Tüm hakları saklıdır. CheckRezerve Teknoloji.</p>
-            <div className="flex flex-wrap justify-center gap-4 text-xs text-zinc-500">
-              <Link href="/kullanim-kosullari" className="hover:text-zinc-300 transition-colors">Kullanım Koşulları</Link>
-              <Link href="/cerez-politikasi" className="hover:text-zinc-300 transition-colors">Çerez Aydınlatma</Link>
-              <Link href="/kvkk" className="hover:text-zinc-300 transition-colors">Kişisel Verilerin Korunması</Link>
-              <Link href="/yasal/basvuru-formu-aydinlatma" className="hover:text-zinc-300 transition-colors">Başvuru Formu Aydınlatma</Link>
-              <Link href="/kvkk-basvuru" className="hover:text-zinc-300 transition-colors">KVKK Başvuru Formu</Link>
-            </div>
+          <div className="pt-8 border-t border-zinc-800 text-center">
+            <p className="text-sm text-zinc-500">© 2026 CheckRezerve. Tüm hakları saklıdır.</p>
           </div>
         </div>
       </footer>

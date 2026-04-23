@@ -37,13 +37,13 @@ export default function MarketingHeader() {
 
         {/* CTA + Hamburger */}
         <div className="flex items-center gap-3">
-          <Link href="/panel/login"
-            className="hidden sm:block rounded-full border border-red-600 text-red-600 px-4 py-2 text-sm font-semibold hover:bg-red-50 transition-colors">
-            Giriş Yap
-          </Link>
           <Link href="/kayit"
             className="rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors shadow-sm">
-            Ücretsiz Deneyin →
+            Ücretsiz Başlayın →
+          </Link>
+          <Link href="/panel/login"
+            className="hidden sm:block rounded-full border border-zinc-300 text-zinc-700 px-4 py-2 text-sm font-semibold hover:bg-zinc-50 transition-colors">
+            Giriş Yap
           </Link>
           <button
             className="lg:hidden p-2 rounded-lg text-zinc-500 hover:bg-zinc-100 transition-colors"

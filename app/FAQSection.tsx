@@ -3,32 +3,36 @@ import { useState } from 'react'
 
 const FAQS = [
   {
-    q: 'CheckRezerve Nedir?',
-    a: 'CheckRezerve, firmaların diledikleri şekilde ödemeli, ön ödemeli veya ödemesiz rezervasyon alabilmelerini sağlayan yeni nesil bir rezervasyon altyapısıdır.',
+    q: 'CheckRezerve hangi işletmeler için uygundur?',
+    a: 'Restoran, kafe, kuaför, berber, spa, güzellik salonu, fitness merkezi, otel ve etkinlik mekanı gibi randevu veya rezervasyona dayalı çalışan her işletme CheckRezerve\'i kullanabilir. Esnek yapısı sayesinde sektörden bağımsız olarak kolayca yapılandırılabilir.',
   },
   {
-    q: 'Rezervasyon veya no-show başına komisyon alıyor musunuz?',
-    a: 'Hayır. Yalnızca seçtiğiniz planın sabit aylık veya yıllık abonelik ücreti ödersiniz; rezervasyon adedi, masa sayısı veya no-show oranına göre ek kesinti veya komisyon uygulanmaz.',
+    q: 'Ön ödeme sistemi nasıl işliyor?',
+    a: 'Müşteriniz rezervasyon yaparken belirlediğiniz tutarı kredi kartıyla öder. Bu tutar rezervasyon tarihine kadar güvencede tutulur. Müşteri geldiğinde ödeme serbest bırakılır ya da iade edilir; gelmediğinde ise işletmenizde kalır. Tüm işlemler 3D Secure altyapısıyla güvence altındadır.',
   },
   {
-    q: 'Kara Liste Yönetimi Nedir?',
-    a: 'Daha önce iptal yapan veya gelmeyen müşterileri kolayca engelleyebilirsiniz. Kara liste özelliği sayesinde no-show oranlarını düşürebilirsiniz.',
+    q: 'Rezervasyon başına komisyon ödüyor muyum?',
+    a: 'Hayır. CheckRezerve sabit abonelik modeli ile çalışır. Kaç rezervasyon alırsanız alın, ek bir komisyon ya da kesinti söz konusu değildir. Aylık veya yıllık planınızın ücreti dışında hiçbir ek ücret ödemezsiniz.',
   },
   {
-    q: 'Rezervasyon Ön Onay Süreci Nedir?',
-    a: 'Müşteriler rezervasyon talebi oluşturur, siz de bu talepleri onaylayabilir veya reddedebilirsiniz. Kısacası, kontrol tamamen sizdedir.',
+    q: 'Kurulum ne kadar sürer?',
+    a: 'Kaydınızı tamamladıktan sonra işletme bilgilerinizi, hizmetlerinizi ve çalışma saatlerinizi girerek aynı gün aktif olabilirsiniz. Teknik bilgi gerektirmez; destek ekibimiz de her adımda yanınızdadır.',
   },
   {
-    q: 'Ön Provizyon Nasıl Çalışıyor?',
-    a: 'Ön provizyon sayesinde müşterileriniz işletmenize geldiğinde aldığınız ön ödemeyi kolayca kaldırabilirsiniz. Müşteri gelmediği takdirde ön ödemeyi satış işlemine dönüştürerek kaybı telafi edebilirsiniz.',
+    q: 'Müşterilerim nasıl rezervasyon yapıyor?',
+    a: 'Size özel bir rezervasyon sayfası oluşturulur. Bu bağlantıyı web sitenize, Instagram profilinize ya da WhatsApp\'ınıza ekleyebilirsiniz. Müşterileriniz 7/24 bu sayfa üzerinden rezervasyon talep edebilir.',
   },
   {
-    q: 'Müşteri Rezervasyona Gelmediğinde Ne Oluyor?',
-    a: 'İptal politikanıza göre müşteriye iade yapılabilir ya da aldığınız ön ödeme işletmenizde kalır. Bu seçim tamamen size bırakılmıştır.',
+    q: 'Rezervasyon iptali veya değişikliği nasıl yönetilir?',
+    a: 'Panel üzerinden istediğiniz rezervasyonu düzenleyebilir, iptal edebilir ya da yeni bir zamana taşıyabilirsiniz. Değişiklik yapıldığında müşterinize otomatik bildirim gönderilir.',
   },
   {
-    q: 'Manuel Olarak Rezervasyon Oluşturabilir Miyim?',
-    a: 'Evet, panel üzerinden manuel rezervasyon oluşturabilirsiniz. Telefon ile gelen rezervasyonları sisteme kolayca ekleyebilirsiniz.',
+    q: 'Birden fazla çalışanım var, hepsini sisteme ekleyebilir miyim?',
+    a: 'Evet. Profesyonel ve Kurumsal planlarda çalışan bazlı takvim tanımlayabilirsiniz. Her personelin kendi müsaitlik durumu ayrı ayrı yönetilebilir.',
+  },
+  {
+    q: 'Verilerim güvende mi?',
+    a: 'Tüm verileriniz şifreli bağlantılar üzerinden iletilir ve güvenli sunucularda saklanır. KVKK kapsamında kişisel verilerin korunmasına azami özen gösterilir. Verileriniz hiçbir koşulda üçüncü taraflarla paylaşılmaz.',
   },
 ]
 

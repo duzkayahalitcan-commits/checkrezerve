@@ -20,10 +20,10 @@ export default function LegalSidebar({ activePath }: { activePath: string }) {
               <li key={l.href}>
                 <Link
                   href={l.href}
-                  className={`block px-3 py-2.5 rounded-xl text-sm leading-snug transition-colors ${
+                  className={`block py-2.5 text-sm leading-snug transition-colors ${
                     active
-                      ? 'bg-red-600 text-white font-semibold'
-                      : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
+                      ? 'pl-3 border-l-2 border-red-600 text-red-700 font-bold'
+                      : 'pl-3 text-zinc-600 hover:text-zinc-900 border-l-2 border-transparent'
                   }`}
                 >
                   {l.label}

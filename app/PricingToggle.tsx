@@ -1,35 +1,39 @@
 'use client'
 import { useState } from 'react'
 
-const KONUK_SEVER = [
+const BASLANGIC = [
   'Rezervasyon Yönetimi',
-  'CRM',
-  'SMS & E-Posta Bildirimleri',
-  'Raporlar & Analitik',
-  'Ön Ödemeli Rezervasyonlar',
-  'Masa Yönetimi',
+  'SMS & E-posta Bildirimleri',
+  'Müşteri Kaydı (CRM)',
+  'Temel Raporlama',
+  'Masa / Alan Yönetimi',
+  'Ön Ödemeli Rezervasyon',
 ]
 
-const MISAFIRPERVER = [
-  ...KONUK_SEVER,
-  'Online Rezervasyonlar',
-  'Konfirmasyon Talebi',
+const PROFESYONEL = [
+  ...BASLANGIC,
+  'Online Rezervasyon Sayfası',
+  'Konfirmasyon & Onay Akışı',
+  'Gelişmiş Raporlama',
+  'Rezervasyon Hatırlatma Zinciri',
+  'Bekleme Listesi (Waitlist)',
+  'Öncelikli Destek',
 ]
 
-const MUDAVIM = [
-  ...MISAFIRPERVER,
-  'Misafir Geri Bildirimleri',
-  'Misafir Ödüllendirme',
-  'Waitlist',
+const KURUMSAL = [
+  ...PROFESYONEL,
+  'Çoklu Şube Yönetimi',
+  'API Entegrasyonu',
+  'Özel Entegrasyonlar',
   'Caller ID',
   'Pazarlama Araçları',
-  'API Desteği & Özel Entegrasyonlar',
+  'Özel Müşteri Temsilcisi',
 ]
 
 export function PricingToggle() {
   const [yearly, setYearly] = useState(false)
 
-  const monthly  = { starter: 1499, pro: 4499 }
+  const monthly  = { starter: 2499, pro: 5499 }
   const annually = {
     starter: Math.round(monthly.starter * 0.8),
     pro:     Math.round(monthly.pro     * 0.8),
@@ -63,11 +67,11 @@ export function PricingToggle() {
       {/* Cards */}
       <div className="grid sm:grid-cols-3 gap-6">
 
-        {/* Konuk Sever */}
+        {/* Başlangıç */}
         <div className="flex flex-col gap-6 rounded-2xl border border-zinc-200 bg-white p-8">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-1">Konuk Sever</p>
-            <p className="text-sm text-zinc-500 mb-4">Rezervasyonlarınızı kolayca yönetin</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-1">Başlangıç</p>
+            <p className="text-sm text-zinc-500 mb-4">Küçük işletmeler için ideal temel paket</p>
             <div className="flex items-baseline gap-1">
               <span className="text-4xl font-bold text-zinc-900">₺{prices.starter.toLocaleString('tr-TR')}</span>
               <span className="text-sm text-zinc-400">/ ay</span>
@@ -79,7 +83,7 @@ export function PricingToggle() {
             )}
           </div>
           <ul className="flex flex-col gap-2.5 flex-1">
-            {KONUK_SEVER.map(f => (
+            {BASLANGIC.map(f => (
               <li key={f} className="text-sm text-zinc-600 flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-red-500 text-xs">✓</span>{f}
               </li>
@@ -89,18 +93,18 @@ export function PricingToggle() {
             href="/kayit"
             className="rounded-xl border border-zinc-900 py-3.5 text-center text-sm font-semibold text-zinc-900 hover:bg-zinc-900 hover:text-white transition-colors"
           >
-            Başla →
+            Hemen Başla
           </a>
         </div>
 
-        {/* Misafirperver — highlighted */}
+        {/* Profesyonel — highlighted */}
         <div className="relative flex flex-col gap-6 rounded-2xl border border-red-600 bg-zinc-900 p-8 text-white shadow-2xl shadow-red-900/20">
           <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-red-600 px-4 py-0.5 text-xs font-semibold text-white shadow-sm whitespace-nowrap">
             En Popüler
           </span>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-red-400 mb-1">Misafirperver</p>
-            <p className="text-sm text-zinc-400 mb-4">No-Show ile etkin mücadele edin</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-red-400 mb-1">Profesyonel</p>
+            <p className="text-sm text-zinc-400 mb-4">Büyüyen işletmeler için gelişmiş özellikler</p>
             <div className="flex items-baseline gap-1">
               <span className="text-4xl font-bold">₺{prices.pro.toLocaleString('tr-TR')}</span>
               <span className="text-sm text-zinc-400">/ ay</span>
@@ -112,7 +116,7 @@ export function PricingToggle() {
             )}
           </div>
           <ul className="flex flex-col gap-2.5 flex-1">
-            {MISAFIRPERVER.map(f => (
+            {PROFESYONEL.map(f => (
               <li key={f} className="text-sm text-zinc-300 flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-red-400 text-xs">✓</span>{f}
               </li>
@@ -122,32 +126,32 @@ export function PricingToggle() {
             href="/kayit"
             className="rounded-xl bg-red-600 py-3.5 text-center text-sm font-semibold text-white hover:bg-red-500 transition-colors"
           >
-            Misafirperver&apos;e Geç →
+            Hemen Başla
           </a>
         </div>
 
-        {/* Müdavim */}
+        {/* Kurumsal */}
         <div className="flex flex-col gap-6 rounded-2xl border border-zinc-200 bg-white p-8">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-1">Müdavim</p>
-            <p className="text-sm text-zinc-500 mb-4">Kusursuz konukseverlik</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-1">Kurumsal</p>
+            <p className="text-sm text-zinc-500 mb-4">Zincir işletmeler ve özel ihtiyaçlar için</p>
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold text-zinc-900">Teklif Alın</span>
+              <span className="text-3xl font-bold text-zinc-900">Size Özel Fiyat</span>
             </div>
-            <p className="text-xs text-zinc-400 mt-1">Özel fiyatlandırma · Ekibimiz ulaşır</p>
+            <p className="text-xs text-zinc-400 mt-1">Ekibimiz sizinle iletişime geçer</p>
           </div>
           <ul className="flex flex-col gap-2.5 flex-1">
-            {MUDAVIM.map(f => (
+            {KURUMSAL.map(f => (
               <li key={f} className="text-sm text-zinc-600 flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-red-500 text-xs">✓</span>{f}
               </li>
             ))}
           </ul>
           <a
-            href="mailto:merhaba@checkrezerve.com?subject=Müdavim Paket Teklifi"
+            href="mailto:merhaba@checkrezerve.com?subject=Kurumsal Paket Teklifi"
             className="rounded-xl border border-zinc-900 py-3.5 text-center text-sm font-semibold text-zinc-900 hover:bg-zinc-900 hover:text-white transition-colors"
           >
-            Teklif İste →
+            Bizimle İletişime Geç
           </a>
         </div>
 
