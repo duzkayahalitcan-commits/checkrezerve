@@ -9,14 +9,16 @@ const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin']
 export const metadata: Metadata = {
   metadataBase: new URL('https://checkrezerve.com'),
   title: {
-    default: 'CheckRezerve — Randevu & Rezervasyon Yönetim Sistemi',
+    default: "CheckRezerve | Türkiye'nin Akıllı Rezervasyon Platformu",
     template: '%s | CheckRezerve',
   },
   description:
-    'Restoranlar, spalar ve oteller için yapay zeka destekli rezervasyon platformu. Doluluk oranınızı artırın, gelir kaybını önleyin. Komisyon yok.',
-  keywords: ['restoran rezervasyon', 'online rezervasyon', 'masa rezervasyonu', 'randevu sistemi', 'checkrezerve'],
+    'Restoran, berber, kuaför, spa ve kafe işletmeleri için online rezervasyon yönetim sistemi.',
+  keywords: ['restoran rezervasyon', 'online rezervasyon', 'masa rezervasyonu', 'randevu sistemi', 'checkrezerve', 'berber randevu', 'kuaför randevu'],
   authors: [{ name: 'CheckRezerve' }],
   creator: 'CheckRezerve',
+  alternates: { canonical: 'https://checkrezerve.com' },
+  verification: { google: 'GOOGLE_SEARCH_CONSOLE_VERIFICATION_TOKEN' },
   icons: {
     icon: [
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
@@ -31,15 +33,15 @@ export const metadata: Metadata = {
     locale: 'tr_TR',
     url: 'https://checkrezerve.com',
     siteName: 'CheckRezerve',
-    title: 'CheckRezerve — Akıllı Rezervasyon Yönetimi',
-    description: 'Restoranlar, spalar ve oteller için yapay zeka destekli rezervasyon platformu.',
-    images: [{ url: '/logo.png', width: 900, height: 900, alt: 'CheckRezerve Logo' }],
+    title: "CheckRezerve | Türkiye'nin Akıllı Rezervasyon Platformu",
+    description: 'Restoran, berber, kuaför, spa ve kafe işletmeleri için online rezervasyon yönetim sistemi.',
+    images: [{ url: 'https://checkrezerve.com/hero-restaurant.jpg', width: 1200, height: 630, alt: 'CheckRezerve' }],
   },
   twitter: {
-    card: 'summary',
-    title: 'CheckRezerve',
-    description: 'Restoranlar, spalar ve oteller için yapay zeka destekli rezervasyon platformu.',
-    images: ['/logo.png'],
+    card: 'summary_large_image',
+    title: "CheckRezerve | Türkiye'nin Akıllı Rezervasyon Platformu",
+    description: 'Restoran, berber, kuaför, spa ve kafe işletmeleri için online rezervasyon yönetim sistemi.',
+    images: ['https://checkrezerve.com/hero-restaurant.jpg'],
   },
   appleWebApp: {
     capable: true,
@@ -105,9 +107,33 @@ export const viewport: Viewport = {
   viewportFit: 'cover', // iPhone notch/Dynamic Island için
 }
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'CheckRezerve',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  url: 'https://checkrezerve.com',
+  description: 'Restoran, berber, kuaför, spa ve kafe işletmeleri için online rezervasyon yönetim sistemi.',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'TRY' },
+  publisher: {
+    '@type': 'Organization',
+    name: 'CheckRezerve',
+    url: 'https://checkrezerve.com',
+    logo: 'https://checkrezerve.com/logo.png',
+    contactPoint: { '@type': 'ContactPoint', email: 'info@checkrezerve.com', contactType: 'customer support' },
+  },
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="tr" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
           <ServiceWorkerRegistrar />
           {children}
