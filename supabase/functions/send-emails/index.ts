@@ -5,7 +5,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 // Use test@resend.dev until checkrezerve.com domain is verified in Resend
-const FROM_ADDRESS = "noreply@checkrezerve.com";
+const FROM_ADDRESS = "info@checkrezerve.com";
 const FROM_NAME = "CheckRezerve";
 
 Deno.serve(async (req) => {
