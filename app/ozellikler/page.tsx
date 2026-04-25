@@ -64,7 +64,7 @@ const FEATURES = [
   },
   {
     num: '05',
-    img: '/feat-service.jpg',
+    img: '/images/feature-calisan.jpg',
     title: 'Çoklu Hizmet & Uzman Seçimi',
     desc: 'Müşterileriniz rezervasyon yaparken hizmet türünü ve uzmanı bizzat seçebilir. Personel fotoğrafı, biyografi ve müsaitlik takvimi ile profesyonel bir deneyim sunun.',
     items: [
