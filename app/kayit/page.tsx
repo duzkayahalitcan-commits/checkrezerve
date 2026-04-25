@@ -1,162 +1,132 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createLead, type LeadState } from './actions'
-import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS, type BusinessType } from '@/types'
-import Link from 'next/link'
+import Image from 'next/image'
 
 const initial: LeadState = { error: null, success: false }
 
-const BUSINESS_TYPES = (Object.entries(BUSINESS_TYPE_LABELS) as [BusinessType, string][])
-  .filter(([k]) => k !== 'other')
+const SECTORS = [
+  'Restoran', 'Berber', 'Kuaför', 'Spa',
+  'Güzellik Salonu', 'Kafe', 'Bar', 'Diğer',
+]
+
+const inp =
+  'w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 ' +
+  'placeholder:text-gray-400 focus:border-[#1a5c3a] focus:bg-white focus:outline-none ' +
+  'focus:ring-2 focus:ring-[#1a5c3a]/10 transition-colors'
 
 export default function KayitPage() {
   const [state, formAction, pending] = useActionState(createLead, initial)
+  const router = useRouter()
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') router.push('/') }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [router])
 
   if (state.success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-amber-950 flex items-center justify-center px-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-10 max-w-md w-full text-center flex flex-col items-center gap-5">
-          <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center">
-            <svg className="w-10 h-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl shadow-xl p-10 max-w-md w-full text-center flex flex-col items-center gap-5">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ backgroundColor: '#e8f5ee' }}>
+            <svg className="w-7 h-7" style={{ color: '#1a5c3a' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-zinc-900">Başvurunuz Alındı!</h2>
-            <p className="mt-2 text-zinc-500 text-sm leading-relaxed">
+            <h2 className="text-xl font-bold text-gray-900">Başvurunuz Alındı!</h2>
+            <p className="mt-2 text-gray-500 text-sm leading-relaxed">
               En kısa sürede ekibimiz sizinle iletişime geçecek.
-              Sistemi keşfetmek için demo sayfamıza göz atabilirsiniz.
             </p>
           </div>
-          <Link
-            href="/"
-            className="rounded-full bg-zinc-900 px-8 py-3 text-sm font-semibold text-white hover:bg-amber-500 transition-colors"
+          <button
+            onClick={() => router.push('/')}
+            className="rounded-lg px-8 py-3 text-sm font-semibold text-white"
+            style={{ backgroundColor: '#1a5c3a' }}
           >
             Ana Sayfaya Dön
-          </Link>
+          </button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-amber-950 flex items-center justify-center px-4 py-16">
-      <div className="w-full max-w-lg">
+    /* Overlay — tıklayınca kapat */
+    <div
+      className="min-h-screen bg-gray-100 flex items-center justify-center p-4 sm:p-8"
+      onClick={() => router.push('/')}
+    >
+      {/* Kart */}
+      <div
+        className="relative w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row bg-white"
+        onClick={e => e.stopPropagation()}
+      >
 
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
-            <span className="text-white text-sm font-bold">CR</span>
+        {/* X butonu */}
+        <button
+          onClick={() => router.push('/')}
+          aria-label="Kapat"
+          style={{ position: 'absolute', top: '12px', right: '16px', fontSize: '24px', cursor: 'pointer', background: 'none', border: 'none', color: '#666', zIndex: 10, lineHeight: 1 }}
+        >×</button>
+
+        {/* Sol panel */}
+        <div className="lg:w-2/5 flex flex-col px-8 py-10" style={{ backgroundColor: '#1a5c3a' }}>
+          <div className="flex items-center gap-2.5 mb-10">
+            <Image src="/logo-icon.png" alt="CheckRezerve" width={32} height={32} className="rounded-md" />
+            <span className="text-white font-bold text-lg tracking-tight">CheckRezerve</span>
           </div>
-          <span className="text-white text-lg font-bold tracking-tight">checkrezerve</span>
+          <div className="flex-1 flex flex-col justify-center">
+            <h1 className="text-2xl lg:text-3xl font-extrabold text-white leading-snug mb-3">
+              İşletmenizi<br />dijitale taşıyın
+            </h1>
+            <p className="text-green-200 text-sm mb-8 leading-relaxed">
+              Türkiye&apos;nin akıllı rezervasyon platformu ile müşterilerinizi daha iyi yönetin.
+            </p>
+            <ul className="flex flex-col gap-3">
+              {['Kolay kurulum', '7/24 destek', 'Komisyon yok', 'İlk ay ücretsiz'].map(f => (
+                <li key={f} className="flex items-center gap-3 text-green-100 text-sm">
+                  <span className="font-bold text-green-300">✓</span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p className="text-green-400 text-xs mt-8">checkrezerve.com</p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-8 py-6">
-            <h1 className="text-xl font-bold text-white">Sisteme Katıl</h1>
-            <p className="text-sm text-white/80 mt-1">
-              Ücretsiz başla · 10 dakikada canlıya geç · Komisyon yok
-            </p>
-          </div>
+        {/* Sağ panel / Form */}
+        <div className="lg:w-3/5 bg-white px-8 py-10 flex flex-col justify-center">
+          <h2 className="text-xl font-bold text-gray-900 mb-1">Ücretsiz Başvur</h2>
+          <p className="text-gray-400 text-sm mb-7">Bilgilerinizi bırakın, sizi arayalım.</p>
 
-          <form action={formAction} className="px-8 py-7 flex flex-col gap-5">
+          <form action={formAction} className="flex flex-col gap-4">
 
-            {/* Ad Soyad */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-zinc-700">Ad Soyad *</label>
-              <input
-                name="name"
-                required
-                placeholder="Ahmet Yılmaz"
-                className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
-              />
-            </div>
+            <Field label="İşletme Adı / Ad Soyad *">
+              <input name="name" required placeholder="Ahmet Yılmaz" className={inp} />
+            </Field>
 
-            {/* Telefon + E-posta */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-zinc-700">Telefon</label>
-                <input
-                  name="phone"
-                  type="tel"
-                  placeholder="0532 000 00 00"
-                  className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-zinc-700">E-posta</label>
-                <input
-                  name="email"
-                  type="email"
-                  placeholder="siz@firma.com"
-                  className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
-                />
-              </div>
-            </div>
+            <Field label="Firma Türü *">
+              <select name="category" required defaultValue="" className={inp}>
+                <option value="" disabled>Seçin…</option>
+                {SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </Field>
 
-            {/* Firma Türü */}
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-zinc-700">Firma Türü *</label>
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                {BUSINESS_TYPES.map(([key, label]) => (
-                  <label
-                    key={key}
-                    className="flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 px-2 py-3 cursor-pointer
-                               text-center text-xs text-zinc-500 hover:border-amber-300 hover:bg-amber-50 transition-all
-                               has-[:checked]:border-amber-400 has-[:checked]:bg-amber-50 has-[:checked]:text-amber-700 has-[:checked]:font-semibold"
-                  >
-                    <input type="radio" name="category" value={key} required className="sr-only" />
-                    <span className="text-xl">{BUSINESS_TYPE_ICONS[key]}</span>
-                    <span className="leading-tight">{label.split(' / ')[0]}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Hizmet Modeli */}
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-zinc-700">Hizmet Modeli *</label>
-              <div className="grid grid-cols-2 gap-3">
-                {([
-                  { value: 'free',     label: 'Ödemesiz',    desc: 'Ücretsiz başla, istediğin zaman yükselt',  icon: '🆓' },
-                  { value: 'prepaid',  label: 'Ön Ödemeli',  desc: 'Müşteri rezervasyon sırasında ödeme yapar', icon: '💳' },
-                ] as const).map(({ value, label, desc, icon }) => (
-                  <label
-                    key={value}
-                    className="flex flex-col gap-1 rounded-xl border border-zinc-200 px-4 py-3.5 cursor-pointer
-                               hover:border-amber-300 hover:bg-amber-50 transition-all
-                               has-[:checked]:border-amber-400 has-[:checked]:bg-amber-50"
-                  >
-                    <input type="radio" name="payment_model" value={value} required className="sr-only" />
-                    <span className="text-base">{icon}</span>
-                    <span className="text-sm font-semibold text-zinc-800">{label}</span>
-                    <span className="text-xs text-zinc-400 leading-snug">{desc}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Beklenen Yoğunluk */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-zinc-700">
-                Beklenen Yoğunluk *
-                <span className="ml-1 text-xs font-normal text-zinc-400">(günlük ortalama randevu)</span>
-              </label>
-              <input
-                name="daily_avg_bookings"
-                type="number"
-                min={1}
-                max={500}
-                required
-                placeholder="Örn: 20"
-                className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Telefon">
+                <input name="phone" type="tel" placeholder="0532 000 00 00" className={inp} />
+              </Field>
+              <Field label="E-posta">
+                <input name="email" type="email" placeholder="siz@firma.com" className={inp} />
+              </Field>
             </div>
 
             {state.error && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+              <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
                 {state.error}
               </p>
             )}
@@ -164,24 +134,24 @@ export default function KayitPage() {
             <button
               type="submit"
               disabled={pending}
-              className="rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 py-4 text-sm font-bold text-white shadow-lg shadow-amber-200 disabled:opacity-60 disabled:cursor-not-allowed hover:from-amber-400 hover:to-orange-400 transition-all"
+              className="mt-1 w-full rounded-lg py-3.5 text-sm font-semibold text-white transition-opacity disabled:opacity-60"
+              style={{ backgroundColor: '#1a5c3a' }}
             >
-              {pending ? 'Gönderiliyor…' : 'Başvuruyu Tamamla →'}
+              {pending ? 'Gönderiliyor…' : 'Başvuru Gönder'}
             </button>
-
-            <p className="text-center text-xs text-zinc-400">
-              Kredi kartı gerekmez · İstediğin zaman iptal et
-            </p>
           </form>
         </div>
 
-        <p className="mt-6 text-center text-sm text-zinc-500">
-          Zaten hesabın var mı?{' '}
-          <Link href="/admin" className="text-amber-400 hover:text-amber-300 font-medium">
-            Giriş yap
-          </Link>
-        </p>
       </div>
+    </div>
+  )
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      {children}
     </div>
   )
 }
