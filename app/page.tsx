@@ -67,6 +67,7 @@ const HOW_STEPS = [
 const FEATURES = [
   {
     icon: '📅',
+    img: '/images/feature-rezervasyon.jpg',
     title: 'Akıllı Rezervasyon Yönetimi',
     desc: 'Günlük, haftalık ve aylık görünümlerle tüm randevularınızı tek ekranda takip edin. Çakışma uyarıları ve otomatik kapasite kontrolü ile hiç hata yapmayın.',
   },
@@ -77,16 +78,19 @@ const FEATURES = [
   },
   {
     icon: '📲',
+    img: '/images/feature-bildirim.jpg',
     title: 'SMS & E-posta Hatırlatmaları',
     desc: 'Otomatik hatırlatma mesajları ile unutulan randevuları minimuma indirin. Onay, iptal ve değişiklik bildirimlerini anında iletin.',
   },
   {
     icon: '👥',
-    title: 'Müşteri Yönetimi (CRM)',
-    desc: 'Her müşterinizin geçmişini, tercihlerini ve ziyaret sıklığını kayıt altına alın. Kara liste özelliği ile sorunlu müşterileri kolayca yönetin.',
+    img: '/images/feature-calisan.jpg',
+    title: 'Çalışan & Müşteri Yönetimi',
+    desc: 'Her müşterinizin geçmişini, tercihlerini ve ziyaret sıklığını kayıt altına alın. Personel ataması ve kara liste ile eksiksiz yönetim.',
   },
   {
     icon: '📊',
+    img: '/images/feature-analitik.jpg',
     title: 'Raporlama & Analiz',
     desc: 'Doluluk oranı, iptal istatistikleri ve gelir raporlarını anlık takip edin. Doğru kararları veriye dayanarak alın.',
   },
@@ -238,10 +242,22 @@ export default function HomePage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {FEATURES.map(f => (
               <div key={f.title}
-                className="rounded-2xl border border-zinc-100 bg-zinc-50 p-7 hover:border-red-100 hover:shadow-sm transition-all duration-200">
-                <div className="text-3xl mb-4">{f.icon}</div>
-                <h3 className="text-base font-bold text-zinc-900 mb-2">{f.title}</h3>
-                <p className="text-sm text-zinc-600 leading-relaxed">{f.desc}</p>
+                className="rounded-2xl border border-zinc-100 bg-zinc-50 overflow-hidden hover:border-red-100 hover:shadow-md transition-all duration-200">
+                {'img' in f && f.img && (
+                  <Image
+                    src={f.img as string}
+                    alt={f.title}
+                    width={400}
+                    height={160}
+                    className="w-full object-cover"
+                    style={{ height: '160px' }}
+                  />
+                )}
+                <div className="p-7">
+                  {!('img' in f) && <div className="text-3xl mb-4">{f.icon}</div>}
+                  <h3 className="text-base font-bold text-zinc-900 mb-2">{f.title}</h3>
+                  <p className="text-sm text-zinc-600 leading-relaxed">{f.desc}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -251,11 +267,23 @@ export default function HomePage() {
       {/* ── Fiyatlandırma ── */}
       <section id="fiyatlar" className="py-20 bg-zinc-50">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">Büyüklüğünüze Göre Fiyat</h2>
-            <p className="text-zinc-500 max-w-xl mx-auto">
-              Uzun vadeli sözleşme yok. İstediğiniz zaman plan değiştirebilirsiniz.
-            </p>
+          <div className="flex flex-col lg:flex-row gap-8 items-center mb-12">
+            <div className="flex-1 text-center lg:text-left">
+              <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">Büyüklüğünüze Göre Fiyat</h2>
+              <p className="text-zinc-500 max-w-xl">
+                Uzun vadeli sözleşme yok. İstediğiniz zaman plan değiştirebilirsiniz.
+              </p>
+            </div>
+            <div className="flex-shrink-0 w-full lg:w-72">
+              <Image
+                src="/images/feature-handshake.jpg"
+                alt="CheckRezerve fiyatlandırma"
+                width={320}
+                height={200}
+                className="w-full rounded-2xl shadow-lg object-cover"
+                style={{ height: '180px' }}
+              />
+            </div>
           </div>
           <PricingToggle />
         </div>

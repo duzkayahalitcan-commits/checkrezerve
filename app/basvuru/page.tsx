@@ -86,7 +86,7 @@ export default function BasvuruPage() {
         {/* ── Sol panel ── */}
         <div
           className="lg:w-2/5 flex flex-col px-8 py-10"
-          style={{ backgroundColor: '#1a5c3a' }}
+          style={{ backgroundColor: '#1a5c3a', backgroundImage: "linear-gradient(rgba(26,92,58,0.88),rgba(26,92,58,0.88)),url('/images/bg-basvuru.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}
         >
           <div className="flex items-center gap-2.5 mb-10">
             <Image src="/logo-icon.png" alt="CheckRezerve" width={32} height={32} className="rounded-md" />

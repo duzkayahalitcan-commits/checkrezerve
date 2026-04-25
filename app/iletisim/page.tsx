@@ -13,7 +13,7 @@ export default function IletisimPage() {
     <div className="min-h-screen bg-white">
       <MarketingHeader />
 
-      <section className="pt-28 pb-16 text-white text-center relative" style={{backgroundImage:"linear-gradient(135deg,rgba(13,18,26,0.83) 0%,rgba(13,110,110,0.65) 100%),url('/sector-spa.jpg')",backgroundSize:'cover',backgroundPosition:'center'}}>
+      <section className="pt-28 pb-16 text-white text-center relative" style={{backgroundImage:"linear-gradient(135deg,rgba(13,18,26,0.75) 0%,rgba(13,80,60,0.65) 100%),url('/images/feature-iletisim.jpg')",backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="mx-auto max-w-2xl px-6 relative z-10">
           <span className="inline-block bg-red-600/20 border border-red-500/30 rounded-full px-4 py-1.5 text-sm text-red-300 font-medium mb-6">
             İletişim

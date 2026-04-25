@@ -8,7 +8,7 @@ const SECTORS = [
     id: 'restoran',
     icon: '🍽️',
     label: 'Restoran',
-    img: '/sector-restoran.jpg',
+    img: '/images/sector-restoran.jpg',
     title: 'Restoranlar İçin',
     desc: 'Masa planından grup rezervasyonuna, garson atamasından ön ödemeli rezervasyona kadar restoran operasyonunuzun her adımını dijitalleştirin.',
     features: [
@@ -23,7 +23,7 @@ const SECTORS = [
     id: 'kafe',
     icon: '☕',
     label: 'Kafe',
-    img: '/hero-restaurant.jpg',
+    img: '/images/sector-kafe.jpg',
     title: 'Kafeler İçin',
     desc: 'Yoğun saatlerde kapasite yönetiminden özel etkinlik rezervasyonuna, müşteri sadakat sisteminden kalabalık uyarılarına kadar her şey kontrolünüzde.',
     features: [
@@ -38,7 +38,7 @@ const SECTORS = [
     id: 'spa',
     icon: '💆',
     label: 'Spa & Güzellik',
-    img: '/sector-spa.jpg',
+    img: '/images/sector-spa.jpg',
     title: 'Spa & Güzellik Merkezleri İçin',
     desc: 'Terapist seçiminden çift seans rezervasyonuna, paket satışından hatırlatma sistemine kadar güzellik merkezi yönetiminin tamamı.',
     features: [
@@ -53,7 +53,7 @@ const SECTORS = [
     id: 'kuafor',
     icon: '✂️',
     label: 'Kuaför & Berber',
-    img: '/app-mockup.jpg',
+    img: '/images/sector-kuafor.jpg',
     title: 'Kuaför & Berberler İçin',
     desc: 'Stilist seçiminden işlem süresi hesaplamaya, sıra yönetiminden son dakika müsait slot bildirimlerine kadar salonunuzu modernleştirin.',
     features: [
