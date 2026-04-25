@@ -4,6 +4,7 @@ import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import { PricingToggle } from './PricingToggle'
 import FAQSection from './FAQSection'
+import BasvuruModal from '@/components/BasvuruModal'
 
 export const metadata: Metadata = {
   title: 'CheckRezerve — Randevu & Rezervasyon Yönetim Sistemi',
@@ -128,10 +129,9 @@ export default function HomePage() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/kayit"
-              className="rounded-full bg-red-600 hover:bg-red-700 px-8 py-4 text-base font-semibold text-white transition-colors shadow-lg shadow-red-900/30">
+            <BasvuruModal className="rounded-full bg-red-600 hover:bg-red-700 px-8 py-4 text-base font-semibold text-white transition-colors shadow-lg shadow-red-900/30">
               14 Gün Ücretsiz Dene →
-            </Link>
+            </BasvuruModal>
             <a href="#nasil-calisir"
               className="rounded-full border border-white/30 hover:border-white/60 px-8 py-4 text-base font-semibold text-white transition-colors">
               Nasıl Çalışır?
@@ -204,10 +204,9 @@ export default function HomePage() {
                 Tüm işlemler 3D Secure altyapısıyla güvence altındadır. Yerli ve yabancı tüm kredi kartları
                 kabul edilir.
               </p>
-              <Link href="/kayit"
-                className="inline-flex items-center gap-2 text-red-600 font-semibold hover:text-red-700 transition-colors">
+              <BasvuruModal className="inline-flex items-center gap-2 text-red-600 font-semibold hover:text-red-700 transition-colors bg-transparent border-none cursor-pointer p-0">
                 Hemen Başla →
-              </Link>
+              </BasvuruModal>
             </div>
 
             <div className="flex-shrink-0 w-full lg:w-72 flex flex-col gap-4">
