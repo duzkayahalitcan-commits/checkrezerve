@@ -14,16 +14,14 @@ export async function createBasvuru(
   const phone         = (formData.get('phone')          as string)?.trim() || null
   const email         = (formData.get('email')          as string)?.trim() || null
   const city          = (formData.get('city')           as string)?.trim() || null
-  const message       = (formData.get('message')        as string)?.trim() || null
 
   if (!business_name) return { error: 'İşletme adı zorunludur.', success: false }
-  if (!category)      return { error: 'Sektör seçiniz.',          success: false }
+  if (!category)      return { error: 'Firma türü seçiniz.',      success: false }
   if (!name)          return { error: 'Ad Soyad zorunludur.',      success: false }
 
   const notes = [
-    business_name ? `İşletme: ${business_name}` : null,
-    city          ? `Şehir: ${city}`             : null,
-    message       ? `Mesaj: ${message}`           : null,
+    `İşletme: ${business_name}`,
+    city ? `Şehir: ${city}` : null,
   ].filter(Boolean).join(' | ')
 
   const { error } = await getSupabaseAdmin()
