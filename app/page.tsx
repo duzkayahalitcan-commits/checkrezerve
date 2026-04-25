@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import { PricingToggle } from './PricingToggle'
@@ -209,17 +210,15 @@ export default function HomePage() {
               </BasvuruModal>
             </div>
 
-            <div className="flex-shrink-0 w-full lg:w-72 flex flex-col gap-4">
-              {[
-                { stat: '%60\'a kadar', label: 'No-show oranı düşüşü' },
-                { stat: 'Dakikalar içinde', label: 'Kurulum süresi' },
-                { stat: '7/24', label: 'Destek ve erişim' },
-              ].map(item => (
-                <div key={item.label} className="bg-white rounded-2xl border border-red-100 p-6 shadow-sm">
-                  <div className="text-2xl font-bold text-red-600 mb-1">{item.stat}</div>
-                  <div className="text-sm text-zinc-500 font-medium">{item.label}</div>
-                </div>
-              ))}
+            <div className="flex-shrink-0 w-full lg:w-96">
+              <Image
+                src="/images/feature-rezervasyon.jpg"
+                alt="Akıllı rezervasyon yönetimi"
+                width={600}
+                height={420}
+                className="w-full rounded-2xl shadow-xl object-cover"
+                style={{ height: '340px' }}
+              />
             </div>
           </div>
         </div>
