@@ -28,7 +28,7 @@ export default function HakkimizdaPage() {
       <MarketingHeader />
 
       {/* Hero */}
-      <section className="pt-28 pb-16 text-white text-center relative" style={{backgroundImage:"linear-gradient(135deg,rgba(13,18,26,0.85) 0%,rgba(13,110,110,0.60) 100%),url('/about-office.jpg')",backgroundSize:'cover',backgroundPosition:'center'}}>
+      <section className="pt-28 pb-16 text-white text-center relative" style={{backgroundImage:"linear-gradient(135deg,rgba(13,18,26,0.85) 0%,rgba(13,110,110,0.60) 100%),url('/images/ideogram-v3.0_A_high-quality_wide-angle_shot_of_a_modern_sun-lit_boutique_office_in_Istanbul._-0.jpg')",backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="mx-auto max-w-3xl px-6 relative z-10">
           <span className="inline-block bg-red-600/20 border border-red-500/30 rounded-full px-4 py-1.5 text-sm text-red-300 font-medium mb-6">
             Hakkımızda
@@ -125,7 +125,7 @@ export default function HakkimizdaPage() {
       {/* Office Photo */}
       <div className="w-full h-80 overflow-hidden">
         <Image
-          src="/about-office.jpg"
+          src="/images/ideogram-v3.0_A_high-quality_wide-angle_shot_of_a_modern_sun-lit_boutique_office_in_Istanbul._-0.jpg"
           alt="Ofisimiz"
           width={1440}
           height={320}
