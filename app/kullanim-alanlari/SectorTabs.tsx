@@ -68,7 +68,7 @@ const SECTORS = [
     id: 'otel',
     icon: '🏨',
     label: 'Otel',
-    img: '/about-office.jpg',
+    img: '/images/sector-otel.jpg',
     title: 'Oteller İçin',
     desc: 'Otel içi restoran ve spa rezervasyonunu misafir odalarıyla eşleştirin. Concierge modülü, çoklu dil ve tesis içi bildirim sistemi tek platformda.',
     features: [
@@ -83,7 +83,7 @@ const SECTORS = [
     id: 'etkinlik',
     icon: '🎪',
     label: 'Etkinlik',
-    img: '/tablet-mockup.jpg',
+    img: '/images/sector-etkinlik.jpg',
     title: 'Etkinlik Mekanları İçin',
     desc: 'Kapasite sınırlı etkinliklerden VIP masa yönetimine, bekleme listesinden QR kapı girişine kadar etkinlik mekanınızı profesyonelce yönetin.',
     features: [
@@ -98,7 +98,7 @@ const SECTORS = [
     id: 'fitness',
     icon: '🏋️',
     label: 'Fitness',
-    img: '/feat-mobile.jpg',
+    img: '/images/sector-fitness.jpg',
     title: 'Fitness & Yoga Stüdyoları İçin',
     desc: 'Ders takviminizi, eğitmen müsaitliğini ve üye rezervasyon haklarını tek platformda yönetin. Tekrarlayan seans otomasyonuyla idari yükü minimuma indirin.',
     features: [
