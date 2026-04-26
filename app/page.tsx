@@ -245,18 +245,15 @@ export default function HomePage() {
             {FEATURES.map(f => (
               <div key={f.title}
                 className="rounded-2xl border border-zinc-100 bg-zinc-50 overflow-hidden hover:border-red-100 hover:shadow-md transition-all duration-200">
-                {'img' in f && f.img && (
-                  <Image
-                    src={f.img as string}
-                    alt={f.title}
-                    width={400}
-                    height={160}
-                    className="w-full object-cover"
-                    style={{ height: '160px' }}
-                  />
-                )}
+                <Image
+                  src={f.img}
+                  alt={f.title}
+                  width={400}
+                  height={160}
+                  className="w-full object-cover"
+                  style={{ height: '160px' }}
+                />
                 <div className="p-7">
-                  {!('img' in f) && <div className="text-3xl mb-4">{f.icon}</div>}
                   <h3 className="text-base font-bold text-zinc-900 mb-2">{f.title}</h3>
                   <p className="text-sm text-zinc-600 leading-relaxed">{f.desc}</p>
                 </div>
