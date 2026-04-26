@@ -73,6 +73,7 @@ const FEATURES = [
   },
   {
     icon: '💳',
+    img: '/images/feature-odeme.jpg',
     title: 'Ön Ödeme & Provizyon',
     desc: 'Rezervasyon anında müşterinizden güvence bedeli alın. Gelmeyene kesinti uygulayın, gelene iade edin. Siz kuralı belirleyin.',
   },
@@ -96,6 +97,7 @@ const FEATURES = [
   },
   {
     icon: '🖥️',
+    img: '/images/feature-online.jpg',
     title: 'Online Rezervasyon Sayfası',
     desc: 'Müşterileriniz size ait özel bir link üzerinden 7/24 rezervasyon yapabilir. Telefon trafiğini azaltın, dönüşümü artırın.',
   },
@@ -107,7 +109,7 @@ export default function HomePage() {
       <MarketingHeader />
 
       {/* ── Hero ── */}
-      <section className="pt-24 pb-24 text-white relative" style={{backgroundImage:"linear-gradient(rgba(0,0,0,0.45),rgba(0,0,0,0.45)),url('/hero-restaurant.jpg')",backgroundSize:'cover',backgroundPosition:'center'}}>
+      <section className="pt-24 pb-24 text-white relative" style={{backgroundImage:"linear-gradient(rgba(0,0,0,0.45),rgba(0,0,0,0.45)),url('/images/hero-premium.jpg')",backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="mx-auto max-w-5xl px-6 text-center">
           <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/30 rounded-full px-4 py-1.5 text-sm mb-8 text-red-300 font-medium">
             Randevu &amp; Rezervasyon Yönetimi
