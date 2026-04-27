@@ -4,7 +4,7 @@ import { searchFaq } from '@/lib/faq-search'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-async function textToSpeech(text: string): Promise<Buffer> {
+async function textToSpeech(text: string): Promise<ArrayBuffer> {
   const apiKey = process.env.ELEVENLABS_API_KEY
   const voiceId = process.env.ELEVENLABS_VOICE_ID
   if (!apiKey || !voiceId) throw new Error('ElevenLabs yapılandırılmamış')
@@ -28,7 +28,7 @@ async function textToSpeech(text: string): Promise<Buffer> {
     throw new Error(`ElevenLabs hatası: ${err}`)
   }
 
-  return Buffer.from(await res.arrayBuffer())
+  return res.arrayBuffer()
 }
 
 export async function POST(request: NextRequest) {
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     // 3. TTS
     const audioBuffer = await textToSpeech(answer)
 
-    return new NextResponse(audioBuffer, {
+    return new NextResponse(new Uint8Array(audioBuffer), {
       headers: {
         'Content-Type': 'audio/mpeg',
         'Content-Length': String(audioBuffer.byteLength),
