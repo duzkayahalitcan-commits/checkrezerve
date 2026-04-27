@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 async function getEmbedding(text: string): Promise<number[] | null> {
   const openaiKey = process.env.OPENAI_API_KEY
@@ -26,7 +28,7 @@ export async function searchFaq(text: string): Promise<string | null> {
   const embedding = await getEmbedding(text)
   if (!embedding) return null
   try {
-    const { data } = await supabase.rpc('match_faq', {
+    const { data } = await getSupabase().rpc('match_faq', {
       query_embedding: embedding,
       match_threshold: 0.85,
       match_count: 1,
