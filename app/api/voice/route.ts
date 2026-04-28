@@ -44,15 +44,20 @@ export async function POST(request: NextRequest) {
 
     // 2. Claude fallback
     if (!answer) {
-      const aiRes = await anthropic.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 256,
-        system: `Sen ${businessName} adlı ${businessType} işletmesinin sesli asistanısın. Türkçe, kısa (1-2 cümle) ve net cevaplar ver.`,
-        messages: [{ role: 'user', content: text }],
-      })
-      answer = aiRes.content[0].type === 'text'
-        ? aiRes.content[0].text
-        : 'Anlayamadım, tekrar söyler misiniz?'
+      try {
+        const aiRes = await anthropic.messages.create({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 256,
+          system: `Sen ${businessName} adlı ${businessType} işletmesinin sesli asistanısın. Türkçe, kısa (1-2 cümle) ve net cevaplar ver.`,
+          messages: [{ role: 'user', content: text }],
+        })
+        answer = aiRes.content[0].type === 'text'
+          ? aiRes.content[0].text
+          : 'Anlayamadım, tekrar söyler misiniz?'
+      } catch (claudeErr) {
+        console.warn('[voice] Claude fallback başarısız:', claudeErr)
+        answer = 'Şu an bu soruyu yanıtlayamıyorum, lütfen daha sonra tekrar deneyin.'
+      }
     }
 
     // 3. TTS
