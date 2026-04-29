@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { searchFaq } from '@/lib/faq-search'
+import { checkGreeting, searchFaq } from '@/lib/faq-search'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -39,8 +39,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Metin boş olamaz' }, { status: 400 })
     }
 
-    // 1. FAQ semantic search
-    let answer = await searchFaq(text)
+    // Kademe 0: Selamlama ($0)
+    let answer = checkGreeting(text)
+
+    // Kademe 1-2: FAQ arama
+    if (!answer) answer = await searchFaq(text)
 
     // 2. Claude fallback
     if (!answer) {

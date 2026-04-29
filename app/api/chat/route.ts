@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { searchFaq } from '@/lib/faq-search'
+import { checkGreeting, searchFaq } from '@/lib/faq-search'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -8,11 +8,16 @@ export async function POST(request: NextRequest) {
   try {
     const { messages, businessName, businessType, availableSlots } = await request.json()
 
-    // FAQ semantic search — son kullanıcı mesajına bak
+    // Son kullanıcı mesajını bul
     const lastUserMsg = [...(messages ?? [])].reverse().find(
       (m: { role: string; content: string }) => m.role === 'user'
     )
     if (lastUserMsg) {
+      // Kademe 0: Selamlama ($0)
+      const greeting = checkGreeting(lastUserMsg.content)
+      if (greeting) return NextResponse.json({ message: greeting })
+
+      // Kademe 1-2: FAQ arama
       const faqAnswer = await searchFaq(lastUserMsg.content)
       if (faqAnswer) return NextResponse.json({ message: faqAnswer })
     }

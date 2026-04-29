@@ -7,6 +7,27 @@ function getSupabase() {
   )
 }
 
+// ── Kademe 0: Selamlama kontrolü ($0 maliyet) ────────────────────────────────
+const GREETINGS = [
+  'merhaba', 'iyi günler', 'selam', 'kolay gelsin',
+  'günaydın', 'iyi akşamlar', 'iyi geceler', 'hey',
+  'hello', 'hi', 'good morning', 'good evening',
+  'good afternoon', 'good night', 'nasılsınız',
+  'ne haber', 'how are you', 'greetings',
+]
+
+const GREETING_REPLY =
+  'Merhaba! Size nasıl yardımcı olabilirim? Randevu, çalışma saatleri veya diğer konularda sorularınızı yanıtlamaya hazırım.'
+
+export function checkGreeting(text: string): string | null {
+  const norm = text.toLowerCase().trim().replace(/[!?.,]/g, '').trim()
+  if (GREETINGS.some(g => norm === g)) {
+    console.log('[faq] kademe-0 (greeting) hit')
+    return GREETING_REPLY
+  }
+  return null
+}
+
 // ── Türkçe stop words ─────────────────────────────────────────────────────────
 const STOP = new Set([
   'bir', 've', 'ile', 'bu', 'da', 'de', 'ki', 'mi', 'mı', 'mu', 'mü',
