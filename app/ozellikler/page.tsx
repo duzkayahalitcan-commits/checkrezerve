@@ -90,7 +90,7 @@ const FEATURES = [
   },
   {
     num: '07',
-    img: '/sector-restoran.jpg',
+    img: '/images/designer-4.png',
     title: 'CRM & Müşteri Geçmişi',
     desc: 'Her müşterinizi tanıyın. Alerji bilgisinden oturma tercihine, geçmiş ziyaretlerden doğum gününe kadar her detay kayıt altında.',
     items: [
