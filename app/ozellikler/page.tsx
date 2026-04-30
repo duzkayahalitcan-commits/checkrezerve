@@ -38,7 +38,7 @@ const FEATURES = [
   },
   {
     num: '03',
-    img: '/feat-realtime.jpg',
+    img: '/images/designer-15.png',
     title: 'Anlık İşletme Takibi',
     desc: 'Hangi masalar dolu, toplam kaç kişi içeride, yoğunluk ne zaman zirveye ulaşacak? İşletmenizin gerçek zamanlı nabzını tek ekranda tutun.',
     items: [
