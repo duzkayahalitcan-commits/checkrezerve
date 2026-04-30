@@ -51,7 +51,7 @@ const FEATURES = [
   },
   {
     num: '04',
-    img: '/feat-analytics.jpg',
+    img: '/images/designer-5.png',
     title: 'Rezervasyon & Ciro Analizi',
     desc: 'Sezgisel kararlar yerine veriye dayalı yönetim. Günlük, haftalık ve aylık raporlarla işletmenizin tüm metriklerini takip edin.',
     items: [
