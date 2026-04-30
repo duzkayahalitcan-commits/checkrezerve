@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
+import { UtensilsCrossed, Scissors, Sparkles, BedDouble, CalendarRange, Dumbbell } from 'lucide-react'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import { PricingToggle } from './PricingToggle'
@@ -15,32 +16,32 @@ export const metadata: Metadata = {
 
 const SECTORS = [
   {
-    icon: '🍽️',
+    Icon: UtensilsCrossed,
     title: 'Restoran & Kafe',
     desc: 'Masa bazlı rezervasyon, kroki üzerinden oturma düzeni ve no-show koruması ile doluluk oranınızı maksimuma taşıyın.',
   },
   {
-    icon: '✂️',
+    Icon: Scissors,
     title: 'Kuaför & Berber',
     desc: 'Personel bazlı randevu takibi, müşteri geçmişi ve otomatik hatırlatmalarla salonunuzu verimli yönetin.',
   },
   {
-    icon: '💆',
+    Icon: Sparkles,
     title: 'Spa & Güzellik Salonu',
     desc: 'Hizmet süresi ve kapasite yönetimi ile çakışan randevuların önüne geçin. Müşteri sadakatini artırın.',
   },
   {
-    icon: '🏨',
+    Icon: BedDouble,
     title: 'Otel & Konaklama',
     desc: 'Oda rezervasyonlarını, erken check-in taleplerini ve ek hizmetleri tek panelden takip edin.',
   },
   {
-    icon: '🎭',
+    Icon: CalendarRange,
     title: 'Etkinlik & Organizasyon',
     desc: 'Kontenjan yönetimi, bilet satışı ve misafir listesi kontrolünü kolaylaştırın.',
   },
   {
-    icon: '🏋️',
+    Icon: Dumbbell,
     title: 'Spor & Fitness',
     desc: 'Ders, antrenör ve alan bazlı randevu sistemi ile üye deneyimini iyileştirin.',
   },
@@ -147,6 +148,19 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── Demo İste CTA ── */}
+      <section className="bg-red-600 py-5">
+        <div className="mx-auto max-w-5xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-white font-semibold text-base">
+            CheckRezerve&apos;i canlı görmek ister misiniz?
+          </p>
+          <Link href="/iletisim"
+            className="shrink-0 rounded-full bg-white text-red-600 hover:bg-red-50 px-7 py-2.5 text-sm font-bold transition-colors shadow">
+            Demo İste →
+          </Link>
+        </div>
+      </section>
+
       {/* ── Kullanım Alanları ── */}
       <section id="kullanim-alanlari" className="py-20 bg-white">
         <div className="mx-auto max-w-6xl px-6">
@@ -162,7 +176,9 @@ export default function HomePage() {
             {SECTORS.map(s => (
               <div key={s.title}
                 className="rounded-2xl border border-zinc-100 bg-zinc-50 p-7 hover:border-red-100 hover:shadow-sm transition-all duration-200">
-                <div className="text-3xl mb-4">{s.icon}</div>
+                <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center mb-4">
+                  <s.Icon className="w-5 h-5 text-red-600" />
+                </div>
                 <h3 className="text-base font-bold text-zinc-900 mb-2">{s.title}</h3>
                 <p className="text-sm text-zinc-600 leading-relaxed">{s.desc}</p>
               </div>
@@ -177,7 +193,7 @@ export default function HomePage() {
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">3 Adımda Hazırsınız</h2>
           </div>
-          <div className="grid sm:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-3 gap-8 mb-16">
             {HOW_STEPS.map(step => (
               <div key={step.num} className="flex flex-col items-center text-center">
                 <div className="w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center text-xl font-extrabold mb-5 shadow-lg shadow-red-200">
@@ -187,6 +203,16 @@ export default function HomePage() {
                 <p className="text-sm text-zinc-600 leading-relaxed">{step.desc}</p>
               </div>
             ))}
+          </div>
+
+          {/* YouTube Placeholder */}
+          <div className="rounded-2xl overflow-hidden border border-zinc-200 bg-zinc-900 aspect-video flex flex-col items-center justify-center gap-4 max-w-3xl mx-auto">
+            <div className="w-16 h-16 rounded-full bg-red-600/90 flex items-center justify-center">
+              <svg className="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+            <p className="text-zinc-400 text-sm font-medium">Demo videosu yakında</p>
           </div>
         </div>
       </section>
@@ -263,6 +289,20 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── Fiyat Karşılaştır CTA ── */}
+      <section className="py-10 bg-white border-t border-zinc-100">
+        <div className="mx-auto max-w-5xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <p className="text-zinc-900 font-bold text-lg">Hangi plan size uygun?</p>
+            <p className="text-zinc-500 text-sm">Tüm planları yan yana karşılaştırın, doğru kararı verin.</p>
+          </div>
+          <a href="#fiyatlar"
+            className="shrink-0 rounded-full bg-zinc-900 hover:bg-zinc-700 text-white px-7 py-2.5 text-sm font-bold transition-colors">
+            Fiyat Karşılaştır →
+          </a>
+        </div>
+      </section>
+
       {/* ── Fiyatlandırma ── */}
       <section id="fiyatlar" className="py-20 bg-zinc-50">
         <div className="mx-auto max-w-6xl px-6">
@@ -295,6 +335,17 @@ export default function HomePage() {
             <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">Sıkça Sorulan Sorular</h2>
           </div>
           <FAQSection />
+        </div>
+      </section>
+
+      {/* ── Ücretsiz Dene CTA ── */}
+      <section className="py-20 bg-zinc-900 text-white text-center">
+        <div className="mx-auto max-w-2xl px-6">
+          <h2 className="text-3xl font-bold mb-4">Hemen Başlayın, 14 Gün Ücretsiz Deneyin</h2>
+          <p className="text-white/60 mb-8">Kredi kartı gerekmez. Kurulum birkaç dakika sürer.</p>
+          <BasvuruModal className="inline-flex items-center gap-2 rounded-full bg-red-600 hover:bg-red-700 px-8 py-4 font-semibold text-white transition-colors shadow-lg shadow-red-900/40">
+            14 Gün Ücretsiz Dene →
+          </BasvuruModal>
         </div>
       </section>
 

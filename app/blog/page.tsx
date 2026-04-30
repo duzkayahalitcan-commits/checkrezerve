@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
+import BlogCoverImage from './BlogCoverImage'
 
 export const metadata: Metadata = {
   title: 'Blog — CheckRezerve',
-  description: 'Rezervasyon yönetimi, no-show azaltma ve sektör trendleri hakkında içerikler.',
+  description: 'Rezervasyon yönetimi, no-show azaltma, sektör trendleri ve işletme büyütme ipuçları. CheckRezerve bloğunda uzman içerikler.',
 }
 
 const POSTS = [
@@ -91,22 +91,7 @@ export default function BlogPage() {
             {POSTS.map(post => (
               <article key={post.title}
                 className="rounded-2xl border border-zinc-100 bg-white hover:border-red-100 hover:shadow-md transition-all duration-200 overflow-hidden group cursor-pointer">
-                {post.cover ? (
-                  <div className="h-44 overflow-hidden">
-                    <Image
-                      src={post.cover}
-                      alt={post.title}
-                      width={480}
-                      height={176}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                    />
-                  </div>
-                ) : (
-                  <div className="h-44 bg-gradient-to-br from-zinc-100 to-zinc-50 flex items-center justify-center text-5xl group-hover:from-red-50 group-hover:to-orange-50 transition-colors">
-                    {post.emoji}
-                  </div>
-                )}
+                <BlogCoverImage src={post.cover} alt={post.title} tag={post.tag} />
                 <div className="p-6">
                   <span className="inline-block bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-full mb-3 uppercase tracking-wide">
                     {post.tag}
