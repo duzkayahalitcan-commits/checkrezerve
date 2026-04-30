@@ -39,6 +39,7 @@ const FEATURES = [
   {
     num: '03',
     img: '/images/designer-15.png',
+    imgClass: 'object-bottom',
     title: 'Anlık İşletme Takibi',
     desc: 'Hangi masalar dolu, toplam kaç kişi içeride, yoğunluk ne zaman zirveye ulaşacak? İşletmenizin gerçek zamanlı nabzını tek ekranda tutun.',
     items: [
@@ -183,7 +184,7 @@ export default function OzelliklerPage() {
                     alt={f.title}
                     width={480}
                     height={340}
-                    className="w-full h-72 object-cover"
+                    className={`w-full h-72 object-cover ${f.imgClass ?? ''}`}
                     loading="lazy"
                   />
                 </div>
