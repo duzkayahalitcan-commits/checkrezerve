@@ -7,7 +7,8 @@ import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS, type BusinessType, type Restaurant } from '@/types'
-import CategoryTabs, { CATEGORIES } from './CategoryTabs'
+import CategoryTabs from './CategoryTabs'
+import { CATEGORIES } from './categories'
 
 export const metadata: Metadata = {
   title: 'Online Rezervasyon — CheckRezerve',
