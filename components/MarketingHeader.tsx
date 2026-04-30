@@ -7,6 +7,7 @@ const NAV_LINKS = [
   { href: '/ozellikler',        label: 'Özellikler' },
   { href: '/kullanim-alanlari', label: 'Kullanım Alanları' },
   { href: '/#fiyatlar',         label: 'Fiyatlar' },
+  { href: '/rezervasyon',       label: 'Rezervasyon Yap' },
   { href: '/blog',              label: 'Blog' },
   { href: '/hakkimizda',        label: 'Hakkımızda' },
   { href: '/iletisim',          label: 'İletişim' },
