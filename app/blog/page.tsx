@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 
@@ -24,6 +25,7 @@ const POSTS = [
     excerpt: 'Sesli AI asistanlar, tahmine dayalı doluluk analizi ve kişiselleştirilmiş misafir deneyimi — 2025 ve sonrası için rezervasyon teknolojisi nereye gidiyor?',
     readTime: '7 dk okuma',
     date: 'Mart 2025',
+    cover: '/images/blog-restoran-ai.png',
   },
   {
     emoji: '💆',
@@ -32,6 +34,7 @@ const POSTS = [
     excerpt: 'Kâğıt defter ve telefon defterinden dijital rezervasyon sistemine geçiş. Spa işletmelerinin karşılaştığı 5 sorun ve pratik çözümleri.',
     readTime: '4 dk okuma',
     date: 'Şubat 2025',
+    cover: '/images/blog-spa.png',
   },
   {
     emoji: '📊',
@@ -40,6 +43,7 @@ const POSTS = [
     excerpt: 'Doluluk oranı, iptal trendi ve müşteri tercih analizleri — doğru verileri okuyarak nasıl daha fazla gelir elde edebilirsiniz?',
     readTime: '6 dk okuma',
     date: 'Ocak 2025',
+    cover: '/images/blog-rezervasyon-veri.jpg',
   },
   {
     emoji: '✂️',
@@ -56,6 +60,7 @@ const POSTS = [
     excerpt: 'Ön ödeme istemek müşterileri kaçırır mı? Araştırmalar aksini söylüyor. Doğru iletişimle ön ödemeyi müşteri güvenine dönüştürün.',
     readTime: '5 dk okuma',
     date: 'Kasım 2024',
+    cover: '/images/blog-on-odeme.png',
   },
 ]
 
@@ -84,9 +89,22 @@ export default function BlogPage() {
             {POSTS.map(post => (
               <article key={post.title}
                 className="rounded-2xl border border-zinc-100 bg-white hover:border-red-100 hover:shadow-md transition-all duration-200 overflow-hidden group cursor-pointer">
-                <div className="h-44 bg-gradient-to-br from-zinc-100 to-zinc-50 flex items-center justify-center text-5xl group-hover:from-red-50 group-hover:to-orange-50 transition-colors">
-                  {post.emoji}
-                </div>
+                {post.cover ? (
+                  <div className="h-44 overflow-hidden">
+                    <Image
+                      src={post.cover}
+                      alt={post.title}
+                      width={480}
+                      height={176}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                  </div>
+                ) : (
+                  <div className="h-44 bg-gradient-to-br from-zinc-100 to-zinc-50 flex items-center justify-center text-5xl group-hover:from-red-50 group-hover:to-orange-50 transition-colors">
+                    {post.emoji}
+                  </div>
+                )}
                 <div className="p-6">
                   <span className="inline-block bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-full mb-3 uppercase tracking-wide">
                     {post.tag}
