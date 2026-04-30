@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 const FEATURES = [
   {
     num: '01',
-    img: '/feat-ai-voice.jpg',
+    img: '/images/feat-ai-voice-new.jpg',
     title: 'Yapay Zeka Sesli Onay',
     desc: 'Rezervasyon tamamlandığı anda sistemimizin AI motoru müşteriyi otomatik olarak arar. Türkçe doğal dil konuşmasıyla rezervasyonu sesli onaylar ya da iptal eder — tüm görüşmeler kayıt altına alınır.',
     items: [
@@ -25,7 +25,7 @@ const FEATURES = [
   },
   {
     num: '02',
-    img: '/feat-human-agent.jpg',
+    img: '/images/feat-human-agent-new.jpg',
     title: 'İsteğe Bağlı Gerçek Kişi Aracılığı',
     desc: 'Her müşteri AI ile konuşmak istemez. CheckRezerve, müşteriye AI veya gerçek operatör seçeneği sunar. Resepsiyonist ekranında anlık bildirimle hiçbir çağrı kaçmaz.',
     items: [
