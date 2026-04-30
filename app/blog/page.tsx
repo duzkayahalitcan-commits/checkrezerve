@@ -17,6 +17,7 @@ const POSTS = [
     excerpt: 'Haber vermeden gelmeyen müşteri sorunu Türkiye\'deki restoranların büyük bölümünü etkiliyor. Ön ödeme sistemi ve otomatik onay ile bu sorunu nasıl çözebilirsiniz?',
     readTime: '5 dk okuma',
     date: 'Nisan 2025',
+    cover: '/images/blog-no-show.jpg',
   },
   {
     emoji: '🤖',
@@ -52,6 +53,7 @@ const POSTS = [
     excerpt: 'Son dakika iptalleri ve gelmeyen müşteriler kuaför salonları için büyük gelir kaybı anlamına gelir. İşte bunu önlemenin pratik yolları.',
     readTime: '4 dk okuma',
     date: 'Aralık 2024',
+    cover: '/images/blog-kuafor.jpg',
   },
   {
     emoji: '💳',
