@@ -74,7 +74,7 @@ const FEATURES = [
   },
   {
     icon: '💳',
-    img: '/images/feature-odeme.jpg',
+    img: '/images/feature-odeme-new.png',
     title: 'Ön Ödeme & Provizyon',
     desc: 'Rezervasyon anında müşterinizden güvence bedeli alın. Gelmeyene kesinti uygulayın, gelene iade edin. Siz kuralı belirleyin.',
   },
@@ -92,7 +92,7 @@ const FEATURES = [
   },
   {
     icon: '📊',
-    img: '/images/feature-analitik.jpg',
+    img: '/images/blog-banner.jpg',
     title: 'Raporlama & Analiz',
     desc: 'Doluluk oranı, iptal istatistikleri ve gelir raporlarını anlık takip edin. Doğru kararları veriye dayanarak alın.',
   },
