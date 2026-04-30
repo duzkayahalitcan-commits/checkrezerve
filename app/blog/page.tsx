@@ -71,7 +71,7 @@ export default function BlogPage() {
     <div className="min-h-screen bg-white">
       <MarketingHeader />
 
-      <section className="pt-28 pb-16 text-white text-center relative" style={{backgroundImage:"linear-gradient(135deg,rgba(13,18,26,0.86) 0%,rgba(13,110,110,0.64) 100%),url('/hero-restaurant.jpg')",backgroundSize:'cover',backgroundPosition:'center top'}}>
+      <section className="pt-28 pb-16 text-white text-center relative" style={{backgroundImage:"linear-gradient(135deg,rgba(13,18,26,0.82) 0%,rgba(13,110,110,0.60) 100%),url('/images/blog-banner.jpg')",backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="mx-auto max-w-2xl px-6 relative z-10">
           <span className="inline-block bg-red-600/20 border border-red-500/30 rounded-full px-4 py-1.5 text-sm text-red-300 font-medium mb-6">
             Blog
