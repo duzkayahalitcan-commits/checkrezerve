@@ -28,16 +28,23 @@ Görevlerin: randevu ayarlamak, sorulara cevap vermek, işletme hakkında bilgi 
 Müsait randevu slotları: ${JSON.stringify(availableSlots || [])}.
 Kısa ve net cevaplar ver. Randevu için mutlaka isim, tarih ve saat bilgisi al.`
 
-    const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages,
-    })
+    try {
+      const response = await anthropic.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages,
+      })
 
-    return NextResponse.json({
-      message: response.content[0].type === 'text' ? response.content[0].text : '',
-    })
+      return NextResponse.json({
+        message: response.content[0].type === 'text' ? response.content[0].text : '',
+      })
+    } catch (aiError) {
+      console.error('[chat/ai]', aiError)
+      return NextResponse.json({
+        message: 'Şu an yapay zeka asistanına ulaşılamıyor. Rezervasyon için lütfen bizi doğrudan arayın veya formu kullanarak rezervasyon yapın.',
+      })
+    }
   } catch (error) {
     console.error('[chat]', error)
     return NextResponse.json({ error: 'Bir hata oluştu' }, { status: 500 })
