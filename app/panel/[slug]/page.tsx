@@ -1,6 +1,7 @@
 import { redirect }        from 'next/navigation'
 import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { getRoleLabel }    from '@/lib/roles'
 import WeeklyChart          from './WeeklyChart'
 import ExportButton         from './ExportButton'
 import ReservationList      from './ReservationList'
@@ -143,7 +144,10 @@ export default async function PanelDashboardPage({
       <header className="border-b border-stone-800 px-4 py-3 flex items-center justify-between">
         <div>
           <span className="text-xs text-stone-500 font-mono">checkrezerve</span>
-          <h1 className="text-white font-bold text-lg leading-tight">{restaurant.name}</h1>
+          <div className="flex items-center gap-2 mt-0.5">
+            <h1 className="text-white font-bold text-lg leading-tight">{restaurant.name}</h1>
+            <RoleBadge role={session.role} />
+          </div>
         </div>
         <form action="/panel/logout" method="POST">
           <button
@@ -237,6 +241,21 @@ export default async function PanelDashboardPage({
 
       </main>
     </div>
+  )
+}
+
+function RoleBadge({ role }: { role: string }) {
+  const label = getRoleLabel(role)
+  const styles: Record<string, string> = {
+    business_owner:   'bg-amber-500/15 text-amber-400 border-amber-500/20',
+    business_manager: 'bg-blue-500/15  text-blue-400  border-blue-500/20',
+    super_admin:      'bg-red-500/15   text-red-400   border-red-500/20',
+  }
+  const cls = styles[role] ?? 'bg-stone-700/50 text-stone-400 border-stone-600/30'
+  return (
+    <span className={`inline-block border rounded-md px-1.5 py-0.5 text-[10px] font-medium ${cls}`}>
+      {label}
+    </span>
   )
 }
 

@@ -43,7 +43,7 @@ export async function panelLoginAction(
   }
 
   const token = makeSessionToken(user.id, user.restaurant_id)
-  const cookiePayload = `${user.id}:${user.restaurant_id}:${token}`
+  const cookiePayload = `${user.id}:${user.restaurant_id}:${user.role ?? 'business_manager'}:${token}`
 
   const jar = await cookies()
   jar.set('cr_panel', cookiePayload, {
@@ -68,6 +68,7 @@ export async function panelLoginAction(
 export type PanelSession = {
   userId:       string
   restaurantId: string
+  role:         string
 } | null
 
 export async function getPanelSession(): Promise<PanelSession> {
@@ -76,12 +77,14 @@ export async function getPanelSession(): Promise<PanelSession> {
   if (!raw) return null
 
   const parts = raw.split(':')
-  if (parts.length < 3) return null
+  // Format: userId:restaurantId:role:token  (4+ parts)
+  // Legacy format had 3 parts — force re-login by rejecting
+  if (parts.length < 4) return null
 
-  const [userId, restaurantId, ...tokenParts] = parts
+  const [userId, restaurantId, role, ...tokenParts] = parts
   const token    = tokenParts.join(':')
   const expected = makeSessionToken(userId, restaurantId)
 
   if (token !== expected) return null
-  return { userId, restaurantId }
+  return { userId, restaurantId, role }
 }

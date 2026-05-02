@@ -59,7 +59,7 @@ export async function createRestaurantUser(
   const restaurant_id = (formData.get('restaurant_id') as string)?.trim()
   const username      = (formData.get('username')      as string)?.trim()
   const password      = (formData.get('password')      as string)?.trim()
-  const role          = (formData.get('role')          as string) || 'manager'
+  const role          = (formData.get('role')          as string) || 'business_manager'
 
   if (!restaurant_id) return { error: 'Restoran seçiniz.',          success: false }
   if (!username)      return { error: 'Kullanıcı adı zorunludur.',  success: false }

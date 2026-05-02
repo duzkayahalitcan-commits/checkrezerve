@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { getRoleLabel } from '@/lib/roles'
 import { ReservationDashboard } from './ReservationDashboard'
 import { AddRestaurantForm } from './restaurants/AddRestaurantForm'
 import { QRCodeButton } from './restaurants/QRCodeButton'
@@ -26,6 +27,7 @@ export default async function AdminPage() {
     { count: todayConfirmed },
     { count: todayCancelled },
     { data: smsLogs },
+    { data: panelUsers },
   ] = await Promise.all([
     supabase.from('restaurants').select('id, name, slug, phone, address, capacity, created_at, business_type, timezone, booking_duration_minutes, currency, description, website, instagram, is_active, floor_plan_enabled').order('name'),
 
@@ -59,6 +61,11 @@ export default async function AdminPage() {
       .select('id, to_number, body, provider, status, created_at')
       .order('created_at', { ascending: false })
       .limit(20),
+
+    supabase
+      .from('restaurant_users')
+      .select('id, restaurant_id, username, role, is_active, created_at, restaurants(name)')
+      .order('created_at', { ascending: false }),
   ])
 
   // Restoran bazlı bugünkü doluluk
@@ -79,7 +86,12 @@ export default async function AdminPage() {
         <div className="mx-auto max-w-5xl flex items-center justify-between">
           <div>
             <h1 className="text-base font-bold text-white">checkrezerve</h1>
-            <p className="text-xs text-stone-500">Admin Paneli</p>
+            <p className="text-xs text-stone-500">
+              Admin Paneli
+              <span className="ml-2 bg-red-500/15 text-red-400 border border-red-500/20 rounded-md px-1.5 py-0.5 text-[10px] font-medium">
+                {getRoleLabel('super_admin')}
+              </span>
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
@@ -204,7 +216,15 @@ export default async function AdminPage() {
           <h2 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">
             Restoran Panel Kullanıcıları
           </h2>
-          <UserForm restaurants={restaurants ?? []} />
+          <UserForm
+            restaurants={restaurants ?? []}
+            users={(panelUsers ?? []).map(u => ({
+              ...u,
+              restaurant_name: (u.restaurants as unknown as { name: string } | { name: string }[] | null) instanceof Array
+                ? ((u.restaurants as unknown as { name: string }[])[0]?.name ?? '—')
+                : ((u.restaurants as unknown as { name: string } | null)?.name ?? '—'),
+            }))}
+          />
         </section>
 
         {/* ── Rezervasyon Dashboard ─────────────────────────────── */}

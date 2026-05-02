@@ -150,7 +150,7 @@ export type RestaurantUser = {
   id:            string
   restaurant_id: string
   username:      string
-  role:          'manager' | 'staff'
+  role:          'business_owner' | 'business_manager'
   is_active:     boolean
   created_at:    string
 }
