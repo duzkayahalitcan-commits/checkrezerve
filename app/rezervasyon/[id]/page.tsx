@@ -9,13 +9,15 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS, type BusinessType, type Restaurant, type Service, type StaffMember } from '@/types'
 import BookingForm from './BookingForm'
 
-type Props = { params: { id: string } }
+// Next.js 15+ — params is a Promise
+type Props = { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params
   const { data } = await getSupabaseAdmin()
     .from('restaurants')
     .select('name, description')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (!data) return { title: 'İşletme Bulunamadı' }
@@ -26,13 +28,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BusinessDetailPage({ params }: Props) {
+  const { id } = await params
   const supabase = getSupabaseAdmin()
 
   const [{ data: biz }, { data: rawServices }, { data: rawStaff }, { data: rawMasa }] = await Promise.all([
-    supabase.from('restaurants').select('*').eq('id', params.id).single(),
-    supabase.from('hizmetler').select('*').eq('isletme_id', params.id).eq('aktif', true).order('sira'),
-    supabase.from('calisanlar').select('*').eq('isletme_id', params.id).eq('aktif', true).order('sira'),
-    supabase.from('masa_tipleri').select('*').eq('isletme_id', params.id).eq('aktif', true).order('kapasite'),
+    supabase.from('restaurants').select('*').eq('id', id).single(),
+    supabase.from('hizmetler').select('*').eq('isletme_id', id).eq('aktif', true).order('sira'),
+    supabase.from('calisanlar').select('*').eq('isletme_id', id).eq('aktif', true).order('sira'),
+    supabase.from('masa_tipleri').select('*').eq('isletme_id', id).eq('aktif', true).order('kapasite'),
   ])
 
   if (!biz) notFound()

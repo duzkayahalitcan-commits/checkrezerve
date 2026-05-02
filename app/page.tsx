@@ -220,11 +220,11 @@ export default function HomePage() {
                 </svg>
               </div>
               <div className="text-center px-4">
-                <p className="text-white font-semibold text-base mb-1">Demo videosu çok yakında</p>
-                <p className="text-zinc-300 text-sm mb-5">Sistemi canlı görmek ister misiniz?</p>
-                <Link href="/iletisim"
+                <p className="text-white font-bold text-xl mb-2">14 Gün Ücretsiz Deneyin</p>
+                <p className="text-zinc-300 text-sm mb-5">Kredi kartı gerekmez. Kurulum dakikalar içinde.</p>
+                <Link href="/kayit"
                   className="rounded-full bg-red-600 hover:bg-red-700 px-6 py-2.5 text-sm font-bold text-white transition-colors inline-block">
-                  Bize Yazın →
+                  Hemen Başlayın →
                 </Link>
               </div>
             </div>
