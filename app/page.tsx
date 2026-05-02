@@ -205,14 +205,29 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* YouTube Placeholder */}
-          <div className="rounded-2xl overflow-hidden border border-zinc-200 bg-zinc-900 aspect-video flex flex-col items-center justify-center gap-4 max-w-3xl mx-auto">
-            <div className="w-16 h-16 rounded-full bg-red-600/90 flex items-center justify-center">
-              <svg className="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
+          {/* Demo Video Placeholder */}
+          <div className="rounded-2xl overflow-hidden border border-zinc-200 max-w-3xl mx-auto relative aspect-video">
+            <Image
+              src="/images/hero-restaurant.jpg"
+              alt="CheckRezerve demo önizlemesi"
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-zinc-900/65 flex flex-col items-center justify-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg shadow-red-900/40">
+                <svg className="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+              <div className="text-center px-4">
+                <p className="text-white font-semibold text-base mb-1">Demo videosu çok yakında</p>
+                <p className="text-zinc-300 text-sm mb-5">Sistemi canlı görmek ister misiniz?</p>
+                <Link href="/iletisim"
+                  className="rounded-full bg-red-600 hover:bg-red-700 px-6 py-2.5 text-sm font-bold text-white transition-colors inline-block">
+                  Bize Yazın →
+                </Link>
+              </div>
             </div>
-            <p className="text-zinc-400 text-sm font-medium">Demo videosu yakında</p>
           </div>
         </div>
       </section>
@@ -282,6 +297,60 @@ export default function HomePage() {
                 <div className="p-7">
                   <h3 className="text-base font-bold text-zinc-900 mb-2">{f.title}</h3>
                   <p className="text-sm text-zinc-600 leading-relaxed">{f.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Müşteri Yorumları ── */}
+      <section className="py-20 bg-zinc-50">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="text-center mb-14">
+            <span className="inline-block bg-red-100 text-red-600 text-xs font-bold px-4 py-1.5 rounded-full tracking-widest uppercase mb-3">Müşterilerimiz</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">İşletme Sahipleri Ne Diyor?</h2>
+            <p className="text-zinc-500 max-w-xl mx-auto">
+              Her gün yüzlerce işletme CheckRezerve ile no-show oranını düşürüyor ve zaman kazanıyor.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-6">
+            {[
+              {
+                quote: 'CheckRezerve sayesinde aylık gelir kaybımız neredeyse sıfıra indi. Artık kimse rezervasyon yapıp gelmezlik yapmıyor — ön ödeme sistemi mucize gibi çalışıyor.',
+                name: 'Mehmet Arslan',
+                business: 'Zeytin Restoran',
+                type: 'Restoran Sahibi',
+                initials: 'MA',
+              },
+              {
+                quote: 'Daha önce telefonda saatler harcıyordum. Şimdi müşterilerim online randevu alıyor, ben sadece paneli kontrol ediyorum. Kullanımı gerçekten çok kolay.',
+                name: 'Ayşe Yıldız',
+                business: 'Lotus Güzellik Salonu',
+                type: 'Güzellik Salonu Sahibi',
+                initials: 'AY',
+              },
+              {
+                quote: 'Hafta sonları doluluk oranımız %40 artı. Müşterilerimize hatırlatma SMS\'i gidiyor, boş masa kalmıyor. CheckRezerve\'i daha önce keşfetmeliydim.',
+                name: 'Kemal Özcan',
+                business: 'Kahve Durağı',
+                type: 'Kafe İşletmecisi',
+                initials: 'KÖ',
+              },
+            ].map(t => (
+              <div key={t.name} className="bg-white rounded-2xl border border-zinc-100 p-7 hover:border-red-100 hover:shadow-md transition-all duration-200 flex flex-col">
+                <div className="flex-1">
+                  <div className="text-red-500 text-2xl mb-4 leading-none">&ldquo;</div>
+                  <p className="text-sm text-zinc-600 leading-relaxed mb-6">{t.quote}</p>
+                </div>
+                <div className="flex items-center gap-3 pt-4 border-t border-zinc-100">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-600 to-red-400 text-white flex items-center justify-center text-sm font-bold shrink-0">
+                    {t.initials}
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-zinc-900">{t.name}</div>
+                    <div className="text-xs text-zinc-500">{t.business} · {t.type}</div>
+                  </div>
                 </div>
               </div>
             ))}

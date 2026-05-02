@@ -110,8 +110,13 @@ export default function HakkimizdaPage() {
           <div className="grid sm:grid-cols-3 gap-6">
             {TEAM.map(m => (
               <div key={m.name} className="rounded-2xl border border-zinc-100 bg-zinc-50 p-8">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-600 to-red-400 text-white flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                  {m.initials}
+                {/* TODO: Replace with real team photos */}
+                <div className="w-20 h-20 rounded-full border-2 border-zinc-200 bg-zinc-100 overflow-hidden mx-auto mb-4">
+                  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                    <rect width="100" height="100" fill="#f4f4f5" />
+                    <circle cx="50" cy="38" r="18" fill="#d4d4d8" />
+                    <ellipse cx="50" cy="85" rx="30" ry="20" fill="#d4d4d8" />
+                  </svg>
                 </div>
                 <h3 className="font-bold text-zinc-900 mb-1">{m.name}</h3>
                 <p className="text-xs font-semibold text-red-600 mb-3">{m.role}</p>

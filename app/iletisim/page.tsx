@@ -39,21 +39,40 @@ export default function IletisimPage() {
               </p>
 
               <div className="space-y-4 mb-8">
-                {[
-                  { icon: '✉️', label: 'E-posta', value: 'info@checkrezerve.com' },
-                  { icon: '📞', label: 'Telefon', value: '0850 XXX XX XX' },
-                  { icon: '📍', label: 'Adres', value: 'İstanbul, Türkiye' },
-                ].map(item => (
-                  <div key={item.label} className="flex items-center gap-4">
-                    <div className="w-11 h-11 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-lg shrink-0">
-                      {item.icon}
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{item.label}</div>
-                      <div className="text-sm font-medium text-zinc-800">{item.value}</div>
-                    </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-11 h-11 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-lg shrink-0">
+                    ✉️
                   </div>
-                ))}
+                  <div>
+                    <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">E-posta</div>
+                    <div className="text-sm font-medium text-zinc-800">info@checkrezerve.com</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-11 h-11 rounded-xl bg-green-50 border border-green-100 flex items-center justify-center text-lg shrink-0">
+                    💬
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">WhatsApp</div>
+                    <a
+                      href="https://wa.me/905555555555"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium text-green-700 hover:text-green-800 transition-colors"
+                    >
+                      Demo için bize WhatsApp&apos;tan yazın →
+                    </a>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-11 h-11 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-lg shrink-0">
+                    📍
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Adres</div>
+                    <div className="text-sm font-medium text-zinc-800">İstanbul, Türkiye</div>
+                  </div>
+                </div>
               </div>
 
               <div className="flex gap-3">
