@@ -1,3 +1,19 @@
+// ─── Floor Plan / Masa Krokisi ────────────────────────────────────────────────
+
+export type FloorTable = {
+  id: string
+  restaurant_id: string
+  label: string
+  capacity: number
+  x: number
+  y: number
+  width: number
+  height: number
+  shape: 'rect' | 'circle'
+  is_active: boolean
+  created_at: string
+}
+
 // ─── İş Yeri Türleri ──────────────────────────────────────────────────────────
 
 export type BusinessType =

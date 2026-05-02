@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { ReservationDashboard } from './ReservationDashboard'
 import { AddRestaurantForm } from './restaurants/AddRestaurantForm'
@@ -26,7 +27,7 @@ export default async function AdminPage() {
     { count: todayCancelled },
     { data: smsLogs },
   ] = await Promise.all([
-    supabase.from('restaurants').select('id, name, slug, phone, address, capacity, created_at, business_type, timezone, booking_duration_minutes, currency, description, website, instagram, is_active').order('name'),
+    supabase.from('restaurants').select('id, name, slug, phone, address, capacity, created_at, business_type, timezone, booking_duration_minutes, currency, description, website, instagram, is_active, floor_plan_enabled').order('name'),
 
     supabase
       .from('reservations')
@@ -180,6 +181,16 @@ export default async function AdminPage() {
                     >
                       Aç ↗
                     </a>
+                    <Link
+                      href={`/admin/floor-plan/${r.id}`}
+                      className="text-xs text-stone-500 hover:text-blue-400 transition-colors flex items-center gap-1"
+                      title="Masa krokisini düzenle"
+                    >
+                      🗺 Kroki
+                      {r.floor_plan_enabled && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
+                      )}
+                    </Link>
                     <QRCodeButton slug={r.slug} name={r.name} />
                   </div>
                 </div>

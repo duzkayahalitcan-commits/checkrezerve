@@ -31,11 +31,12 @@ export default async function BusinessDetailPage({ params }: Props) {
   const { id } = await params
   const supabase = getSupabaseAdmin()
 
-  const [{ data: biz }, { data: rawServices }, { data: rawStaff }, { data: rawMasa }] = await Promise.all([
+  const [{ data: biz }, { data: rawServices }, { data: rawStaff }, { data: rawMasa }, { data: rawTables }] = await Promise.all([
     supabase.from('restaurants').select('*').eq('id', id).single(),
     supabase.from('hizmetler').select('*').eq('isletme_id', id).eq('aktif', true).order('sira'),
     supabase.from('calisanlar').select('*').eq('isletme_id', id).eq('aktif', true).order('sira'),
     supabase.from('masa_tipleri').select('*').eq('isletme_id', id).eq('aktif', true).order('kapasite'),
+    supabase.from('tables').select('*').eq('restaurant_id', id).eq('is_active', true).order('created_at'),
   ])
 
   if (!biz) notFound()
@@ -65,6 +66,20 @@ export default async function BusinessDetailPage({ params }: Props) {
     ad:       (m.ad ?? m.name) as string,
     kapasite: (m.kapasite ?? m.capacity ?? 4) as number,
   }))
+
+  const floorTables = (rawTables ?? []).map((t: Record<string, unknown>) => ({
+    id:       t.id as string,
+    label:    (t.label ?? 'Masa') as string,
+    capacity: (t.capacity ?? 4) as number,
+    x:        (t.x ?? 0) as number,
+    y:        (t.y ?? 0) as number,
+    width:    (t.width ?? 80) as number,
+    height:   (t.height ?? 80) as number,
+    shape:    (t.shape === 'circle' ? 'circle' : 'rect') as 'rect' | 'circle',
+  }))
+
+  const floorPlanEnabled = Boolean((business as Record<string, unknown>).floor_plan_enabled)
+    && floorTables.length > 0
 
   const bookingTerm = ['restaurant', 'other'].includes(business.business_type)
     ? 'Rezervasyon'
@@ -123,6 +138,8 @@ export default async function BusinessDetailPage({ params }: Props) {
               masaTipleri={masaTipleri}
               hizmetler={hizmetler}
               calisanlar={calisanlar}
+              floorPlanEnabled={floorPlanEnabled}
+              floorTables={floorTables}
             />
           </div>
         </div>

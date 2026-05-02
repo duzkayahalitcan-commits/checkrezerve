@@ -1,18 +1,28 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 
-type MasaTipi = { id: string; ad: string; kapasite: number }
-type Hizmet   = { id: string; name: string; duration_minutes: number; price: number | null }
-type Calisan  = { id: string; name: string; title: string | null }
+type MasaTipi   = { id: string; ad: string; kapasite: number }
+type Hizmet     = { id: string; name: string; duration_minutes: number; price: number | null }
+type Calisan    = { id: string; name: string; title: string | null }
+type FloorTable = {
+  id: string; label: string; capacity: number
+  x: number; y: number; width: number; height: number; shape: 'rect' | 'circle'
+}
+
+// react-konva is browser-only
+const FloorPlanPicker = dynamic(() => import('./FloorPlanPicker'), { ssr: false })
 
 interface Props {
-  businessId:   string
-  businessName: string
-  businessType: string
-  masaTipleri:  MasaTipi[]
-  hizmetler:    Hizmet[]
-  calisanlar:   Calisan[]
+  businessId:       string
+  businessName:     string
+  businessType:     string
+  masaTipleri:      MasaTipi[]
+  hizmetler:        Hizmet[]
+  calisanlar:       Calisan[]
+  floorPlanEnabled: boolean
+  floorTables:      FloorTable[]
 }
 
 const DAYS = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt']
@@ -50,7 +60,9 @@ const SPECIAL_LABEL: Record<string, string> = {
 }
 
 export default function BookingForm({
-  businessId, businessName, businessType, masaTipleri, hizmetler, calisanlar,
+  businessId, businessName, businessType,
+  masaTipleri, hizmetler, calisanlar,
+  floorPlanEnabled, floorTables,
 }: Props) {
   const router = useRouter()
   const dates = getDates()
@@ -64,6 +76,7 @@ export default function BookingForm({
   const [phone, setPhone] = useState('')
   const [partySize, setPartySize] = useState('2')
   const [specialRequests, setSpecialRequests] = useState('')
+  const [selectedTable, setSelectedTable] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -94,6 +107,7 @@ export default function BookingForm({
         service_id: selectedHizmet,
         staff_id: selectedCalisan,
         masa_tipi_id: selectedMasa,
+        table_id: selectedTable,
         special_requests: specialRequests,
       }),
     })
@@ -172,6 +186,24 @@ export default function BookingForm({
           ))}
         </div>
       </div>
+
+      {/* Kroki — masa seçimi (floor_plan_enabled işletmelerde) */}
+      {floorPlanEnabled && floorTables.length > 0 && selectedDate && selectedTime && (
+        <div>
+          <label className="block text-sm font-semibold text-zinc-700 mb-3">
+            Masa Seçin
+            <span className="ml-2 text-xs font-normal text-zinc-400">(isteğe bağlı)</span>
+          </label>
+          <FloorPlanPicker
+            restaurantId={businessId}
+            tables={floorTables}
+            selectedDate={selectedDate}
+            selectedTime={selectedTime}
+            selectedTableId={selectedTable}
+            onSelect={setSelectedTable}
+          />
+        </div>
+      )}
 
       {/* Masa tipi — restoran */}
       {!isBeauty && masaTipleri.length > 0 && (

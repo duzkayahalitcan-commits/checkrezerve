@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const {
       restaurant_id, customer_name, phone, party_size,
-      date, time, service_id, staff_id, masa_tipi_id, special_requests,
+      date, time, service_id, staff_id, masa_tipi_id, table_id, special_requests,
     } = body
 
     if (!restaurant_id || !customer_name || !phone || !date || !time) {
@@ -22,9 +22,10 @@ export async function POST(request: NextRequest) {
         party_size: parseInt(party_size, 10) || 1,
         date,
         time,
-        service_id: service_id || null,
-        staff_id: staff_id || null,
-        masa_tipi_id: masa_tipi_id || null,
+        service_id:      service_id   || null,
+        staff_id:        staff_id     || null,
+        masa_tipi_id:    masa_tipi_id || null,
+        table_id:        table_id     || null,
         special_requests: special_requests?.trim() || null,
         status: 'beklemede',
         source: 'form',
