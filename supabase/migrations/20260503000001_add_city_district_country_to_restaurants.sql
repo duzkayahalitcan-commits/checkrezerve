@@ -7,3 +7,7 @@ alter table restaurants
 -- Şehir + ilçeye göre hızlı filtreleme için index
 create index if not exists restaurants_city_district_idx
   on restaurants (city, district);
+
+-- enum değerleri eklendi
+ALTER TYPE business_type ADD VALUE IF NOT EXISTS 'pilates';
+ALTER TYPE business_type ADD VALUE IF NOT EXISTS 'chiropractor';
