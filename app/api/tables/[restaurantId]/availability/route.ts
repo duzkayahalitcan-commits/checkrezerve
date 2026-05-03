@@ -38,7 +38,7 @@ export async function GET(
       const matchDate = r.reserved_date === date || r.date === date
       if (!time) return matchDate
       const matchTime = !r.reserved_time && !r.time
-        ? true // no time stored — treat as conflict (conservative)
+        ? false // no time stored — don't block the slot
         : r.reserved_time === time || r.time === time
       return matchDate && matchTime
     })

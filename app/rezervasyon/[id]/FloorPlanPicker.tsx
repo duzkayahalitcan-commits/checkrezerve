@@ -30,7 +30,7 @@ type TableStatus = 'available' | 'occupied' | 'selected'
 
 function tableColor(status: TableStatus, part: 'fill' | 'stroke' | 'text' | 'sub') {
   if (status === 'occupied') {
-    return { fill: '#F3F4F6', stroke: '#D1D5DB', text: '#9CA3AF', sub: '#9CA3AF' }[part]
+    return { fill: '#FEF2F2', stroke: '#EF4444', text: '#991B1B', sub: '#B91C1C' }[part]
   }
   if (status === 'selected') {
     return { fill: '#DBEAFE', stroke: '#2563EB', text: '#1D4ED8', sub: '#3B82F6' }[part]
@@ -85,7 +85,7 @@ export default function FloorPlanPicker({
           Boş
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full border border-zinc-300 bg-zinc-100 inline-block" />
+          <span className="w-3 h-3 rounded-full border border-red-400 bg-red-50 inline-block" />
           Dolu
         </span>
         <span className="flex items-center gap-1.5">
