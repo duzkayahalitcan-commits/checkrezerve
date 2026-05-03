@@ -73,7 +73,7 @@ export default async function BusinessPage({
     .from('reservations')
     .select('*', { count: 'exact', head: true })
     .eq('restaurant_id', restaurant.id)
-    .eq('reserved_date', today)
+    .eq('date', today)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-900 via-stone-800 to-amber-950">
