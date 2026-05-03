@@ -36,7 +36,7 @@ export default function KullanimKosullariPage() {
             <p>
               CheckRezerve, işletmelere yönelik online rezervasyon ve yönetim platformudur.
               Hizmetlerimiz; rezervasyon yönetimi, çalışan takibi, e-posta bildirimleri ve
-              istatistik raporlarını kapsar. Hizmet kapsamı önceden bildirmeksizin genişletilebilir
+              istatistik raporlarını kapsar. Hizmet kapsamı önceden bildirilerek genişletilebilir
               veya daraltılabilir.
             </p>
 
@@ -60,7 +60,7 @@ export default function KullanimKosullariPage() {
 
             <h2>5. Sorumluluk Sınırlaması</h2>
             <p>
-              CheckRezerve, üçüncü taraf hizmetlerinden (Supabase, Twilio, Resend vb.)
+              CheckRezerve, üçüncü taraf hizmetlerinden (Supabase, Twilio, e-posta altyapı sağlayıcısı (Resend) vb.)
               kaynaklanan kesintiler veya veri kayıpları nedeniyle sorumluluk kabul etmez.
               Platform &ldquo;olduğu gibi&rdquo; sunulmaktadır; belirli bir amaca uygunluk
               garantisi verilmemektedir.
@@ -75,7 +75,7 @@ export default function KullanimKosullariPage() {
 
             <h2>7. Değişiklikler</h2>
             <p>
-              Bu koşullar önceden bildirmeksizin güncellenebilir. Güncellemeler sayfada yayımlandığı
+              Bu koşullar önceden bildirilerek güncellenebilir. Güncellemeler sayfada yayımlandığı
               andan itibaren geçerlidir. Platformu kullanmaya devam etmeniz güncel koşulları
               kabul ettiğiniz anlamına gelir.
             </p>

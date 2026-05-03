@@ -6,12 +6,9 @@ import LegalSidebar from '@/components/LegalSidebar'
 
 type YanıtYontemi = 'adres' | 'eposta' | 'elden' | ''
 type IliskiTipi =
+  | 'rezervasyon_musterisi'
+  | 'isletme_sahibi'
   | 'ziyaretci'
-  | 'tedarikci'
-  | 'eski_calisan'
-  | 'ucuncu_firma'
-  | 'calisan'
-  | 'is_basvurusu'
   | 'diger'
 
 interface FormState {
@@ -22,9 +19,6 @@ interface FormState {
   eposta: string
   adres: string
   iliskiTipi: IliskiTipi | ''
-  calisılanYillar: string
-  calisanFirma: string
-  birim: string
   digerIliski: string
   talepDetayi: string
   yanıtYontemi: YanıtYontemi
@@ -32,9 +26,8 @@ interface FormState {
 
 const INITIAL: FormState = {
   adSoyad: '', tcKimlik: '', yabanciKimlik: '', telefon: '',
-  eposta: '', adres: '', iliskiTipi: '', calisılanYillar: '',
-  calisanFirma: '', birim: '', digerIliski: '', talepDetayi: '',
-  yanıtYontemi: '',
+  eposta: '', adres: '', iliskiTipi: '', digerIliski: '',
+  talepDetayi: '', yanıtYontemi: '',
 }
 
 export default function KvkkBasvuruPage() {
@@ -56,11 +49,7 @@ export default function KvkkBasvuruPage() {
 
     setSubmitting(true)
 
-    const sirketIliskisi = form.iliskiTipi === 'eski_calisan'
-      ? `Eski Çalışan (${form.calisılanYillar})`
-      : form.iliskiTipi === 'ucuncu_firma'
-      ? `Üçüncü Kişi Firma Çalışanı — ${form.calisanFirma} / ${form.birim}`
-      : form.iliskiTipi === 'diger'
+    const sirketIliskisi = form.iliskiTipi === 'diger'
       ? `Diğer: ${form.digerIliski}`
       : form.iliskiTipi
 
@@ -168,13 +157,10 @@ export default function KvkkBasvuruPage() {
             <h2 className={sectionTitleCls}>B — CheckRezerve ile Olan İlişkiniz</h2>
             <div className="space-y-3">
               {[
-                { val: 'ziyaretci',    label: 'Ziyaretçi' },
-                { val: 'tedarikci',    label: 'Tedarikçi / Müşteri' },
-                { val: 'eski_calisan', label: 'Eski Çalışan' },
-                { val: 'ucuncu_firma', label: 'Üçüncü Kişi Firma Çalışanı' },
-                { val: 'calisan',      label: 'Mevcut Çalışan' },
-                { val: 'is_basvurusu',label: 'İş Başvurusu / Özgeçmiş Paylaşımı Yaptım' },
-                { val: 'diger',        label: 'Diğer' },
+                { val: 'rezervasyon_musterisi', label: 'Rezervasyon Müşterisi' },
+                { val: 'isletme_sahibi',        label: 'İşletme Sahibi / Yöneticisi' },
+                { val: 'ziyaretci',             label: 'Ziyaretçi' },
+                { val: 'diger',                 label: 'Diğer' },
               ].map(opt => (
                 <label key={opt.val} className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -189,26 +175,6 @@ export default function KvkkBasvuruPage() {
                 </label>
               ))}
             </div>
-
-            {form.iliskiTipi === 'eski_calisan' && (
-              <div className="mt-4 pl-6">
-                <label className={labelCls}>Çalıştığım Yıllar</label>
-                <input type="text" value={form.calisılanYillar} onChange={set('calisılanYillar')} className={inputCls} placeholder="Örn: 2020-2023" />
-              </div>
-            )}
-
-            {form.iliskiTipi === 'ucuncu_firma' && (
-              <div className="mt-4 pl-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelCls}>Firma Adı</label>
-                  <input type="text" value={form.calisanFirma} onChange={set('calisanFirma')} className={inputCls} placeholder="Firma adı" />
-                </div>
-                <div>
-                  <label className={labelCls}>Pozisyon / Birim</label>
-                  <input type="text" value={form.birim} onChange={set('birim')} className={inputCls} placeholder="Pozisyon veya birim" />
-                </div>
-              </div>
-            )}
 
             {form.iliskiTipi === 'diger' && (
               <div className="mt-4 pl-6">

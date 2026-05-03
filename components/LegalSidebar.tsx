@@ -1,7 +1,8 @@
 import Link from 'next/link'
 
 const LINKS = [
-  { href: '/kullanim-kosullari',              label: 'Kullanım Koşulları & Gizlilik Politikası' },
+  { href: '/kullanim-kosullari',              label: 'Kullanım Koşulları' },
+  { href: '/gizlilik',                        label: 'Gizlilik Politikası' },
   { href: '/cerez-politikasi',                label: 'Çerez Aydınlatma Metni' },
   { href: '/kvkk',                            label: 'Kişisel Verilerin Korunması ve İşlenmesi Politikası' },
   { href: '/yasal/basvuru-formu-aydinlatma',  label: 'Başvuru Formu Aydınlatma Metni' },

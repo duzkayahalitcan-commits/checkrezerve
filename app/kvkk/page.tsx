@@ -31,7 +31,7 @@ export default function KvkkPage() {
               uyarınca tüm yükümlülüklerimizi yerine getirmekteyiz.
             </p>
 
-            <h2>1. Kişisel Verileriniz ve Edinme Yöntemlerimiz</h2>
+            <h2 className="font-bold">1. Kişisel Verileriniz ve Edinme Yöntemlerimiz</h2>
             <p>
               Kişisel veri; belirli ya da belirlenebilir nitelikteki bir kişiye ilişkin her türlü bilgidir.
               Adınız, soyadınız, telefon numaranız, e-posta adresiniz ve işletmenize dair bilgiler KVKK
@@ -39,13 +39,12 @@ export default function KvkkPage() {
               doldurduğunuzda veya bizimle iletişime geçtiğinizde elde edilmektedir.
             </p>
 
-            <h2>2. Kişisel Verilerinizin İşlenme Amacı</h2>
+            <h2 className="font-bold">2. Kişisel Verilerinizin İşlenme Amacı</h2>
             <p>CheckRezerve olarak kişisel verilerinizi şu amaçlarla işleriz:</p>
-            <ul>
+            <ul className="list-disc pl-5">
               <li>Platformumuzdan aldığınız hizmet dolayısıyla yükümlülüklerimizi yerine getirmek</li>
               <li>Rezervasyon ve işletme süreçlerini takip etmek ve düzenlemek</li>
               <li>Faaliyet konusu kapsamında hizmet sunmak ve kaliteyi artırmak</li>
-              <li>Satış, pazarlama ve tanıtım faaliyetleri yürütmek</li>
               <li>Kampanya ve yeniliklerden haberdar etmek (açık rıza ile)</li>
               <li>Yasal yükümlülükleri yerine getirmek</li>
             </ul>
@@ -55,12 +54,12 @@ export default function KvkkPage() {
               kullanılmaya devam edilecektir.
             </p>
 
-            <h2>3. Veri Sahibi Olarak Haklarınız</h2>
+            <h2 className="font-bold">3. Veri Sahibi Olarak Haklarınız</h2>
             <p>
               KVKK&apos;nın 11. maddesinde belirlendiği üzere, veri sahibi olarak şu haklarınız
               bulunmaktadır:
             </p>
-            <ul>
+            <ul className="list-disc pl-5">
               <li>Kişisel verilerinizin işlenip işlenmediğini öğrenme</li>
               <li>Kişisel verileriniz işlenmişse buna ilişkin bilgi talep etme</li>
               <li>İşleme amacını ve amaca uygun kullanılıp kullanılmadığını öğrenme</li>
@@ -75,7 +74,7 @@ export default function KvkkPage() {
               </li>
             </ul>
 
-            <h2>4. Başvuru</h2>
+            <h2 className="font-bold">4. Başvuru</h2>
             <p>
               Haklarınıza ilişkin taleplerinizi{' '}
               <a href="mailto:info@checkrezerve.com" className="text-red-600">

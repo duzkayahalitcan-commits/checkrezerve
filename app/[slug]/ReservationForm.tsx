@@ -11,9 +11,30 @@ const initialState: ActionState = {
 }
 
 const PARTY_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8]
+const DAYS = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt']
 
-type Service = { id: string; name: string; duration_minutes: number; price: number | null; currency: string }
+function getDates() {
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() + i)
+    return {
+      label: i === 0 ? 'Bugün' : i === 1 ? 'Yarın' : DAYS[d.getDay()],
+      day: d.getDate(),
+      value: d.toISOString().split('T')[0],
+    }
+  })
+}
+
+const TIME_SLOTS = Array.from({ length: 27 }, (_, i) => {
+  const totalMin = 9 * 60 + i * 30
+  const h = Math.floor(totalMin / 60).toString().padStart(2, '0')
+  const m = (totalMin % 60).toString().padStart(2, '0')
+  return `${h}:${m}`
+})
+
+type Service    = { id: string; name: string; duration_minutes: number; price: number | null; currency: string }
 type StaffMember = { id: string; name: string; title: string | null }
+type MasaTipi   = { id: string; ad: string; kapasite: number }
 
 export function ReservationForm({
   restaurantId,
@@ -21,19 +42,26 @@ export function ReservationForm({
   businessType = 'restaurant',
   services = [],
   staff = [],
+  masaTipleri = [],
 }: {
-  restaurantId:  string
+  restaurantId:   string
   restaurantName: string
-  businessType?: BusinessType
-  services?:     Service[]
-  staff?:        StaffMember[]
+  businessType?:  BusinessType
+  services?:      Service[]
+  staff?:         StaffMember[]
+  masaTipleri?:   MasaTipi[]
 }) {
   const boundAction = createReservation.bind(null, restaurantId)
   const [state, formAction, pending] = useActionState(boundAction, initialState)
-  const [selectedParty, setSelectedParty]       = useState(2)
-  const [selectedService, setSelectedService]   = useState<string>(services[0]?.id ?? '')
-  const [selectedStaff, setSelectedStaff]       = useState<string>('')
-  const [showNotes, setShowNotes]               = useState(false)
+
+  const dates = getDates()
+  const [selectedDate, setSelectedDate]       = useState(dates[0].value)
+  const [selectedTime, setSelectedTime]       = useState('')
+  const [selectedParty, setSelectedParty]     = useState(2)
+  const [selectedService, setSelectedService] = useState<string>(services[0]?.id ?? '')
+  const [selectedStaff, setSelectedStaff]     = useState<string>('')
+  const [selectedMasa, setSelectedMasa]       = useState<string | null>(null)
+  const [showNotes, setShowNotes]             = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
 
   const term         = BOOKING_TERM[businessType]
@@ -62,7 +90,10 @@ export function ReservationForm({
         </div>
         <button
           type="button"
-          onClick={() => formRef.current?.reset()}
+          onClick={() => {
+            formRef.current?.reset()
+            setSelectedTime('')
+          }}
           className="text-sm text-stone-400 underline underline-offset-2"
         >
           Yeni {term.singular.toLowerCase()} yap
@@ -71,15 +102,18 @@ export function ReservationForm({
     )
   }
 
-  const today = new Date().toISOString().split('T')[0]
-
   return (
-    <form ref={formRef} action={formAction} className="flex flex-col gap-5">
+    <form ref={formRef} action={formAction} className="flex flex-col gap-6">
+      {/* Hidden inputs */}
+      <input type="hidden" name="reserved_date" value={selectedDate} />
+      <input type="hidden" name="reserved_time" value={selectedTime} />
+      <input type="hidden" name="party_size" value={isRestaurant ? selectedParty : 1} />
+      {selectedMasa && <input type="hidden" name="masa_tipi_id" value={selectedMasa} />}
 
       {/* Hizmet Seçimi — restoran dışı sektörler için */}
       {hasServices && (
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-stone-700">Hizmet Seçin</label>
+          <label className="text-sm font-semibold text-stone-700">Hizmet Seçin</label>
           <div className="flex flex-col gap-2">
             {services.map(s => (
               <button
@@ -111,7 +145,7 @@ export function ReservationForm({
       {/* Personel Seçimi */}
       {hasStaff && (
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-stone-700">
+          <label className="text-sm font-semibold text-stone-700">
             Personel Seçin <span className="text-stone-400 font-normal">(opsiyonel)</span>
           </label>
           <div className="flex flex-wrap gap-2">
@@ -146,6 +180,75 @@ export function ReservationForm({
         </div>
       )}
 
+      {/* Tarih Seçici */}
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold text-stone-700">Tarih Seçin</label>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {dates.map(d => (
+            <button
+              key={d.value}
+              type="button"
+              onClick={() => setSelectedDate(d.value)}
+              className={`shrink-0 flex flex-col items-center px-4 py-3 rounded-xl border transition-colors ${
+                selectedDate === d.value
+                  ? 'bg-amber-500 border-amber-500 text-white'
+                  : 'bg-white border-stone-200 text-stone-700 hover:border-amber-300'
+              }`}
+            >
+              <span className="text-xs font-normal opacity-80">{d.label}</span>
+              <span className="text-lg font-extrabold">{d.day}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Saat Seçici */}
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold text-stone-700">Saat Seçin</label>
+        <div className="flex flex-wrap gap-2">
+          {TIME_SLOTS.map(slot => (
+            <button
+              key={slot}
+              type="button"
+              onClick={() => setSelectedTime(slot)}
+              className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${
+                selectedTime === slot
+                  ? 'bg-amber-500 border-amber-500 text-white'
+                  : 'bg-white border-stone-200 text-stone-700 hover:border-amber-300'
+              }`}
+            >
+              {slot}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Masa Tipi — restoran için */}
+      {isRestaurant && masaTipleri.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-stone-700">
+            Masa Tipi <span className="text-stone-400 font-normal">(opsiyonel)</span>
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {masaTipleri.map(m => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setSelectedMasa(selectedMasa === m.id ? null : m.id)}
+                className={`p-3 rounded-xl border text-left transition-colors ${
+                  selectedMasa === m.id
+                    ? 'border-amber-400 bg-amber-50 text-amber-800'
+                    : 'border-stone-200 bg-white text-stone-700 hover:border-amber-300'
+                }`}
+              >
+                <p className="font-semibold text-sm">{m.ad}</p>
+                <p className="text-xs opacity-70 mt-0.5">Max {m.kapasite} kişi</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Ad Soyad */}
       <Field label="Ad Soyad" htmlFor="guest_name">
         <input
@@ -173,33 +276,10 @@ export function ReservationForm({
         />
       </Field>
 
-      {/* Tarih + Saat */}
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Tarih" htmlFor="reserved_date">
-          <input
-            id="reserved_date"
-            name="reserved_date"
-            type="date"
-            required
-            min={today}
-            className={inputCls}
-          />
-        </Field>
-        <Field label="Saat" htmlFor="reserved_time">
-          <input
-            id="reserved_time"
-            name="reserved_time"
-            type="time"
-            required
-            className={inputCls}
-          />
-        </Field>
-      </div>
-
       {/* Kişi Sayısı — sadece restoran için */}
       {isRestaurant && (
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-stone-700">Kişi Sayısı</label>
+          <label className="text-sm font-semibold text-stone-700">Kişi Sayısı</label>
           <div className="flex gap-2 flex-wrap">
             {PARTY_OPTIONS.map((n) => (
               <button
@@ -227,10 +307,8 @@ export function ReservationForm({
               9+
             </button>
           </div>
-          <input type="hidden" name="party_size" value={selectedParty} />
         </div>
       )}
-      {!isRestaurant && <input type="hidden" name="party_size" value="1" />}
 
       {/* Özel Not */}
       <div className="flex flex-col gap-2">
@@ -274,7 +352,7 @@ export function ReservationForm({
       {/* Submit */}
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || !selectedTime}
         className="mt-1 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 text-base font-bold text-white shadow-lg shadow-amber-200 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed hover:from-amber-400 hover:to-orange-400"
       >
         {pending ? (
@@ -285,8 +363,10 @@ export function ReservationForm({
             </svg>
             Gönderiliyor…
           </span>
-        ) : (
+        ) : selectedTime ? (
           `${term.singular} Yap`
+        ) : (
+          'Saat Seçin'
         )}
       </button>
 
@@ -308,7 +388,7 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={htmlFor} className="text-sm font-medium text-stone-700">
+      <label htmlFor={htmlFor} className="text-sm font-semibold text-stone-700">
         {label}
       </label>
       {children}

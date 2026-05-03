@@ -47,8 +47,8 @@ export default async function BusinessPage({
   const term         = BOOKING_TERM[businessType]
   const icon         = BUSINESS_TYPE_ICONS[businessType]
 
-  // Hizmetler ve personel (paralel)
-  const [{ data: services }, { data: staff }] = await Promise.all([
+  // Hizmetler, personel ve masa tipleri (paralel)
+  const [{ data: services }, { data: staff }, { data: masaTipleri }] = await Promise.all([
     supabase
       .from('services')
       .select('id, name, duration_minutes, price, currency')
@@ -60,6 +60,11 @@ export default async function BusinessPage({
       .select('id, name, title')
       .eq('restaurant_id', restaurant.id)
       .eq('is_active', true)
+      .order('sort_order'),
+    supabase
+      .from('masa_tipleri')
+      .select('id, ad, kapasite')
+      .eq('restaurant_id', restaurant.id)
       .order('sort_order'),
   ])
 
@@ -126,6 +131,7 @@ export default async function BusinessPage({
                 businessType={businessType}
                 services={services ?? []}
                 staff={staff ?? []}
+                masaTipleri={masaTipleri ?? []}
               />
             </div>
           </div>

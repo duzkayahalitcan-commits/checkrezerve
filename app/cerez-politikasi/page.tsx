@@ -22,7 +22,7 @@ export default function CerezPolitikasiPage() {
             <h1 className="text-2xl font-bold text-zinc-900 mb-1">Çerez Aydınlatma Metni</h1>
             <p className="text-sm text-zinc-400 mb-8">Son güncelleme: 23 Nisan 2026</p>
 
-            <h2>1. Çerez Nedir?</h2>
+            <h2 className="font-bold">1. Çerez Nedir?</h2>
             <p>
               Çerezler, ziyaret ettiğiniz web sitelerinin tarayıcınıza kaydettiği küçük metin
               dosyalarıdır. Bu dosyalar, sitenin sizi tanımasına ve tercihlerinizi hatırlamasına
@@ -30,36 +30,30 @@ export default function CerezPolitikasiPage() {
               çerez (belirli bir süre saklanan) olarak ikiye ayrılır.
             </p>
 
-            <h2>2. Kullandığımız Çerez Türleri</h2>
+            <h2 className="font-bold">2. Kullandığımız Çerez Türleri</h2>
 
-            <h3>Zorunlu Çerezler</h3>
+            <h3 className="font-bold">Zorunlu Çerezler</h3>
             <p>
               Sitenin temel işlevlerinin çalışması için gereklidir. Bu çerezler devre dışı
               bırakılamaz. Oturum yönetimi, güvenlik doğrulaması ve sayfa yönlendirmeleri bu
               kategori kapsamındadır.
             </p>
 
-            <h3>Performans Çerezleri</h3>
+            <h3 className="font-bold">Performans Çerezleri</h3>
             <p>
               Siteyi nasıl kullandığınızı anlamamızı sağlar. Google Analytics gibi araçlar
               aracılığıyla ziyaret sayısı, sayfa görüntülenme süresi ve hata raporları toplanır.
               Toplanan veriler anonimleştirilir.
             </p>
 
-            <h3>İşlevsel Çerezler</h3>
+            <h3 className="font-bold">İşlevsel Çerezler</h3>
             <p>
               Tercihlerinizi hatırlar. Dil seçimi, oturum bilgisi ve kişiselleştirme seçenekleri
               bu çerezler sayesinde korunur. Devre dışı bırakılmaları durumunda bazı özellikler
               düzgün çalışmayabilir.
             </p>
 
-            <h3>Pazarlama Çerezleri</h3>
-            <p>
-              İlgilenebileceğiniz içerikleri ve reklamları göstermek için kullanılır. Üçüncü taraf
-              reklam ağlarıyla paylaşılabilir. Bu çerezlere onay vermek zorunlu değildir.
-            </p>
-
-            <h2>3. Çerezleri Nasıl Kontrol Edebilirsiniz?</h2>
+            <h2 className="font-bold">3. Çerezleri Nasıl Kontrol Edebilirsiniz?</h2>
             <p>
               Tarayıcınızın ayarlar menüsünden çerezleri yönetebilir, silebilir veya devre dışı
               bırakabilirsiniz. Yaygın tarayıcılar için yönlendirme:
@@ -73,7 +67,7 @@ export default function CerezPolitikasiPage() {
               Zorunlu çerezleri devre dışı bırakmak sitenin düzgün çalışmamasına yol açabilir.
             </p>
 
-            <h2>4. İletişim</h2>
+            <h2 className="font-bold">4. İletişim</h2>
             <p>
               Çerez politikamız hakkında sorularınız için{' '}
               <a href="mailto:info@checkrezerve.com" className="text-red-600">
