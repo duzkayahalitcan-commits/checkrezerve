@@ -25,6 +25,8 @@ export type BusinessType =
   | 'beauty_salon'
   | 'dentist'
   | 'fitness'
+  | 'pilates'
+  | 'chiropractor'
   | 'veterinary'
   | 'other'
 
@@ -37,6 +39,8 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   beauty_salon: 'Güzellik Salonu',
   dentist:      'Diş Hekimi',
   fitness:      'Spor Salonu / PT',
+  pilates:      'Pilates Stüdyosu',
+  chiropractor: 'Kayropraktik / Fizyoterapi',
   veterinary:   'Veteriner',
   other:        'Diğer',
 }
@@ -50,6 +54,8 @@ export const BUSINESS_TYPE_ICONS: Record<BusinessType, string> = {
   beauty_salon: '💅',
   dentist:      '🦷',
   fitness:      '🏋️',
+  pilates:      '🧘',
+  chiropractor: '🦴',
   veterinary:   '🐾',
   other:        '📅',
 }
@@ -64,6 +70,8 @@ export const BOOKING_TERM: Record<BusinessType, { singular: string; plural: stri
   beauty_salon: { singular: 'Randevu',     plural: 'Randevular'     },
   dentist:      { singular: 'Randevu',     plural: 'Randevular'     },
   fitness:      { singular: 'Randevu',     plural: 'Randevular'     },
+  pilates:      { singular: 'Ders',        plural: 'Dersler'        },
+  chiropractor: { singular: 'Randevu',     plural: 'Randevular'     },
   veterinary:   { singular: 'Randevu',     plural: 'Randevular'     },
   other:        { singular: 'Randevu',     plural: 'Randevular'     },
 }
