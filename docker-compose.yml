@@ -34,7 +34,7 @@ services:
       OPENAI_API_KEY:                ${OPENAI_API_KEY:-}
       ELEVENLABS_API_KEY:            ${ELEVENLABS_API_KEY:-}
       ELEVENLABS_VOICE_ID:           ${ELEVENLABS_VOICE_ID:-}
-      WHISPER_SERVER_URL:            ${WHISPER_SERVER_URL:-http://172.19.0.1:5001}
+      WHISPER_SERVER_URL:            ${WHISPER_SERVER_URL:-http://checkrezerve-whisper:5001}
       SMS_PROVIDER:                  ${SMS_PROVIDER:-disabled}
       TWILIO_ACCOUNT_SID:            ${TWILIO_ACCOUNT_SID:-}
       TWILIO_AUTH_TOKEN:             ${TWILIO_AUTH_TOKEN:-}
@@ -69,6 +69,18 @@ services:
     depends_on:
       app:
         condition: service_healthy
+
+  whisper:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    container_name: checkrezerve-whisper
+    restart: unless-stopped
+    expose:
+      - "5001"
+    environment:
+      ASR_MODEL: base
+      ASR_ENGINE: openai_whisper
+    networks:
+      - app-net
 
   # ─── Certbot: ilk kurulumda manuel çalıştırılır, sonra otomatik yeniler ───
   certbot:

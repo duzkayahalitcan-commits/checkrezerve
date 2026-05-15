@@ -1,0 +1,91 @@
+{
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "ok": "OK",
+    "error": "Fehler",
+    "loading": "Laden",
+    "submit": "Absenden",
+    "close": "Schließen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "confirm": "Bestätigen",
+    "yes": "Ja",
+    "no": "Nein"
+  },
+  "nav": {
+    "home": "Startseite",
+    "about": "Über uns",
+    "contact": "Kontakt",
+    "blog": "Blog",
+    "features": "Funktionen",
+    "useCases": "Anwendungsfälle",
+    "pricing": "Preise",
+    "makeReservation": "Reservierung machen",
+    "startFree": "Kostenlos starten →",
+    "login": "Anmelden",
+    "register": "Registrieren"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "logout": "Abmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "forgotPassword": "Passwort vergessen",
+    "noAccount": "Noch kein Konto?",
+    "hasAccount": "Haben Sie bereits ein Konto?"
+  },
+  "reservation": {
+    "title": "Reservierung machen",
+    "bookAppointment": "Termin buchen",
+    "selectDate": "Datum wählen",
+    "selectTime": "Uhrzeit wählen",
+    "guestCount": "Anzahl der Gäste",
+    "addNote": "Notiz hinzufügen",
+    "confirm": "Bestätigen",
+    "name": "Vollständiger Name",
+    "phone": "Telefon",
+    "note": "Notiz (optional)",
+    "success": "Ihre Reservierung wurde entgegengenommen!",
+    "noSlots": "Keine verfügbaren Zeiten für dieses Datum."
+  },
+  "errors": {
+    "generic": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "required": "Dieses Feld ist erforderlich.",
+    "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+    "invalidPhone": "Bitte geben Sie eine gültige Telefonnummer ein.",
+    "serverError": "Serverfehler. Bitte versuchen Sie es später erneut.",
+    "notFound": "Seite nicht gefunden.",
+    "unauthorized": "Sie haben keine Berechtigung, diese Seite anzuzeigen."
+  },
+  "footer": {
+    "about": "Über CheckRezerve",
+    "whyUs": "Warum CheckRezerve?",
+    "successStories": "Erfolgsgeschichten",
+    "contact": "Kontakt",
+    "useCases": "Anwendungsfälle",
+    "features": "Funktionen",
+    "legal": "Rechtliches",
+    "privacy": "Datenschutzrichtlinie",
+    "terms": "Nutzungsbedingungen",
+    "kvkk": "DSGVO-Hinweis",
+    "cookies": "Cookie-Richtlinie",
+    "rights": "Alle Rechte vorbehalten."
+  },
+  "hero": {
+    "badge": "Türkeis Reservierungsplattform",
+    "title": "Reservierungen automatisieren,\nEinnahmen steigern",
+    "subtitle": "No-shows reduzieren, Auslastung erhöhen. KI-gestütztes System — keine Provision.",
+    "ctaPrimary": "Kostenlos starten",
+    "ctaSecondary": "Demo anfragen"
+  },
+  "langSelector": {
+    "label": "Sprache wählen",
+    "tr": "Türkçe",
+    "en": "English",
+    "de": "Deutsch"
+  }
+}

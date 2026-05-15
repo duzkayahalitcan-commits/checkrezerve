@@ -7,6 +7,7 @@ import MarketingFooter from '@/components/MarketingFooter'
 import { PricingToggle } from './PricingToggle'
 import FAQSection from './FAQSection'
 import BasvuruModal from '@/components/BasvuruModal'
+import { getTranslations } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: 'CheckRezerve — Randevu & Rezervasyon Yönetim Sistemi',
@@ -104,7 +105,8 @@ const FEATURES = [
   },
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  const t = await getTranslations('hero')
   return (
     <div className="min-h-screen bg-white">
       <MarketingHeader />
@@ -113,7 +115,7 @@ export default function HomePage() {
       <section className="pt-24 pb-24 text-white relative" style={{backgroundImage:"linear-gradient(rgba(0,0,0,0.45),rgba(0,0,0,0.45)),url('/images/hero-premium.jpg')",backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="mx-auto max-w-5xl px-6 text-center">
           <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/30 rounded-full px-4 py-1.5 text-sm mb-8 text-red-300 font-medium">
-            Randevu &amp; Rezervasyon Yönetimi
+            {t('badge')}
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-extrabold leading-tight mb-6 tracking-tight">
@@ -129,16 +131,16 @@ export default function HomePage() {
               'Rezervasyon başına hiçbir komisyon ödemezsiniz',
               'Kurulum aynı gün, kullanım ilk dakikadan itibaren',
               'Tüm sektörlere uygun esnek yapı',
-            ].map(t => (
-              <span key={t} className="flex items-center gap-1.5 justify-center">
-                <span className="text-red-400 font-bold">✓</span> {t}
+            ].map(item => (
+              <span key={item} className="flex items-center gap-1.5 justify-center">
+                <span className="text-red-400 font-bold">✓</span> {item}
               </span>
             ))}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <BasvuruModal className="rounded-full bg-red-600 hover:bg-red-700 px-8 py-4 text-base font-semibold text-white transition-colors shadow-lg shadow-red-900/30">
-              14 Gün Ücretsiz Dene →
+              {t('ctaPrimary')}
             </BasvuruModal>
             <a href="#nasil-calisir"
               className="rounded-full border border-white/30 hover:border-white/60 px-8 py-4 text-base font-semibold text-white transition-colors">

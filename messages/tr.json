@@ -1,0 +1,91 @@
+{
+  "common": {
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "back": "Geri",
+    "next": "İleri",
+    "ok": "Tamam",
+    "error": "Hata",
+    "loading": "Yükleniyor",
+    "submit": "Gönder",
+    "close": "Kapat",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "confirm": "Onayla",
+    "yes": "Evet",
+    "no": "Hayır"
+  },
+  "nav": {
+    "home": "Ana Sayfa",
+    "about": "Hakkımızda",
+    "contact": "İletişim",
+    "blog": "Blog",
+    "features": "Özellikler",
+    "useCases": "Kullanım Alanları",
+    "pricing": "Fiyatlar",
+    "makeReservation": "Rezervasyon Yap",
+    "startFree": "Ücretsiz Başlayın →",
+    "login": "Giriş Yap",
+    "register": "Kayıt Ol"
+  },
+  "auth": {
+    "login": "Giriş Yap",
+    "register": "Kayıt Ol",
+    "logout": "Çıkış Yap",
+    "email": "E-posta",
+    "password": "Şifre",
+    "forgotPassword": "Şifremi Unuttum",
+    "noAccount": "Hesabın yok mu?",
+    "hasAccount": "Zaten hesabın var mı?"
+  },
+  "reservation": {
+    "title": "Rezervasyon Yap",
+    "bookAppointment": "Randevu Al",
+    "selectDate": "Tarih Seç",
+    "selectTime": "Saat Seç",
+    "guestCount": "Kişi Sayısı",
+    "addNote": "Not Ekle",
+    "confirm": "Onayla",
+    "name": "Ad Soyad",
+    "phone": "Telefon",
+    "note": "Not (isteğe bağlı)",
+    "success": "Rezervasyonunuz alındı!",
+    "noSlots": "Bu tarihte uygun saat bulunamadı."
+  },
+  "errors": {
+    "generic": "Bir hata oluştu. Lütfen tekrar deneyin.",
+    "required": "Bu alan zorunludur.",
+    "invalidEmail": "Geçerli bir e-posta adresi girin.",
+    "invalidPhone": "Geçerli bir telefon numarası girin.",
+    "serverError": "Sunucu hatası. Lütfen daha sonra tekrar deneyin.",
+    "notFound": "Sayfa bulunamadı.",
+    "unauthorized": "Bu sayfayı görüntüleme yetkiniz yok."
+  },
+  "footer": {
+    "about": "CheckRezerve Hakkında",
+    "whyUs": "Neden CheckRezerve?",
+    "successStories": "Başarı Hikayeleri",
+    "contact": "İletişim",
+    "useCases": "Kullanım Alanları",
+    "features": "Özellikler",
+    "legal": "Yasal",
+    "privacy": "Gizlilik Politikası",
+    "terms": "Kullanım Koşulları",
+    "kvkk": "KVKK Aydınlatma",
+    "cookies": "Çerez Politikası",
+    "rights": "Tüm haklar saklıdır."
+  },
+  "hero": {
+    "badge": "Türkiye'nin Rezervasyon Platformu",
+    "title": "Rezervasyonları Otomatikleştir,\nGeliri Artır",
+    "subtitle": "No-show'u azalt, doluluk oranını yükselt. AI destekli sistem — komisyon yok.",
+    "ctaPrimary": "Ücretsiz Başlayın",
+    "ctaSecondary": "Demo İste"
+  },
+  "langSelector": {
+    "label": "Dil Seçin",
+    "tr": "Türkçe",
+    "en": "English",
+    "de": "Deutsch"
+  }
+}

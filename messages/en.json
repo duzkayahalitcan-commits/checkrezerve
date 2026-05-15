@@ -1,0 +1,91 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "ok": "OK",
+    "error": "Error",
+    "loading": "Loading",
+    "submit": "Submit",
+    "close": "Close",
+    "delete": "Delete",
+    "edit": "Edit",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About Us",
+    "contact": "Contact",
+    "blog": "Blog",
+    "features": "Features",
+    "useCases": "Use Cases",
+    "pricing": "Pricing",
+    "makeReservation": "Make a Reservation",
+    "startFree": "Get Started Free →",
+    "login": "Login",
+    "register": "Sign Up"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Sign Up",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
+  },
+  "reservation": {
+    "title": "Make a Reservation",
+    "bookAppointment": "Book Appointment",
+    "selectDate": "Select Date",
+    "selectTime": "Select Time",
+    "guestCount": "Number of Guests",
+    "addNote": "Add Note",
+    "confirm": "Confirm",
+    "name": "Full Name",
+    "phone": "Phone",
+    "note": "Note (optional)",
+    "success": "Your reservation has been received!",
+    "noSlots": "No available slots for this date."
+  },
+  "errors": {
+    "generic": "An error occurred. Please try again.",
+    "required": "This field is required.",
+    "invalidEmail": "Please enter a valid email address.",
+    "invalidPhone": "Please enter a valid phone number.",
+    "serverError": "Server error. Please try again later.",
+    "notFound": "Page not found.",
+    "unauthorized": "You do not have permission to view this page."
+  },
+  "footer": {
+    "about": "About CheckRezerve",
+    "whyUs": "Why CheckRezerve?",
+    "successStories": "Success Stories",
+    "contact": "Contact",
+    "useCases": "Use Cases",
+    "features": "Features",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "kvkk": "GDPR Notice",
+    "cookies": "Cookie Policy",
+    "rights": "All rights reserved."
+  },
+  "hero": {
+    "badge": "Turkey's Reservation Platform",
+    "title": "Automate Reservations,\nIncrease Revenue",
+    "subtitle": "Reduce no-shows, boost occupancy. AI-powered system — no commission.",
+    "ctaPrimary": "Get Started Free",
+    "ctaSecondary": "Request Demo"
+  },
+  "langSelector": {
+    "label": "Select Language",
+    "tr": "Türkçe",
+    "en": "English",
+    "de": "Deutsch"
+  }
+}

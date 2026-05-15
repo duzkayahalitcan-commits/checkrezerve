@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useActionState } from 'react'
 import Image from 'next/image'
-import { createBasvuru, type BasvuruState } from '@/app/basvuru/actions'
+import { createBasvuru, type BasvuruState } from '@/app/[locale]/basvuru/actions'
 
 const SECTORS = ['Restoran', 'Berber', 'Kuaför', 'Spa', 'Güzellik Salonu', 'Kafe', 'Bar', 'Diğer']
 const FEATURES = ['Kolay kurulum', '7/24 destek', 'Komisyon yok', 'İlk ay ücretsiz']

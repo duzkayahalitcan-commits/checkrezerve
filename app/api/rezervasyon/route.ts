@@ -63,11 +63,11 @@ export async function POST(request: NextRequest) {
         date,
         time,
         service_id:      service_id   || null,
-        staff_id:        staff_id     || null,
+        calisan_id:      staff_id     || null,
         masa_tipi_id:    masa_tipi_id || null,
         table_id:        table_id     || null,
         special_requests: special_requests?.trim() || null,
-        status: 'beklemede',
+        status: 'pending',
         source: 'form',
       })
       .select('id')
