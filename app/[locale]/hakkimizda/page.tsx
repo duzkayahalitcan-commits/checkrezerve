@@ -1,3 +1,4 @@
+import { setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -22,7 +23,13 @@ const TEAM = [
   { initials: 'CD', name: 'Can Demir', role: 'CTO', bio: 'Full-stack mühendis. Altyapı ve AI entegrasyonlarından sorumlu.' },
 ]
 
-export default function HakkimizdaPage() {
+export default async function HakkimizdaPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  setRequestLocale(locale)
   return (
     <div className="min-h-screen bg-white">
       <MarketingHeader />

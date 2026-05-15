@@ -7,7 +7,7 @@ import MarketingFooter from '@/components/MarketingFooter'
 import { PricingToggle } from './PricingToggle'
 import FAQSection from './FAQSection'
 import BasvuruModal from '@/components/BasvuruModal'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: 'CheckRezerve — Randevu & Rezervasyon Yönetim Sistemi',
@@ -105,7 +105,13 @@ const FEATURES = [
   },
 ]
 
-export default async function HomePage() {
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  setRequestLocale(locale)
   const t = await getTranslations('hero')
   return (
     <div className="min-h-screen bg-white">

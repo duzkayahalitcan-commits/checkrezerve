@@ -1,3 +1,4 @@
+import { setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import LegalSidebar from '@/components/LegalSidebar'
@@ -8,7 +9,13 @@ export const metadata: Metadata = {
     'CheckRezerve Teknoloji işletme başvuru formu kapsamında kişisel verilerin işlenmesine ilişkin KVKK aydınlatma metni.',
 }
 
-export default function BasvuruFormuAydinlatmaPage() {
+export default async function BasvuruFormuAydinlatmaPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  setRequestLocale(locale)
   return (
     <main className="min-h-screen bg-white text-zinc-800">
       <div className="mx-auto max-w-6xl px-4 py-16">

@@ -1,3 +1,4 @@
+import { setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -136,7 +137,13 @@ const FAQS = [
   },
 ]
 
-export default function OzelliklerPage() {
+export default async function OzelliklerPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  setRequestLocale(locale)
   return (
     <div className="min-h-screen bg-white">
       <MarketingHeader />

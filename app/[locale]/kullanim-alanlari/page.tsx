@@ -1,3 +1,4 @@
+import { setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
@@ -8,7 +9,13 @@ export const metadata: Metadata = {
   description: 'Restoran, spa, kuaför, otel, etkinlik mekanı ve daha fazlası için CheckRezerve rezervasyon altyapısı.',
 }
 
-export default function KullanimAlanlariPage() {
+export default async function KullanimAlanlariPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  setRequestLocale(locale)
   return (
     <div className="min-h-screen bg-white">
       <MarketingHeader />

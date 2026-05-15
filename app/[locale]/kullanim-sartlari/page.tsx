@@ -1,3 +1,4 @@
+import { setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -5,7 +6,13 @@ export const metadata: Metadata = {
   description: 'checkrezerve uygulamasının kullanım koşulları ve hizmet sözleşmesi.',
 }
 
-export default function KullanimSartlariPage() {
+export default async function KullanimSartlariPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  setRequestLocale(locale)
   const guncelleme = '10 Nisan 2026'
   return (
     <main className="min-h-screen bg-white text-stone-800 px-4 py-12">

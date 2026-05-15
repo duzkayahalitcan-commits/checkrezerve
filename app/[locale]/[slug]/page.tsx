@@ -4,10 +4,12 @@ import { supabase } from '@/lib/supabase'
 import { ReservationForm } from './ReservationForm'
 import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS, BOOKING_TERM, type BusinessType } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ locale: string; slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
   const { data: restaurant } = await supabase
@@ -31,7 +33,7 @@ export async function generateMetadata({
 export default async function BusinessPage({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ locale: string; slug: string }>
 }) {
   const { slug } = await params
 

@@ -1,3 +1,4 @@
+import { setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import LegalSidebar from '@/components/LegalSidebar'
@@ -7,7 +8,13 @@ export const metadata: Metadata = {
   description: 'CheckRezerve uygulamasının kişisel verilerin korunmasına ilişkin gizlilik politikası.',
 }
 
-export default function GizlilikPage() {
+export default async function GizlilikPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  setRequestLocale(locale)
   const guncelleme = '10 Nisan 2026'
   return (
     <main className="min-h-screen bg-white text-zinc-800">
