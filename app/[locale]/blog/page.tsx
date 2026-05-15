@@ -4,6 +4,8 @@ import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import BlogCoverImage from './BlogCoverImage'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Blog — CheckRezerve',
   description: 'Rezervasyon yönetimi, no-show azaltma, sektör trendleri ve işletme büyütme ipuçları. CheckRezerve bloğunda uzman içerikler.',
