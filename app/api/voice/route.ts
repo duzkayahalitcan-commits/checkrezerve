@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+import fs from 'fs'
 import { checkGreeting, searchFaq } from '@/lib/faq-search'
+import { findAudioFile, type AudioVoice } from '@/lib/audio-sentences'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -29,7 +31,13 @@ async function textToSpeech(text: string): Promise<ArrayBuffer> {
 
 export async function POST(request: NextRequest) {
   try {
-    const { text, businessName = 'İşletme', businessType = 'genel', messages = [] } = await request.json()
+    const {
+      text,
+      businessName = 'İşletme',
+      businessType = 'genel',
+      messages = [],
+      voice = 'yunus',
+    } = await request.json()
 
     if (!text?.trim()) {
       return NextResponse.json({ error: 'Metin boş olamaz' }, { status: 400 })
@@ -44,13 +52,11 @@ export async function POST(request: NextRequest) {
     // Kademe 3: Claude — konuşma geçmişiyle
     if (!answer) {
       try {
-        // Geçmiş mesajları Claude formatına çevir (max son 10 mesaj)
         const history = (messages as { role: string; content: string }[])
           .slice(-10)
           .filter(m => m.role === 'user' || m.role === 'assistant')
           .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
 
-        // Son mesaj zaten history'de varsa ekleme
         const lastInHistory = history[history.length - 1]
         const needsAppend = !lastInHistory || lastInHistory.role !== 'user' || lastInHistory.content !== text
         if (needsAppend) history.push({ role: 'user', content: text })
@@ -70,6 +76,24 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Pre-generated audio varsa doğrudan sun, yoksa ElevenLabs'a düş
+    const audioVoice = (['yunus', 'mert', 'lisa', 'gulsu'].includes(voice) ? voice : 'yunus') as AudioVoice
+    const audioFile = findAudioFile(answer, businessType, audioVoice)
+
+    if (audioFile) {
+      console.log(`[voice] pre-generated: ${audioFile}`)
+      const audioBuffer = fs.readFileSync(audioFile)
+      return new NextResponse(audioBuffer, {
+        headers: {
+          'Content-Type': 'audio/mpeg',
+          'Content-Length': String(audioBuffer.byteLength),
+          'X-Answer-Text': encodeURIComponent(answer),
+          'X-Audio-Source': 'pregenerated',
+        },
+      })
+    }
+
+    console.log('[voice] ElevenLabs TTS kullanılıyor')
     const audioBuffer = await textToSpeech(answer)
 
     return new NextResponse(new Uint8Array(audioBuffer), {
@@ -77,6 +101,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'audio/mpeg',
         'Content-Length': String(audioBuffer.byteLength),
         'X-Answer-Text': encodeURIComponent(answer),
+        'X-Audio-Source': 'elevenlabs',
       },
     })
   } catch (error) {
