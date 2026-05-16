@@ -1,19 +1,23 @@
+'use client'
 import Link from 'next/link'
-
-const LINKS = [
-  { href: '/kullanim-kosullari',              label: 'Kullanım Koşulları' },
-  { href: '/gizlilik',                        label: 'Gizlilik Politikası' },
-  { href: '/cerez-politikasi',                label: 'Çerez Aydınlatma Metni' },
-  { href: '/kvkk',                            label: 'Kişisel Verilerin Korunması ve İşlenmesi Politikası' },
-  { href: '/yasal/basvuru-formu-aydinlatma',  label: 'Başvuru Formu Aydınlatma Metni' },
-  { href: '/kvkk-basvuru',                    label: 'KVKK Başvuru Formu' },
-]
+import { useTranslations } from 'next-intl'
 
 export default function LegalSidebar({ activePath }: { activePath: string }) {
+  const t = useTranslations('legal')
+
+  const LINKS = [
+    { href: '/kullanim-kosullari',              labelKey: 'linkTerms' },
+    { href: '/gizlilik',                        labelKey: 'linkPrivacy' },
+    { href: '/cerez-politikasi',                labelKey: 'linkCookies' },
+    { href: '/kvkk',                            labelKey: 'linkKvkk' },
+    { href: '/yasal/basvuru-formu-aydinlatma',  labelKey: 'linkApplicationNotice' },
+    { href: '/kvkk-basvuru',                    labelKey: 'linkKvkkApplication' },
+  ]
+
   return (
     <nav className="w-full lg:w-64 flex-shrink-0">
       <div className="lg:sticky lg:top-24 bg-zinc-50 rounded-2xl border border-zinc-100 p-4">
-        <p className="text-xs font-bold uppercase tracking-wider text-zinc-400 px-2 mb-3">Yasal Sayfalar</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-zinc-400 px-2 mb-3">{t('sidebarTitle')}</p>
         <ul className="flex flex-col gap-1">
           {LINKS.map(l => {
             const active = activePath === l.href
@@ -27,7 +31,7 @@ export default function LegalSidebar({ activePath }: { activePath: string }) {
                       : 'pl-3 text-zinc-600 hover:text-zinc-900 border-l-2 border-transparent'
                   }`}
                 >
-                  {l.label}
+                  {t(l.labelKey as Parameters<typeof t>[0])}
                 </Link>
               </li>
             )

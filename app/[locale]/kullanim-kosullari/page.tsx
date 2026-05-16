@@ -1,4 +1,4 @@
-import { setRequestLocale } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import LegalSidebar from '@/components/LegalSidebar'
@@ -15,11 +15,13 @@ export default async function KullanimKosullariPage({
 }) {
   const { locale } = await params
   setRequestLocale(locale)
+  const tLegal = await getTranslations('legal')
+  const tTerms = await getTranslations('terms')
   return (
     <main className="min-h-screen bg-white text-zinc-800">
       <div className="mx-auto max-w-6xl px-4 py-16">
         <div className="mb-8">
-          <Link href="/" className="text-sm text-red-600 hover:underline">← Ana Sayfa</Link>
+          <Link href="/" className="text-sm text-red-600 hover:underline">{tLegal('backHome')}</Link>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-10">
@@ -27,9 +29,9 @@ export default async function KullanimKosullariPage({
 
           <article className="flex-1 min-w-0 prose prose-zinc max-w-none">
             <h1 className="text-2xl font-bold text-zinc-900 mb-1">
-              Kullanım Koşulları &amp; Gizlilik Politikası
+              {tTerms('title')}
             </h1>
-            <p className="text-sm text-zinc-400 mb-8">Son güncelleme: 23 Nisan 2026</p>
+            <p className="text-sm text-zinc-400 mb-8">{tTerms('lastUpdated')}</p>
 
             <h2>1. Genel</h2>
             <p>

@@ -9,6 +9,7 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS, type BusinessType, type Restaurant } from '@/types'
 import CategoryTabs from './CategoryTabs'
 import { CATEGORIES } from './categories'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: 'Online Rezervasyon — CheckRezerve',
@@ -28,9 +29,16 @@ const TYPE_BG: Record<string, string> = {
   other:        'bg-zinc-50',
 }
 
-type Props = { searchParams: Promise<{ kategori?: string }> }
+type Props = {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<{ kategori?: string }>
+}
 
-export default async function RezervasyonPage({ searchParams }: Props) {
+export default async function RezervasyonPage({ params, searchParams }: Props) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('rezervasyon')
+
   const { kategori } = await searchParams
   const { data: businesses } = await getSupabaseAdmin()
     .from('restaurants')
@@ -40,14 +48,13 @@ export default async function RezervasyonPage({ searchParams }: Props) {
 
   const all = (businesses ?? []) as Pick<Restaurant, 'id' | 'name' | 'slug' | 'business_type' | 'address' | 'description' | 'is_active'>[]
 
-  // Aktif kategori filtresi
   const activeKey = kategori ?? ''
   const activeCat = CATEGORIES.find(c => c.key === activeKey)
   const list = activeCat
     ? all.filter(b => activeCat.types.includes(b.business_type))
     : all
 
-  const activeLabel = activeCat?.label ?? 'Tüm İşletmeler'
+  const activeLabel = activeCat?.label ?? t('allBusinesses')
 
   return (
     <div className="min-h-screen bg-white">
@@ -62,18 +69,18 @@ export default async function RezervasyonPage({ searchParams }: Props) {
         }}>
         <div className="mx-auto max-w-2xl px-6 relative z-10">
           <span className="inline-block bg-red-600/20 border border-red-500/30 rounded-full px-4 py-1.5 text-sm text-red-300 font-medium mb-6">
-            Online Rezervasyon
+            {t('heroBadge')}
           </span>
           <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight">
-            İşletme Seçin,<br />Anında Rezervasyon Yapın
+            {t('heroTitle')}
           </h1>
           <p className="text-white/70 text-lg">
-            Kayıt gerekmez. Saniyeler içinde yerinizi ayırtın.
+            {t('heroSubtitle')}
           </p>
         </div>
       </section>
 
-      {/* Kategori Seçimi + Liste */}
+      {/* Category selection + list */}
       <section className="py-12">
         <div className="mx-auto max-w-5xl px-6">
 
@@ -84,23 +91,23 @@ export default async function RezervasyonPage({ searchParams }: Props) {
             </Suspense>
           </div>
 
-          {/* Başlık */}
+          {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-zinc-900">{activeLabel}</h2>
-            <span className="text-sm text-zinc-400">{list.length} işletme</span>
+            <span className="text-sm text-zinc-400">{t('businessCount', { count: list.length })}</span>
           </div>
 
-          {/* Liste */}
+          {/* List */}
           {list.length === 0 ? (
             <div className="text-center py-20 bg-zinc-50 rounded-2xl">
               <div className="text-4xl mb-3">🔍</div>
-              <p className="font-semibold text-zinc-700 mb-1">Bu kategoride işletme yok</p>
-              <p className="text-sm text-zinc-400">Başka bir kategori seçmeyi deneyin.</p>
+              <p className="font-semibold text-zinc-700 mb-1">{t('emptyTitle')}</p>
+              <p className="text-sm text-zinc-400">{t('emptySubtitle')}</p>
               <Link
                 href="/rezervasyon"
                 className="inline-block mt-4 text-sm text-red-600 hover:underline font-semibold"
               >
-                Tüm işletmeleri gör →
+                {t('emptyLink')}
               </Link>
             </div>
           ) : (

@@ -2,118 +2,115 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-
-const SECTORS = [
-  {
-    id: 'restoran',
-    icon: '🍽️',
-    label: 'Restoran',
-    img: '/images/sector-restoran.jpg',
-    title: 'Restoranlar İçin',
-    desc: 'Masa planından grup rezervasyonuna, garson atamasından ön ödemeli rezervasyona kadar restoran operasyonunuzun her adımını dijitalleştirin.',
-    features: [
-      { title: 'Masa Planı Oluşturma', desc: 'Krokiden interaktif masa haritası oluşturun, bölüm bazlı yönetin' },
-      { title: 'Bölüm Bazlı Yönetim', desc: 'Teras, salon, özel oda ayrı ayrı takip — aynı anda çakışma yok' },
-      { title: 'Grup & Etkinlik Rezervasyonu', desc: 'Doğum günü, iş yemeği, özel kutlamalar için özel alan' },
-      { title: 'Garson-Masa Atama', desc: 'Personel iş yükünü dengeli dağıtın, verimlilik artsın' },
-      { title: 'No-Show Koruması', desc: 'Ön ödeme ile boş masa sorununu ortadan kaldırın' },
-    ],
-  },
-  {
-    id: 'kafe',
-    icon: '☕',
-    label: 'Kafe',
-    img: '/images/sector-kafe.jpg',
-    title: 'Kafeler İçin',
-    desc: 'Yoğun saatlerde kapasite yönetiminden özel etkinlik rezervasyonuna, müşteri sadakat sisteminden kalabalık uyarılarına kadar her şey kontrolünüzde.',
-    features: [
-      { title: 'Kapasite Kontrolü', desc: 'Yoğun saatlerde akıllı doluluk yönetimi, bekleme listesi' },
-      { title: 'Çalışma Alanı Rezervasyonu', desc: 'Özel etkinlik ve toplantı odası takibi' },
-      { title: 'Müşteri CRM', desc: 'Geçmiş sipariş ve tercih takibi, sadık müşteri profili' },
-      { title: 'Sadakat Puanı', desc: 'Tekrar gelen müşterileri ödüllendirin, bağlılık artırın' },
-      { title: 'Kalabalık Uyarısı', desc: 'Anlık doluluk bildirimleri ile sürpriz kuyruk önleyin' },
-    ],
-  },
-  {
-    id: 'spa',
-    icon: '💆',
-    label: 'Spa & Güzellik',
-    img: '/images/sector-spa.jpg',
-    title: 'Spa & Güzellik Merkezleri İçin',
-    desc: 'Terapist seçiminden çift seans rezervasyonuna, paket satışından hatırlatma sistemine kadar güzellik merkezi yönetiminin tamamı.',
-    features: [
-      { title: 'Uzman Seçimi', desc: 'Terapist fotoğraf, biyografi ve müşteri değerlendirmeleri' },
-      { title: 'Hizmet Kategorileri', desc: 'Masaj, cilt bakımı, saç, manikür — her hizmet ayrı takvim' },
-      { title: 'Kabin/Oda Rezervasyonu', desc: 'Her kabin için bağımsız müsaitlik ve çakışma kontrolü' },
-      { title: 'Çift Seans', desc: 'İki kişilik eş zamanlı seans desteği, özel paket oluşturma' },
-      { title: 'Hatırlatma Zinciri', desc: 'Seans öncesi SMS/e-posta, sonrası geri bildirim isteği' },
-    ],
-  },
-  {
-    id: 'kuafor',
-    icon: '✂️',
-    label: 'Kuaför & Berber',
-    img: '/images/sector-kuafor.jpg',
-    title: 'Kuaför & Berberler İçin',
-    desc: 'Stilist seçiminden işlem süresi hesaplamaya, sıra yönetiminden son dakika müsait slot bildirimlerine kadar salonunuzu modernleştirin.',
-    features: [
-      { title: 'Stilist/Berber Seçimi', desc: 'Fotoğraflı profil, uzmanlık alanı ve müşteri puanı' },
-      { title: 'İşlem Süresi Hesaplama', desc: 'Saç boyası, kesim, fön — süre otomatik hesaplanır' },
-      { title: 'Walk-in + Online Kuyruk', desc: 'Telefonsuz sıra yönetimi, ekran göstergesi' },
-      { title: 'Renk/Model Notu', desc: 'Müşteri tercih ve geçmiş model arşivi, notlama' },
-      { title: 'Son Dakika Slot Bildirimi', desc: 'İptal olan saatler için SMS ile anlık duyuru' },
-    ],
-  },
-  {
-    id: 'otel',
-    icon: '🏨',
-    label: 'Otel',
-    img: '/images/sector-otel.jpg',
-    title: 'Oteller İçin',
-    desc: 'Otel içi restoran ve spa rezervasyonunu misafir odalarıyla eşleştirin. Concierge modülü, çoklu dil ve tesis içi bildirim sistemi tek platformda.',
-    features: [
-      { title: 'Tek Panel Yönetimi', desc: 'Restoran + spa + aktivite rezervasyonu bir arada' },
-      { title: 'Misafir Profili', desc: 'Oda numarası ile rezervasyon eşleşmesi, tercih takibi' },
-      { title: 'Concierge Modülü', desc: 'Ekstra hizmet ve aktivite talepleri, şoför rezervasyonu' },
-      { title: 'Çoklu Dil Desteği', desc: 'TR / EN arayüz, yabancı misafir dostu deneyim' },
-      { title: 'Check-in Entegrasyonu', desc: 'Tesis PMS sistemi ile API bağlantısı imkânı' },
-    ],
-  },
-  {
-    id: 'etkinlik',
-    icon: '🎪',
-    label: 'Etkinlik',
-    img: '/images/sector-etkinlik.jpg',
-    title: 'Etkinlik Mekanları İçin',
-    desc: 'Kapasite sınırlı etkinliklerden VIP masa yönetimine, bekleme listesinden QR kapı girişine kadar etkinlik mekanınızı profesyonelce yönetin.',
-    features: [
-      { title: 'Kapasite Yönetimi', desc: 'Kontenjan dolduğunda otomatik kapanma ve bildirim' },
-      { title: 'Ön Ödemeli Bilet', desc: 'Online ödeme ile güvenli bilet satışı, 3D Secure' },
-      { title: 'Waitlist Yönetimi', desc: 'Bekleme listesi ve iptal anında otomatik bildirim' },
-      { title: 'VIP & Sponsor Masası', desc: 'Özel masa kategorisi, erişim kısıtlaması' },
-      { title: 'Toplu Rezervasyon', desc: 'Kurumsal grup ve şirket etkinliği modülü' },
-    ],
-  },
-  {
-    id: 'fitness',
-    icon: '🏋️',
-    label: 'Fitness',
-    img: '/images/sector-fitness.jpg',
-    title: 'Fitness & Yoga Stüdyoları İçin',
-    desc: 'Ders takviminizi, eğitmen müsaitliğini ve üye rezervasyon haklarını tek platformda yönetin. Tekrarlayan seans otomasyonuyla idari yükü minimuma indirin.',
-    features: [
-      { title: 'Ders & Seans Takvimi', desc: 'Haftalık program, ders kapasitesi ve doluluk takibi' },
-      { title: 'Eğitmen Seçimi', desc: 'Uzmanlık alanı, fotoğraf ve müsaitlik filtresi' },
-      { title: 'Üyelik Bazlı Rezervasyon', desc: 'Plan tipine göre aylık/haftalık rezervasyon hakkı' },
-      { title: 'Online Check-in', desc: 'QR kod ile kapı girişi, devamsızlık takibi' },
-      { title: 'Tekrarlayan Seans', desc: 'Haftalık otomatik rezervasyon oluşturma' },
-    ],
-  },
-]
+import { useTranslations } from 'next-intl'
 
 export default function SectorTabs() {
+  const t = useTranslations('useCases')
   const [active, setActive] = useState('restoran')
-  const sector = SECTORS.find(s => s.id === active)!
+
+  const SECTORS = [
+    { id: 'restoran', icon: '🍽️', labelKey: 'sectorRestaurantLabel' },
+    { id: 'kafe',     icon: '☕',  labelKey: 'sectorCafeLabel' },
+    { id: 'spa',      icon: '💆', labelKey: 'sectorSpaLabel' },
+    { id: 'kuafor',   icon: '✂️', labelKey: 'sectorBarberLabel' },
+    { id: 'otel',     icon: '🏨', labelKey: 'sectorHotelLabel' },
+    { id: 'etkinlik', icon: '🎪', labelKey: 'sectorEventLabel' },
+    { id: 'fitness',  icon: '🏋️', labelKey: 'sectorFitnessLabel' },
+  ]
+
+  const SECTOR_DATA: Record<string, {
+    img: string
+    titleKey: string
+    descKey: string
+    features: { titleKey: string; descKey: string }[]
+  }> = {
+    restoran: {
+      img: '/images/sector-restoran.jpg',
+      titleKey: 'sectorRestaurantTitle',
+      descKey: 'sectorRestaurantDesc',
+      features: [
+        { titleKey: 'restaurantF1T', descKey: 'restaurantF1D' },
+        { titleKey: 'restaurantF2T', descKey: 'restaurantF2D' },
+        { titleKey: 'restaurantF3T', descKey: 'restaurantF3D' },
+        { titleKey: 'restaurantF4T', descKey: 'restaurantF4D' },
+        { titleKey: 'restaurantF5T', descKey: 'restaurantF5D' },
+      ],
+    },
+    kafe: {
+      img: '/images/sector-kafe.jpg',
+      titleKey: 'sectorCafeTitle',
+      descKey: 'sectorCafeDesc',
+      features: [
+        { titleKey: 'cafeF1T', descKey: 'cafeF1D' },
+        { titleKey: 'cafeF2T', descKey: 'cafeF2D' },
+        { titleKey: 'cafeF3T', descKey: 'cafeF3D' },
+        { titleKey: 'cafeF4T', descKey: 'cafeF4D' },
+        { titleKey: 'cafeF5T', descKey: 'cafeF5D' },
+      ],
+    },
+    spa: {
+      img: '/images/sector-spa.jpg',
+      titleKey: 'sectorSpaTitle',
+      descKey: 'sectorSpaDesc',
+      features: [
+        { titleKey: 'spaF1T', descKey: 'spaF1D' },
+        { titleKey: 'spaF2T', descKey: 'spaF2D' },
+        { titleKey: 'spaF3T', descKey: 'spaF3D' },
+        { titleKey: 'spaF4T', descKey: 'spaF4D' },
+        { titleKey: 'spaF5T', descKey: 'spaF5D' },
+      ],
+    },
+    kuafor: {
+      img: '/images/sector-kuafor.jpg',
+      titleKey: 'sectorBarberTitle',
+      descKey: 'sectorBarberDesc',
+      features: [
+        { titleKey: 'barberF1T', descKey: 'barberF1D' },
+        { titleKey: 'barberF2T', descKey: 'barberF2D' },
+        { titleKey: 'barberF3T', descKey: 'barberF3D' },
+        { titleKey: 'barberF4T', descKey: 'barberF4D' },
+        { titleKey: 'barberF5T', descKey: 'barberF5D' },
+      ],
+    },
+    otel: {
+      img: '/images/sector-otel.jpg',
+      titleKey: 'sectorHotelTitle',
+      descKey: 'sectorHotelDesc',
+      features: [
+        { titleKey: 'hotelF1T', descKey: 'hotelF1D' },
+        { titleKey: 'hotelF2T', descKey: 'hotelF2D' },
+        { titleKey: 'hotelF3T', descKey: 'hotelF3D' },
+        { titleKey: 'hotelF4T', descKey: 'hotelF4D' },
+        { titleKey: 'hotelF5T', descKey: 'hotelF5D' },
+      ],
+    },
+    etkinlik: {
+      img: '/images/sector-etkinlik.jpg',
+      titleKey: 'sectorEventTitle',
+      descKey: 'sectorEventDesc',
+      features: [
+        { titleKey: 'eventF1T', descKey: 'eventF1D' },
+        { titleKey: 'eventF2T', descKey: 'eventF2D' },
+        { titleKey: 'eventF3T', descKey: 'eventF3D' },
+        { titleKey: 'eventF4T', descKey: 'eventF4D' },
+        { titleKey: 'eventF5T', descKey: 'eventF5D' },
+      ],
+    },
+    fitness: {
+      img: '/images/sector-fitness.jpg',
+      titleKey: 'sectorFitnessTitle',
+      descKey: 'sectorFitnessDesc',
+      features: [
+        { titleKey: 'fitnessF1T', descKey: 'fitnessF1D' },
+        { titleKey: 'fitnessF2T', descKey: 'fitnessF2D' },
+        { titleKey: 'fitnessF3T', descKey: 'fitnessF3D' },
+        { titleKey: 'fitnessF4T', descKey: 'fitnessF4D' },
+        { titleKey: 'fitnessF5T', descKey: 'fitnessF5D' },
+      ],
+    },
+  }
+
+  const sector = SECTOR_DATA[active]
 
   return (
     <>
@@ -129,7 +126,7 @@ export default function SectorTabs() {
                 : 'bg-white text-zinc-600 border-zinc-200 hover:border-red-300 hover:text-red-600'
             }`}
           >
-            {s.icon} {s.label}
+            {s.icon} {t(s.labelKey as Parameters<typeof t>[0])}
           </button>
         ))}
       </div>
@@ -140,7 +137,7 @@ export default function SectorTabs() {
           <div className="rounded-2xl overflow-hidden shadow-xl border border-zinc-100">
             <Image
               src={sector.img}
-              alt={sector.title}
+              alt={t(sector.titleKey as Parameters<typeof t>[0])}
               width={480}
               height={340}
               className="w-full h-72 object-cover"
@@ -148,16 +145,16 @@ export default function SectorTabs() {
           </div>
         </div>
         <div className="flex-1 min-w-0">
-          <span className="text-xs font-bold text-red-600 tracking-widest uppercase">Kullanım Alanı</span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 mt-2 mb-3">{sector.title}</h2>
-          <p className="text-zinc-600 leading-relaxed mb-6">{sector.desc}</p>
+          <span className="text-xs font-bold text-red-600 tracking-widest uppercase">{t('sectorUsageLabel')}</span>
+          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 mt-2 mb-3">{t(sector.titleKey as Parameters<typeof t>[0])}</h2>
+          <p className="text-zinc-600 leading-relaxed mb-6">{t(sector.descKey as Parameters<typeof t>[0])}</p>
           <div className="space-y-3">
             {sector.features.map(f => (
-              <div key={f.title} className="flex items-start gap-3 bg-zinc-50 rounded-xl p-4 border border-zinc-100">
+              <div key={f.titleKey} className="flex items-start gap-3 bg-zinc-50 rounded-xl p-4 border border-zinc-100">
                 <span className="mt-0.5 text-red-500 font-bold shrink-0">✓</span>
                 <div>
-                  <strong className="text-sm text-zinc-900">{f.title}</strong>
-                  <p className="text-xs text-zinc-500 mt-0.5">{f.desc}</p>
+                  <strong className="text-sm text-zinc-900">{t(f.titleKey as Parameters<typeof t>[0])}</strong>
+                  <p className="text-xs text-zinc-500 mt-0.5">{t(f.descKey as Parameters<typeof t>[0])}</p>
                 </div>
               </div>
             ))}
@@ -165,7 +162,7 @@ export default function SectorTabs() {
           <div className="mt-8">
             <Link href="/kayit"
               className="inline-flex items-center gap-2 rounded-full bg-red-600 hover:bg-red-700 px-6 py-3 text-sm font-semibold text-white transition-colors">
-              Bu Sektör İçin Ücretsiz Dene →
+              {t('sectorTrialButton')}
             </Link>
           </div>
         </div>

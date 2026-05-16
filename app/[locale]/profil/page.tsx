@@ -1,15 +1,12 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { supabase } from '@/lib/supabase'
 import CustomerHeader from '@/components/CustomerHeader'
 import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 
-const KAT_LABEL: Record<string, string> = {
-  berber: 'Berber', kuafor: 'Kuaför', guzellik_salonu: 'Güzellik Salonu',
-  spa: 'Spa', restoran: 'Restoran', kafe: 'Kafe', bar: 'Bar', diger: 'Diğer',
-}
 const KAT_ICON: Record<string, string> = {
   berber: '💈', kuafor: '✂️', guzellik_salonu: '💅',
   spa: '🧖', restoran: '🍽️', kafe: '☕', bar: '🍸', diger: '🏪',
@@ -27,6 +24,7 @@ interface FavBusiness {
 
 export default function ProfilPage() {
   const router = useRouter()
+  const t = useTranslations('profil')
   const [user, setUser] = useState<User | null>(null)
   const [favs, setFavs] = useState<FavBusiness[]>([])
   const [loading, setLoading] = useState(true)
@@ -88,34 +86,34 @@ export default function ProfilPage() {
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-base font-bold text-zinc-900 truncate">{user?.email}</h1>
-            <p className="text-sm text-zinc-400 mt-0.5">Üye hesabı</p>
+            <p className="text-sm text-zinc-400 mt-0.5">{t('memberAccount')}</p>
           </div>
           <button
             onClick={handleSignOut}
             className="text-sm text-red-500 hover:text-red-700 font-semibold border border-red-100 hover:border-red-200 px-4 py-2 rounded-xl transition-colors"
           >
-            Çıkış Yap
+            {t('signOut')}
           </button>
         </div>
 
         {/* Favorites */}
         <h2 className="text-lg font-bold text-zinc-900 mb-5">
-          ❤️ Favori Mekanlarım
+          ❤️ {t('favoritesTitle')}
           <span className="text-zinc-400 font-normal text-sm ml-2">({favs.length})</span>
         </h2>
 
         {favs.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-zinc-200">
             <div className="text-5xl mb-4">🤍</div>
-            <h3 className="text-lg font-semibold text-zinc-700 mb-2">Henüz favori eklemediniz</h3>
+            <h3 className="text-lg font-semibold text-zinc-700 mb-2">{t('emptyTitle')}</h3>
             <p className="text-zinc-400 mb-6 max-w-sm mx-auto">
-              Ana sayfada bir mekanın ❤️ ikonuna tıklayarak favorilerinize ekleyin.
+              {t('emptyDesc')}
             </p>
             <Link
               href="/"
               className="inline-flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors"
             >
-              Mekanları Keşfet →
+              {t('exploreLink')}
             </Link>
           </div>
         ) : (
@@ -129,7 +127,7 @@ export default function ProfilPage() {
                     <span className="text-4xl">{KAT_ICON[kat] ?? '🏪'}</span>
                     <button
                       onClick={() => removeFav(b.id)}
-                      title="Favoriden çıkar"
+                      title={t('removeFav')}
                       className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center hover:bg-red-500/80 transition-all text-sm"
                     >
                       ❤️
@@ -137,7 +135,7 @@ export default function ProfilPage() {
                   </div>
                   <div className="p-4">
                     <h3 className="font-bold text-zinc-900 truncate">{b.name}</h3>
-                    <p className="text-xs text-zinc-500 font-medium mt-0.5">{KAT_LABEL[kat]}</p>
+                    <p className="text-xs text-zinc-500 font-medium mt-0.5">{t(`kat_${kat}` as Parameters<typeof t>[0])}</p>
                     {b.address && (
                       <p className="text-xs text-zinc-400 mt-1 truncate">📍 {b.address}</p>
                     )}
@@ -145,7 +143,7 @@ export default function ProfilPage() {
                       href={`/${b.slug}`}
                       className="mt-3 block w-full text-center bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
                     >
-                      Rezervasyon Yap →
+                      {t('reserveButton')}
                     </Link>
                   </div>
                 </div>

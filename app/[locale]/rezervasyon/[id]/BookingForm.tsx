@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 
 type MasaTipi   = { id: string; ad: string; kapasite: number }
@@ -25,19 +26,16 @@ interface Props {
   floorTables:      FloorTable[]
 }
 
-const DAYS = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt']
+const DAYS_KEYS = ['daySun', 'dayMon', 'dayTue', 'dayWed', 'dayThu', 'dayFri', 'daySat']
 
-function getDates() {
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date()
-    d.setDate(d.getDate() + i)
-    return {
-      label: i === 0 ? 'Bugün' : i === 1 ? 'Yarın' : DAYS[d.getDay()],
-      day: d.getDate(),
-      month: d.getMonth() + 1,
-      value: d.toISOString().split('T')[0],
-    }
-  })
+const SPECIAL_LABEL_KEYS: Record<string, string> = {
+  restaurant:   'specialRequestRestaurant',
+  psychologist: 'specialRequestPsych',
+  spa:          'specialRequestSpa',
+  hairdresser:  'specialRequestHairdresser',
+  barber:       'specialRequestBarber',
+  dentist:      'specialRequestDentist',
+  default:      'specialRequestDefault',
 }
 
 const TIME_SLOTS = Array.from({ length: 27 }, (_, i) => {
@@ -49,22 +47,25 @@ const TIME_SLOTS = Array.from({ length: 27 }, (_, i) => {
 
 const BEAUTY_TYPES = ['spa', 'beauty_salon', 'barber', 'hairdresser']
 
-const SPECIAL_LABEL: Record<string, string> = {
-  restaurant:   'Özel İstek / Alan Tercihi',
-  psychologist: 'Seans Türü (bireysel / çift / grup)',
-  spa:          'Hizmet / Paket Tercihi',
-  hairdresser:  'Hizmet (kesim, boya, fön…)',
-  barber:       'Hizmet (kesim, sakal, komple…)',
-  dentist:      'Şikayet / Kontrol Nedeni',
-  default:      'Özel İstek',
-}
-
 export default function BookingForm({
   businessId, businessName, businessType,
   masaTipleri, hizmetler, calisanlar,
   floorPlanEnabled, floorTables,
 }: Props) {
   const router = useRouter()
+  const t = useTranslations('bookingForm')
+
+  const getDates = () => Array.from({ length: 7 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() + i)
+    return {
+      label: i === 0 ? t('today') : i === 1 ? t('tomorrow') : t(DAYS_KEYS[d.getDay()] as Parameters<typeof t>[0]),
+      day: d.getDate(),
+      month: d.getMonth() + 1,
+      value: d.toISOString().split('T')[0],
+    }
+  })
+
   const dates = getDates()
 
   const [selectedDate, setSelectedDate] = useState(dates[0].value)
@@ -82,14 +83,14 @@ export default function BookingForm({
   const [success, setSuccess] = useState(false)
 
   const isBeauty = BEAUTY_TYPES.includes(businessType)
-  const specialLabel = SPECIAL_LABEL[businessType] ?? SPECIAL_LABEL.default
+  const specialLabelKey = SPECIAL_LABEL_KEYS[businessType] ?? SPECIAL_LABEL_KEYS.default
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
 
     if (!name.trim() || !phone.trim() || !selectedDate || !selectedTime) {
-      setError('Ad, telefon, tarih ve saat zorunludur.')
+      setError(t('requiredFields'))
       return
     }
 
@@ -115,7 +116,7 @@ export default function BookingForm({
 
     if (!res.ok) {
       const json = await res.json()
-      setError(json.error ?? 'Bir hata oluştu, lütfen tekrar deneyin.')
+      setError(json.error ?? t('genericError'))
       return
     }
 
@@ -128,16 +129,16 @@ export default function BookingForm({
         <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4 text-3xl">
           ✓
         </div>
-        <h2 className="text-2xl font-bold text-zinc-900 mb-2">Rezervasyon Alındı!</h2>
+        <h2 className="text-2xl font-bold text-zinc-900 mb-2">{t('successTitle')}</h2>
         <p className="text-zinc-500 mb-6">
-          <span className="font-semibold text-zinc-700">{businessName}</span> işletmesine rezervasyonunuz iletildi.
-          <br />Onay için kısa süre içinde bilgilendirileceksiniz.
+          <span className="font-semibold text-zinc-700">{businessName}</span>{' '}
+          {t('successDesc')}
         </p>
         <button
           onClick={() => router.push('/rezervasyon')}
           className="rounded-full bg-zinc-900 text-white px-6 py-2.5 text-sm font-semibold hover:bg-zinc-700 transition-colors"
         >
-          ← İşletmelere Dön
+          {t('backToBusinesses')}
         </button>
       </div>
     )
@@ -148,7 +149,7 @@ export default function BookingForm({
 
       {/* Tarih */}
       <div>
-        <label className="block text-sm font-semibold text-zinc-700 mb-3">Tarih Seçin *</label>
+        <label className="block text-sm font-semibold text-zinc-700 mb-3">{t('selectDate')} *</label>
         <div className="flex gap-2 overflow-x-auto pb-1">
           {dates.map(d => (
             <button
@@ -169,7 +170,7 @@ export default function BookingForm({
 
       {/* Saat */}
       <div>
-        <label className="block text-sm font-semibold text-zinc-700 mb-3">Saat Seçin *</label>
+        <label className="block text-sm font-semibold text-zinc-700 mb-3">{t('selectTime')} *</label>
         <div className="flex flex-wrap gap-2">
           {TIME_SLOTS.map(slot => (
             <button
@@ -191,8 +192,8 @@ export default function BookingForm({
       {floorPlanEnabled && floorTables.length > 0 && selectedDate && selectedTime && (
         <div>
           <label className="block text-sm font-semibold text-zinc-700 mb-3">
-            Masa Seçin
-            <span className="ml-2 text-xs font-normal text-zinc-400">(isteğe bağlı)</span>
+            {t('selectTable')}
+            <span className="ml-2 text-xs font-normal text-zinc-400">({t('optional')})</span>
           </label>
           <FloorPlanPicker
             restaurantId={businessId}
@@ -208,7 +209,7 @@ export default function BookingForm({
       {/* Masa tipi — restoran */}
       {!isBeauty && masaTipleri.length > 0 && (
         <div>
-          <label className="block text-sm font-semibold text-zinc-700 mb-3">Masa Tipi</label>
+          <label className="block text-sm font-semibold text-zinc-700 mb-3">{t('tableType')}</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {masaTipleri.map(m => (
               <button
@@ -221,7 +222,7 @@ export default function BookingForm({
                     : 'border-zinc-200 bg-white hover:border-red-200'}`}
               >
                 <p className="font-semibold text-sm">{m.ad}</p>
-                <p className="text-xs opacity-70 mt-0.5">Max {m.kapasite} kişi</p>
+                <p className="text-xs opacity-70 mt-0.5">{t('maxPeople', { count: m.kapasite })}</p>
               </button>
             ))}
           </div>
@@ -231,7 +232,7 @@ export default function BookingForm({
       {/* Hizmet seçimi — güzellik sektörü */}
       {isBeauty && hizmetler.length > 0 && (
         <div>
-          <label className="block text-sm font-semibold text-zinc-700 mb-3">Hizmet Seçin</label>
+          <label className="block text-sm font-semibold text-zinc-700 mb-3">{t('selectService')}</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {hizmetler.map(h => (
               <button
@@ -247,7 +248,7 @@ export default function BookingForm({
                   {h.name}
                 </p>
                 <div className="flex items-center gap-3 mt-1">
-                  <span className="text-xs text-zinc-500">{h.duration_minutes} dk</span>
+                  <span className="text-xs text-zinc-500">{h.duration_minutes} {t('min')}</span>
                   {h.price && (
                     <span className="text-xs font-semibold text-zinc-700">
                       {h.price.toLocaleString('tr-TR')} ₺
@@ -263,7 +264,9 @@ export default function BookingForm({
       {/* Personel seçimi — güzellik sektörü */}
       {isBeauty && calisanlar.length > 0 && (
         <div>
-          <label className="block text-sm font-semibold text-zinc-700 mb-3">Personel Seçin <span className="font-normal text-zinc-400">(isteğe bağlı)</span></label>
+          <label className="block text-sm font-semibold text-zinc-700 mb-3">
+            {t('selectStaff')} <span className="font-normal text-zinc-400">({t('optional')})</span>
+          </label>
           <div className="flex flex-wrap gap-2">
             {calisanlar.map(c => (
               <button
@@ -286,23 +289,23 @@ export default function BookingForm({
       {/* Kişisel bilgiler */}
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-zinc-700 mb-1.5">Ad Soyad *</label>
+          <label className="block text-sm font-semibold text-zinc-700 mb-1.5">{t('fullName')} *</label>
           <input
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="Ahmet Yılmaz"
+            placeholder={t('fullNamePlaceholder')}
             className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-red-400 transition-colors"
             required
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-zinc-700 mb-1.5">Telefon *</label>
+          <label className="block text-sm font-semibold text-zinc-700 mb-1.5">{t('phone')} *</label>
           <input
             type="tel"
             value={phone}
             onChange={e => setPhone(e.target.value)}
-            placeholder="0532 000 00 00"
+            placeholder={t('phonePlaceholder')}
             className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-red-400 transition-colors"
             required
           />
@@ -311,7 +314,7 @@ export default function BookingForm({
 
       {!isBeauty && (
         <div>
-          <label className="block text-sm font-semibold text-zinc-700 mb-3">Kişi Sayısı</label>
+          <label className="block text-sm font-semibold text-zinc-700 mb-3">{t('partySize')}</label>
           <div className="flex gap-2 flex-wrap">
             {['1','2','3','4','5','6','7','8+'].map(n => (
               <button
@@ -331,12 +334,14 @@ export default function BookingForm({
       )}
 
       <div>
-        <label className="block text-sm font-semibold text-zinc-700 mb-1.5">{specialLabel}</label>
+        <label className="block text-sm font-semibold text-zinc-700 mb-1.5">
+          {t(specialLabelKey as Parameters<typeof t>[0])}
+        </label>
         <textarea
           value={specialRequests}
           onChange={e => setSpecialRequests(e.target.value)}
           rows={3}
-          placeholder="İsteğinizi yazın…"
+          placeholder={t('specialRequestPlaceholder')}
           className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-red-400 transition-colors resize-none"
         />
       </div>
@@ -352,11 +357,11 @@ export default function BookingForm({
         disabled={loading}
         className="w-full rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-bold py-4 text-base transition-colors"
       >
-        {loading ? 'Gönderiliyor…' : 'Rezervasyon Yap →'}
+        {loading ? t('submitting') : t('submit')}
       </button>
 
       <p className="text-center text-xs text-zinc-400">
-        Rezervasyonunuz işletme tarafından onaylandığında bilgilendirileceksiniz.
+        {t('confirmationNote')}
       </p>
     </form>
   )

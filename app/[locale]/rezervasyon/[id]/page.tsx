@@ -6,11 +6,12 @@ import Link from 'next/link'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS, type BusinessType, type Restaurant, type Service, type StaffMember } from '@/types'
 import BookingForm from './BookingForm'
 
 // Next.js 15+ — params is a Promise
-type Props = { params: Promise<{ id: string }> }
+type Props = { params: Promise<{ id: string; locale: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
@@ -28,7 +29,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BusinessDetailPage({ params }: Props) {
-  const { id } = await params
+  const { id, locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('bizDetail')
   const supabase = getSupabaseAdmin()
 
   const [{ data: biz }, { data: rawServices }, { data: rawStaff }, { data: rawMasa }, { data: rawTables }] = await Promise.all([
@@ -82,8 +85,8 @@ export default async function BusinessDetailPage({ params }: Props) {
     && floorTables.length > 0
 
   const bookingTerm = ['restaurant', 'other'].includes(business.business_type)
-    ? 'Rezervasyon'
-    : 'Randevu'
+    ? t('termReservation')
+    : t('termAppointment')
 
   return (
     <div className="min-h-screen bg-white">
@@ -92,7 +95,7 @@ export default async function BusinessDetailPage({ params }: Props) {
       <div className="pt-24 pb-6 bg-zinc-900 text-white">
         <div className="mx-auto max-w-3xl px-6">
           <Link href="/rezervasyon" className="text-zinc-400 hover:text-white text-sm transition-colors">
-            ← Tüm İşletmeler
+            ← {t('allBusinesses')}
           </Link>
           <div className="flex items-center gap-4 mt-4">
             <div className="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center text-3xl shrink-0">
@@ -129,7 +132,7 @@ export default async function BusinessDetailPage({ params }: Props) {
 
       <section className="py-10">
         <div className="mx-auto max-w-3xl px-6">
-          <h2 className="text-xl font-bold text-zinc-900 mb-6">{bookingTerm} Yap</h2>
+          <h2 className="text-xl font-bold text-zinc-900 mb-6">{t('makeBooking', { term: bookingTerm })}</h2>
           <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6 sm:p-8">
             <BookingForm
               businessId={business.id}

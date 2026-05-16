@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { supabase } from '@/lib/supabase'
 import LegalSidebar from '@/components/LegalSidebar'
 
@@ -31,6 +32,8 @@ const INITIAL: FormState = {
 }
 
 export default function KvkkBasvuruPage() {
+  const t = useTranslations('kvkkForm')
+  const tLegal = useTranslations('legal')
   const [form, setForm] = useState<FormState>(INITIAL)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -44,8 +47,8 @@ export default function KvkkBasvuruPage() {
     e.preventDefault()
     setError(null)
 
-    if (!form.adSoyad.trim()) { setError('Ad Soyad zorunludur.'); return }
-    if (!form.talepDetayi.trim()) { setError('Talep detayı zorunludur.'); return }
+    if (!form.adSoyad.trim()) { setError(t('errorNameRequired')); return }
+    if (!form.talepDetayi.trim()) { setError(t('errorRequestRequired')); return }
 
     setSubmitting(true)
 
@@ -68,7 +71,7 @@ export default function KvkkBasvuruPage() {
 
     setSubmitting(false)
     if (dbErr) {
-      setError('Başvurunuz gönderilemedi. Lütfen tekrar deneyin veya info@checkrezerve.com adresine e-posta gönderin.')
+      setError(t('errorSubmit'))
       return
     }
     setSubmitted(true)
@@ -83,12 +86,12 @@ export default function KvkkBasvuruPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-xl font-bold text-zinc-900 mb-3">Başvurunuz Alındı</h1>
+          <h1 className="text-xl font-bold text-zinc-900 mb-3">{t('successTitle')}</h1>
           <p className="text-zinc-500 text-sm mb-6">
-            KVKK kapsamındaki talebiniz başarıyla iletildi. 30 gün içinde yanıtlanacaktır.
+            {t('successDesc')}
           </p>
           <Link href="/" className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors">
-            Ana Sayfaya Dön
+            {t('backHome')}
           </Link>
         </div>
       </main>
@@ -104,7 +107,7 @@ export default function KvkkBasvuruPage() {
     <main className="min-h-screen bg-zinc-50 px-4 py-16">
       <div className="mx-auto max-w-6xl">
         <div className="mb-8">
-          <Link href="/" className="text-sm text-red-600 hover:underline">← Ana Sayfa</Link>
+          <Link href="/" className="text-sm text-red-600 hover:underline">{tLegal('backHome')}</Link>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-10">
@@ -112,55 +115,53 @@ export default function KvkkBasvuruPage() {
 
           <div className="flex-1 min-w-0">
         <div className="bg-red-50 border border-red-200 rounded-2xl p-5 mb-8 text-sm text-red-800">
-          <strong>Bilgi:</strong> Bu form, 6698 sayılı KVKK&apos;nın 11. maddesinde sayılan
-          haklarınızı kullanmak amacıyla CheckRezerve Teknoloji&apos;ye başvuruda bulunmanızı
-          sağlar. Talebiniz <strong>30 gün</strong> içinde yanıtlanacaktır.
+          <strong>{t('infoLabel')}:</strong> {t('infoText')}
         </div>
 
-        <h1 className="text-2xl font-bold text-zinc-900 mb-8">KVKK Başvuru Formu</h1>
+        <h1 className="text-2xl font-bold text-zinc-900 mb-8">{t('pageTitle')}</h1>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6 md:p-8 space-y-8">
 
           {/* Bölüm A */}
           <div className={sectionCls}>
-            <h2 className={sectionTitleCls}>A — Başvuru Sahibi İletişim Bilgileri</h2>
+            <h2 className={sectionTitleCls}>{t('sectionA')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label className={labelCls}>Ad Soyad <span className="text-red-500">*</span></label>
-                <input type="text" value={form.adSoyad} onChange={set('adSoyad')} required className={inputCls} placeholder="Ad Soyad" />
+                <label className={labelCls}>{t('fullName')} <span className="text-red-500">*</span></label>
+                <input type="text" value={form.adSoyad} onChange={set('adSoyad')} required className={inputCls} placeholder={t('fullName')} />
               </div>
               <div>
-                <label className={labelCls}>TC Kimlik No</label>
-                <input type="text" value={form.tcKimlik} onChange={set('tcKimlik')} maxLength={11} className={inputCls} placeholder="11 haneli TC Kimlik No" />
+                <label className={labelCls}>{t('tcId')}</label>
+                <input type="text" value={form.tcKimlik} onChange={set('tcKimlik')} maxLength={11} className={inputCls} placeholder={t('tcIdPlaceholder')} />
               </div>
               <div>
-                <label className={labelCls}>Yabancılar için Uyruk / Pasaport No</label>
-                <input type="text" value={form.yabanciKimlik} onChange={set('yabanciKimlik')} className={inputCls} placeholder="Pasaport / Kimlik No" />
+                <label className={labelCls}>{t('foreignId')}</label>
+                <input type="text" value={form.yabanciKimlik} onChange={set('yabanciKimlik')} className={inputCls} placeholder={t('foreignIdPlaceholder')} />
               </div>
               <div>
-                <label className={labelCls}>Telefon Numarası</label>
+                <label className={labelCls}>{t('phone')}</label>
                 <input type="tel" value={form.telefon} onChange={set('telefon')} className={inputCls} placeholder="+90 5xx xxx xx xx" />
               </div>
               <div>
-                <label className={labelCls}>E-posta</label>
+                <label className={labelCls}>{t('email')}</label>
                 <input type="email" value={form.eposta} onChange={set('eposta')} className={inputCls} placeholder="ornek@mail.com" />
               </div>
               <div className="sm:col-span-2">
-                <label className={labelCls}>Adres</label>
-                <textarea value={form.adres} onChange={set('adres')} rows={2} className={inputCls} placeholder="Açık adresiniz" />
+                <label className={labelCls}>{t('address')}</label>
+                <textarea value={form.adres} onChange={set('adres')} rows={2} className={inputCls} placeholder={t('addressPlaceholder')} />
               </div>
             </div>
           </div>
 
           {/* Bölüm B */}
           <div className={sectionCls}>
-            <h2 className={sectionTitleCls}>B — CheckRezerve ile Olan İlişkiniz</h2>
+            <h2 className={sectionTitleCls}>{t('sectionB')}</h2>
             <div className="space-y-3">
               {[
-                { val: 'rezervasyon_musterisi', label: 'Rezervasyon Müşterisi' },
-                { val: 'isletme_sahibi',        label: 'İşletme Sahibi / Yöneticisi' },
-                { val: 'ziyaretci',             label: 'Ziyaretçi' },
-                { val: 'diger',                 label: 'Diğer' },
+                { val: 'rezervasyon_musterisi', label: t('relReservationCustomer') },
+                { val: 'isletme_sahibi',        label: t('relBusinessOwner') },
+                { val: 'ziyaretci',             label: t('relVisitor') },
+                { val: 'diger',                 label: t('relOther') },
               ].map(opt => (
                 <label key={opt.val} className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -178,33 +179,33 @@ export default function KvkkBasvuruPage() {
 
             {form.iliskiTipi === 'diger' && (
               <div className="mt-4 pl-6">
-                <label className={labelCls}>Açıklayınız</label>
-                <input type="text" value={form.digerIliski} onChange={set('digerIliski')} className={inputCls} placeholder="İlişkinizi açıklayın" />
+                <label className={labelCls}>{t('explain')}</label>
+                <input type="text" value={form.digerIliski} onChange={set('digerIliski')} className={inputCls} placeholder={t('explainPlaceholder')} />
               </div>
             )}
           </div>
 
           {/* Bölüm C */}
           <div className={sectionCls}>
-            <h2 className={sectionTitleCls}>C — KVKK Kapsamındaki Talebiniz <span className="text-red-500">*</span></h2>
+            <h2 className={sectionTitleCls}>{t('sectionC')} <span className="text-red-500">*</span></h2>
             <textarea
               value={form.talepDetayi}
               onChange={set('talepDetayi')}
               required
               rows={6}
               className={inputCls}
-              placeholder="KVKK 11. madde kapsamında kullanmak istediğiniz hakkı ve talebinizin detayını açıklayınız..."
+              placeholder={t('requestPlaceholder')}
             />
           </div>
 
           {/* Bölüm D */}
           <div className={sectionCls}>
-            <h2 className={sectionTitleCls}>D — Yanıt Bildirim Yöntemi</h2>
+            <h2 className={sectionTitleCls}>{t('sectionD')}</h2>
             <div className="space-y-3">
               {[
-                { val: 'adres',  label: 'Adresime gönderilmesini istiyorum' },
-                { val: 'eposta', label: 'E-posta adresime gönderilmesini istiyorum' },
-                { val: 'elden',  label: 'Elden teslim almak istiyorum' },
+                { val: 'adres',  label: t('replyByAddress') },
+                { val: 'eposta', label: t('replyByEmail') },
+                { val: 'elden',  label: t('replyInPerson') },
               ].map(opt => (
                 <label key={opt.val} className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -232,13 +233,13 @@ export default function KvkkBasvuruPage() {
             disabled={submitting}
             className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-semibold py-3.5 rounded-xl text-sm transition-colors shadow-sm"
           >
-            {submitting ? 'Gönderiliyor...' : 'Başvuruyu Gönder'}
+            {submitting ? t('submitting') : t('submit')}
           </button>
 
           <p className="text-xs text-zinc-400 text-center">
-            Başvurunuz 30 gün içinde yanıtlanacaktır.{' '}
-            <Link href="/kvkk" className="text-red-600 hover:underline">KVKK Politikamızı</Link>{' '}
-            okuyabilirsiniz.
+            {t('footerNote')}{' '}
+            <Link href="/kvkk" className="text-red-600 hover:underline">{t('footerKvkkLink')}</Link>{' '}
+            {t('footerNoteEnd')}
           </p>
         </form>
           </div>

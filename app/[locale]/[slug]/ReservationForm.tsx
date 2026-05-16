@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { createReservation, type ActionState } from './actions'
 import { BOOKING_TERM, type BusinessType } from '@/types'
 
@@ -11,14 +12,14 @@ const initialState: ActionState = {
 }
 
 const PARTY_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8]
-const DAYS = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt']
+const DAYS_KEYS = ['daySun', 'dayMon', 'dayTue', 'dayWed', 'dayThu', 'dayFri', 'daySat']
 
-function getDates() {
+function getDates(today: string, tomorrow: string, dayLabels: string[]) {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date()
     d.setDate(d.getDate() + i)
     return {
-      label: i === 0 ? 'Bugün' : i === 1 ? 'Yarın' : DAYS[d.getDay()],
+      label: i === 0 ? today : i === 1 ? tomorrow : dayLabels[d.getDay()],
       day: d.getDate(),
       value: d.toISOString().split('T')[0],
     }
@@ -51,10 +52,12 @@ export function ReservationForm({
   staff?:         StaffMember[]
   masaTipleri?:   MasaTipi[]
 }) {
+  const t = useTranslations('reservationForm')
   const boundAction = createReservation.bind(null, restaurantId)
   const [state, formAction, pending] = useActionState(boundAction, initialState)
 
-  const dates = getDates()
+  const dayLabels = DAYS_KEYS.map(k => t(k as Parameters<typeof t>[0]))
+  const dates = getDates(t('today'), t('tomorrow'), dayLabels)
   const [selectedDate, setSelectedDate]       = useState(dates[0].value)
   const [selectedTime, setSelectedTime]       = useState('')
   const [selectedParty, setSelectedParty]     = useState(2)
@@ -78,15 +81,14 @@ export function ReservationForm({
           </svg>
         </div>
         <div>
-          <h2 className="text-xl font-bold text-stone-900">{term.singular}unuz Alındı!</h2>
+          <h2 className="text-xl font-bold text-stone-900">{t('successTitle', { term: term.singular })}</h2>
           <p className="mt-1 text-sm text-stone-500">
-            Merhaba{' '}
-            <span className="font-semibold text-stone-700">{state.guestName}</span>,<br />
-            {restaurantName} sizi bekliyor.
+            {t('successGreeting', { name: state.guestName ?? '' })}<br />
+            {restaurantName} {t('successWaiting')}
           </p>
         </div>
         <div className="w-full rounded-2xl bg-green-50 border border-green-100 p-4 text-sm text-green-800">
-          WhatsApp onay mesajı kısa süre içinde gönderilecektir.
+          {t('successWhatsapp')}
         </div>
         <button
           type="button"
@@ -96,7 +98,7 @@ export function ReservationForm({
           }}
           className="text-sm text-stone-400 underline underline-offset-2"
         >
-          Yeni {term.singular.toLowerCase()} yap
+          {t('newBooking', { term: term.singular.toLowerCase() })}
         </button>
       </div>
     )
@@ -113,7 +115,7 @@ export function ReservationForm({
       {/* Hizmet Seçimi — restoran dışı sektörler için */}
       {hasServices && (
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-stone-700">Hizmet Seçin</label>
+          <label className="text-sm font-semibold text-stone-700">{t('selectService')}</label>
           <div className="flex flex-col gap-2">
             {services.map(s => (
               <button
@@ -128,7 +130,7 @@ export function ReservationForm({
               >
                 <span>{s.name}</span>
                 <span className="text-xs text-stone-400 flex items-center gap-2">
-                  {s.duration_minutes} dk
+                  {s.duration_minutes} {t('min')}
                   {s.price != null && (
                     <span className={selectedService === s.id ? 'text-amber-600 font-semibold' : ''}>
                       {s.price.toLocaleString('tr-TR')} {s.currency}
@@ -146,7 +148,7 @@ export function ReservationForm({
       {hasStaff && (
         <div className="flex flex-col gap-2">
           <label className="text-sm font-semibold text-stone-700">
-            Personel Seçin <span className="text-stone-400 font-normal">(opsiyonel)</span>
+            {t('selectStaff')} <span className="text-stone-400 font-normal">({t('optional')})</span>
           </label>
           <div className="flex flex-wrap gap-2">
             <button
@@ -158,7 +160,7 @@ export function ReservationForm({
                   : 'border-stone-200 text-stone-500 hover:border-stone-300'
               }`}
             >
-              Fark etmez
+              {t('noPreference')}
             </button>
             {staff.map(s => (
               <button
@@ -182,7 +184,7 @@ export function ReservationForm({
 
       {/* Tarih Seçici */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-semibold text-stone-700">Tarih Seçin</label>
+        <label className="text-sm font-semibold text-stone-700">{t('selectDate')}</label>
         <div className="flex gap-2 overflow-x-auto pb-1">
           {dates.map(d => (
             <button
@@ -204,7 +206,7 @@ export function ReservationForm({
 
       {/* Saat Seçici */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-semibold text-stone-700">Saat Seçin</label>
+        <label className="text-sm font-semibold text-stone-700">{t('selectTime')}</label>
         <div className="flex flex-wrap gap-2">
           {TIME_SLOTS.map(slot => (
             <button
@@ -227,7 +229,7 @@ export function ReservationForm({
       {isRestaurant && masaTipleri.length > 0 && (
         <div className="flex flex-col gap-2">
           <label className="text-sm font-semibold text-stone-700">
-            Masa Tipi <span className="text-stone-400 font-normal">(opsiyonel)</span>
+            {t('tableType')} <span className="text-stone-400 font-normal">({t('optional')})</span>
           </label>
           <div className="grid grid-cols-2 gap-2">
             {masaTipleri.map(m => (
@@ -242,7 +244,7 @@ export function ReservationForm({
                 }`}
               >
                 <p className="font-semibold text-sm">{m.ad}</p>
-                <p className="text-xs opacity-70 mt-0.5">Max {m.kapasite} kişi</p>
+                <p className="text-xs opacity-70 mt-0.5">{t('maxPeople', { count: m.kapasite })}</p>
               </button>
             ))}
           </div>
@@ -250,20 +252,20 @@ export function ReservationForm({
       )}
 
       {/* Ad Soyad */}
-      <Field label="Ad Soyad" htmlFor="guest_name">
+      <Field label={t('fullName')} htmlFor="guest_name">
         <input
           id="guest_name"
           name="guest_name"
           type="text"
           required
           autoComplete="name"
-          placeholder="Ahmet Yılmaz"
+          placeholder={t('fullNamePlaceholder')}
           className={inputCls}
         />
       </Field>
 
       {/* Telefon */}
-      <Field label="Telefon" htmlFor="guest_phone">
+      <Field label={t('phone')} htmlFor="guest_phone">
         <input
           id="guest_phone"
           name="guest_phone"
@@ -271,7 +273,7 @@ export function ReservationForm({
           required
           autoComplete="tel"
           inputMode="tel"
-          placeholder="0532 000 00 00"
+          placeholder={t('phonePlaceholder')}
           className={inputCls}
         />
       </Field>
@@ -279,7 +281,7 @@ export function ReservationForm({
       {/* Kişi Sayısı — sadece restoran için */}
       {isRestaurant && (
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-stone-700">Kişi Sayısı</label>
+          <label className="text-sm font-semibold text-stone-700">{t('partySize')}</label>
           <div className="flex gap-2 flex-wrap">
             {PARTY_OPTIONS.map((n) => (
               <button
@@ -323,7 +325,7 @@ export function ReservationForm({
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
-          {showNotes ? 'Notu kaldır' : 'Not ekle'}
+          {showNotes ? t('removeNote') : t('addNote')}
         </button>
         {showNotes && (
           <textarea
@@ -331,8 +333,8 @@ export function ReservationForm({
             rows={3}
             placeholder={
               isRestaurant
-                ? 'Alerji, doğum günü, özel istek…'
-                : 'Özel istek veya not…'
+                ? t('notePlaceholderRestaurant')
+                : t('notePlaceholderGeneral')
             }
             className="rounded-xl border border-stone-200 bg-white px-4 py-3 text-base text-stone-900 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100 resize-none"
           />
@@ -361,17 +363,17 @@ export function ReservationForm({
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
-            Gönderiliyor…
+            {t('submitting')}
           </span>
         ) : selectedTime ? (
-          `${term.singular} Yap`
+          t('submit', { term: term.singular })
         ) : (
-          'Saat Seçin'
+          t('selectTimeFirst')
         )}
       </button>
 
       <p className="text-center text-xs text-stone-400">
-        {term.singular} anında onaylanır • Ücretsiz iptal
+        {t('confirmNote', { term: term.singular })}
       </p>
     </form>
   )

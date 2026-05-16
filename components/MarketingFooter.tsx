@@ -1,7 +1,11 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 
 export default function MarketingFooter() {
+  const t = useTranslations('footer')
   return (
     <footer className="bg-zinc-900 text-white py-16 px-6">
       <div className="mx-auto max-w-6xl">
@@ -12,51 +16,51 @@ export default function MarketingFooter() {
               <Image src="/logo-icon.png" alt="CheckRezerve" width={32} height={32} className="rounded-xl brightness-0 invert" />
               <span className="text-base font-bold">CheckRezerve</span>
             </div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-3">CheckRezerve Hakkında</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-3">{t('about')}</h3>
             <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
-              <Link href="/hakkimizda" className="hover:text-white transition-colors">Neden CheckRezerve?</Link>
-              <Link href="/hakkimizda" className="hover:text-white transition-colors">Başarı Hikayeleri</Link>
-              <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>
-              <Link href="/iletisim" className="hover:text-white transition-colors">İletişim</Link>
+              <Link href="/hakkimizda" className="hover:text-white transition-colors">{t('whyUs')}</Link>
+              <Link href="/hakkimizda" className="hover:text-white transition-colors">{t('successStories')}</Link>
+              <Link href="/blog" className="hover:text-white transition-colors">{t('blog')}</Link>
+              <Link href="/iletisim" className="hover:text-white transition-colors">{t('contact')}</Link>
             </div>
           </div>
 
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">Kullanım Alanları</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">{t('useCases')}</h3>
             <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
-              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Restoran &amp; Kafe</Link>
-              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Kuaför &amp; Berber</Link>
-              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Spa &amp; Güzellik</Link>
-              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Otel &amp; Konaklama</Link>
-              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Etkinlik Mekanları</Link>
-              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Spor &amp; Fitness</Link>
+              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">{t('useCaseRestaurant')}</Link>
+              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">{t('useCaseBarber')}</Link>
+              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">{t('useCaseSpa')}</Link>
+              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">{t('useCaseHotel')}</Link>
+              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">{t('useCaseEvent')}</Link>
+              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">{t('useCaseFitness')}</Link>
             </div>
           </div>
 
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">Özellikler</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">{t('features')}</h3>
             <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
-              <Link href="/ozellikler" className="hover:text-white transition-colors">Ön Ödeme Sistemi</Link>
-              <Link href="/ozellikler" className="hover:text-white transition-colors">Rezervasyon Yönetimi</Link>
-              <Link href="/ozellikler" className="hover:text-white transition-colors">SMS Hatırlatmalar</Link>
-              <Link href="/ozellikler" className="hover:text-white transition-colors">Müşteri Yönetimi</Link>
-              <Link href="/ozellikler" className="hover:text-white transition-colors">Online Rezervasyon</Link>
+              <Link href="/ozellikler" className="hover:text-white transition-colors">{t('featurePrepayment')}</Link>
+              <Link href="/ozellikler" className="hover:text-white transition-colors">{t('featureReservation')}</Link>
+              <Link href="/ozellikler" className="hover:text-white transition-colors">{t('featureSms')}</Link>
+              <Link href="/ozellikler" className="hover:text-white transition-colors">{t('featureCustomer')}</Link>
+              <Link href="/ozellikler" className="hover:text-white transition-colors">{t('featureOnline')}</Link>
             </div>
           </div>
 
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">Yasal</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">{t('legal')}</h3>
             <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
-              <Link href="/kullanim-kosullari" className="hover:text-white transition-colors">Kullanım Koşulları</Link>
-              <Link href="/gizlilik" className="hover:text-white transition-colors">Gizlilik Politikası</Link>
-              <Link href="/kvkk" className="hover:text-white transition-colors">KVKK Aydınlatma Metni</Link>
-              <Link href="/cerez-politikasi" className="hover:text-white transition-colors">Çerez Politikası</Link>
+              <Link href="/kullanim-kosullari" className="hover:text-white transition-colors">{t('terms')}</Link>
+              <Link href="/gizlilik" className="hover:text-white transition-colors">{t('privacy')}</Link>
+              <Link href="/kvkk" className="hover:text-white transition-colors">{t('kvkk')}</Link>
+              <Link href="/cerez-politikasi" className="hover:text-white transition-colors">{t('cookies')}</Link>
             </div>
           </div>
         </div>
 
         <div className="pt-8 border-t border-zinc-800 text-center">
-          <p className="text-sm text-zinc-500">© 2026 CheckRezerve. Tüm hakları saklıdır.</p>
+          <p className="text-sm text-zinc-500">© 2026 CheckRezerve. {t('rights')}</p>
         </div>
       </div>
     </footer>

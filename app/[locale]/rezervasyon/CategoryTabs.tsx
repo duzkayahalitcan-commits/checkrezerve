@@ -1,11 +1,19 @@
 'use client'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { CATEGORIES } from './categories'
+import { useTranslations } from 'next-intl'
+
+const CATEGORIES = [
+  { key: 'yeme-icme', labelKey: 'catFoodDrink', icon: '🍽️' },
+  { key: 'guzellik',  labelKey: 'catBeauty',    icon: '💆' },
+  { key: 'saglik',    labelKey: 'catHealth',     icon: '🏥' },
+  { key: 'spor',      labelKey: 'catSports',     icon: '🏋️' },
+]
 
 export default function CategoryTabs() {
   const params = useSearchParams()
   const active = params.get('kategori') ?? ''
+  const t = useTranslations('rezervasyon')
 
   return (
     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -16,7 +24,7 @@ export default function CategoryTabs() {
             ? 'bg-zinc-900 border-zinc-900 text-white'
             : 'bg-white border-zinc-200 text-zinc-600 hover:border-zinc-400'}`}
       >
-        Tümü
+        {t('allBusinesses')}
       </Link>
       {CATEGORIES.map(cat => (
         <Link
@@ -28,7 +36,7 @@ export default function CategoryTabs() {
               : 'bg-white border-zinc-200 text-zinc-600 hover:border-zinc-400'}`}
         >
           <span>{cat.icon}</span>
-          {cat.label}
+          {t(cat.labelKey as Parameters<typeof t>[0])}
         </Link>
       ))}
     </div>

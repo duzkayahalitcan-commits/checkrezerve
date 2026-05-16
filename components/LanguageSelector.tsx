@@ -38,22 +38,23 @@ export default function LanguageSelector() {
   function switchLocale(next: string) {
     if (next === locale) { setOpen(false); return }
 
-    // Strip current locale prefix from pathname if present
-    let cleanPath = pathname
+    // Strip current locale prefix from pathname.
+    // With localePrefix:'always', pathname is e.g. /tr/rezervasyon or /en/
+    let pathWithoutLocale = '/'
     for (const loc of routing.locales) {
-      if (cleanPath.startsWith(`/${loc}/`)) {
-        cleanPath = cleanPath.slice(loc.length + 1)
+      if (pathname.startsWith(`/${loc}/`)) {
+        // /tr/rezervasyon → /rezervasyon
+        pathWithoutLocale = pathname.slice(loc.length + 1)
         break
-      } else if (cleanPath === `/${loc}`) {
-        cleanPath = '/'
+      } else if (pathname === `/${loc}`) {
+        pathWithoutLocale = '/'
         break
       }
     }
 
-    const target =
-      next === routing.defaultLocale
-        ? cleanPath || '/'
-        : `/${next}${cleanPath}`
+    const target = pathWithoutLocale === '/'
+      ? `/${next}`
+      : `/${next}${pathWithoutLocale}`
 
     router.push(target)
     setOpen(false)

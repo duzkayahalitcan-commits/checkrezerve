@@ -1,4 +1,4 @@
-import { setRequestLocale } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
@@ -16,6 +16,7 @@ export default async function IletisimPage({
 }) {
   const { locale } = await params
   setRequestLocale(locale)
+  const t = await getTranslations('contact')
   return (
     <div className="min-h-screen bg-white">
       <MarketingHeader />
@@ -23,13 +24,13 @@ export default async function IletisimPage({
       <section className="pt-28 pb-16 text-white text-center relative" style={{backgroundImage:"linear-gradient(135deg,rgba(13,18,26,0.75) 0%,rgba(13,80,60,0.65) 100%),url('/images/feature-iletisim.jpg')",backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="mx-auto max-w-2xl px-6 relative z-10">
           <span className="inline-block bg-red-600/20 border border-red-500/30 rounded-full px-4 py-1.5 text-sm text-red-300 font-medium mb-6">
-            İletişim
+            {t('heroBadge')}
           </span>
           <h1 className="text-4xl sm:text-5xl font-extrabold mb-5 leading-tight">
-            Birlikte Başlayalım
+            {t('heroTitle')}
           </h1>
           <p className="text-white/70 text-lg">
-            Demo talep edin, fiyat sorun ya da aklınızdaki her soruyu iletin. 24 saat içinde size dönüyoruz.
+            {t('heroSubtitle')}
           </p>
         </div>
       </section>
@@ -38,11 +39,11 @@ export default async function IletisimPage({
         <div className="mx-auto max-w-5xl px-6">
           <div className="grid lg:grid-cols-2 gap-14 items-start">
 
-            {/* Sol: İletişim Bilgileri */}
+            {/* Left: Contact Info */}
             <div>
-              <h2 className="text-2xl font-bold text-zinc-900 mb-3">Size Nasıl Yardımcı Olabiliriz?</h2>
+              <h2 className="text-2xl font-bold text-zinc-900 mb-3">{t('leftTitle')}</h2>
               <p className="text-zinc-600 leading-relaxed mb-8">
-                Ürünümüzü keşfetmek, demo görmek ya da kurumsal teklif almak için formu doldurun. Ekibimiz en kısa sürede ulaşır.
+                {t('leftSubtitle')}
               </p>
 
               <div className="space-y-4 mb-8">
@@ -51,7 +52,7 @@ export default async function IletisimPage({
                     ✉️
                   </div>
                   <div>
-                    <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">E-posta</div>
+                    <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{t('emailLabel')}</div>
                     <div className="text-sm font-medium text-zinc-800">info@checkrezerve.com</div>
                   </div>
                 </div>
@@ -60,14 +61,14 @@ export default async function IletisimPage({
                     💬
                   </div>
                   <div>
-                    <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">WhatsApp</div>
+                    <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{t('whatsappLabel')}</div>
                     <a
                       href="https://wa.me/905555555555"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm font-medium text-green-700 hover:text-green-800 transition-colors"
                     >
-                      Demo için bize WhatsApp&apos;tan yazın →
+                      {t('whatsappLink')}
                     </a>
                   </div>
                 </div>
@@ -76,8 +77,8 @@ export default async function IletisimPage({
                     📍
                   </div>
                   <div>
-                    <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Adres</div>
-                    <div className="text-sm font-medium text-zinc-800">İstanbul, Türkiye</div>
+                    <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{t('addressLabel')}</div>
+                    <div className="text-sm font-medium text-zinc-800">{t('addressValue')}</div>
                   </div>
                 </div>
               </div>
@@ -97,14 +98,14 @@ export default async function IletisimPage({
               </div>
 
               <div className="mt-10 rounded-2xl bg-zinc-50 border border-zinc-100 p-6">
-                <h3 className="font-bold text-zinc-900 mb-2 text-sm">Hızlı Yanıt Garantisi</h3>
+                <h3 className="font-bold text-zinc-900 mb-2 text-sm">{t('quickReplyTitle')}</h3>
                 <p className="text-xs text-zinc-500 leading-relaxed">
-                  Hafta içi gelen tüm mesajlara 4 saat içinde yanıt veriyoruz. Acil destek için doğrudan e-posta atabilirsiniz.
+                  {t('quickReplyDesc')}
                 </p>
               </div>
             </div>
 
-            {/* Sağ: Form */}
+            {/* Right: Form */}
             <ContactForm />
           </div>
         </div>

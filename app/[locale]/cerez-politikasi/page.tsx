@@ -1,4 +1,4 @@
-import { setRequestLocale } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import LegalSidebar from '@/components/LegalSidebar'
@@ -15,11 +15,12 @@ export default async function CerezPolitikasiPage({
 }) {
   const { locale } = await params
   setRequestLocale(locale)
+  const tLegal = await getTranslations('legal')
   return (
     <main className="min-h-screen bg-white text-zinc-800">
       <div className="mx-auto max-w-6xl px-4 py-16">
         <div className="mb-8">
-          <Link href="/" className="text-sm text-red-600 hover:underline">← Ana Sayfa</Link>
+          <Link href="/" className="text-sm text-red-600 hover:underline">{tLegal('backHome')}</Link>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-10">

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { ReservationForm } from './ReservationForm'
 import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS, BOOKING_TERM, type BusinessType } from '@/types'
 
@@ -35,7 +36,9 @@ export default async function BusinessPage({
 }: {
   params: Promise<{ locale: string; slug: string }>
 }) {
-  const { slug } = await params
+  const { slug, locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('slugPage')
 
   const { data: restaurant } = await supabase
     .from('restaurants')
@@ -108,7 +111,7 @@ export default async function BusinessPage({
             <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/10 rounded-full px-3 py-1">
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
               <span className="text-xs text-stone-300">
-                Bugün <strong className="text-white">{count}</strong> {term.singular.toLowerCase()}
+                {t('todayCount', { count, term: term.singular.toLowerCase() })}
               </span>
             </div>
           )}
@@ -121,9 +124,9 @@ export default async function BusinessPage({
           <div className="bg-white rounded-3xl shadow-2xl shadow-black/40 overflow-hidden">
             <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4">
               <p className="text-sm font-semibold text-white/90">
-                Online {term.singular}
+                {t('onlineBooking', { term: term.singular })}
               </p>
-              <p className="text-xs text-white/70 mt-0.5">Ücretsiz • Anında onaylı</p>
+              <p className="text-xs text-white/70 mt-0.5">{t('freeInstant')}</p>
             </div>
 
             <div className="p-6">

@@ -1,43 +1,21 @@
 'use client'
 import { useState } from 'react'
-
-const FAQS = [
-  {
-    q: 'CheckRezerve hangi işletmeler için uygundur?',
-    a: 'Restoran, kafe, kuaför, berber, spa, güzellik salonu, fitness merkezi, otel ve etkinlik mekanı gibi randevu veya rezervasyona dayalı çalışan her işletme CheckRezerve\'i kullanabilir. Esnek yapısı sayesinde sektörden bağımsız olarak kolayca yapılandırılabilir.',
-  },
-  {
-    q: 'Ön ödeme sistemi nasıl işliyor?',
-    a: 'Müşteriniz rezervasyon yaparken belirlediğiniz tutarı kredi kartıyla öder. Bu tutar rezervasyon tarihine kadar güvencede tutulur. Müşteri geldiğinde ödeme serbest bırakılır ya da iade edilir; gelmediğinde ise işletmenizde kalır. Tüm işlemler 3D Secure altyapısıyla güvence altındadır.',
-  },
-  {
-    q: 'Rezervasyon başına komisyon ödüyor muyum?',
-    a: 'Hayır. CheckRezerve sabit abonelik modeli ile çalışır. Kaç rezervasyon alırsanız alın, ek bir komisyon ya da kesinti söz konusu değildir. Aylık veya yıllık planınızın ücreti dışında hiçbir ek ücret ödemezsiniz.',
-  },
-  {
-    q: 'Kurulum ne kadar sürer?',
-    a: 'Kaydınızı tamamladıktan sonra işletme bilgilerinizi, hizmetlerinizi ve çalışma saatlerinizi girerek aynı gün aktif olabilirsiniz. Teknik bilgi gerektirmez; destek ekibimiz de her adımda yanınızdadır.',
-  },
-  {
-    q: 'Müşterilerim nasıl rezervasyon yapıyor?',
-    a: 'Size özel bir rezervasyon sayfası oluşturulur. Bu bağlantıyı web sitenize, Instagram profilinize ya da WhatsApp\'ınıza ekleyebilirsiniz. Müşterileriniz 7/24 bu sayfa üzerinden rezervasyon talep edebilir.',
-  },
-  {
-    q: 'Rezervasyon iptali veya değişikliği nasıl yönetilir?',
-    a: 'Panel üzerinden istediğiniz rezervasyonu düzenleyebilir, iptal edebilir ya da yeni bir zamana taşıyabilirsiniz. Değişiklik yapıldığında müşterinize otomatik bildirim gönderilir.',
-  },
-  {
-    q: 'Birden fazla çalışanım var, hepsini sisteme ekleyebilir miyim?',
-    a: 'Evet. Profesyonel ve Kurumsal planlarda çalışan bazlı takvim tanımlayabilirsiniz. Her personelin kendi müsaitlik durumu ayrı ayrı yönetilebilir.',
-  },
-  {
-    q: 'Verilerim güvende mi?',
-    a: 'Tüm verileriniz şifreli bağlantılar üzerinden iletilir ve güvenli sunucularda saklanır. KVKK kapsamında kişisel verilerin korunmasına azami özen gösterilir. Verileriniz hiçbir koşulda üçüncü taraflarla paylaşılmaz.',
-  },
-]
+import { useTranslations } from 'next-intl'
 
 export default function FAQSection() {
+  const t = useTranslations('faq')
   const [open, setOpen] = useState<number | null>(null)
+
+  const FAQS = [
+    { q: t('q1'), a: t('a1') },
+    { q: t('q2'), a: t('a2') },
+    { q: t('q3'), a: t('a3') },
+    { q: t('q4'), a: t('a4') },
+    { q: t('q5'), a: t('a5') },
+    { q: t('q6'), a: t('a6') },
+    { q: t('q7'), a: t('a7') },
+    { q: t('q8'), a: t('a8') },
+  ]
 
   return (
     <div className="space-y-3">

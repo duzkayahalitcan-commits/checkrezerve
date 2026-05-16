@@ -52,7 +52,7 @@ export default function MarketingHeader() {
           <button
             className="lg:hidden p-2 rounded-lg text-zinc-500 hover:bg-zinc-100 transition-colors"
             onClick={() => setMobileOpen(v => !v)}
-            aria-label="Menüyü aç/kapat"
+            aria-label={t('openMenu')}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               {mobileOpen

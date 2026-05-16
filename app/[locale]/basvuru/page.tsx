@@ -4,20 +4,9 @@ import { useActionState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBasvuru, type BasvuruState } from './actions'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 
 const initial: BasvuruState = { error: null, success: false }
-
-const SECTORS = [
-  'Restoran', 'Berber', 'Kuaför', 'Spa',
-  'Güzellik Salonu', 'Kafe', 'Bar', 'Diğer',
-]
-
-const FEATURES = [
-  'Kolay kurulum',
-  '7/24 destek',
-  'Komisyon yok',
-  'İlk ay ücretsiz',
-]
 
 const inp =
   'w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 ' +
@@ -25,6 +14,7 @@ const inp =
   'focus:ring-2 focus:ring-[#1a5c3a]/10 transition-colors'
 
 export default function BasvuruPage() {
+  const t = useTranslations('basvuru')
   const [state, formAction, pending] = useActionState(createBasvuru, initial)
   const router = useRouter()
 
@@ -33,6 +23,15 @@ export default function BasvuruPage() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [router])
+
+  const SECTORS = [
+    t('sectorRestaurant'), t('sectorBarber'), t('sectorHairdresser'), t('sectorSpa'),
+    t('sectorBeauty'), t('sectorCafe'), t('sectorBar'), t('sectorOther'),
+  ]
+
+  const FEATURES = [
+    t('feature1'), t('feature2'), t('feature3'), t('feature4'),
+  ]
 
   if (state.success) {
     return (
@@ -44,9 +43,9 @@ export default function BasvuruPage() {
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Başvurunuz Alındı</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t('successTitle')}</h2>
             <p className="mt-2 text-gray-500 text-sm leading-relaxed">
-              En kısa sürede ekibimiz sizinle iletişime geçecek.
+              {t('successDesc')}
             </p>
           </div>
           <button
@@ -54,7 +53,7 @@ export default function BasvuruPage() {
             className="rounded-lg px-8 py-3 text-sm font-semibold text-white"
             style={{ backgroundColor: '#1a5c3a' }}
           >
-            Ana Sayfaya Dön
+            {t('backHome')}
           </button>
         </div>
       </div>
@@ -62,28 +61,26 @@ export default function BasvuruPage() {
   }
 
   return (
-    /* Overlay — tıklayınca kapat */
     <div
       className="min-h-screen bg-gray-100 flex items-center justify-center p-4 sm:p-8"
       onClick={() => router.push('/')}
     >
-      {/* Kart */}
       <div
         className="relative w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row"
         onClick={e => e.stopPropagation()}
       >
 
-        {/* X butonu */}
+        {/* Close button */}
         <button
           onClick={() => router.push('/')}
-          aria-label="Kapat"
+          aria-label={t('closeLabel')}
           className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full flex items-center justify-center text-white text-base font-bold transition-opacity hover:opacity-75"
           style={{ backgroundColor: 'rgba(0,0,0,0.35)' }}
         >
           ✕
         </button>
 
-        {/* ── Sol panel ── */}
+        {/* Left panel */}
         <div
           className="lg:w-2/5 flex flex-col px-8 py-10"
           style={{ backgroundColor: '#1a5c3a', backgroundImage: "linear-gradient(rgba(26,92,58,0.88),rgba(26,92,58,0.88)),url('/images/bg-basvuru.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}
@@ -95,10 +92,10 @@ export default function BasvuruPage() {
 
           <div className="flex-1 flex flex-col justify-center">
             <h1 className="text-2xl lg:text-3xl font-extrabold text-white leading-snug mb-3">
-              İşletmenizi<br />dijitale taşıyın
+              {t('tagline')}
             </h1>
             <p className="text-green-200 text-sm mb-8 leading-relaxed">
-              Türkiye&apos;nin akıllı rezervasyon platformu ile müşterilerinizi daha iyi yönetin.
+              {t('taglineSubtitle')}
             </p>
             <ul className="flex flex-col gap-3">
               {FEATURES.map(f => (
@@ -113,38 +110,38 @@ export default function BasvuruPage() {
           <p className="text-green-400 text-xs mt-8">checkrezerve.com</p>
         </div>
 
-        {/* ── Sağ panel / Form ── */}
+        {/* Right panel / Form */}
         <div className="lg:w-3/5 bg-white px-8 py-10 flex flex-col justify-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-1">Ücretsiz Başvur</h2>
-          <p className="text-gray-400 text-sm mb-7">Bilgilerinizi bırakın, sizi arayalım.</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-1">{t('formTitle')}</h2>
+          <p className="text-gray-400 text-sm mb-7">{t('formSubtitle')}</p>
 
           <form action={formAction} className="flex flex-col gap-4">
 
-            <Field label="İşletme Adı">
+            <Field label={t('businessName')}>
               <input name="business_name" required placeholder="Zeytin Restoran" className={inp} />
             </Field>
 
-            <Field label="Firma Türü">
+            <Field label={t('businessType')}>
               <select name="category" required defaultValue="" className={inp}>
-                <option value="" disabled>Seçin…</option>
+                <option value="" disabled>{t('selectType')}</option>
                 {SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </Field>
 
-            <Field label="Ad Soyad">
+            <Field label={t('fullName')}>
               <input name="name" required placeholder="Ahmet Yılmaz" className={inp} />
             </Field>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Telefon">
+              <Field label={t('phone')}>
                 <input name="phone" type="tel" placeholder="0532 000 00 00" className={inp} />
               </Field>
-              <Field label="E-posta">
+              <Field label={t('email')}>
                 <input name="email" type="email" placeholder="siz@firma.com" className={inp} />
               </Field>
             </div>
 
-            <Field label="Şehir">
+            <Field label={t('city')}>
               <input name="city" placeholder="İstanbul" className={inp} />
             </Field>
 
@@ -160,7 +157,7 @@ export default function BasvuruPage() {
               className="mt-1 w-full rounded-lg py-3.5 text-sm font-semibold text-white transition-opacity disabled:opacity-60"
               style={{ backgroundColor: '#1a5c3a' }}
             >
-              {pending ? 'Gönderiliyor…' : 'Başvuru Gönder'}
+              {pending ? t('submitting') : t('submit')}
             </button>
           </form>
         </div>
