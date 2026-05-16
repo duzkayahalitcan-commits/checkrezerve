@@ -4,9 +4,9 @@ import Link from 'next/link'
 import LegalSidebar from '@/components/LegalSidebar'
 
 export const metadata: Metadata = {
-  title: 'Başvuru Formu KVKK Aydınlatma Metni — checkrezerve',
+  title: 'Application Form Data Protection Notice — checkrezerve',
   description:
-    'CheckRezerve Teknoloji işletme başvuru formu kapsamında kişisel verilerin işlenmesine ilişkin KVKK aydınlatma metni.',
+    'CheckRezerve Teknoloji data protection notice regarding the processing of personal data collected through the business application form.',
 }
 
 export default async function BasvuruFormuAydinlatmaPage({
@@ -17,6 +17,7 @@ export default async function BasvuruFormuAydinlatmaPage({
   const { locale } = await params
   setRequestLocale(locale)
   const tLegal = await getTranslations('legal')
+  const t = await getTranslations('basvuruAydinlatma')
   return (
     <main className="min-h-screen bg-white text-zinc-800">
       <div className="mx-auto max-w-6xl px-4 py-16">
@@ -29,103 +30,82 @@ export default async function BasvuruFormuAydinlatmaPage({
 
           <article className="flex-1 min-w-0 prose prose-zinc max-w-none">
             <h1 className="text-2xl font-bold text-zinc-900 mb-1">
-              Başvuru Formu KVKK Aydınlatma Metni
+              {t('title')}
             </h1>
-            <p className="text-sm text-zinc-400 mb-8">Son güncelleme: 23 Nisan 2026</p>
+            <p className="text-sm text-zinc-400 mb-8">{t('lastUpdated')}</p>
 
-            <p>
-              Bu metin, 6698 sayılı Kişisel Verilerin Korunması Kanunu&apos;nun (&ldquo;KVKK&rdquo;)
-              10. maddesi uyarınca hazırlanmış olup checkrezerve.com üzerindeki işletme başvuru
-              formunu dolduran kişileri bilgilendirmeye yönelik aydınlatma metnidir.
-            </p>
+            <p>{t('intro')}</p>
 
-            <h2>a) Veri Sorumlusu</h2>
+            <h2>{t('s1Title')}</h2>
             <p>
-              Veri sorumlusu <strong>CheckRezerve Teknoloji</strong>&apos;dir.
-              İletişim:{' '}
+              {t('s1Body')}{' '}
               <a href="mailto:info@checkrezerve.com" className="text-red-600">
                 info@checkrezerve.com
               </a>
             </p>
 
-            <h2>b) Hangi Amaçla İşleneceği</h2>
-            <p>
-              Başvuru formunuz aracılığıyla paylaştığınız kişisel veriler aşağıdaki amaçlarla
-              işlenmektedir:
-            </p>
+            <h2>{t('s2Title')}</h2>
+            <p>{t('s2Intro')}</p>
             <ul>
-              <li>İşletmenizin CheckRezerve platformuna uygunluğunun değerlendirilmesi</li>
-              <li>Başvurunuza ilişkin geri dönüş ve bilgilendirme yapılması</li>
-              <li>Hizmet teklifinin hazırlanması ve sunulması</li>
-              <li>Müşteri ilişkileri yönetimi süreçlerinin yürütülmesi</li>
+              <li>{t('s2Item1')}</li>
+              <li>{t('s2Item2')}</li>
+              <li>{t('s2Item3')}</li>
+              <li>{t('s2Item4')}</li>
             </ul>
 
-            <h2>c) Toplama Yöntemleri ve Hukuki Sebepleri</h2>
-            <p>
-              Kişisel verileriniz, checkrezerve.com üzerindeki çevrimiçi başvuru formu aracılığıyla
-              elektronik ortamda toplanmaktadır. İşlemenin hukuki dayanakları şunlardır:
-            </p>
+            <h2>{t('s3Title')}</h2>
+            <p>{t('s3Intro')}</p>
             <ul>
               <li>
-                <strong>Sözleşmenin kurulması veya ifası:</strong> Başvurunuzu değerlendirerek
-                hizmet sunmak için gereklidir (KVKK m.5/2-c).
+                <strong>{t('s3Legal1Label')}</strong> {t('s3Legal1')}
               </li>
               <li>
-                <strong>Meşru menfaat:</strong> İşletme ilişkisini sürdürmek ve hizmet kalitesini
-                artırmak amacıyla (KVKK m.5/2-f).
+                <strong>{t('s3Legal2Label')}</strong> {t('s3Legal2')}
               </li>
               <li>
-                <strong>Açık rıza:</strong> Ticari elektronik ileti gönderimi gibi ek faaliyetler
-                için (KVKK m.5/1).
+                <strong>{t('s3Legal3Label')}</strong> {t('s3Legal3')}
               </li>
             </ul>
 
-            <h2>d) Veri Kategorileri</h2>
+            <h2>{t('s4Title')}</h2>
             <ul>
-              <li><strong>Kimlik:</strong> Ad, soyad</li>
-              <li><strong>İletişim:</strong> E-posta adresi, telefon numarası</li>
-              <li><strong>Diğer:</strong> İşletme adı, faaliyet sektörü, şehir</li>
+              <li><strong>{t('s4Item1Label')}</strong> {t('s4Item1')}</li>
+              <li><strong>{t('s4Item2Label')}</strong> {t('s4Item2')}</li>
+              <li><strong>{t('s4Item3Label')}</strong> {t('s4Item3')}</li>
             </ul>
 
-            <h2>e) Kimlere Aktarılabileceği</h2>
-            <p>
-              Başvuru formu aracılığıyla toplanan kişisel veriler üçüncü taraflara ticari amaçla
-              aktarılmaz. Veriler yalnızca teknik altyapı hizmetleri kapsamında Supabase Inc.
-              bünyesindeki veritabanı sunucularında barındırılmakta olup bu aktarım KVKK
-              kapsamındaki güvenceler çerçevesinde gerçekleştirilmektedir.
-            </p>
+            <h2>{t('s5Title')}</h2>
+            <p>{t('s5Body')}</p>
 
-            <h2>f) KVKK Madde 11 Kapsamındaki Haklarınız</h2>
-            <p>
-              KVKK&apos;nın 11. maddesi uyarınca aşağıdaki haklara sahipsiniz:
-            </p>
+            <h2>{t('s6Title')}</h2>
+            <p>{t('s6Intro')}</p>
             <ul>
-              <li>Kişisel verilerinizin işlenip işlenmediğini öğrenme</li>
-              <li>İşlenmişse buna ilişkin bilgi talep etme</li>
-              <li>İşleme amacını ve amaca uygun kullanılıp kullanılmadığını öğrenme</li>
-              <li>Aktarıldığı üçüncü kişileri bilme</li>
-              <li>Eksik veya yanlış işlenmişse düzeltilmesini isteme</li>
-              <li>Kanun kapsamında silinmesini veya yok edilmesini isteme</li>
-              <li>Düzeltme veya silme işlemlerinin aktarılan üçüncü kişilere bildirilmesini isteme</li>
-              <li>İşlenen verilerin otomatik sistemler aracılığıyla aleyhinize sonuç doğurmasına itiraz etme</li>
-              <li>Kanuna aykırı işleme nedeniyle uğradığınız zararın giderilmesini talep etme</li>
+              <li>{t('s6Item1')}</li>
+              <li>{t('s6Item2')}</li>
+              <li>{t('s6Item3')}</li>
+              <li>{t('s6Item4')}</li>
+              <li>{t('s6Item5')}</li>
+              <li>{t('s6Item6')}</li>
+              <li>{t('s6Item7')}</li>
+              <li>{t('s6Item8')}</li>
+              <li>{t('s6Item9')}</li>
             </ul>
             <p>
-              Bu haklarınızı kullanmak için{' '}
+              {t('s6ContactPrefix')}{' '}
               <a href="mailto:info@checkrezerve.com" className="text-red-600">
                 info@checkrezerve.com
               </a>{' '}
-              adresine yazabilir veya{' '}
+              {t('s6ContactMiddle')}{' '}
               <Link href="/kvkk-basvuru" className="text-red-600">
-                KVKK Başvuru Formu
-              </Link>{' '}
-              sayfamızı kullanabilirsiniz.
+                {t('s6FormLink')}
+              </Link>
+              {t('s6ContactSuffix') ? ` ${t('s6ContactSuffix')}` : ''}
             </p>
 
             <div className="not-prose mt-10 p-5 bg-zinc-50 rounded-xl border border-zinc-200 text-sm text-zinc-600 space-y-1">
-              <p><strong>Veri Sorumlusu:</strong> CheckRezerve Teknoloji</p>
+              <p><strong>{t('dataControllerLabel')}</strong> {t('dataControllerName')}</p>
               <p>
-                <strong>E-posta:</strong>{' '}
+                <strong>{t('emailLabel')}</strong>{' '}
                 <a href="mailto:info@checkrezerve.com" className="text-red-600">
                   info@checkrezerve.com
                 </a>

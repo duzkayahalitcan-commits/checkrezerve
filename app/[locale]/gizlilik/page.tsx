@@ -4,8 +4,8 @@ import Link from 'next/link'
 import LegalSidebar from '@/components/LegalSidebar'
 
 export const metadata: Metadata = {
-  title: 'CheckRezerve Gizlilik Politikası',
-  description: 'CheckRezerve uygulamasının kişisel verilerin korunmasına ilişkin gizlilik politikası.',
+  title: 'CheckRezerve Privacy Policy',
+  description: 'CheckRezerve privacy policy regarding the protection of personal data.',
 }
 
 export default async function GizlilikPage({
@@ -16,7 +16,7 @@ export default async function GizlilikPage({
   const { locale } = await params
   setRequestLocale(locale)
   const tLegal = await getTranslations('legal')
-  const tPrivacy = await getTranslations('privacy')
+  const t = await getTranslations('privacy')
   return (
     <main className="min-h-screen bg-white text-zinc-800">
       <div className="mx-auto max-w-6xl px-4 py-16">
@@ -28,93 +28,74 @@ export default async function GizlilikPage({
           <LegalSidebar activePath="/gizlilik" />
 
           <article className="flex-1 min-w-0 prose prose-zinc max-w-none">
-            <h1 className="text-2xl font-bold text-zinc-900 mb-1">{tPrivacy('title')}</h1>
-            <p className="text-sm text-zinc-400 mb-8">{tPrivacy('lastUpdated')} {tPrivacy('updateDate')}</p>
+            <h1 className="text-2xl font-bold text-zinc-900 mb-1">{t('title')}</h1>
+            <p className="text-sm text-zinc-400 mb-8">{t('lastUpdated')} {t('updateDate')}</p>
 
-            <h2 className="font-bold">1. Veri Sorumlusu</h2>
-            <p>
-              Bu gizlilik politikası, <strong>CheckRezerve</strong> uygulaması (bundan sonra &ldquo;Uygulama&rdquo;) tarafından işlenen kişisel verilere ilişkindir. Uygulama, restoranların online rezervasyon almalarını sağlamak amacıyla geliştirilmiştir.
-            </p>
+            <h2 className="font-bold">{t('s1Title')}</h2>
+            <p>{t('s1Body')}</p>
 
-            <h2 className="font-bold">2. Toplanan Veriler</h2>
-            <p>Uygulama aşağıdaki kişisel verileri işlemektedir:</p>
+            <h2 className="font-bold">{t('s2Title')}</h2>
+            <p>{t('s2Intro')}</p>
             <ul className="list-disc pl-5">
-              <li><strong>Ad ve Soyad:</strong> Rezervasyon sahibini tanımlamak için.</li>
-              <li><strong>Telefon Numarası:</strong> Onay ve hatırlatma bildirimleri göndermek için.</li>
-              <li><strong>Rezervasyon Bilgileri:</strong> Tarih, saat, kişi sayısı, özel istekler.</li>
-              <li><strong>Mesaj İçerikleri:</strong> Yalnızca AI özelliği kullanıldığında WhatsApp/SMS mesajları analiz edilir.</li>
+              <li><strong>{t('s2Item1Label')}</strong> {t('s2Item1')}</li>
+              <li><strong>{t('s2Item2Label')}</strong> {t('s2Item2')}</li>
+              <li><strong>{t('s2Item3Label')}</strong> {t('s2Item3')}</li>
+              <li><strong>{t('s2Item4Label')}</strong> {t('s2Item4')}</li>
             </ul>
 
-            <h2 className="font-bold">3. Verilerin Kullanım Amacı</h2>
+            <h2 className="font-bold">{t('s3Title')}</h2>
             <ul className="list-disc pl-5">
-              <li>Rezervasyon oluşturulması ve yönetilmesi.</li>
-              <li>Onay ve hatırlatma bildirimleri (SMS / WhatsApp).</li>
-              <li>Restoran doluluk ve raporlama analizleri (kişisel veri içermez).</li>
+              <li>{t('s3Item1')}</li>
+              <li>{t('s3Item2')}</li>
+              <li>{t('s3Item3')}</li>
             </ul>
 
-            <h2 className="font-bold">4. Verilerin Paylaşımı</h2>
-            <p>
-              Kişisel verileriniz üçüncü taraflarla ticari amaçla paylaşılmamaktadır.
-              Yalnızca aşağıdaki alt işlemcilerle hizmet sunumu amacıyla paylaşılabilir:
-            </p>
+            <h2 className="font-bold">{t('s4Title')}</h2>
+            <p>{t('s4Intro')}</p>
             <ul className="list-disc pl-5">
-              <li><strong>Supabase Inc.</strong> — Veritabanı altyapısı (ABD, veri işleme anlaşması mevcuttur).</li>
-              <li><strong>Twilio Inc.</strong> — SMS ve WhatsApp bildirimleri (ABD, SCCs kapsamında işlenir).</li>
-              <li><strong>Anthropic PBC</strong> — Yapay zeka mesaj analizi (ABD; mesaj içerikleri 0 gün saklanır).</li>
+              <li><strong>{t('s4Item1Label')}</strong> {t('s4Item1')}</li>
+              <li><strong>{t('s4Item2Label')}</strong> {t('s4Item2')}</li>
+              <li><strong>{t('s4Item3Label')}</strong> {t('s4Item3')}</li>
             </ul>
 
-            <h2 className="font-bold">5. Veri Saklama Süresi</h2>
-            <p>
-              Rezervasyon verileri, ilgili restoranın talebi veya yasal yükümlülükler gerektirmedikçe <strong>2 yıl</strong> süreyle saklanır. SMS/WhatsApp bildirim logları <strong>90 gün</strong> sonra silinir.
-            </p>
+            <h2 className="font-bold">{t('s5Title')}</h2>
+            <p>{t('s5Body')}</p>
 
-            <h2 className="font-bold">6. Veri Güvenliği</h2>
-            <p>
-              Tüm veriler TLS/SSL şifreli bağlantı üzerinden iletilir. Veritabanı erişimi,
-              hizmet rolü anahtarları aracılığıyla kısıtlanmıştır. Admin ve restoran panelleri
-              kimlik doğrulama gerektirmektedir.
-            </p>
+            <h2 className="font-bold">{t('s6Title')}</h2>
+            <p>{t('s6Body')}</p>
 
-            <h2 className="font-bold">7. İlgili Kişi Hakları (KVKK Madde 11)</h2>
-            <p>
-              6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında aşağıdaki haklara sahipsiniz:
-            </p>
+            <h2 className="font-bold">{t('s7Title')}</h2>
+            <p>{t('s7Intro')}</p>
             <ul className="list-disc pl-5">
-              <li>Kişisel verilerinizin işlenip işlenmediğini öğrenme.</li>
-              <li>İşlenmişse buna ilişkin bilgi talep etme.</li>
-              <li>Yanlış veya eksik bilgilerin düzeltilmesini isteme.</li>
-              <li>Kişisel verilerinizin silinmesini talep etme.</li>
-              <li>İşlemenin kısıtlanmasını isteme.</li>
-              <li>Veri taşınabilirliği hakkı.</li>
+              <li>{t('s7Item1')}</li>
+              <li>{t('s7Item2')}</li>
+              <li>{t('s7Item3')}</li>
+              <li>{t('s7Item4')}</li>
+              <li>{t('s7Item5')}</li>
+              <li>{t('s7Item6')}</li>
             </ul>
             <p>
-              Haklarınızı kullanmak için{' '}
+              {t('s7ContactPrefix')}{' '}
               <a href="mailto:kvkk@checkrezerve.com">kvkk@checkrezerve.com</a>{' '}
-              adresine yazabilirsiniz. Talepler <strong>30 gün</strong> içinde yanıtlanır.
+              {t('s7ContactSuffix')}
             </p>
 
-            <h2 className="font-bold">8. Çerezler (Cookies)</h2>
-            <p>
-              Uygulama yalnızca oturum yönetimi için <code>httpOnly</code> güvenli çerezler kullanır.
-              Herhangi bir analitik veya reklam çerezi kullanılmamaktadır.
-            </p>
+            <h2 className="font-bold">{t('s8Title')}</h2>
+            <p>{t('s8Body')}</p>
 
-            <h2 className="font-bold">9. Değişiklikler</h2>
-            <p>
-              Bu politika önemli değişikliklerde güncellenecek ve uygulama üzerinden duyurulacaktır.
-              Güncel tarih her zaman sayfanın üst kısmında belirtilir.
-            </p>
+            <h2 className="font-bold">{t('s9Title')}</h2>
+            <p>{t('s9Body')}</p>
 
-            <h2 className="font-bold">10. İletişim</h2>
+            <h2 className="font-bold">{t('s10Title')}</h2>
             <p>
-              Sorularınız için:{' '}
+              {t('s10Prefix')}{' '}
               <a href="mailto:info@checkrezerve.com" className="text-red-600">info@checkrezerve.com</a>
             </p>
 
             <div className="not-prose mt-10 p-5 bg-zinc-50 rounded-xl border border-zinc-200 text-sm text-zinc-600 space-y-1">
-              <p><strong>Veri Sorumlusu:</strong> CheckRezerve Teknoloji</p>
+              <p><strong>{t('dataControllerLabel')}</strong> {t('dataControllerName')}</p>
               <p>
-                <strong>E-posta:</strong>{' '}
+                <strong>{t('emailLabel')}</strong>{' '}
                 <a href="mailto:info@checkrezerve.com" className="text-red-600">
                   info@checkrezerve.com
                 </a>

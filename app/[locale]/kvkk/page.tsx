@@ -4,8 +4,8 @@ import Link from 'next/link'
 import LegalSidebar from '@/components/LegalSidebar'
 
 export const metadata: Metadata = {
-  title: 'KVKK — Kişisel Verilerin Korunması Politikası',
-  description: 'CheckRezerve Teknoloji kişisel verilerin korunması ve işlenmesi politikası.',
+  title: 'Personal Data Protection Policy — CheckRezerve',
+  description: 'CheckRezerve Teknoloji personal data protection and processing policy.',
 }
 
 export default async function KvkkPage({
@@ -16,7 +16,7 @@ export default async function KvkkPage({
   const { locale } = await params
   setRequestLocale(locale)
   const tLegal = await getTranslations('legal')
-  const tKvkk = await getTranslations('kvkk')
+  const t = await getTranslations('kvkk')
   return (
     <main className="min-h-screen bg-white text-zinc-800">
       <div className="mx-auto max-w-6xl px-4 py-16">
@@ -29,77 +29,56 @@ export default async function KvkkPage({
 
           <article className="flex-1 min-w-0 prose prose-zinc max-w-none">
             <h1 className="text-2xl font-bold text-zinc-900 mb-1">
-              {tKvkk('title')}
+              {t('title')}
             </h1>
-            <p className="text-sm text-zinc-400 mb-8">{tKvkk('lastUpdated')}</p>
+            <p className="text-sm text-zinc-400 mb-8">{t('lastUpdated')}</p>
 
-            <p>
-              <strong>CheckRezerve Teknoloji</strong> (&ldquo;CheckRezerve&rdquo;) olarak, siz
-              kullanıcılarımıza ve iş ortaklarımıza ait kişisel verileri hassasiyetle korumakta,
-              veri sorumlusu sıfatıyla 6698 sayılı Kişisel Verilerin Korunması Kanunu (&ldquo;KVKK&rdquo;)
-              uyarınca tüm yükümlülüklerimizi yerine getirmekteyiz.
-            </p>
+            <p>{t('intro')}</p>
 
-            <h2 className="font-bold">1. Kişisel Verileriniz ve Edinme Yöntemlerimiz</h2>
-            <p>
-              Kişisel veri; belirli ya da belirlenebilir nitelikteki bir kişiye ilişkin her türlü bilgidir.
-              Adınız, soyadınız, telefon numaranız, e-posta adresiniz ve işletmenize dair bilgiler KVKK
-              kapsamında işlenmektedir. Bu veriler platformumuzu kullandığınızda, başvuru formunu
-              doldurduğunuzda veya bizimle iletişime geçtiğinizde elde edilmektedir.
-            </p>
+            <h2 className="font-bold">{t('s1Title')}</h2>
+            <p>{t('s1Body')}</p>
 
-            <h2 className="font-bold">2. Kişisel Verilerinizin İşlenme Amacı</h2>
-            <p>CheckRezerve olarak kişisel verilerinizi şu amaçlarla işleriz:</p>
+            <h2 className="font-bold">{t('s2Title')}</h2>
+            <p>{t('s2Intro')}</p>
             <ul className="list-disc pl-5">
-              <li>Platformumuzdan aldığınız hizmet dolayısıyla yükümlülüklerimizi yerine getirmek</li>
-              <li>Rezervasyon ve işletme süreçlerini takip etmek ve düzenlemek</li>
-              <li>Faaliyet konusu kapsamında hizmet sunmak ve kaliteyi artırmak</li>
-              <li>Kampanya ve yeniliklerden haberdar etmek (açık rıza ile)</li>
-              <li>Yasal yükümlülükleri yerine getirmek</li>
+              <li>{t('s2Item1')}</li>
+              <li>{t('s2Item2')}</li>
+              <li>{t('s2Item3')}</li>
+              <li>{t('s2Item4')}</li>
+              <li>{t('s2Item5')}</li>
             </ul>
-            <p>
-              Verileriniz; işleme amacı ortadan kalktığında veya mevzuat uyarınca işlememiz zorunlu
-              kılındığımız süre dolduğunda tarafımızca silinecek, yok edilecek veya anonimleştirilerek
-              kullanılmaya devam edilecektir.
-            </p>
+            <p>{t('s2Outro')}</p>
 
-            <h2 className="font-bold">3. Veri Sahibi Olarak Haklarınız</h2>
-            <p>
-              KVKK&apos;nın 11. maddesinde belirlendiği üzere, veri sahibi olarak şu haklarınız
-              bulunmaktadır:
-            </p>
+            <h2 className="font-bold">{t('s3Title')}</h2>
+            <p>{t('s3Intro')}</p>
             <ul className="list-disc pl-5">
-              <li>Kişisel verilerinizin işlenip işlenmediğini öğrenme</li>
-              <li>Kişisel verileriniz işlenmişse buna ilişkin bilgi talep etme</li>
-              <li>İşleme amacını ve amaca uygun kullanılıp kullanılmadığını öğrenme</li>
-              <li>Yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme</li>
-              <li>Eksik veya yanlış işlenmişse düzeltilmesini isteme</li>
-              <li>KVKK 7. madde kapsamında silinmesini veya yok edilmesini isteme</li>
-              <li>
-                Otomatik sistemlerle analiz edilmesi sonucu aleyhinize çıkan kararlara itiraz etme
-              </li>
-              <li>
-                Kanuna aykırı işleme sebebiyle zarara uğramanız hâlinde giderilmesini talep etme
-              </li>
+              <li>{t('s3Item1')}</li>
+              <li>{t('s3Item2')}</li>
+              <li>{t('s3Item3')}</li>
+              <li>{t('s3Item4')}</li>
+              <li>{t('s3Item5')}</li>
+              <li>{t('s3Item6')}</li>
+              <li>{t('s3Item7')}</li>
+              <li>{t('s3Item8')}</li>
             </ul>
 
-            <h2 className="font-bold">4. Başvuru</h2>
+            <h2 className="font-bold">{t('s4Title')}</h2>
             <p>
-              Haklarınıza ilişkin taleplerinizi{' '}
+              {t('s4Body')}{' '}
               <a href="mailto:info@checkrezerve.com" className="text-red-600">
                 info@checkrezerve.com
               </a>{' '}
-              adresine e-posta göndererek veya{' '}
+              {t('s4BodyMiddle')}{' '}
               <Link href="/kvkk-basvuru" className="text-red-600">
-                KVKK Başvuru Formu
+                {t('s4FormLink')}
               </Link>{' '}
-              sayfamızı kullanarak iletebilirsiniz. Talebiniz 30 gün içinde yanıtlanacaktır.
+              {t('s4BodyEnd')}
             </p>
 
             <div className="not-prose mt-10 p-5 bg-zinc-50 rounded-xl border border-zinc-200 text-sm text-zinc-600 space-y-1">
-              <p><strong>Veri Sorumlusu:</strong> CheckRezerve Teknoloji</p>
+              <p><strong>{t('dataControllerLabel')}</strong> {t('dataControllerName')}</p>
               <p>
-                <strong>E-posta:</strong>{' '}
+                <strong>{t('emailLabel')}</strong>{' '}
                 <a href="mailto:info@checkrezerve.com" className="text-red-600">
                   info@checkrezerve.com
                 </a>
