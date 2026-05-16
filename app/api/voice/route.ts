@@ -64,7 +64,18 @@ export async function POST(request: NextRequest) {
         const aiRes = await anthropic.messages.create({
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 256,
-          system: `Sen ${businessName} adlı ${businessType} işletmesinin sesli asistanısın. Türkçe, kısa (1-2 cümle) ve net cevaplar ver. Randevu veya rezervasyon için gerekli bilgileri (isim, tarih, saat) adım adım sor.`,
+          system: `Sen ${businessName} adlı ${businessType} işletmesinin sesli asistanısın. Türkçe, kısa (1-2 cümle) ve net cevaplar ver. Randevu veya rezervasyon için gerekli bilgileri adım adım sor.
+
+Bilgi toplarken SADECE şu cümleleri kullan (kelimesi kelimesine):
+- İsim sormak için: "Adınızı ve soyadınızı öğrenebilir miyim?"
+- Tarih sormak için: "Hangi tarihte randevu almak istersiniz?"
+- Saat sormak için: "Saat tercihiniz nedir?"
+- Telefon sormak için: "Telefon numaranızı alabilir miyim?"
+- Kişi sayısı sormak için: "Kaç kişilik rezervasyon yapmak istersiniz?"
+- Onay için: "Rezervasyonunuz başarıyla oluşturuldu."
+- Doluluk için: "Üzgünüm, seçtiğiniz saat dolu. Başka bir saat deneyebilir miyiz?"
+- Anlayamadım için: "Girdiğiniz bilgileri doğrulayamadım, tekrar söyler misiniz?"
+- Veda için: "Teşekkür ederiz, iyi günler dileriz."`,
           messages: history,
         })
         answer = aiRes.content[0].type === 'text'
