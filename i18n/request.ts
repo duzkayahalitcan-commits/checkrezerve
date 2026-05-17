@@ -1,6 +1,6 @@
 import { getRequestConfig } from 'next-intl/server'
 import { hasLocale } from 'next-intl'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { routing } from './routing'
 
 export default getRequestConfig(async ({ requestLocale }) => {
@@ -10,10 +10,16 @@ export default getRequestConfig(async ({ requestLocale }) => {
   if (hasLocale(routing.locales, requested)) {
     locale = requested
   } else {
-    // Panel routes have no locale in the URL — fall back to cookie preference
-    const jar = await cookies()
+    // Panel routes: cookie → Accept-Language → default
+    const jar         = await cookies()
     const panelLocale = jar.get('panel_locale')?.value
-    locale = hasLocale(routing.locales, panelLocale) ? panelLocale : routing.defaultLocale
+    if (hasLocale(routing.locales, panelLocale)) {
+      locale = panelLocale
+    } else {
+      const acceptLang = (await headers()).get('accept-language') ?? ''
+      const preferred  = acceptLang.split(',')[0].trim().split(/[-_]/)[0]
+      locale = hasLocale(routing.locales, preferred) ? preferred : routing.defaultLocale
+    }
   }
 
   return {

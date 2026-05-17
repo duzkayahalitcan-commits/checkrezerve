@@ -1,8 +1,11 @@
-import { Suspense }        from 'react'
-import Image               from 'next/image'
-import { getTranslations } from 'next-intl/server'
-import type { Metadata }   from 'next'
-import LoginForm           from './LoginForm'
+export const dynamic = 'force-dynamic'
+
+import { Suspense }           from 'react'
+import Image                  from 'next/image'
+import { getTranslations }    from 'next-intl/server'
+import type { Metadata }      from 'next'
+import LoginForm              from './LoginForm'
+import PanelLangSelector      from '../_components/PanelLangSelector'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('panel')
@@ -24,6 +27,11 @@ export default async function PanelLoginPage() {
           priority
         />
         <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }} />
+      </div>
+
+      {/* Dil seçici — sağ üst */}
+      <div className="fixed top-4 right-4 z-10">
+        <PanelLangSelector />
       </div>
 
       <div className="w-full max-w-sm">
