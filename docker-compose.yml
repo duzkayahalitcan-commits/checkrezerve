@@ -42,6 +42,13 @@ services:
       NETGSM_USERCODE:               ${NETGSM_USERCODE:-}
       NETGSM_PASSWORD:               ${NETGSM_PASSWORD:-}
       NETGSM_MSGHEADER:              ${NETGSM_MSGHEADER:-}
+      IYZICO_API_KEY:                  ${IYZICO_API_KEY:-}
+      IYZICO_SECRET_KEY:               ${IYZICO_SECRET_KEY:-}
+      IYZICO_BASE_URL:                 ${IYZICO_BASE_URL:-https://sandbox.iyzipay.com}
+      IYZICO_PLAN_STARTER_MONTHLY_REF: ${IYZICO_PLAN_STARTER_MONTHLY_REF:-}
+      IYZICO_PLAN_STARTER_YEARLY_REF:  ${IYZICO_PLAN_STARTER_YEARLY_REF:-}
+      IYZICO_PLAN_PRO_MONTHLY_REF:     ${IYZICO_PLAN_PRO_MONTHLY_REF:-}
+      IYZICO_PLAN_PRO_YEARLY_REF:      ${IYZICO_PLAN_PRO_YEARLY_REF:-}
       NODE_ENV:  production
       PORT:      3000
     networks:
