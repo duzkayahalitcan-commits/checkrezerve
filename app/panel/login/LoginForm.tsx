@@ -1,15 +1,17 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState }  from 'react'
+import { useTranslations } from 'next-intl'
 import { panelLoginAction } from './actions'
 
 export default function LoginForm() {
+  const t = useTranslations('panel')
   const [state, action, pending] = useActionState(panelLoginAction, { error: null })
 
   return (
     <form action={action} className="space-y-4">
       <div>
-        <label className="block text-stone-400 text-xs mb-1">Kullanıcı Adı</label>
+        <label className="block text-stone-400 text-xs mb-1">{t('username')}</label>
         <input
           name="username"
           type="text"
@@ -24,7 +26,7 @@ export default function LoginForm() {
       </div>
 
       <div>
-        <label className="block text-stone-400 text-xs mb-1">Şifre</label>
+        <label className="block text-stone-400 text-xs mb-1">{t('password')}</label>
         <input
           name="password"
           type="password"
@@ -40,7 +42,7 @@ export default function LoginForm() {
       {state.error && (
         <p className="text-red-400 text-xs bg-red-950/40 border border-red-900/50
                       rounded-lg px-3 py-2">
-          {state.error}
+          {t(state.error)}
         </p>
       )}
 
@@ -50,7 +52,7 @@ export default function LoginForm() {
         className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50
                    text-black font-semibold rounded-lg py-2.5 text-sm transition"
       >
-        {pending ? 'Giriş yapılıyor…' : 'Giriş Yap'}
+        {pending ? t('loggingIn') : t('login')}
       </button>
     </form>
   )

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState }        from 'react'
+import { useTranslations } from 'next-intl'
 
 export default function ExportButton({
   restaurantId,
@@ -11,6 +12,7 @@ export default function ExportButton({
   weekStart:    string
   weekEnd:      string
 }) {
+  const t = useTranslations('panel')
   const [loading, setLoading] = useState(false)
 
   async function handleExport() {
@@ -21,7 +23,7 @@ export default function ExportButton({
       )
       if (!res.ok) {
         const { error } = await res.json() as { error: string }
-        alert(error ?? 'Export başarısız.')
+        alert(error ?? t('exportFailed'))
         return
       }
       const blob = await res.blob()
@@ -44,12 +46,8 @@ export default function ExportButton({
                  disabled:opacity-50 border border-stone-700 text-stone-200
                  text-sm font-medium rounded-lg px-4 py-2 transition"
     >
-      {loading ? (
-        <span className="animate-spin text-base">⟳</span>
-      ) : (
-        <span>↓</span>
-      )}
-      CSV İndir
+      {loading ? <span className="animate-spin text-base">⟳</span> : <span>↓</span>}
+      {t('csvDownload')}
     </button>
   )
 }

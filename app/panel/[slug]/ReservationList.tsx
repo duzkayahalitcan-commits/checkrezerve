@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@supabase/supabase-js'
 
 type Status = 'pending' | 'confirmed' | 'cancelled' | 'completed'
@@ -22,13 +23,6 @@ type Reservation = {
   hizmetler?: { ad: string; fiyat: number } | null
 }
 
-const STATUS_LABEL: Record<Status, string> = {
-  pending:   'Beklemede',
-  confirmed: 'Onaylı',
-  cancelled: 'İptal',
-  completed: 'Tamamlandı',
-}
-
 const STATUS_CLS: Record<Status, string> = {
   pending:   'bg-amber-500/15 text-amber-300 border-amber-500/25',
   confirmed: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25',
@@ -47,11 +41,12 @@ export default function ReservationList({
   initialReservations: Reservation[]
   today: string
 }) {
+  const t      = useTranslations('panel')
+  const locale = useLocale()
   const [reservations, setReservations] = useState<Reservation[]>(initialReservations)
   const [tab, setTab] = useState<Tab>('pending')
   const [updating, setUpdating] = useState<string | null>(null)
 
-  // Real-time updates
   useEffect(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -60,26 +55,18 @@ export default function ReservationList({
     const client = createClient(url, key)
     const channel = client
       .channel(`panel-reservations-${restaurantId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'reservations',
-          filter: `restaurant_id=eq.${restaurantId}`,
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setReservations((prev) => [payload.new as Reservation, ...prev])
-          } else if (payload.eventType === 'UPDATE') {
-            setReservations((prev) =>
-              prev.map((r) => (r.id === payload.new.id ? { ...r, ...(payload.new as Reservation) } : r))
-            )
-          } else if (payload.eventType === 'DELETE') {
-            setReservations((prev) => prev.filter((r) => r.id !== payload.old.id))
-          }
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'reservations',
+        filter: `restaurant_id=eq.${restaurantId}`,
+      }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          setReservations(prev => [payload.new as Reservation, ...prev])
+        } else if (payload.eventType === 'UPDATE') {
+          setReservations(prev => prev.map(r => r.id === payload.new.id ? { ...r, ...(payload.new as Reservation) } : r))
+        } else if (payload.eventType === 'DELETE') {
+          setReservations(prev => prev.filter(r => r.id !== payload.old.id))
         }
-      )
+      })
       .subscribe()
     return () => { client.removeChannel(channel) }
   }, [restaurantId])
@@ -93,44 +80,53 @@ export default function ReservationList({
     setUpdating(null)
   }
 
-  const filtered = reservations.filter((r) => {
-    if (tab === 'pending')   return r.status === 'pending'
-    if (tab === 'today')     return r.reserved_date === today && r.status !== 'cancelled'
-    if (tab === 'upcoming')  return r.reserved_date > today && r.status !== 'cancelled'
+  const filtered = reservations.filter(r => {
+    if (tab === 'pending')  return r.status === 'pending'
+    if (tab === 'today')    return r.reserved_date === today && r.status !== 'cancelled'
+    if (tab === 'upcoming') return r.reserved_date > today && r.status !== 'cancelled'
     return true
   })
 
-  const pendingCount   = reservations.filter((r) => r.status === 'pending').length
-  const todayCount     = reservations.filter((r) => r.reserved_date === today && r.status !== 'cancelled').length
-  const upcomingCount  = reservations.filter((r) => r.reserved_date > today && r.status !== 'cancelled').length
+  const pendingCount  = reservations.filter(r => r.status === 'pending').length
+  const todayCount    = reservations.filter(r => r.reserved_date === today && r.status !== 'cancelled').length
+  const upcomingCount = reservations.filter(r => r.reserved_date > today && r.status !== 'cancelled').length
 
   const tabs: { key: Tab; label: string; count: number }[] = [
-    { key: 'pending',  label: 'Bekleyen',  count: pendingCount },
-    { key: 'today',    label: 'Bugün',     count: todayCount },
-    { key: 'upcoming', label: 'Yaklaşan',  count: upcomingCount },
-    { key: 'all',      label: 'Tümü',      count: reservations.length },
+    { key: 'pending',  label: t('tabPending'),  count: pendingCount },
+    { key: 'today',    label: t('tabToday'),    count: todayCount },
+    { key: 'upcoming', label: t('tabUpcoming'), count: upcomingCount },
+    { key: 'all',      label: t('tabAll'),      count: reservations.length },
   ]
+
+  const emptyMsg = tab === 'pending' ? t('emptyPending') :
+                   tab === 'today'   ? t('emptyToday')   :
+                   tab === 'upcoming'? t('emptyUpcoming') :
+                                      t('emptyAll')
+
+  const statusLabel: Record<Status, string> = {
+    pending:   t('statusPending'),
+    confirmed: t('statusConfirmed'),
+    cancelled: t('statusCancelled'),
+    completed: t('statusCompleted'),
+  }
 
   return (
     <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
-      <h2 className="font-semibold text-sm text-stone-200 mb-4">Rezervasyonlar</h2>
+      <h2 className="font-semibold text-sm text-stone-200 mb-4">{t('reservations')}</h2>
 
-      {/* Tab bar */}
       <div className="flex gap-1 p-1 bg-white/5 rounded-xl mb-5 overflow-x-auto">
-        {tabs.map((t) => (
+        {tabs.map(tb => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={tb.key}
+            onClick={() => setTab(tb.key)}
             className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-              tab === t.key
-                ? 'bg-amber-500 text-white shadow'
-                : 'text-stone-400 hover:text-white'
+              tab === tb.key ? 'bg-amber-500 text-white shadow' : 'text-stone-400 hover:text-white'
             }`}
           >
-            {t.label}
-            {t.count > 0 && (
-              <span className={`ml-1.5 ${tab === t.key ? 'text-white/80' : 'text-stone-600'}`}>
-                {t.count}
+            {tb.label}
+            {tb.count > 0 && (
+              <span className={`ml-1.5 ${tab === tb.key ? 'text-white/80' : 'text-stone-600'}`}>
+                {tb.count}
               </span>
             )}
           </button>
@@ -139,19 +135,19 @@ export default function ReservationList({
 
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-white/5 bg-white/3 py-10 text-center text-stone-500 text-sm">
-          {tab === 'pending' ? 'Bekleyen rezervasyon yok.' :
-           tab === 'today'   ? 'Bugün rezervasyon yok.' :
-           tab === 'upcoming'? 'Yaklaşan rezervasyon yok.' :
-           'Rezervasyon bulunamadı.'}
+          {emptyMsg}
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {filtered.map((r) => (
+          {filtered.map(r => (
             <ReservationCard
               key={r.id}
               reservation={r}
               updating={updating === r.id}
               onStatusChange={updateStatus}
+              locale={locale}
+              statusLabel={statusLabel}
+              t={t}
             />
           ))}
         </div>
@@ -164,13 +160,19 @@ function ReservationCard({
   reservation: r,
   updating,
   onStatusChange,
+  locale,
+  statusLabel,
+  t,
 }: {
   reservation: Reservation
   updating: boolean
   onStatusChange: (id: string, status: Status) => void
+  locale: string
+  statusLabel: Record<Status, string>
+  t: ReturnType<typeof useTranslations<'panel'>>
 }) {
-  const status = (r.status ?? 'pending') as Status
-  const dateStr = new Date(r.reserved_date + 'T00:00:00').toLocaleDateString('tr-TR', {
+  const status  = (r.status ?? 'pending') as Status
+  const dateStr = new Date(r.reserved_date + 'T00:00:00').toLocaleDateString(locale, {
     weekday: 'short', day: 'numeric', month: 'short',
   })
   const isBeauty = r.calisan_id !== null
@@ -184,13 +186,11 @@ function ReservationCard({
       }`}
     >
       <div className="flex items-start justify-between gap-3">
-
-        {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className="font-semibold text-white truncate">{r.guest_name ?? 'Misafir'}</span>
+            <span className="font-semibold text-white truncate">{r.guest_name ?? t('guest')}</span>
             <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${STATUS_CLS[status]}`}>
-              {STATUS_LABEL[status]}
+              {statusLabel[status]}
             </span>
             {r.source === 'ai' && (
               <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 border border-purple-500/20">
@@ -205,7 +205,7 @@ function ReservationCard({
             {isBeauty ? (
               <span>💆 {r.calisanlar?.ad ?? '—'}</span>
             ) : (
-              <span>👥 {r.party_size ?? '—'} kişi</span>
+              <span>👥 {r.party_size ?? '—'} {t('people')}</span>
             )}
           </div>
 
@@ -214,77 +214,56 @@ function ReservationCard({
               ✨ {r.hizmetler.ad}
               {r.hizmetler.fiyat > 0 && (
                 <span className="ml-2 text-emerald-400 font-medium">
-                  {r.hizmetler.fiyat.toLocaleString('tr-TR')} ₺
+                  {r.hizmetler.fiyat.toLocaleString(locale)} ₺
                 </span>
               )}
             </div>
           )}
 
           {r.guest_phone && (
-            <a
-              href={`tel:${r.guest_phone}`}
-              className="text-sm text-stone-500 hover:text-amber-400 transition-colors"
-            >
+            <a href={`tel:${r.guest_phone}`}
+              className="text-sm text-stone-500 hover:text-amber-400 transition-colors">
               📞 {r.guest_phone}
             </a>
           )}
 
           {r.notes && (
-            <p className="mt-1.5 text-xs text-stone-500 italic">
-              &ldquo;{r.notes}&rdquo;
-            </p>
+            <p className="mt-1.5 text-xs text-stone-500 italic">&ldquo;{r.notes}&rdquo;</p>
           )}
         </div>
 
-        {/* Action buttons */}
         <div className="flex flex-col gap-1.5 shrink-0">
           {status === 'pending' && (
             <>
-              <button
-                onClick={() => onStatusChange(r.id, 'confirmed')}
-                disabled={updating}
-                className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-semibold hover:bg-emerald-500/35 transition-colors disabled:opacity-50"
-              >
-                ✓ Onayla
+              <button onClick={() => onStatusChange(r.id, 'confirmed')} disabled={updating}
+                className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-semibold hover:bg-emerald-500/35 transition-colors disabled:opacity-50">
+                {t('actionApprove')}
               </button>
-              <button
-                onClick={() => onStatusChange(r.id, 'cancelled')}
-                disabled={updating}
-                className="px-3 py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-semibold hover:bg-red-500/25 transition-colors disabled:opacity-50"
-              >
-                ✕ Reddet
+              <button onClick={() => onStatusChange(r.id, 'cancelled')} disabled={updating}
+                className="px-3 py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-semibold hover:bg-red-500/25 transition-colors disabled:opacity-50">
+                {t('actionReject')}
               </button>
             </>
           )}
           {status === 'confirmed' && (
             <>
-              <button
-                onClick={() => onStatusChange(r.id, 'completed')}
-                disabled={updating}
-                className="px-3 py-1.5 rounded-lg bg-blue-500/15 text-blue-400 text-xs font-medium hover:bg-blue-500/25 transition-colors disabled:opacity-50"
-              >
-                ✓ Tamamla
+              <button onClick={() => onStatusChange(r.id, 'completed')} disabled={updating}
+                className="px-3 py-1.5 rounded-lg bg-blue-500/15 text-blue-400 text-xs font-medium hover:bg-blue-500/25 transition-colors disabled:opacity-50">
+                {t('actionComplete')}
               </button>
-              <button
-                onClick={() => onStatusChange(r.id, 'cancelled')}
-                disabled={updating}
-                className="px-3 py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-medium hover:bg-red-500/25 transition-colors disabled:opacity-50"
-              >
-                ✕ İptal
+              <button onClick={() => onStatusChange(r.id, 'cancelled')} disabled={updating}
+                className="px-3 py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-medium hover:bg-red-500/25 transition-colors disabled:opacity-50">
+                {t('actionCancel')}
               </button>
             </>
           )}
           {status === 'cancelled' && (
-            <button
-              onClick={() => onStatusChange(r.id, 'pending')}
-              disabled={updating}
-              className="px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-xs font-medium hover:bg-amber-500/25 transition-colors disabled:opacity-50"
-            >
-              ↩ Geri Al
+            <button onClick={() => onStatusChange(r.id, 'pending')} disabled={updating}
+              className="px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-xs font-medium hover:bg-amber-500/25 transition-colors disabled:opacity-50">
+              {t('actionUndo')}
             </button>
           )}
         </div>
-
       </div>
     </div>
   )

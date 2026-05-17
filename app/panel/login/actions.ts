@@ -16,7 +16,7 @@ function makeSessionToken(userId: string, restaurantId: string): string {
   return createHmac('sha256', secret).update(payload).digest('base64url')
 }
 
-export type PanelLoginState = { error: string | null }
+export type PanelLoginState = { error: 'errorRequired' | 'errorInvalid' | null }
 
 export async function panelLoginAction(
   _prev: PanelLoginState,
@@ -26,7 +26,7 @@ export async function panelLoginAction(
   const password = (formData.get('password') as string)?.trim()
 
   if (!username || !password) {
-    return { error: 'Kullanıcı adı ve şifre zorunludur.' }
+    return { error: 'errorRequired' as const }
   }
 
   await new Promise(r => setTimeout(r, 300)) // brute-force gecikmesi
@@ -39,7 +39,7 @@ export async function panelLoginAction(
     .single()
 
   if (!user || !user.is_active || user.password_hash !== hashPassword(password)) {
-    return { error: 'Kullanıcı adı veya şifre hatalı.' }
+    return { error: 'errorInvalid' as const }
   }
 
   const token = makeSessionToken(user.id, user.restaurant_id)
