@@ -1,7 +1,7 @@
 'use client'
 
 import { useLocale, useTranslations } from 'next-intl'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter, usePathname } from '@/i18n/navigation'
 import { useState, useRef, useEffect } from 'react'
 import { routing } from '@/i18n/routing'
 
@@ -9,12 +9,20 @@ const FLAGS: Record<string, string> = {
   tr: '🇹🇷',
   en: '🇬🇧',
   de: '🇩🇪',
+  ar: '🇸🇦',
+  da: '🇩🇰',
+  es: '🇪🇸',
+  ru: '🇷🇺',
 }
 
 const LABELS: Record<string, string> = {
   tr: 'TR',
   en: 'EN',
   de: 'DE',
+  ar: 'AR',
+  da: 'DA',
+  es: 'ES',
+  ru: 'RU',
 }
 
 export default function LanguageSelector() {
@@ -37,26 +45,7 @@ export default function LanguageSelector() {
 
   function switchLocale(next: string) {
     if (next === locale) { setOpen(false); return }
-
-    // Strip current locale prefix from pathname.
-    // With localePrefix:'always', pathname is e.g. /tr/rezervasyon or /en/
-    let pathWithoutLocale = '/'
-    for (const loc of routing.locales) {
-      if (pathname.startsWith(`/${loc}/`)) {
-        // /tr/rezervasyon → /rezervasyon
-        pathWithoutLocale = pathname.slice(loc.length + 1)
-        break
-      } else if (pathname === `/${loc}`) {
-        pathWithoutLocale = '/'
-        break
-      }
-    }
-
-    const target = pathWithoutLocale === '/'
-      ? `/${next}`
-      : `/${next}${pathWithoutLocale}`
-
-    router.push(target)
+    router.push(pathname, { locale: next })
     setOpen(false)
   }
 
@@ -88,7 +77,7 @@ export default function LanguageSelector() {
               }`}
             >
               <span>{FLAGS[loc]}</span>
-              <span>{t(loc as 'tr' | 'en' | 'de')}</span>
+              <span>{t(loc)}</span>
             </button>
           ))}
         </div>
