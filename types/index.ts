@@ -78,6 +78,17 @@ export const BOOKING_TERM: Record<BusinessType, { singular: string; plural: stri
 
 // ─── Supabase Tablo Tipleri ────────────────────────────────────────────────────
 
+export type WorkingDayHours = {
+  open:  boolean
+  start: string  // "HH:MM"
+  end:   string  // "HH:MM"
+}
+
+export type WorkingHours = Partial<Record<
+  'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday',
+  WorkingDayHours
+>>
+
 export type Restaurant = {
   id:                       string
   name:                     string
@@ -94,6 +105,11 @@ export type Restaurant = {
   instagram:                string | null
   is_active:                boolean
   created_at:               string
+  working_hours?:            WorkingHours | null
+  closed_dates?:             string[] | null
+  prepayment_amount?:        number | null
+  dress_code?:               string | null
+  special_notes?:            string | null
 }
 
 export type Service = {
