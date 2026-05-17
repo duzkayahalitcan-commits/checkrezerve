@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { supabase } from '@/lib/supabase'
 import CustomerHeader from '@/components/CustomerHeader'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
+import NextLink from 'next/link'
 import type { User } from '@supabase/supabase-js'
 
 const KAT_ICON: Record<string, string> = {
@@ -139,12 +140,12 @@ export default function ProfilPage() {
                     {b.address && (
                       <p className="text-xs text-zinc-400 mt-1 truncate">📍 {b.address}</p>
                     )}
-                    <Link
+                    <NextLink
                       href={`/${b.slug}`}
                       className="mt-3 block w-full text-center bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
                     >
                       {t('reserveButton')}
-                    </Link>
+                    </NextLink>
                   </div>
                 </div>
               )

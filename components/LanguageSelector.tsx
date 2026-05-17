@@ -45,7 +45,8 @@ export default function LanguageSelector() {
 
   function switchLocale(next: string) {
     if (next === locale) { setOpen(false); return }
-    router.push(pathname, { locale: next })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    router.push(pathname as any, { locale: next })
     setOpen(false)
   }
 

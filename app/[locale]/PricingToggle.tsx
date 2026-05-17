@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 
 export function PricingToggle() {
   const t = useTranslations('pricing')
@@ -64,12 +65,12 @@ export function PricingToggle() {
               </li>
             ))}
           </ul>
-          <a
+          <Link
             href="/kayit"
             className="rounded-xl border border-zinc-900 py-3.5 text-center text-sm font-semibold text-zinc-900 hover:bg-zinc-900 hover:text-white transition-colors"
           >
             {t('cta')}
-          </a>
+          </Link>
         </div>
 
         {/* Professional — highlighted */}
@@ -100,12 +101,12 @@ export function PricingToggle() {
               </li>
             ))}
           </ul>
-          <a
+          <Link
             href="/kayit"
             className="rounded-xl bg-red-600 py-3.5 text-center text-sm font-semibold text-white hover:bg-red-500 transition-colors"
           >
             {t('cta')}
-          </a>
+          </Link>
         </div>
 
         {/* Enterprise */}

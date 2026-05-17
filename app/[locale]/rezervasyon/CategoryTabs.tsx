@@ -1,5 +1,5 @@
 'use client'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 
@@ -29,7 +29,7 @@ export default function CategoryTabs() {
       {CATEGORIES.map(cat => (
         <Link
           key={cat.key}
-          href={`/rezervasyon?kategori=${cat.key}`}
+          href={{ pathname: '/rezervasyon', query: { kategori: cat.key } }}
           className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition-colors
             ${active === cat.key
               ? 'bg-zinc-900 border-zinc-900 text-white'

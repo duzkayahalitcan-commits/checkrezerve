@@ -2,7 +2,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
-import Link from 'next/link'
+import NextLink from 'next/link'
+import { Link } from '@/i18n/navigation'
 
 export default function CustomerHeader() {
   const [user, setUser] = useState<User | null>(null)
@@ -40,18 +41,18 @@ export default function CustomerHeader() {
     <header className="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-100 shadow-sm">
       <div className="mx-auto max-w-6xl flex items-center justify-between px-6 h-16">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
+        <NextLink href="/" className="flex items-center gap-2.5 group">
           <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center shadow-sm group-hover:bg-emerald-700 transition-colors">
             <span className="text-white text-xs font-bold">CR</span>
           </div>
           <span className="text-base font-bold tracking-tight text-zinc-900">checkrezerve</span>
-        </Link>
+        </NextLink>
 
         {/* Nav */}
         <nav className="hidden md:flex items-center gap-7 text-sm text-zinc-500">
-          <Link href="/" className="hover:text-zinc-900 transition-colors font-medium">Mekanlar</Link>
-          <Link href="/#categories" className="hover:text-zinc-900 transition-colors font-medium">Kategoriler</Link>
-          <Link href="/#business" className="hover:text-zinc-900 transition-colors font-medium">İşletmeler İçin</Link>
+          <NextLink href="/" className="hover:text-zinc-900 transition-colors font-medium">Mekanlar</NextLink>
+          <NextLink href="/#categories" className="hover:text-zinc-900 transition-colors font-medium">Kategoriler</NextLink>
+          <NextLink href="/#business" className="hover:text-zinc-900 transition-colors font-medium">İşletmeler İçin</NextLink>
         </nav>
 
         {/* Auth */}
@@ -94,7 +95,7 @@ export default function CustomerHeader() {
                 className="hidden sm:block text-sm text-zinc-600 hover:text-zinc-900 transition-colors font-medium px-3 py-1.5">
                 Giriş Yap
               </Link>
-              <Link href="/giris?tab=signup"
+              <Link href={{ pathname: '/giris', query: { tab: 'signup' } }}
                 className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors shadow-sm">
                 Kayıt Ol
               </Link>

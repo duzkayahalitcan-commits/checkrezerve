@@ -1,8 +1,9 @@
 'use client'
 import { useState } from 'react'
-import Link from 'next/link'
+import NextLink from 'next/link'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 import LanguageSelector from './LanguageSelector'
 
 export default function MarketingHeader() {
@@ -23,15 +24,16 @@ export default function MarketingHeader() {
     <header className="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-100 shadow-sm">
       <div className="mx-auto max-w-7xl flex items-center justify-between px-6 h-16">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group flex-shrink-0">
+        <NextLink href="/" className="flex items-center gap-2.5 group flex-shrink-0">
           <Image src="/logo-icon.png" alt="CheckRezerve" width={36} height={36} className="rounded-xl" priority />
           <span className="text-base font-bold tracking-tight text-zinc-900">CheckRezerve</span>
-        </Link>
+        </NextLink>
 
         {/* Desktop Nav */}
         <nav className="hidden lg:flex items-center gap-6 text-sm text-zinc-500">
           {NAV_LINKS.map(l => (
-            <Link key={l.href} href={l.href}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            <Link key={l.href} href={l.href as any}
               className="hover:text-zinc-900 transition-colors font-medium">
               {l.label}
             </Link>
@@ -45,10 +47,10 @@ export default function MarketingHeader() {
             className="hidden sm:block rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors shadow-sm">
             {t('startFree')}
           </Link>
-          <Link href="/panel/login"
+          <NextLink href="/panel/login"
             className="hidden sm:block rounded-full border border-zinc-300 text-zinc-700 px-4 py-2 text-sm font-semibold hover:bg-zinc-50 transition-colors">
             {t('login')}
-          </Link>
+          </NextLink>
           <button
             className="lg:hidden p-2 rounded-lg text-zinc-500 hover:bg-zinc-100 transition-colors"
             onClick={() => setMobileOpen(v => !v)}
@@ -67,7 +69,8 @@ export default function MarketingHeader() {
       {mobileOpen && (
         <div className="lg:hidden border-t border-zinc-100 bg-white px-6 py-4 flex flex-col gap-1">
           {NAV_LINKS.map(l => (
-            <Link key={l.href} href={l.href} onClick={() => setMobileOpen(false)}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            <Link key={l.href} href={l.href as any} onClick={() => setMobileOpen(false)}
               className="text-sm font-medium text-zinc-700 hover:text-zinc-900 py-2 border-b border-zinc-50 last:border-0">
               {l.label}
             </Link>
@@ -76,10 +79,10 @@ export default function MarketingHeader() {
             <LanguageSelector />
           </div>
           <div className="pt-2 flex gap-3">
-            <Link href="/panel/login" onClick={() => setMobileOpen(false)}
+            <NextLink href="/panel/login" onClick={() => setMobileOpen(false)}
               className="flex-1 text-center rounded-full border border-red-600 text-red-600 py-2.5 text-sm font-semibold hover:bg-red-50 transition-colors">
               {t('login')}
-            </Link>
+            </NextLink>
             <Link href="/kayit" onClick={() => setMobileOpen(false)}
               className="flex-1 text-center rounded-full bg-red-600 text-white py-2.5 text-sm font-semibold hover:bg-red-700 transition-colors">
               {t('startFree')}

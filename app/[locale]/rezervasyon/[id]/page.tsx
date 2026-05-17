@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import { getSupabaseAdmin } from '@/lib/supabase'

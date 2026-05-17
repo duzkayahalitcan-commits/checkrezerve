@@ -2,7 +2,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 
 type Tab = 'login' | 'signup'

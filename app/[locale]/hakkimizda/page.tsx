@@ -1,7 +1,7 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 

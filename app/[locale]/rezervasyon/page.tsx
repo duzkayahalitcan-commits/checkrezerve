@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { Suspense } from 'react'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
@@ -106,6 +106,7 @@ export default async function RezervasyonPage({ params, searchParams }: Props) {
               <p className="text-sm text-zinc-400">{t('emptySubtitle')}</p>
               <Link
                 href="/rezervasyon"
+
                 className="inline-block mt-4 text-sm text-red-600 hover:underline font-semibold"
               >
                 {t('emptyLink')}
@@ -120,7 +121,7 @@ export default async function RezervasyonPage({ params, searchParams }: Props) {
                 return (
                   <Link
                     key={biz.id}
-                    href={`/rezervasyon/${biz.id}`}
+                    href={{ pathname: '/rezervasyon/[id]', params: { id: biz.id } }}
                     className="rounded-2xl border border-zinc-100 bg-white hover:border-red-200 hover:shadow-md transition-all duration-200 p-5 flex items-start gap-4 group"
                   >
                     <div className={`shrink-0 w-12 h-12 rounded-xl ${bg} flex items-center justify-center text-2xl`}>

@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import LegalSidebar from '@/components/LegalSidebar'
 
 export const metadata: Metadata = {
