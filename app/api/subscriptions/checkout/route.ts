@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies }                  from 'next/headers'
 import { getSupabaseAdmin }         from '@/lib/supabase'
-import { verifySession }            from '@/lib/panel-auth'
+import { resolveApiSession }        from '@/lib/panel-auth'
 import { initCheckoutForm, getPricingPlanRef } from '@/lib/iyzico'
 
 // POST /api/subscriptions/checkout
 // Body: { plan, billing_period, customer: { email, name, surname, phone, city, address } }
 export async function POST(req: NextRequest) {
   const jar = await cookies()
-  const session = verifySession(jar.get('cr_panel')?.value ?? '')
+  const session = await resolveApiSession(req, jar)
   if (!session) return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 })
 
   const body = await req.json()
@@ -77,8 +77,26 @@ export async function POST(req: NextRequest) {
 
   if (dbErr) console.error('[subscriptions/checkout] db insert:', dbErr)
 
+  // Checkout formunu geçici olarak logla — mobil uygulama bu URL'yi açar
+  const { data: logEntry } = await db
+    .from('iyzico_webhook_logs')
+    .insert({
+      event_type:       'CHECKOUT_FORM_INIT',
+      payload:          { checkoutFormContent: result.checkoutFormContent, token: result.token },
+      subscription_ref: null,
+      processed:        false,
+    })
+    .select('id')
+    .single()
+
+  const appUrl    = process.env.NEXT_PUBLIC_APP_URL ?? 'https://checkrezerve.com'
+  const checkoutUrl = logEntry?.id
+    ? `${appUrl}/api/subscriptions/checkout-form?session=${logEntry.id}`
+    : null
+
   return NextResponse.json({
     checkoutFormContent: result.checkoutFormContent,
     token:               result.token,
+    checkoutUrl,
   })
 }

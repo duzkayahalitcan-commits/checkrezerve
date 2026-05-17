@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies }                  from 'next/headers'
 import { getSupabaseAdmin }         from '@/lib/supabase'
-import { verifySession }            from '@/lib/panel-auth'
+import { resolveApiSession }        from '@/lib/panel-auth'
 
 // GET /api/subscriptions/payments?limit=20&offset=0
 export async function GET(req: NextRequest) {
   const jar = await cookies()
-  const session = verifySession(jar.get('cr_panel')?.value ?? '')
+  const session = await resolveApiSession(req, jar)
   if (!session) return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 })
 
   const { searchParams } = req.nextUrl
