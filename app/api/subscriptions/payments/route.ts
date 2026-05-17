@@ -1,0 +1,25 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { cookies }                  from 'next/headers'
+import { getSupabaseAdmin }         from '@/lib/supabase'
+import { verifySession }            from '@/lib/panel-auth'
+
+// GET /api/subscriptions/payments?limit=20&offset=0
+export async function GET(req: NextRequest) {
+  const jar = await cookies()
+  const session = verifySession(jar.get('cr_panel')?.value ?? '')
+  if (!session) return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 })
+
+  const { searchParams } = req.nextUrl
+  const limit  = Math.min(parseInt(searchParams.get('limit')  ?? '20', 10), 100)
+  const offset = Math.max(parseInt(searchParams.get('offset') ?? '0',  10), 0)
+
+  const { data, error, count } = await getSupabaseAdmin()
+    .from('subscription_payments')
+    .select('*', { count: 'exact' })
+    .eq('restaurant_id', session.restaurantId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
+
+  if (error) return NextResponse.json({ error: 'Sorgu hatası.' }, { status: 500 })
+  return NextResponse.json({ payments: data, total: count })
+}
