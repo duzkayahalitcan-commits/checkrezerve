@@ -3,71 +3,22 @@ import Link from 'next/link'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import BlogCoverImage from './BlogCoverImage'
-import { setRequestLocale } from 'next-intl/server'
+import { setRequestLocale, getTranslations } from 'next-intl/server'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Blog — CheckRezerve',
-  description: 'Rezervasyon yönetimi, no-show azaltma, sektör trendleri ve işletme büyütme ipuçları. CheckRezerve bloğunda uzman içerikler.',
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'blog' })
+  return {
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+  }
 }
-
-const POSTS = [
-  {
-    emoji: '🚫',
-    tag: 'No-Show',
-    title: 'No-Show Nedir ve Restoranlar Nasıl Önleyebilir?',
-    excerpt: 'Haber vermeden gelmeyen müşteri sorunu Türkiye\'deki restoranların büyük bölümünü etkiliyor. Ön ödeme sistemi ve otomatik onay ile bu sorunu nasıl çözebilirsiniz?',
-    readTime: '5 dk okuma',
-    date: 'Nisan 2025',
-    cover: '/images/blog-no-show.jpg',
-  },
-  {
-    emoji: '🤖',
-    tag: 'Yapay Zeka',
-    title: 'Restoran Rezervasyonunda Yapay Zekanın Geleceği',
-    excerpt: 'Sesli AI asistanlar, tahmine dayalı doluluk analizi ve kişiselleştirilmiş misafir deneyimi — 2025 ve sonrası için rezervasyon teknolojisi nereye gidiyor?',
-    readTime: '7 dk okuma',
-    date: 'Mart 2025',
-    cover: '/images/blog-restoran-ai.png',
-  },
-  {
-    emoji: '💆',
-    tag: 'Spa & Güzellik',
-    title: 'Spa İşletmelerinde Dijital Dönüşüm Rehberi',
-    excerpt: 'Kâğıt defter ve telefon defterinden dijital rezervasyon sistemine geçiş. Spa işletmelerinin karşılaştığı 5 sorun ve pratik çözümleri.',
-    readTime: '4 dk okuma',
-    date: 'Şubat 2025',
-    cover: '/images/blog-spa.png',
-  },
-  {
-    emoji: '📊',
-    tag: 'Operasyon',
-    title: 'Rezervasyon Verisiyle İşletmenizi Nasıl Büyütürsünüz?',
-    excerpt: 'Doluluk oranı, iptal trendi ve müşteri tercih analizleri — doğru verileri okuyarak nasıl daha fazla gelir elde edebilirsiniz?',
-    readTime: '6 dk okuma',
-    date: 'Ocak 2025',
-    cover: '/images/blog-rezervasyon-veri.jpg',
-  },
-  {
-    emoji: '✂️',
-    tag: 'Kuaför & Berber',
-    title: 'Kuaför Salonunda Son Dakika İptallerini Azaltmanın 5 Yolu',
-    excerpt: 'Son dakika iptalleri ve gelmeyen müşteriler kuaför salonları için büyük gelir kaybı anlamına gelir. İşte bunu önlemenin pratik yolları.',
-    readTime: '4 dk okuma',
-    date: 'Aralık 2024',
-    cover: '/images/blog-kuafor.jpg',
-  },
-  {
-    emoji: '💳',
-    tag: 'Ön Ödeme',
-    title: 'Ön Ödeme Sistemi: Müşteri İlişkilerini Bozmadan Nasıl Uygulanır?',
-    excerpt: 'Ön ödeme istemek müşterileri kaçırır mı? Araştırmalar aksini söylüyor. Doğru iletişimle ön ödemeyi müşteri güvenine dönüştürün.',
-    readTime: '5 dk okuma',
-    date: 'Kasım 2024',
-    cover: '/images/blog-on-odeme.png',
-  },
-]
 
 export default async function BlogPage({
   params,
@@ -76,6 +27,65 @@ export default async function BlogPage({
 }) {
   const { locale } = await params
   setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'blog' })
+
+  const POSTS = [
+    {
+      emoji: '🚫',
+      tag: t('p1Tag'),
+      title: t('p1Title'),
+      excerpt: t('p1Excerpt'),
+      readTime: t('p1ReadTime'),
+      date: t('p1Date'),
+      cover: '/images/blog-no-show.jpg',
+    },
+    {
+      emoji: '🤖',
+      tag: t('p2Tag'),
+      title: t('p2Title'),
+      excerpt: t('p2Excerpt'),
+      readTime: t('p2ReadTime'),
+      date: t('p2Date'),
+      cover: '/images/blog-restoran-ai.png',
+    },
+    {
+      emoji: '💆',
+      tag: t('p3Tag'),
+      title: t('p3Title'),
+      excerpt: t('p3Excerpt'),
+      readTime: t('p3ReadTime'),
+      date: t('p3Date'),
+      cover: '/images/blog-spa.png',
+    },
+    {
+      emoji: '📊',
+      tag: t('p4Tag'),
+      title: t('p4Title'),
+      excerpt: t('p4Excerpt'),
+      readTime: t('p4ReadTime'),
+      date: t('p4Date'),
+      cover: '/images/blog-rezervasyon-veri.jpg',
+    },
+    {
+      emoji: '✂️',
+      tag: t('p5Tag'),
+      title: t('p5Title'),
+      excerpt: t('p5Excerpt'),
+      readTime: t('p5ReadTime'),
+      date: t('p5Date'),
+      cover: '/images/blog-kuafor.jpg',
+    },
+    {
+      emoji: '💳',
+      tag: t('p6Tag'),
+      title: t('p6Title'),
+      excerpt: t('p6Excerpt'),
+      readTime: t('p6ReadTime'),
+      date: t('p6Date'),
+      cover: '/images/blog-on-odeme.png',
+    },
+  ]
+
   return (
     <div className="min-h-screen bg-white">
       <MarketingHeader />
@@ -83,13 +93,13 @@ export default async function BlogPage({
       <section className="pt-28 pb-16 text-white text-center relative" style={{backgroundImage:"linear-gradient(135deg,rgba(13,18,26,0.82) 0%,rgba(13,110,110,0.60) 100%),url('/images/blog-banner.jpg')",backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="mx-auto max-w-2xl px-6 relative z-10">
           <span className="inline-block bg-red-600/20 border border-red-500/30 rounded-full px-4 py-1.5 text-sm text-red-300 font-medium mb-6">
-            Blog
+            {t('badge')}
           </span>
           <h1 className="text-4xl sm:text-5xl font-extrabold mb-5 leading-tight">
-            Rezervasyon & İşletme<br />Dünyasından Yazılar
+            {t('heroTitle')}<br />{t('heroTitleLine2')}
           </h1>
           <p className="text-white/70 text-lg">
-            Sektör trendleri, operasyonel ipuçları ve CheckRezerve güncellemeleri.
+            {t('heroSubtitle')}
           </p>
         </div>
       </section>
@@ -119,10 +129,10 @@ export default async function BlogPage({
           </div>
 
           <div className="mt-14 text-center">
-            <p className="text-zinc-400 text-sm mb-4">Daha fazla içerik yakında eklenecek.</p>
+            <p className="text-zinc-400 text-sm mb-4">{t('comingSoon')}</p>
             <Link href="/iletisim"
               className="inline-flex items-center gap-2 rounded-full border border-zinc-200 hover:border-red-400 hover:text-red-600 px-6 py-3 text-sm font-semibold text-zinc-700 transition-all">
-              Konuk Yazar Olmak İster misiniz?
+              {t('guestWriter')}
             </Link>
           </div>
         </div>
