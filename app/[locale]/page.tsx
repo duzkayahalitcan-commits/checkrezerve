@@ -362,7 +362,7 @@ export default async function HomePage({
             <p className="text-zinc-900 font-bold text-lg">{hp('pricingCompareCta')}</p>
             <p className="text-zinc-500 text-sm">{hp('pricingCompareSubtitle')}</p>
           </div>
-          <a href="#fiyatlar"
+          <a href="#pricing"
             className="shrink-0 rounded-full bg-zinc-900 hover:bg-zinc-700 text-white px-7 py-2.5 text-sm font-bold transition-colors">
             {hp('pricingCompareButton')}
           </a>
@@ -370,7 +370,7 @@ export default async function HomePage({
       </section>
 
       {/* ── Fiyatlandırma ── */}
-      <section id="fiyatlar" className="py-20 bg-zinc-50">
+      <section id="pricing" className="py-20 bg-zinc-50">
         <div className="mx-auto max-w-6xl px-6">
           <div className="flex flex-col lg:flex-row gap-8 items-center mb-12">
             <div className="flex-1 text-center lg:text-left">

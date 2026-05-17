@@ -13,7 +13,7 @@ export default function MarketingHeader() {
   const NAV_LINKS = [
     { href: '/ozellikler',        label: t('features') },
     { href: '/kullanim-alanlari', label: t('useCases') },
-    { href: '/#fiyatlar',         label: t('pricing') },
+    { href: '/#pricing',           label: t('pricing') },
     { href: '/rezervasyon',       label: t('makeReservation') },
     { href: '/blog',              label: t('blog') },
     { href: '/hakkimizda',        label: t('about') },
