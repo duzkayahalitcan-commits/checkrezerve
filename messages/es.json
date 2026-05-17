@@ -986,7 +986,7 @@
     "businessPanel": "Panel empresarial",
     "login": "Iniciar sesión",
     "loggingIn": "Iniciando sesión…",
-    "username": "Nombre de usuario",
+    "username": "Correo electrónico",
     "password": "Contraseña",
     "errorRequired": "El nombre de usuario y la contraseña son obligatorios.",
     "errorInvalid": "Nombre de usuario o contraseña incorrectos.",

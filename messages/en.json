@@ -986,7 +986,7 @@
     "businessPanel": "Business Panel",
     "login": "Log In",
     "loggingIn": "Logging in…",
-    "username": "Username",
+    "username": "Email",
     "password": "Password",
     "errorRequired": "Username and password are required.",
     "errorInvalid": "Username or password is incorrect.",

@@ -1,9 +1,10 @@
 'use server'
 
-import { createHmac } from 'crypto'
-import { cookies }    from 'next/headers'
-import { redirect }   from 'next/navigation'
-import { getSupabaseAdmin } from '@/lib/supabase'
+import { createHmac }        from 'crypto'
+import { createClient }      from '@supabase/supabase-js'
+import { cookies }           from 'next/headers'
+import { redirect }          from 'next/navigation'
+import { getSupabaseAdmin }  from '@/lib/supabase'
 
 function hashPassword(password: string): string {
   const secret = process.env.ADMIN_SECRET ?? 'dev-secret-change-me'
@@ -14,6 +15,19 @@ function makeSessionToken(userId: string, restaurantId: string): string {
   const secret  = process.env.ADMIN_SECRET ?? 'dev-secret-change-me'
   const payload = `${userId}:${restaurantId}`
   return createHmac('sha256', secret).update(payload).digest('base64url')
+}
+
+async function setSessionCookie(userId: string, restaurantId: string, role: string) {
+  const token         = makeSessionToken(userId, restaurantId)
+  const cookiePayload = `${userId}:${restaurantId}:${role}:${token}`
+  const jar           = await cookies()
+  jar.set('cr_panel', cookiePayload, {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge:   60 * 60 * 24 * 7,
+    path:     '/panel',
+  })
 }
 
 export type PanelLoginState = { error: 'errorRequired' | 'errorInvalid' | null }
@@ -32,39 +46,60 @@ export async function panelLoginAction(
   await new Promise(r => setTimeout(r, 300)) // brute-force gecikmesi
 
   const db = getSupabaseAdmin()
-  const { data: user } = await db
+
+  // ── 1. restaurant_users tablosu (eski kullanıcı adı sistemi) ─────────────
+  const { data: panelUser } = await db
     .from('restaurant_users')
     .select('id, restaurant_id, password_hash, is_active, role')
     .eq('username', username)
     .single()
 
-  if (!user || !user.is_active || user.password_hash !== hashPassword(password)) {
+  if (panelUser && panelUser.is_active && panelUser.password_hash === hashPassword(password)) {
+    await setSessionCookie(panelUser.id, panelUser.restaurant_id, panelUser.role ?? 'business_manager')
+    const { data: restaurant } = await db.from('restaurants').select('slug').eq('id', panelUser.restaurant_id).single()
+    redirect(`/panel/${restaurant?.slug ?? ''}`)
+  }
+
+  // ── 2. Supabase Auth (e-posta ile giriş) ─────────────────────────────────
+  const anonClient = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false } },
+  )
+  const { data: authData, error: authError } = await anonClient.auth.signInWithPassword({
+    email:    username,
+    password,
+  })
+
+  if (authError || !authData.user) {
     return { error: 'errorInvalid' as const }
   }
 
-  const token = makeSessionToken(user.id, user.restaurant_id)
-  const cookiePayload = `${user.id}:${user.restaurant_id}:${user.role ?? 'business_manager'}:${token}`
+  const { data: profile } = await db
+    .from('profiles')
+    .select('isletme_id, role')
+    .eq('id', authData.user.id)
+    .maybeSingle()
 
-  const jar = await cookies()
-  jar.set('cr_panel', cookiePayload, {
-    httpOnly: true,
-    secure:   process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge:   60 * 60 * 24 * 7, // 7 gün
-    path:     '/panel',
-  })
+  if (!profile?.isletme_id) {
+    return { error: 'errorInvalid' as const }
+  }
 
-  // Restoranın slug'ını al
-  const { data: restaurant } = await db
-    .from('restaurants')
-    .select('slug')
-    .eq('id', user.restaurant_id)
-    .single()
+  // isletme_admin / isletme_calisan → panel rol etiketlerine eşle
+  const roleMap: Record<string, string> = {
+    isletme_admin:   'business_owner',
+    isletme_calisan: 'business_manager',
+    super_admin:     'super_admin',
+  }
+  const role = roleMap[profile.role] ?? profile.role ?? 'business_manager'
 
+  await setSessionCookie(authData.user.id, profile.isletme_id, role)
+
+  const { data: restaurant } = await db.from('restaurants').select('slug').eq('id', profile.isletme_id).single()
   redirect(`/panel/${restaurant?.slug ?? ''}`)
 }
 
-// ─── Cookie doğrulama (panel sayfalarında kullanılır) ────────────────────────
+// ─── Cookie doğrulama ────────────────────────────────────────────────────────
 export type PanelSession = {
   userId:       string
   restaurantId: string
@@ -77,8 +112,6 @@ export async function getPanelSession(): Promise<PanelSession> {
   if (!raw) return null
 
   const parts = raw.split(':')
-  // Format: userId:restaurantId:role:token  (4+ parts)
-  // Legacy format had 3 parts — force re-login by rejecting
   if (parts.length < 4) return null
 
   const [userId, restaurantId, role, ...tokenParts] = parts

@@ -986,7 +986,7 @@
     "businessPanel": "Virksomhedspanel",
     "login": "Log ind",
     "loggingIn": "Logger ind…",
-    "username": "Brugernavn",
+    "username": "E-mail",
     "password": "Adgangskode",
     "errorRequired": "Brugernavn og adgangskode er påkrævet.",
     "errorInvalid": "Forkert brugernavn eller adgangskode.",

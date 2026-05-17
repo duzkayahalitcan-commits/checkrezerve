@@ -16,12 +16,12 @@ export default function LoginForm() {
           name="username"
           type="text"
           autoFocus
-          autoComplete="username"
+          autoComplete="email"
           required
           className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2.5
                      text-white text-sm placeholder-stone-600 focus:outline-none
                      focus:border-amber-500 transition"
-          placeholder="kullanici_adi"
+          placeholder="ad@sirket.com"
         />
       </div>
 

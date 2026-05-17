@@ -986,7 +986,7 @@
     "businessPanel": "Unternehmensbereich",
     "login": "Anmelden",
     "loggingIn": "Anmeldung läuft…",
-    "username": "Benutzername",
+    "username": "E-Mail",
     "password": "Passwort",
     "errorRequired": "Benutzername und Passwort sind erforderlich.",
     "errorInvalid": "Benutzername oder Passwort ist falsch.",

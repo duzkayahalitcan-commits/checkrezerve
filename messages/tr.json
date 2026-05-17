@@ -986,7 +986,7 @@
     "businessPanel": "İşletme Paneli",
     "login": "Giriş Yap",
     "loggingIn": "Giriş yapılıyor…",
-    "username": "Kullanıcı Adı",
+    "username": "E-posta",
     "password": "Şifre",
     "errorRequired": "Kullanıcı adı ve şifre zorunludur.",
     "errorInvalid": "Kullanıcı adı veya şifre hatalı.",
