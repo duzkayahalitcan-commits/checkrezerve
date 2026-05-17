@@ -168,8 +168,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Pre-generated audio varsa doğrudan sun, yoksa ElevenLabs'a düş
+    const safeAnswer = answer ?? (isMultilang ? text : 'Anlayamadım, tekrar söyler misiniz?')
     const audioVoice = (['yunus', 'mert', 'lisa', 'gulsu'].includes(voice) ? voice : 'yunus') as AudioVoice
-    const audioFile = findAudioFile(answer, businessType, audioVoice, lang)
+    const audioFile = findAudioFile(safeAnswer, businessType, audioVoice, lang)
 
     if (audioFile) {
       console.log(`[voice] pre-generated: ${audioFile}`)
@@ -178,20 +179,20 @@ export async function POST(request: NextRequest) {
         headers: {
           'Content-Type': 'audio/mpeg',
           'Content-Length': String(audioBuffer.byteLength),
-          'X-Answer-Text': encodeURIComponent(answer),
+          'X-Answer-Text': encodeURIComponent(safeAnswer),
           'X-Audio-Source': 'pregenerated',
         },
       })
     }
 
     console.log('[voice] ElevenLabs TTS kullanılıyor')
-    const audioBuffer = await textToSpeech(answer)
+    const audioBuffer = await textToSpeech(safeAnswer)
 
     return new NextResponse(new Uint8Array(audioBuffer), {
       headers: {
         'Content-Type': 'audio/mpeg',
         'Content-Length': String(audioBuffer.byteLength),
-        'X-Answer-Text': encodeURIComponent(answer),
+        'X-Answer-Text': encodeURIComponent(safeAnswer),
         'X-Audio-Source': 'elevenlabs',
       },
     })
