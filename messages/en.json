@@ -952,5 +952,33 @@
     "p6Excerpt": "Does asking for prepayment drive customers away? Research says otherwise. Turn prepayment into customer trust with the right communication.",
     "p6ReadTime": "5 min read",
     "p6Date": "November 2024"
+  },
+  "businessTypes": {
+    "restaurant": "Restaurant / Café",
+    "barber": "Barber",
+    "hairdresser": "Hairdresser / Hair Salon",
+    "psychologist": "Psychologist / Therapist",
+    "spa": "Spa / Massage",
+    "beauty_salon": "Beauty Salon",
+    "dentist": "Dentist",
+    "fitness": "Gym / Personal Trainer",
+    "pilates": "Pilates Studio",
+    "chiropractor": "Chiropractic / Physiotherapy",
+    "veterinary": "Veterinary",
+    "other": "Other"
+  },
+  "bookingTerms": {
+    "restaurant": "Reservation",
+    "barber": "Appointment",
+    "hairdresser": "Appointment",
+    "psychologist": "Session",
+    "spa": "Appointment",
+    "beauty_salon": "Appointment",
+    "dentist": "Appointment",
+    "fitness": "Appointment",
+    "pilates": "Class",
+    "chiropractor": "Appointment",
+    "veterinary": "Appointment",
+    "other": "Appointment"
   }
 }

@@ -952,5 +952,33 @@
     "p6Excerpt": "Ön ödeme istemek müşterileri kaçırır mı? Araştırmalar aksini söylüyor. Doğru iletişimle ön ödemeyi müşteri güvenine dönüştürün.",
     "p6ReadTime": "5 dk okuma",
     "p6Date": "Kasım 2024"
+  },
+  "businessTypes": {
+    "restaurant": "Restoran / Kafe",
+    "barber": "Berber",
+    "hairdresser": "Kuaför / Saç Salonu",
+    "psychologist": "Psikolog / Terapist",
+    "spa": "Spa / Masaj",
+    "beauty_salon": "Güzellik Salonu",
+    "dentist": "Diş Hekimi",
+    "fitness": "Spor Salonu / PT",
+    "pilates": "Pilates Stüdyosu",
+    "chiropractor": "Kayropraktik / Fizyoterapi",
+    "veterinary": "Veteriner",
+    "other": "Diğer"
+  },
+  "bookingTerms": {
+    "restaurant": "Rezervasyon",
+    "barber": "Randevu",
+    "hairdresser": "Randevu",
+    "psychologist": "Seans",
+    "spa": "Randevu",
+    "beauty_salon": "Randevu",
+    "dentist": "Randevu",
+    "fitness": "Randevu",
+    "pilates": "Ders",
+    "chiropractor": "Randevu",
+    "veterinary": "Randevu",
+    "other": "Randevu"
   }
 }

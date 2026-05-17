@@ -952,5 +952,33 @@
     "p6Excerpt": "Skræmmer kravet om forudbetaling kunder væk? Forskning siger det modsatte. Gør forudbetaling til kundetillid med den rette kommunikation.",
     "p6ReadTime": "5 min læsning",
     "p6Date": "November 2024"
+  },
+  "businessTypes": {
+    "restaurant": "Restaurant / Café",
+    "barber": "Barber",
+    "hairdresser": "Frisør / Hårsalon",
+    "psychologist": "Psykolog / Terapeut",
+    "spa": "Spa / Massage",
+    "beauty_salon": "Skønhedssalon",
+    "dentist": "Tandlæge",
+    "fitness": "Fitnesscenter / PT",
+    "pilates": "Pilates-studie",
+    "chiropractor": "Kiropraktik / Fysioterapi",
+    "veterinary": "Dyrlæge",
+    "other": "Andet"
+  },
+  "bookingTerms": {
+    "restaurant": "Reservation",
+    "barber": "Aftale",
+    "hairdresser": "Aftale",
+    "psychologist": "Session",
+    "spa": "Aftale",
+    "beauty_salon": "Aftale",
+    "dentist": "Aftale",
+    "fitness": "Aftale",
+    "pilates": "Klasse",
+    "chiropractor": "Aftale",
+    "veterinary": "Aftale",
+    "other": "Aftale"
   }
 }

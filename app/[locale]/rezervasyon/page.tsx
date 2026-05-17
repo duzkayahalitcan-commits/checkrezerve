@@ -6,7 +6,7 @@ import { Suspense } from 'react'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS, type BusinessType, type Restaurant } from '@/types'
+import { BUSINESS_TYPE_ICONS, type BusinessType, type Restaurant } from '@/types'
 import CategoryTabs from './CategoryTabs'
 import { CATEGORIES } from './categories'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
@@ -37,7 +37,8 @@ type Props = {
 export default async function RezervasyonPage({ params, searchParams }: Props) {
   const { locale } = await params
   setRequestLocale(locale)
-  const t = await getTranslations('rezervasyon')
+  const t    = await getTranslations('rezervasyon')
+  const tBiz = await getTranslations('businessTypes')
 
   const { kategori } = await searchParams
   const { data: businesses } = await getSupabaseAdmin()
@@ -54,7 +55,7 @@ export default async function RezervasyonPage({ params, searchParams }: Props) {
     ? all.filter(b => activeCat.types.includes(b.business_type))
     : all
 
-  const activeLabel = activeCat?.label ?? t('allBusinesses')
+  const activeLabel = activeCat ? t(activeCat.labelKey as Parameters<typeof t>[0]) : t('allBusinesses')
 
   return (
     <div className="min-h-screen bg-white">
@@ -114,7 +115,7 @@ export default async function RezervasyonPage({ params, searchParams }: Props) {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {list.map(biz => {
                 const icon  = BUSINESS_TYPE_ICONS[biz.business_type as BusinessType] ?? '🏪'
-                const label = BUSINESS_TYPE_LABELS[biz.business_type as BusinessType] ?? biz.business_type
+                const label = tBiz(biz.business_type as Parameters<typeof tBiz>[0])
                 const bg    = TYPE_BG[biz.business_type] ?? 'bg-zinc-50'
                 return (
                   <Link

@@ -952,5 +952,33 @@
     "p6Excerpt": "Schreckt die Forderung nach Vorauszahlung Kunden ab? Die Forschung sagt das Gegenteil. Verwandeln Sie Vorauszahlung mit der richtigen Kommunikation in Kundenvertrauen.",
     "p6ReadTime": "5 Min. Lesezeit",
     "p6Date": "November 2024"
+  },
+  "businessTypes": {
+    "restaurant": "Restaurant / Café",
+    "barber": "Barbier",
+    "hairdresser": "Friseur / Haarsalon",
+    "psychologist": "Psychologe / Therapeut",
+    "spa": "Spa / Massage",
+    "beauty_salon": "Schönheitssalon",
+    "dentist": "Zahnarzt",
+    "fitness": "Fitnessstudio / PT",
+    "pilates": "Pilates-Studio",
+    "chiropractor": "Chiropraktik / Physiotherapie",
+    "veterinary": "Tierarzt",
+    "other": "Sonstiges"
+  },
+  "bookingTerms": {
+    "restaurant": "Reservierung",
+    "barber": "Termin",
+    "hairdresser": "Termin",
+    "psychologist": "Sitzung",
+    "spa": "Termin",
+    "beauty_salon": "Termin",
+    "dentist": "Termin",
+    "fitness": "Termin",
+    "pilates": "Kurs",
+    "chiropractor": "Termin",
+    "veterinary": "Termin",
+    "other": "Termin"
   }
 }

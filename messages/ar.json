@@ -952,5 +952,33 @@
     "p6Excerpt": "هل طلب الدفع المسبق يطرد العملاء؟ الأبحاث تقول عكس ذلك. حوّل الدفع المسبق إلى ثقة العملاء بالتواصل الصحيح.",
     "p6ReadTime": "قراءة 5 دقائق",
     "p6Date": "نوفمبر 2024"
+  },
+  "businessTypes": {
+    "restaurant": "مطعم / مقهى",
+    "barber": "حلاق",
+    "hairdresser": "صالون تصفيف الشعر",
+    "psychologist": "معالج نفسي / معالج",
+    "spa": "سبا / مساج",
+    "beauty_salon": "صالون تجميل",
+    "dentist": "طبيب أسنان",
+    "fitness": "صالة رياضية / مدرب شخصي",
+    "pilates": "استوديو بيلاتيس",
+    "chiropractor": "علاج تقويمي / فيزيائي",
+    "veterinary": "طبيب بيطري",
+    "other": "أخرى"
+  },
+  "bookingTerms": {
+    "restaurant": "حجز",
+    "barber": "موعد",
+    "hairdresser": "موعد",
+    "psychologist": "جلسة",
+    "spa": "موعد",
+    "beauty_salon": "موعد",
+    "dentist": "موعد",
+    "fitness": "موعد",
+    "pilates": "درس",
+    "chiropractor": "موعد",
+    "veterinary": "موعد",
+    "other": "موعد"
   }
 }

@@ -3,7 +3,7 @@
 import { useActionState, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { createReservation, type ActionState } from './actions'
-import { BOOKING_TERM, type BusinessType } from '@/types'
+import { type BusinessType } from '@/types'
 
 const initialState: ActionState = {
   success: false,
@@ -52,7 +52,8 @@ export function ReservationForm({
   staff?:         StaffMember[]
   masaTipleri?:   MasaTipi[]
 }) {
-  const t = useTranslations('reservationForm')
+  const t      = useTranslations('reservationForm')
+  const tTerms = useTranslations('bookingTerms')
   const boundAction = createReservation.bind(null, restaurantId)
   const [state, formAction, pending] = useActionState(boundAction, initialState)
 
@@ -67,7 +68,7 @@ export function ReservationForm({
   const [showNotes, setShowNotes]             = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
 
-  const term         = BOOKING_TERM[businessType]
+  const term         = tTerms(businessType as Parameters<typeof tTerms>[0])
   const isRestaurant = businessType === 'restaurant'
   const hasServices  = services.length > 0
   const hasStaff     = staff.length > 0
@@ -81,7 +82,7 @@ export function ReservationForm({
           </svg>
         </div>
         <div>
-          <h2 className="text-xl font-bold text-stone-900">{t('successTitle', { term: term.singular })}</h2>
+          <h2 className="text-xl font-bold text-stone-900">{t('successTitle', { term: term })}</h2>
           <p className="mt-1 text-sm text-stone-500">
             {t('successGreeting', { name: state.guestName ?? '' })}<br />
             {restaurantName} {t('successWaiting')}
@@ -98,7 +99,7 @@ export function ReservationForm({
           }}
           className="text-sm text-stone-400 underline underline-offset-2"
         >
-          {t('newBooking', { term: term.singular.toLowerCase() })}
+          {t('newBooking', { term: term.toLowerCase() })}
         </button>
       </div>
     )
@@ -366,14 +367,14 @@ export function ReservationForm({
             {t('submitting')}
           </span>
         ) : selectedTime ? (
-          t('submit', { term: term.singular })
+          t('submit', { term: term })
         ) : (
           t('selectTimeFirst')
         )}
       </button>
 
       <p className="text-center text-xs text-stone-400">
-        {t('confirmNote', { term: term.singular })}
+        {t('confirmNote', { term: term })}
       </p>
     </form>
   )

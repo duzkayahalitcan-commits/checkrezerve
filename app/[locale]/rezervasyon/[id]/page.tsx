@@ -7,7 +7,7 @@ import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS, type BusinessType, type Restaurant, type Service, type StaffMember } from '@/types'
+import { BUSINESS_TYPE_ICONS, type BusinessType, type Restaurant, type Service, type StaffMember } from '@/types'
 import BookingForm from './BookingForm'
 
 // Next.js 15+ — params is a Promise
@@ -31,7 +31,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function BusinessDetailPage({ params }: Props) {
   const { id, locale } = await params
   setRequestLocale(locale)
-  const t = await getTranslations('bizDetail')
+  const t    = await getTranslations('bizDetail')
+  const tBiz = await getTranslations('businessTypes')
   const supabase = getSupabaseAdmin()
 
   const [{ data: biz }, { data: rawServices }, { data: rawStaff }, { data: rawMasa }, { data: rawTables }] = await Promise.all([
@@ -46,7 +47,7 @@ export default async function BusinessDetailPage({ params }: Props) {
 
   const business = biz as Restaurant
   const icon  = BUSINESS_TYPE_ICONS[business.business_type as BusinessType] ?? '🏪'
-  const label = BUSINESS_TYPE_LABELS[business.business_type as BusinessType] ?? business.business_type
+  const label = tBiz(business.business_type as Parameters<typeof tBiz>[0])
 
   // Normalize hizmetler (mobil tablo adı farklı olabilir)
   const hizmetler = (rawServices ?? []).map((h: Record<string, unknown>) => ({

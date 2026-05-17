@@ -952,5 +952,33 @@
     "p6Excerpt": "¿Pedir un prepago aleja a los clientes? La investigación dice lo contrario. Convierte el prepago en confianza del cliente con la comunicación adecuada.",
     "p6ReadTime": "5 min de lectura",
     "p6Date": "Noviembre 2024"
+  },
+  "businessTypes": {
+    "restaurant": "Restaurante / Cafetería",
+    "barber": "Barbería",
+    "hairdresser": "Peluquería / Salón de pelo",
+    "psychologist": "Psicólogo / Terapeuta",
+    "spa": "Spa / Masajes",
+    "beauty_salon": "Salón de belleza",
+    "dentist": "Dentista",
+    "fitness": "Gimnasio / Entrenador personal",
+    "pilates": "Estudio de Pilates",
+    "chiropractor": "Quiropráctica / Fisioterapia",
+    "veterinary": "Veterinario",
+    "other": "Otro"
+  },
+  "bookingTerms": {
+    "restaurant": "Reserva",
+    "barber": "Cita",
+    "hairdresser": "Cita",
+    "psychologist": "Sesión",
+    "spa": "Cita",
+    "beauty_salon": "Cita",
+    "dentist": "Cita",
+    "fitness": "Cita",
+    "pilates": "Clase",
+    "chiropractor": "Cita",
+    "veterinary": "Cita",
+    "other": "Cita"
   }
 }
