@@ -118,7 +118,11 @@
     "label": "Dil Seçin",
     "tr": "Türkçe",
     "en": "English",
-    "de": "Deutsch"
+    "de": "Deutsch",
+    "ar": "العربية",
+    "da": "Dansk",
+    "es": "Español",
+    "ru": "Русский"
   },
   "homepage": {
     "sectorsTitle": "Her Sektöre Uygun Rezervasyon Altyapısı",

@@ -118,7 +118,11 @@
     "label": "Sprache wählen",
     "tr": "Türkçe",
     "en": "English",
-    "de": "Deutsch"
+    "de": "Deutsch",
+    "ar": "العربية",
+    "da": "Dansk",
+    "es": "Español",
+    "ru": "Русский"
   },
   "homepage": {
     "sectorsTitle": "Reservierungsinfrastruktur für jeden Sektor",

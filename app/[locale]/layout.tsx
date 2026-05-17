@@ -19,9 +19,13 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   const messages = await getMessages();
 
+  const dir = locale === 'ar' ? 'rtl' : 'ltr'
+
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      {children}
+      <div dir={dir} lang={locale} style={{ minHeight: '100%' }}>
+        {children}
+      </div>
     </NextIntlClientProvider>
   );
 }
