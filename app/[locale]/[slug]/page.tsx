@@ -78,8 +78,9 @@ export default async function BusinessPage({
     supabase
       .from('masa_tipleri')
       .select('id, ad, ad_en, ad_ar, ad_de, ad_da, ad_es, ad_ru, kapasite')
-      .eq('restaurant_id', restaurant.id)
-      .order('sort_order'),
+      .eq('isletme_id', restaurant.id)
+      .eq('aktif', true)
+      .order('kapasite'),
   ])
 
   const today = new Date().toISOString().split('T')[0]
