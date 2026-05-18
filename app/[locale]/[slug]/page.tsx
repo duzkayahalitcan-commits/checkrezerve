@@ -138,6 +138,33 @@ export default async function BusinessPage({
               <p className="text-xs text-white/70 mt-0.5">{t('freeInstant')}</p>
             </div>
 
+            {(restaurant.special_notes || restaurant.dress_code) && (
+              <div className="border-b border-amber-100 bg-amber-50 px-6 py-4 space-y-2">
+                {restaurant.dress_code && (
+                  <div className="flex gap-2 text-sm">
+                    <span className="text-amber-600 shrink-0">👔</span>
+                    <div>
+                      <span className="font-semibold text-amber-800 text-xs uppercase tracking-wide">
+                        {t('dressCode')}
+                      </span>
+                      <p className="text-amber-700 mt-0.5 leading-snug">{restaurant.dress_code}</p>
+                    </div>
+                  </div>
+                )}
+                {restaurant.special_notes && (
+                  <div className="flex gap-2 text-sm">
+                    <span className="text-amber-600 shrink-0">ℹ️</span>
+                    <div>
+                      <span className="font-semibold text-amber-800 text-xs uppercase tracking-wide">
+                        {t('specialNotes')}
+                      </span>
+                      <p className="text-amber-700 mt-0.5 leading-snug">{restaurant.special_notes}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="p-6">
               <ReservationForm
                 restaurantId={restaurant.id}

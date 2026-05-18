@@ -867,12 +867,16 @@
     "allBusinesses": "Alle Unternehmen",
     "termReservation": "Reservierung",
     "termAppointment": "Termin",
-    "makeBooking": "{term} vornehmen"
+    "makeBooking": "{term} vornehmen",
+    "specialNotes": "Besondere Hinweise",
+    "dressCode": "Dresscode"
   },
   "slugPage": {
     "todayCount": "Heute {count} {term}",
     "onlineBooking": "Online-{term}",
-    "freeInstant": "Kostenlos • Sofort bestätigt"
+    "freeInstant": "Kostenlos • Sofort bestätigt",
+    "specialNotes": "Besondere Hinweise",
+    "dressCode": "Dresscode"
   },
   "kvkkForm": {
     "pageTitle": "KVKK-Antragsformular",

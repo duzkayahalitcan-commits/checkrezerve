@@ -867,12 +867,16 @@
     "allBusinesses": "Todos los negocios",
     "termReservation": "Reserva",
     "termAppointment": "Cita",
-    "makeBooking": "Hacer {term}"
+    "makeBooking": "Hacer {term}",
+    "specialNotes": "Notas especiales",
+    "dressCode": "Código de vestimenta"
   },
   "slugPage": {
     "todayCount": "Hoy {count} {term}",
     "onlineBooking": "{term} online",
-    "freeInstant": "Gratis • Confirmación instantánea"
+    "freeInstant": "Gratis • Confirmación instantánea",
+    "specialNotes": "Notas especiales",
+    "dressCode": "Código de vestimenta"
   },
   "kvkkForm": {
     "pageTitle": "Formulario de solicitud RGPD",

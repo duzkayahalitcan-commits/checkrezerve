@@ -867,12 +867,16 @@
     "allBusinesses": "Alle virksomheder",
     "termReservation": "Reservation",
     "termAppointment": "Aftale",
-    "makeBooking": "Foretag {term}"
+    "makeBooking": "Foretag {term}",
+    "specialNotes": "Særlige noter",
+    "dressCode": "Påklædningskode"
   },
   "slugPage": {
     "todayCount": "I dag {count} {term}",
     "onlineBooking": "Online {term}",
-    "freeInstant": "Gratis • Øjeblikkelig bekræftelse"
+    "freeInstant": "Gratis • Øjeblikkelig bekræftelse",
+    "specialNotes": "Særlige noter",
+    "dressCode": "Påklædningskode"
   },
   "kvkkForm": {
     "pageTitle": "GDPR-ansøgningsformular",

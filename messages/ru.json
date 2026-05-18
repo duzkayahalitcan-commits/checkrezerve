@@ -867,12 +867,16 @@
     "allBusinesses": "Все заведения",
     "termReservation": "Бронирование",
     "termAppointment": "Запись",
-    "makeBooking": "Оформить {term}"
+    "makeBooking": "Оформить {term}",
+    "specialNotes": "Особые примечания",
+    "dressCode": "Дресс-код"
   },
   "slugPage": {
     "todayCount": "Сегодня {count} {term}",
     "onlineBooking": "Онлайн {term}",
-    "freeInstant": "Бесплатно • Мгновенное подтверждение"
+    "freeInstant": "Бесплатно • Мгновенное подтверждение",
+    "specialNotes": "Особые примечания",
+    "dressCode": "Дресс-код"
   },
   "kvkkForm": {
     "pageTitle": "Форма запроса GDPR",

@@ -867,12 +867,16 @@
     "allBusinesses": "جميع الأعمال",
     "termReservation": "حجز",
     "termAppointment": "موعد",
-    "makeBooking": "احجز {term}"
+    "makeBooking": "احجز {term}",
+    "specialNotes": "ملاحظات خاصة",
+    "dressCode": "قواعد اللباس"
   },
   "slugPage": {
     "todayCount": "{count} {term} اليوم",
     "onlineBooking": "{term} إلكتروني",
-    "freeInstant": "مجاني • تأكيد فوري"
+    "freeInstant": "مجاني • تأكيد فوري",
+    "specialNotes": "ملاحظات خاصة",
+    "dressCode": "قواعد اللباس"
   },
   "kvkkForm": {
     "pageTitle": "نموذج طلب KVKK",

@@ -867,12 +867,16 @@
     "allBusinesses": "All Businesses",
     "termReservation": "Reservation",
     "termAppointment": "Appointment",
-    "makeBooking": "Make {term}"
+    "makeBooking": "Make {term}",
+    "specialNotes": "Special Notes",
+    "dressCode": "Dress Code"
   },
   "slugPage": {
     "todayCount": "Today {count} {term}",
     "onlineBooking": "Online {term}",
-    "freeInstant": "Free • Instantly confirmed"
+    "freeInstant": "Free • Instantly confirmed",
+    "specialNotes": "Special Notes",
+    "dressCode": "Dress Code"
   },
   "kvkkForm": {
     "pageTitle": "KVKK Application Form",

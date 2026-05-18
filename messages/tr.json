@@ -867,12 +867,16 @@
     "allBusinesses": "Tüm İşletmeler",
     "termReservation": "Rezervasyon",
     "termAppointment": "Randevu",
-    "makeBooking": "{term} Yap"
+    "makeBooking": "{term} Yap",
+    "specialNotes": "Özel Notlar",
+    "dressCode": "Kıyafet Kuralı"
   },
   "slugPage": {
     "todayCount": "Bugün {count} {term}",
     "onlineBooking": "Online {term}",
-    "freeInstant": "Ücretsiz • Anında onaylı"
+    "freeInstant": "Ücretsiz • Anında onaylı",
+    "specialNotes": "Özel Notlar",
+    "dressCode": "Kıyafet Kuralı"
   },
   "kvkkForm": {
     "pageTitle": "KVKK Başvuru Formu",
