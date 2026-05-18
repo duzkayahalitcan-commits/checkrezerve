@@ -77,7 +77,7 @@ export default async function BusinessPage({
       .order('sort_order'),
     supabase
       .from('masa_tipleri')
-      .select('id, ad, kapasite')
+      .select('id, ad, ad_en, ad_ar, ad_de, ad_da, ad_es, ad_ru, kapasite')
       .eq('restaurant_id', restaurant.id)
       .order('sort_order'),
   ])

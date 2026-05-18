@@ -1,10 +1,15 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import dynamic from 'next/dynamic'
 
-type MasaTipi   = { id: string; ad: string; kapasite: number }
+type MasaTipi   = { id: string; ad: string; ad_en: string | null; ad_ar: string | null; ad_de: string | null; ad_da: string | null; ad_es: string | null; ad_ru: string | null; kapasite: number }
+
+function getMasaAd(m: MasaTipi, locale: string): string {
+  const key = `ad_${locale}` as keyof MasaTipi
+  return (m[key] as string | null) || m.ad
+}
 type Hizmet     = { id: string; name: string; duration_minutes: number; price: number | null }
 type Calisan    = { id: string; name: string; title: string | null }
 type FloorTable = {
@@ -54,6 +59,7 @@ export default function BookingForm({
 }: Props) {
   const router = useRouter()
   const t = useTranslations('bookingForm')
+  const locale = useLocale()
 
   const getDates = () => Array.from({ length: 7 }, (_, i) => {
     const d = new Date()
@@ -221,7 +227,7 @@ export default function BookingForm({
                     ? 'border-red-500 bg-red-50 text-red-700'
                     : 'border-zinc-200 bg-white hover:border-red-200'}`}
               >
-                <p className="font-semibold text-sm">{m.ad}</p>
+                <p className="font-semibold text-sm">{getMasaAd(m, locale)}</p>
                 <p className="text-xs opacity-70 mt-0.5">{t('maxPeople', { count: m.kapasite })}</p>
               </button>
             ))}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useRef, useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { createReservation, type ActionState } from './actions'
 import { type BusinessType } from '@/types'
 
@@ -35,7 +35,12 @@ const TIME_SLOTS = Array.from({ length: 27 }, (_, i) => {
 
 type Service    = { id: string; name: string; duration_minutes: number; price: number | null; currency: string }
 type StaffMember = { id: string; name: string; title: string | null }
-type MasaTipi   = { id: string; ad: string; kapasite: number }
+type MasaTipi   = { id: string; ad: string; ad_en: string | null; ad_ar: string | null; ad_de: string | null; ad_da: string | null; ad_es: string | null; ad_ru: string | null; kapasite: number }
+
+function getMasaAd(m: MasaTipi, locale: string): string {
+  const key = `ad_${locale}` as keyof MasaTipi
+  return (m[key] as string | null) || m.ad
+}
 
 export function ReservationForm({
   restaurantId,
@@ -54,6 +59,7 @@ export function ReservationForm({
 }) {
   const t      = useTranslations('reservationForm')
   const tTerms = useTranslations('bookingTerms')
+  const locale = useLocale()
   const boundAction = createReservation.bind(null, restaurantId)
   const [state, formAction, pending] = useActionState(boundAction, initialState)
 
@@ -244,7 +250,7 @@ export function ReservationForm({
                     : 'border-stone-200 bg-white text-stone-700 hover:border-amber-300'
                 }`}
               >
-                <p className="font-semibold text-sm">{m.ad}</p>
+                <p className="font-semibold text-sm">{getMasaAd(m, locale)}</p>
                 <p className="text-xs opacity-70 mt-0.5">{t('maxPeople', { count: m.kapasite })}</p>
               </button>
             ))}
