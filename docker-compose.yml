@@ -49,6 +49,8 @@ services:
       IYZICO_PLAN_STARTER_YEARLY_REF:  ${IYZICO_PLAN_STARTER_YEARLY_REF:-}
       IYZICO_PLAN_PRO_MONTHLY_REF:     ${IYZICO_PLAN_PRO_MONTHLY_REF:-}
       IYZICO_PLAN_PRO_YEARLY_REF:      ${IYZICO_PLAN_PRO_YEARLY_REF:-}
+      ADMIN_SECRET:                    ${ADMIN_SECRET}
+      ADMIN_PASSWORD:                  ${ADMIN_PASSWORD:-}
       NODE_ENV:  production
       PORT:      3000
     networks:
