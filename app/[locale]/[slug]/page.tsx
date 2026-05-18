@@ -61,11 +61,13 @@ export default async function BusinessPage({
   const termSingular = tTerms(businessType as Parameters<typeof tTerms>[0])
   const icon         = BUSINESS_TYPE_ICONS[businessType]
 
+  const localeKey = locale !== 'tr' ? `_${locale}` : ''
+
   // Hizmetler, personel ve masa tipleri (paralel)
-  const [{ data: services }, { data: staff }, { data: masaTipleri }] = await Promise.all([
+  const [{ data: rawServices }, { data: staff }, { data: rawMasaTipleri }] = await Promise.all([
     supabase
       .from('services')
-      .select('id, name, duration_minutes, price, currency')
+      .select('id, name, name_en, name_ar, name_de, name_da, name_es, name_ru, duration_minutes, price, currency')
       .eq('restaurant_id', restaurant.id)
       .eq('is_active', true)
       .order('sort_order'),
@@ -78,10 +80,23 @@ export default async function BusinessPage({
     supabase
       .from('masa_tipleri')
       .select('id, ad, ad_en, ad_ar, ad_de, ad_da, ad_es, ad_ru, kapasite')
-      .eq('isletme_id', restaurant.id)
-      .eq('aktif', true)
-      .order('kapasite'),
+      .eq('restaurant_id', restaurant.id)
+      .order('sort_order'),
   ])
+
+  const services = (rawServices ?? []).map((s: Record<string, unknown>) => ({
+    id:               s.id as string,
+    name:             ((localeKey ? s[`name${localeKey}`] : null) ?? s.name) as string,
+    duration_minutes: s.duration_minutes as number,
+    price:            s.price as number | null,
+    currency:         s.currency as string,
+  }))
+
+  const masaTipleri = (rawMasaTipleri ?? []).map((m: Record<string, unknown>) => ({
+    id:       m.id as string,
+    ad:       ((localeKey ? m[`ad${localeKey}`] : null) ?? m.ad) as string,
+    kapasite: m.kapasite as number,
+  }))
 
   const today = new Date().toISOString().split('T')[0]
   const { count } = await supabase

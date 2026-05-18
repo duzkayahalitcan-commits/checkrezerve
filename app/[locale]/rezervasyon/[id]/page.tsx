@@ -49,10 +49,12 @@ export default async function BusinessDetailPage({ params }: Props) {
   const icon  = BUSINESS_TYPE_ICONS[business.business_type as BusinessType] ?? '🏪'
   const label = tBiz(business.business_type as Parameters<typeof tBiz>[0])
 
+  const localeKey = locale !== 'tr' ? `_${locale}` : ''
+
   // Normalize hizmetler (mobil tablo adı farklı olabilir)
   const hizmetler = (rawServices ?? []).map((h: Record<string, unknown>) => ({
     id:               h.id as string,
-    name:             (h.name ?? h.ad) as string,
+    name:             ((localeKey ? h[`ad${localeKey}`] : null) ?? h.name ?? h.ad) as string,
     duration_minutes: (h.duration_minutes ?? h.sure_dakika ?? 30) as number,
     price:            (h.price ?? h.fiyat ?? null) as number | null,
   }))
@@ -67,13 +69,7 @@ export default async function BusinessDetailPage({ params }: Props) {
   // Normalize masa tipleri
   const masaTipleri = (rawMasa ?? []).map((m: Record<string, unknown>) => ({
     id:       m.id as string,
-    ad:       (m.ad ?? m.name) as string,
-    ad_en:    (m.ad_en ?? null) as string | null,
-    ad_ar:    (m.ad_ar ?? null) as string | null,
-    ad_de:    (m.ad_de ?? null) as string | null,
-    ad_da:    (m.ad_da ?? null) as string | null,
-    ad_es:    (m.ad_es ?? null) as string | null,
-    ad_ru:    (m.ad_ru ?? null) as string | null,
+    ad:       ((localeKey ? m[`ad${localeKey}`] : null) ?? m.ad ?? m.name) as string,
     kapasite: (m.kapasite ?? m.capacity ?? 4) as number,
   }))
 
