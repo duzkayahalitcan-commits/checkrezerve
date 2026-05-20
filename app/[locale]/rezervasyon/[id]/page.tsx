@@ -70,6 +70,12 @@ export default async function BusinessDetailPage({ params }: Props) {
   const masaTipleri = (rawMasa ?? []).map((m: Record<string, unknown>) => ({
     id:       m.id as string,
     ad:       ((localeKey ? m[`ad${localeKey}`] : null) ?? m.ad ?? m.name) as string,
+    ad_en:    (m.ad_en ?? null) as string | null,
+    ad_ar:    (m.ad_ar ?? null) as string | null,
+    ad_de:    (m.ad_de ?? null) as string | null,
+    ad_da:    (m.ad_da ?? null) as string | null,
+    ad_es:    (m.ad_es ?? null) as string | null,
+    ad_ru:    (m.ad_ru ?? null) as string | null,
     kapasite: (m.kapasite ?? m.capacity ?? 4) as number,
   }))
 
