@@ -6,8 +6,6 @@ import { useTranslations } from 'next-intl'
 const CATEGORIES = [
   { key: 'yeme-icme', labelKey: 'catFoodDrink', icon: '🍽️' },
   { key: 'guzellik',  labelKey: 'catBeauty',    icon: '💆' },
-  { key: 'saglik',    labelKey: 'catHealth',     icon: '🏥' },
-  { key: 'spor',      labelKey: 'catSports',     icon: '🏋️' },
 ]
 
 export default function CategoryTabs() {

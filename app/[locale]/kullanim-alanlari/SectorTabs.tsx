@@ -10,12 +10,8 @@ export default function SectorTabs() {
 
   const SECTORS = [
     { id: 'restoran', icon: '🍽️', labelKey: 'sectorRestaurantLabel' },
-    { id: 'kafe',     icon: '☕',  labelKey: 'sectorCafeLabel' },
     { id: 'spa',      icon: '💆', labelKey: 'sectorSpaLabel' },
     { id: 'kuafor',   icon: '✂️', labelKey: 'sectorBarberLabel' },
-    { id: 'otel',     icon: '🏨', labelKey: 'sectorHotelLabel' },
-    { id: 'etkinlik', icon: '🎪', labelKey: 'sectorEventLabel' },
-    { id: 'fitness',  icon: '🏋️', labelKey: 'sectorFitnessLabel' },
   ]
 
   const SECTOR_DATA: Record<string, {
@@ -34,18 +30,6 @@ export default function SectorTabs() {
         { titleKey: 'restaurantF3T', descKey: 'restaurantF3D' },
         { titleKey: 'restaurantF4T', descKey: 'restaurantF4D' },
         { titleKey: 'restaurantF5T', descKey: 'restaurantF5D' },
-      ],
-    },
-    kafe: {
-      img: '/images/sector-kafe.jpg',
-      titleKey: 'sectorCafeTitle',
-      descKey: 'sectorCafeDesc',
-      features: [
-        { titleKey: 'cafeF1T', descKey: 'cafeF1D' },
-        { titleKey: 'cafeF2T', descKey: 'cafeF2D' },
-        { titleKey: 'cafeF3T', descKey: 'cafeF3D' },
-        { titleKey: 'cafeF4T', descKey: 'cafeF4D' },
-        { titleKey: 'cafeF5T', descKey: 'cafeF5D' },
       ],
     },
     spa: {
@@ -70,42 +54,6 @@ export default function SectorTabs() {
         { titleKey: 'barberF3T', descKey: 'barberF3D' },
         { titleKey: 'barberF4T', descKey: 'barberF4D' },
         { titleKey: 'barberF5T', descKey: 'barberF5D' },
-      ],
-    },
-    otel: {
-      img: '/images/sector-otel.jpg',
-      titleKey: 'sectorHotelTitle',
-      descKey: 'sectorHotelDesc',
-      features: [
-        { titleKey: 'hotelF1T', descKey: 'hotelF1D' },
-        { titleKey: 'hotelF2T', descKey: 'hotelF2D' },
-        { titleKey: 'hotelF3T', descKey: 'hotelF3D' },
-        { titleKey: 'hotelF4T', descKey: 'hotelF4D' },
-        { titleKey: 'hotelF5T', descKey: 'hotelF5D' },
-      ],
-    },
-    etkinlik: {
-      img: '/images/sector-etkinlik.jpg',
-      titleKey: 'sectorEventTitle',
-      descKey: 'sectorEventDesc',
-      features: [
-        { titleKey: 'eventF1T', descKey: 'eventF1D' },
-        { titleKey: 'eventF2T', descKey: 'eventF2D' },
-        { titleKey: 'eventF3T', descKey: 'eventF3D' },
-        { titleKey: 'eventF4T', descKey: 'eventF4D' },
-        { titleKey: 'eventF5T', descKey: 'eventF5D' },
-      ],
-    },
-    fitness: {
-      img: '/images/sector-fitness.jpg',
-      titleKey: 'sectorFitnessTitle',
-      descKey: 'sectorFitnessDesc',
-      features: [
-        { titleKey: 'fitnessF1T', descKey: 'fitnessF1D' },
-        { titleKey: 'fitnessF2T', descKey: 'fitnessF2D' },
-        { titleKey: 'fitnessF3T', descKey: 'fitnessF3D' },
-        { titleKey: 'fitnessF4T', descKey: 'fitnessF4D' },
-        { titleKey: 'fitnessF5T', descKey: 'fitnessF5D' },
       ],
     },
   }

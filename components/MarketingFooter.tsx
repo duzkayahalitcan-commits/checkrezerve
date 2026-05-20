@@ -31,9 +31,6 @@ export default function MarketingFooter() {
               <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">{t('useCaseRestaurant')}</Link>
               <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">{t('useCaseBarber')}</Link>
               <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">{t('useCaseSpa')}</Link>
-              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">{t('useCaseHotel')}</Link>
-              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">{t('useCaseEvent')}</Link>
-              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">{t('useCaseFitness')}</Link>
             </div>
           </div>
 

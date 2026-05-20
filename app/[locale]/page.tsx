@@ -4,8 +4,6 @@ import Image from 'next/image'
 import { UtensilsCrossed, Scissors, Sparkles, BedDouble, CalendarRange, Dumbbell } from 'lucide-react'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
-import { PricingToggle } from './PricingToggle'
-import FAQSection from './FAQSection'
 import BasvuruModal from '@/components/BasvuruModal'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
@@ -170,6 +168,15 @@ export default async function HomePage({
         </div>
       </section>
 
+      {/* ── Slogan Band ── */}
+      <section className="bg-zinc-900 py-6">
+        <div className="mx-auto max-w-4xl px-6 text-center">
+          <p className="text-white text-xl sm:text-2xl font-bold tracking-tight">
+            Bekleme yok. Sıra yok. Sadece rezervasyon.
+          </p>
+        </div>
+      </section>
+
       {/* ── Demo İste CTA ── */}
       <section className="bg-red-600 py-5">
         <div className="mx-auto max-w-5xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -254,6 +261,15 @@ export default async function HomePage({
         </div>
       </section>
 
+      {/* ── Slogan — Güvenlik ── */}
+      <div className="bg-white py-4 border-y border-zinc-100">
+        <div className="mx-auto max-w-4xl px-6 flex justify-center">
+          <span className="inline-flex items-center gap-2 bg-red-50 border border-red-200 rounded-full px-5 py-2 text-red-700 font-bold text-sm tracking-wide">
+            🔒 Rezervasyonunuz, garantide.
+          </span>
+        </div>
+      </div>
+
       {/* ── Ön Ödeme / No-Show ── */}
       <section className="py-20 bg-red-50">
         <div className="mx-auto max-w-5xl px-6">
@@ -323,6 +339,15 @@ export default async function HomePage({
         </div>
       </section>
 
+      {/* ── Slogan — Deneyim ── */}
+      <div className="bg-zinc-50 py-8">
+        <div className="mx-auto max-w-4xl px-6 text-center">
+          <p className="text-zinc-500 text-lg italic font-light tracking-wide">
+            &ldquo;Deneyim başlamadan önce başlar.&rdquo;
+          </p>
+        </div>
+      </div>
+
       {/* ── Müşteri Yorumları ── */}
       <section className="py-20 bg-zinc-50">
         <div className="mx-auto max-w-6xl px-6">
@@ -355,52 +380,16 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* ── Fiyat Karşılaştır CTA ── */}
-      <section className="py-10 bg-white border-t border-zinc-100">
-        <div className="mx-auto max-w-5xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <p className="text-zinc-900 font-bold text-lg">{hp('pricingCompareCta')}</p>
-            <p className="text-zinc-500 text-sm">{hp('pricingCompareSubtitle')}</p>
-          </div>
-          <a href="#pricing"
-            className="shrink-0 rounded-full bg-zinc-900 hover:bg-zinc-700 text-white px-7 py-2.5 text-sm font-bold transition-colors">
-            {hp('pricingCompareButton')}
-          </a>
-        </div>
-      </section>
-
-      {/* ── Fiyatlandırma ── */}
-      <section id="pricing" className="py-20 bg-zinc-50">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="flex flex-col lg:flex-row gap-8 items-center mb-12">
-            <div className="flex-1 text-center lg:text-left">
-              <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">{hp('pricingTitle')}</h2>
-              <p className="text-zinc-500 max-w-xl">
-                {hp('pricingSubtitle')}
-              </p>
-            </div>
-            <div className="flex-shrink-0 w-full lg:w-72">
-              <Image
-                src="/images/feature-handshake.jpg"
-                alt="CheckRezerve pricing"
-                width={320}
-                height={200}
-                className="w-full rounded-2xl shadow-lg object-cover"
-                style={{ height: '180px' }}
-              />
-            </div>
-          </div>
-          <PricingToggle />
-        </div>
-      </section>
-
-      {/* ── SSS ── */}
-      <section id="sss" className="py-20 bg-white">
-        <div className="mx-auto max-w-3xl px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">{hp('faqTitle')}</h2>
-          </div>
-          <FAQSection />
+      {/* ── Plan CTA ── */}
+      <section id="pricing" className="py-20 bg-white border-t border-zinc-100">
+        <div className="mx-auto max-w-2xl px-6 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">Hangi plan size uygun?</h2>
+          <p className="text-zinc-500 mb-8">İşletmenizin büyüklüğüne göre hazırlanmış esnek planlarımızı inceleyin.</p>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <Link href={'/pricing' as any}
+            className="inline-flex items-center gap-2 rounded-full bg-zinc-900 hover:bg-zinc-700 text-white px-8 py-4 text-base font-bold transition-colors">
+            Fiyatları Karşılaştır →
+          </Link>
         </div>
       </section>
 

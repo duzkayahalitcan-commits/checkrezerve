@@ -84,11 +84,25 @@ export default function BookingForm({
   const [partySize, setPartySize] = useState('2')
   const [specialRequests, setSpecialRequests] = useState('')
   const [selectedTable, setSelectedTable] = useState<string | null>(null)
+  const [dresscode, setDresscode] = useState('')
+  const [privacyAccepted, setPrivacyAccepted] = useState(false)
+  const [privacyModalOpen, setPrivacyModalOpen] = useState(false)
+  const [privacyError, setPrivacyError] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
   const isBeauty = BEAUTY_TYPES.includes(businessType)
+
+  const DRESSCODE_OPTIONS: Record<string, string[]> = {
+    restaurant:    ['Serbest', 'Smart Casual', 'Business Casual', 'Formal', 'Kokteyl'],
+    spa:           ['Rahat', 'Havlu/Bornoz sağlanır', 'Spor kıyafet önerilir'],
+    beauty_salon:  ['Rahat', 'Havlu/Bornoz sağlanır', 'Spor kıyafet önerilir'],
+    barber:        ['Serbest'],
+    hairdresser:   ['Serbest'],
+    default:       ['Serbest', 'Smart Casual', 'Casual'],
+  }
+  const dresscodeOptions = DRESSCODE_OPTIONS[businessType] ?? DRESSCODE_OPTIONS.default
   const specialLabelKey = SPECIAL_LABEL_KEYS[businessType] ?? SPECIAL_LABEL_KEYS.default
 
   async function handleSubmit(e: React.FormEvent) {
@@ -97,6 +111,10 @@ export default function BookingForm({
 
     if (!name.trim() || !phone.trim() || !selectedDate || !selectedTime) {
       setError(t('requiredFields'))
+      return
+    }
+    if (!privacyAccepted) {
+      setPrivacyError(true)
       return
     }
 
@@ -115,7 +133,7 @@ export default function BookingForm({
         staff_id: selectedCalisan,
         masa_tipi_id: selectedMasa,
         table_id: selectedTable,
-        special_requests: specialRequests,
+        special_requests: dresscode ? `[Dresscode: ${dresscode}] ${specialRequests}`.trim() : specialRequests,
       }),
     })
     setLoading(false)
@@ -339,6 +357,28 @@ export default function BookingForm({
         </div>
       )}
 
+      {/* Dresscode */}
+      <div>
+        <label className="block text-sm font-semibold text-zinc-700 mb-3">
+          Dresscode <span className="font-normal text-zinc-400">(opsiyonel)</span>
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {dresscodeOptions.map(opt => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => setDresscode(dresscode === opt ? '' : opt)}
+              className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors
+                ${dresscode === opt
+                  ? 'bg-zinc-900 border-zinc-900 text-white'
+                  : 'bg-white border-zinc-200 text-zinc-700 hover:border-zinc-400'}`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm font-semibold text-zinc-700 mb-1.5">
           {t(specialLabelKey as Parameters<typeof t>[0])}
@@ -352,6 +392,26 @@ export default function BookingForm({
         />
       </div>
 
+      {/* Privacy checkbox */}
+      <div className={`flex items-start gap-3 p-4 rounded-xl border transition-colors ${privacyError && !privacyAccepted ? 'border-red-400 bg-red-50' : 'border-zinc-200 bg-zinc-50'}`}>
+        <input
+          type="checkbox"
+          id="privacy"
+          checked={privacyAccepted}
+          onChange={e => { setPrivacyAccepted(e.target.checked); setPrivacyError(false) }}
+          className="mt-0.5 accent-red-600 w-4 h-4 shrink-0 cursor-pointer"
+        />
+        <label htmlFor="privacy" className="text-sm text-zinc-700 cursor-pointer leading-relaxed">
+          <button type="button" onClick={() => setPrivacyModalOpen(true)} className="text-red-600 font-semibold hover:underline">
+            Gizlilik Sözleşmesi ve Rezervasyon Koşulları
+          </button>
+          {"'nı okudum, kabul ediyorum"}
+        </label>
+      </div>
+      {privacyError && !privacyAccepted && (
+        <p className="text-sm text-red-600 -mt-4">Devam etmek için koşulları onaylamanız gerekmektedir.</p>
+      )}
+
       {error && (
         <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
           {error}
@@ -361,7 +421,8 @@ export default function BookingForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-bold py-4 text-base transition-colors"
+        className={`w-full rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-bold py-4 text-base transition-colors
+          ${!privacyAccepted ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         {loading ? t('submitting') : t('submit')}
       </button>
@@ -369,6 +430,56 @@ export default function BookingForm({
       <p className="text-center text-xs text-zinc-400">
         {t('confirmationNote')}
       </p>
+
+      {/* Privacy Modal */}
+      {privacyModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setPrivacyModalOpen(false)}
+        >
+          <div
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="px-6 pt-6 pb-4 border-b border-zinc-100">
+              <h2 className="text-lg font-bold text-zinc-900">Gizlilik Sözleşmesi & Rezervasyon Koşulları</h2>
+              <button
+                type="button"
+                onClick={() => setPrivacyModalOpen(false)}
+                className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-700 text-xl font-bold"
+              >×</button>
+            </div>
+            <div className="overflow-y-auto px-6 py-5 space-y-5 text-sm text-zinc-600 leading-relaxed">
+              <section>
+                <h3 className="font-bold text-zinc-900 mb-2">1. Kişisel Verilerin İşlenmesi</h3>
+                <p>CheckRezerve olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) kapsamında kişisel verilerinizi toplar ve işleriz. Rezervasyon sürecinde sağladığınız ad, telefon ve e-posta bilgileriniz yalnızca hizmet sunumu amacıyla kullanılır. Verileriniz açık rızanız olmaksızın üçüncü taraflarla paylaşılmaz ve yurt dışına aktarılmaz.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-zinc-900 mb-2">2. Rezervasyon Koşulları</h3>
+                <p>Rezervasyonunuz, ilgili işletmenin onayı ile geçerlilik kazanır. Onay SMS veya e-posta yoluyla iletilir. İptal işlemleri, rezervasyon saatinden en az 2 saat önce yapılmalıdır. Belirtilen süre içinde iptal edilmeyen rezervasyonlar geçersiz sayılabilir.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-zinc-900 mb-2">3. No-Show Politikası</h3>
+                <p>Ön ödeme gerektiren rezervasyonlarda, belirlenen süre içinde iptal yapılmaması veya rezervasyona gelinmemesi (no-show) durumunda ödeme iadesi yapılmaz. İşletme tarafından belirlenen özel koşullar, rezervasyon onay mesajında ayrıca belirtilir.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-zinc-900 mb-2">4. İletişim</h3>
+                <p>Rezervasyon veya gizlilik konularında sorularınız için: <strong>destek@checkrezerve.com</strong></p>
+              </section>
+            </div>
+            <div className="px-6 pb-6 pt-4 border-t border-zinc-100">
+              <button
+                type="button"
+                onClick={() => { setPrivacyAccepted(true); setPrivacyModalOpen(false); setPrivacyError(false) }}
+                className="w-full rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold py-3 text-sm transition-colors"
+              >
+                Okudum, Onaylıyorum ✓
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   )
 }

@@ -15,9 +15,6 @@ export default function MarketingHeader() {
     { href: '/kullanim-alanlari', label: t('useCases') },
     { href: '/#pricing',           label: t('pricing') },
     { href: '/rezervasyon',       label: t('makeReservation') },
-    { href: '/blog',              label: t('blog') },
-    { href: '/hakkimizda',        label: t('about') },
-    { href: '/iletisim',          label: t('contact') },
   ]
 
   return (
@@ -26,7 +23,10 @@ export default function MarketingHeader() {
         {/* Logo */}
         <NextLink href="/" className="flex items-center gap-2.5 group flex-shrink-0">
           <Image src="/logo-icon.png" alt="CheckRezerve" width={36} height={36} className="rounded-xl" priority />
-          <span className="text-base font-bold tracking-tight text-zinc-900">CheckRezerve</span>
+          <div className="flex flex-col leading-none">
+            <span className="text-base font-bold tracking-tight text-zinc-900">CheckRezerve</span>
+            <span className="text-[10px] italic text-zinc-400 font-normal mt-0.5">Saniyeler içinde rezervasyon</span>
+          </div>
         </NextLink>
 
         {/* Desktop Nav */}
