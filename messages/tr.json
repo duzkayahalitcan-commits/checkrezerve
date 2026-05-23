@@ -187,7 +187,12 @@
     "ctaSubtitle": "Kredi kartı gerekmez. Kurulum birkaç dakika sürer.",
     "ctaButton": "14 Gün Ücretsiz Dene →",
     "demoCta": "CheckRezerve'i canlı görmek ister misiniz?",
-    "demoButton": "Demo İste →"
+    "demoButton": "Demo İste →",
+    "heroTitle": "Rezervasyonlarınızı Akıllıca Yönetin",
+    "heroSubtitle": "Restoranınız, spanız veya salonunuz için tüm rezervasyon süreçlerini tek panelden kontrol edin.",
+    "heroBadge": "2.400+ işletme güveniyor",
+    "heroCtaPrimary": "14 Gün Ücretsiz Dene",
+    "heroCtaSecondary": "Nasıl Çalışır?"
   },
   "about": {
     "heroBadge": "Hakkımızda",

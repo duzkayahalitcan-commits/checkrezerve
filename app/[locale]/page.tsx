@@ -24,8 +24,7 @@ export default async function PortalPage({
 
       {/* ── Logo — sol üst ── */}
       <div className="absolute top-5 left-6 z-[100] flex items-center">
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        <Link href={'/home' as any} className="flex items-center gap-2 group">
+        <Link href="/home" className="flex items-center gap-2 group">
           <Image
             src="/logo-icon.png"
             alt="CheckRezerve"
@@ -50,9 +49,8 @@ export default async function PortalPage({
 
       {/* ── İşletmeler için — sağ alt ── */}
       <div className="absolute bottom-6 right-7 z-[100]">
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <Link
-          href={'/home' as any}
+          href="/home"
           className="text-white/50 hover:text-white/90 text-xs font-semibold tracking-wide transition-colors"
         >
           {t('forBusiness')} →

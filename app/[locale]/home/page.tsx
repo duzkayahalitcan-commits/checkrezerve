@@ -5,7 +5,8 @@ import { UtensilsCrossed, Scissors, Sparkles, BedDouble, CalendarRange, Dumbbell
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import BasvuruModal from '@/components/BasvuruModal'
-import DiagonalSplit from '@/components/DiagonalSplit'
+import HomeHero from '@/components/HomeHero'
+import FeaturesSection from '@/components/FeaturesSection'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
@@ -53,12 +54,26 @@ export default async function HomePage({
     { quoteKey: 'testimonial3Quote', name: 'Kemal Özcan',   business: 'Kahve Durağı',          typeKey: 'testimonial3Type', initials: 'KÖ' },
   ]
 
+  const FEATURES_RESOLVED = FEATURES.map(f => ({
+    icon: f.icon,
+    img:  f.img,
+    title: hp(f.titleKey as Parameters<typeof hp>[0]),
+    desc:  hp(f.descKey  as Parameters<typeof hp>[0]),
+  }))
+
   return (
     <div className="min-h-screen bg-white">
       <MarketingHeader />
 
-      {/* ── Diagonal Split ── */}
-      <DiagonalSplit />
+      {/* ── Hero ── */}
+      <HomeHero
+        title={hp('heroTitle')}
+        subtitle={hp('heroSubtitle')}
+        badge={hp('heroBadge')}
+        ctaPrimary={hp('heroCtaPrimary')}
+        ctaSecondary={hp('heroCtaSecondary')}
+        locale={locale}
+      />
 
       {/* ── Slogan Band ── */}
       <section className="bg-zinc-900 py-6">
@@ -171,26 +186,12 @@ export default async function HomePage({
       </section>
 
       {/* ── Özellikler ── */}
-      <section id="ozellikler" className="py-20 bg-white">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">{hp('featuresTitle')}</h2>
-            <p className="text-zinc-500 max-w-xl mx-auto">{hp('featuresSubtitle')}</p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {FEATURES.map(f => (
-              <div key={f.titleKey}
-                className="rounded-2xl border border-zinc-100 bg-zinc-50 overflow-hidden hover:border-red-100 hover:shadow-md transition-all duration-200">
-                <Image src={f.img} alt={hp(f.titleKey as Parameters<typeof hp>[0])}
-                  width={400} height={160} className="w-full object-cover" style={{ height: '160px' }} />
-                <div className="p-7">
-                  <h3 className="text-base font-bold text-zinc-900 mb-2">{hp(f.titleKey as Parameters<typeof hp>[0])}</h3>
-                  <p className="text-sm text-zinc-600 leading-relaxed">{hp(f.descKey as Parameters<typeof hp>[0])}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+      <section id="ozellikler" className="bg-white">
+        <div className="mx-auto max-w-6xl px-6 pt-20 pb-6 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">{hp('featuresTitle')}</h2>
+          <p className="text-zinc-500 max-w-xl mx-auto">{hp('featuresSubtitle')}</p>
         </div>
+        <FeaturesSection features={FEATURES_RESOLVED} />
       </section>
 
       {/* ── Slogan — Deneyim ── */}

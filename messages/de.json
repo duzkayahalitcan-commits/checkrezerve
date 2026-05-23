@@ -187,7 +187,12 @@
     "ctaSubtitle": "Keine Kreditkarte erforderlich. Die Einrichtung dauert wenige Minuten.",
     "ctaButton": "14 Tage kostenlos testen →",
     "demoCta": "Möchten Sie CheckRezerve live sehen?",
-    "demoButton": "Demo anfragen →"
+    "demoButton": "Demo anfragen →",
+    "heroTitle": "Verwalten Sie Ihre Reservierungen intelligent",
+    "heroSubtitle": "Kontrollieren Sie alle Reservierungsprozesse für Ihr Restaurant, Spa oder Salon in einem Dashboard.",
+    "heroBadge": "Über 2.400 Unternehmen vertrauen uns",
+    "heroCtaPrimary": "14 Tage kostenlos testen",
+    "heroCtaSecondary": "Wie funktioniert es?"
   },
   "about": {
     "heroBadge": "Über uns",

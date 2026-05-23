@@ -187,7 +187,12 @@
     "ctaSubtitle": "No credit card required. Setup takes a few minutes.",
     "ctaButton": "Try Free for 14 Days →",
     "demoCta": "Want to see CheckRezerve live?",
-    "demoButton": "Request Demo →"
+    "demoButton": "Request Demo →",
+    "heroTitle": "Manage Your Reservations Smartly",
+    "heroSubtitle": "Control all reservation processes for your restaurant, spa, or salon from a single dashboard.",
+    "heroBadge": "2,400+ businesses trust us",
+    "heroCtaPrimary": "Try Free for 14 Days",
+    "heroCtaSecondary": "How It Works?"
   },
   "about": {
     "heroBadge": "About Us",

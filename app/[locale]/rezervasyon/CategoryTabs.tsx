@@ -2,11 +2,7 @@
 import { Link } from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-
-const CATEGORIES = [
-  { key: 'yeme-icme', labelKey: 'catFoodDrink', icon: '🍽️' },
-  { key: 'guzellik',  labelKey: 'catBeauty',    icon: '💆' },
-]
+import { CATEGORIES } from './categories'
 
 export default function CategoryTabs() {
   const params = useSearchParams()
