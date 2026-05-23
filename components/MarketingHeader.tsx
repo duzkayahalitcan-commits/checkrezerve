@@ -21,7 +21,7 @@ export default function MarketingHeader() {
     <header className="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-100 shadow-sm">
       <div className="mx-auto max-w-7xl flex items-center justify-between px-6 h-16">
         {/* Logo */}
-        <NextLink href="/" className="flex items-center gap-2.5 group flex-shrink-0">
+        <NextLink href="/home" className="flex items-center gap-2.5 group flex-shrink-0">
           <Image src="/logo-icon.png" alt="CheckRezerve" width={36} height={36} className="rounded-xl" priority />
           <div className="flex flex-col leading-none">
             <span className="text-base font-bold tracking-tight text-zinc-900">CheckRezerve</span>

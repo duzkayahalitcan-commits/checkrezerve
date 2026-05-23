@@ -1058,5 +1058,15 @@
     "dressCodePlaceholder": "Örn: Spor giyim kabul edilmez",
     "specialNotes": "Özel Notlar / Uyarılar",
     "specialNotesPlaceholder": "Rezervasyon sayfasında müşterilere gösterilir"
+  },
+  "diagonal": {
+    "restoran": "Restoran",
+    "restoranSub": "Fine dining, kafe & bar",
+    "guzellik": "Güzellik & Bakım",
+    "guzellikSub": "Kuaför, berber & tırnak",
+    "spa": "Sağlık & Spa",
+    "spaSub": "Spa, masaj & wellness",
+    "discover": "Keşfet",
+    "forBusiness": "İşletmeler için"
   }
 }

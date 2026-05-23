@@ -1058,5 +1058,15 @@
     "dressCodePlaceholder": "F.eks. Smart casual kræves",
     "specialNotes": "Særlige noter / advarsler",
     "specialNotesPlaceholder": "Vises til kunder på reservationssiden"
+  },
+  "diagonal": {
+    "restoran": "Restaurant",
+    "restoranSub": "Fine dining, café & bar",
+    "guzellik": "Skønhed & Pleje",
+    "guzellikSub": "Frisør, barber & negle",
+    "spa": "Sundhed & Spa",
+    "spaSub": "Spa, massage & wellness",
+    "discover": "Udforsk",
+    "forBusiness": "For virksomheder"
   }
 }

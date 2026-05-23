@@ -1058,5 +1058,15 @@
     "dressCodePlaceholder": "E.g. Smart casual required",
     "specialNotes": "Special Notes / Warnings",
     "specialNotesPlaceholder": "Shown to customers on the reservation page"
+  },
+  "diagonal": {
+    "restoran": "Restaurant",
+    "restoranSub": "Fine dining, café & bar",
+    "guzellik": "Beauty & Care",
+    "guzellikSub": "Hairdresser, barber & nails",
+    "spa": "Health & Spa",
+    "spaSub": "Spa, massage & wellness",
+    "discover": "Explore",
+    "forBusiness": "For businesses"
   }
 }

@@ -1058,5 +1058,15 @@
     "dressCodePlaceholder": "مثال: لا تُقبل الملابس الرياضية",
     "specialNotes": "ملاحظات خاصة / تحذيرات",
     "specialNotesPlaceholder": "تُعرض للعملاء في صفحة الحجز"
+  },
+  "diagonal": {
+    "restoran": "مطعم",
+    "restoranSub": "مطاعم فاخرة، مقاهٍ وبارات",
+    "guzellik": "الجمال والعناية",
+    "guzellikSub": "صالون شعر، حلاق ومناكير",
+    "spa": "الصحة والسبا",
+    "spaSub": "سبا، مساج وعافية",
+    "discover": "اكتشف",
+    "forBusiness": "للشركات"
   }
 }

@@ -1,78 +1,104 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useLocale, useTranslations } from 'next-intl'
 
-const PANELS = [
+const PANEL_DEFS = [
   {
     id: 'restoran',
-    label: 'Restoran',
-    sub: 'Fine dining, kafe & bar',
     img: '/images/split-restoran.jpg',
-    href: '/rezervasyon?kategori=restoran',
+    bgPos: 'center 40%',
     accent: '#B71C1C',
     icon: '🍷',
     clip: 'polygon(0 0, 108% 0, 90% 100%, 0 100%)',
   },
   {
     id: 'guzellik',
-    label: 'Güzellik & Bakım',
-    sub: 'Kuaför, berber & tırnak',
     img: '/images/split-guzellik.jpg',
-    href: '/rezervasyon?kategori=guzellik',
+    bgPos: 'center',
     accent: '#880E4F',
     icon: '✂️',
     clip: 'polygon(10% 0, 108% 0, 90% 100%, -8% 100%)',
   },
   {
     id: 'spa',
-    label: 'Sağlık & Spa',
-    sub: 'Spa, masaj & wellness',
     img: '/images/split-spa.jpg',
-    href: '/rezervasyon?kategori=spa',
+    bgPos: 'center',
     accent: '#004D40',
     icon: '🧖',
     clip: 'polygon(10% 0, 100% 0, 100% 100%, -8% 100%)',
   },
 ]
 
-export default function DiagonalSplit() {
+export default function DiagonalSplit({ fullscreen = false }: { fullscreen?: boolean }) {
   const [hovered, setHovered] = useState<string | null>(null)
   const router = useRouter()
+  const locale = useLocale()
+  const t = useTranslations('diagonal')
+
+  const labels: Record<string, string> = {
+    restoran: t('restoran'),
+    guzellik: t('guzellik'),
+    spa:      t('spa'),
+  }
+  const subs: Record<string, string> = {
+    restoran: t('restoranSub'),
+    guzellik: t('guzellikSub'),
+    spa:      t('spaSub'),
+  }
 
   return (
-    <section className="ds-section">
+    <section
+      className="ds-section"
+      style={fullscreen ? { height: '100dvh', maxHeight: 'none', minHeight: 'unset' } : {}}
+    >
       <div className="ds-track">
-        {PANELS.map((panel, idx) => {
-          const isHov = hovered === panel.id
+        {PANEL_DEFS.map((panel, idx) => {
+          const isHov   = hovered === panel.id
           const isOther = hovered !== null && !isHov
           return (
             <div
               key={panel.id}
               className="ds-panel"
               style={{
-                backgroundImage: `url(${panel.img})`,
-                backgroundPosition: panel.id === 'restoran' ? 'center 40%' : 'center',
-                clipPath: panel.clip,
-                zIndex: isHov ? 10 : idx + 1,
-                filter: isOther ? 'brightness(0.3) saturate(0.4)' : 'brightness(1) saturate(1)',
-                flex: isHov ? '1.65' : isOther ? '0.68' : '1',
+                backgroundImage:    `url(${panel.img})`,
+                backgroundPosition: panel.bgPos,
+                clipPath:           panel.clip,
+                zIndex:  isHov ? 10 : idx + 1,
+                filter:  isOther ? 'brightness(0.3) saturate(0.4)' : 'brightness(1) saturate(1)',
+                flex:    isHov ? '1.65' : isOther ? '0.68' : '1',
               }}
               onMouseEnter={() => setHovered(panel.id)}
               onMouseLeave={() => setHovered(null)}
-              onClick={() => router.push(panel.href)}
+              onClick={() => router.push(`/${locale}/rezervasyon?kategori=${panel.id}`)}
             >
-              <div className="ds-overlay" style={{
-                background: `linear-gradient(to top, ${panel.accent}f0 0%, ${panel.accent}60 35%, transparent 70%)`,
-                opacity: isHov ? 1 : 0.8,
-              }} />
+              <div
+                className="ds-overlay"
+                style={{
+                  background: `linear-gradient(to top, ${panel.accent}f0 0%, ${panel.accent}60 35%, transparent 70%)`,
+                  opacity: isHov ? 1 : 0.8,
+                }}
+              />
               <div className="ds-content" style={{ transform: isHov ? 'translateY(0)' : 'translateY(14px)' }}>
                 <span className="ds-icon">{panel.icon}</span>
-                <h2 className="ds-title">{panel.label}</h2>
-                <p className="ds-sub" style={{ opacity: isHov ? 1 : 0, transform: isHov ? 'translateY(0)' : 'translateY(10px)' }}>
-                  {panel.sub}
+                <h2 className="ds-title">{labels[panel.id]}</h2>
+                <p
+                  className="ds-sub"
+                  style={{
+                    opacity:   isHov ? 1 : 0,
+                    transform: isHov ? 'translateY(0)' : 'translateY(10px)',
+                  }}
+                >
+                  {subs[panel.id]}
                 </p>
-                <div className="ds-cta" style={{ opacity: isHov ? 1 : 0, transform: isHov ? 'translateY(0)' : 'translateY(10px)' }}>
-                  <span>Keşfet</span>
+                <div
+                  className="ds-cta"
+                  style={{
+                    opacity:   isHov ? 1 : 0,
+                    transform: isHov ? 'translateY(0)' : 'translateY(10px)',
+                  }}
+                >
+                  <span>{t('discover')}</span>
                   <span className="ds-arrow">→</span>
                 </div>
               </div>
@@ -104,11 +130,8 @@ export default function DiagonalSplit() {
           position: relative;
           flex: 1;
           background-size: cover;
-          background-position: center;
           cursor: pointer;
-          transition:
-            flex 0.65s cubic-bezier(0.23, 1, 0.32, 1),
-            filter 0.45s ease;
+          transition: flex 0.65s cubic-bezier(0.23, 1, 0.32, 1), filter 0.45s ease;
           overflow: hidden;
           will-change: flex, filter;
           transform: translateZ(0);
@@ -123,7 +146,7 @@ export default function DiagonalSplit() {
         .ds-content {
           position: absolute;
           bottom: 0;
-          left: 56px;
+          left: max(16%, 40px);
           right: 20px;
           padding: 0 0 56px 0;
           display: flex;
@@ -189,7 +212,7 @@ export default function DiagonalSplit() {
           to   { opacity: 1; }
         }
         @media (max-width: 768px) {
-          .ds-section { height: auto; max-height: none; }
+          .ds-section { height: auto; max-height: none; min-height: unset; }
           .ds-track { flex-direction: column; width: 100%; margin-left: 0; }
           .ds-panel {
             flex: none !important;

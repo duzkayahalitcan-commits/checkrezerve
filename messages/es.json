@@ -1058,5 +1058,15 @@
     "dressCodePlaceholder": "Ej. Se requiere vestimenta formal",
     "specialNotes": "Notas especiales / Advertencias",
     "specialNotesPlaceholder": "Se muestra a los clientes en la página de reserva"
+  },
+  "diagonal": {
+    "restoran": "Restaurante",
+    "restoranSub": "Alta cocina, café y bar",
+    "guzellik": "Belleza y Cuidado",
+    "guzellikSub": "Peluquería, barbería y uñas",
+    "spa": "Salud y Spa",
+    "spaSub": "Spa, masajes y bienestar",
+    "discover": "Explorar",
+    "forBusiness": "Para empresas"
   }
 }

@@ -1058,5 +1058,15 @@
     "dressCodePlaceholder": "z. B. Kein Sportkleidung",
     "specialNotes": "Besondere Hinweise",
     "specialNotesPlaceholder": "Wird Kunden auf der Reservierungsseite angezeigt"
+  },
+  "diagonal": {
+    "restoran": "Restaurant",
+    "restoranSub": "Fine Dining, Café & Bar",
+    "guzellik": "Schönheit & Pflege",
+    "guzellikSub": "Friseur, Barbier & Nägel",
+    "spa": "Gesundheit & Spa",
+    "spaSub": "Spa, Massage & Wellness",
+    "discover": "Entdecken",
+    "forBusiness": "Für Unternehmen"
   }
 }
