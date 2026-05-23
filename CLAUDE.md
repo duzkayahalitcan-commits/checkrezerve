@@ -54,25 +54,25 @@
 
 ### MOBİL
 
-[ ] 6. CustomerNavigator — HomeScreen sol üst profil butonu
+[x] 6. CustomerNavigator — HomeScreen sol üst profil butonu
 - HomeScreen header sol üst: profil ikonu
 - navigation.navigate('Profile') — Stack'te kayıtlı değilse ekle
 
-[ ] 7. ProfileInfoScreen — Supabase entegrasyonu
+[x] 7. ProfileInfoScreen — Supabase entegrasyonu
 - profiles tablosuna allergens jsonb kolonu ekle (alembic migration)
 - Kaydet: Supabase'e yaz, sayfa açılınca çek
 
-[ ] 8. HomeScreen tasarım
+[x] 8. HomeScreen tasarım
 - Üst: konum bazlı banner
 - Kategori chips: horizontal scroll
 - İşletme kartları: görsel full-width, gradient overlay, favori butonu
 
-[ ] 9. BusinessDetailScreen
+[x] 9. BusinessDetailScreen
 - Hero: tam genişlik görsel + gradient + geri butonu
 - Hizmetler: fiyat+süre chip
 - Sticky bottom: "Rezervasyon Yap" bar
 
-[ ] 10. ReservationConfirmScreen
+[x] 10. ReservationConfirmScreen
 - Success checkmark: scale 0→1 spring animasyonu
 - Rezervasyon özet kartı
 - "Takvime Ekle" + "Ana Sayfaya Dön" butonları
