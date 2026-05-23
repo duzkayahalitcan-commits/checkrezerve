@@ -4,6 +4,7 @@ import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { getSupabase } from '@/lib/supabase'
 import { sendReservationConfirmation } from '@/lib/notification-service'
+import { rateLimit } from '@/lib/rate-limit'
 
 // ── Giriş şeması ─────────────────────────────────────────────────────────────
 const RequestSchema = z.object({
@@ -48,6 +49,9 @@ YANIT (reply alanı) KURALLARI:
 
 // ── POST /api/ai-reserve ──────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, { prefix: 'ai-reserve', max: 20, windowMs: 60_000 });
+  if (limited) return limited;
+
   try {
     // 1. Girişi doğrula
     const body = await req.json()

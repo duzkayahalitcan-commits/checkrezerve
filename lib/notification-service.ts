@@ -23,15 +23,6 @@ export interface SmsResult {
   error?:     string
 }
 
-export interface ReservationNotificationParams {
-  to:           string
-  customerName: string
-  restaurantName?: string
-  date:         string  // YYYY-MM-DD
-  time:         string  // HH:MM
-  partySize:    number
-}
-
 // ── Sağlayıcı arayüzü ────────────────────────────────────────────────────────
 interface SmsProvider {
   send(payload: SmsPayload): Promise<SmsResult>

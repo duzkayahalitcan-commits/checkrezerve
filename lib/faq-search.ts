@@ -21,10 +21,7 @@ const GREETING_REPLY =
 
 export function checkGreeting(text: string): string | null {
   const norm = text.toLowerCase().trim().replace(/[!?.,]/g, '').trim()
-  if (GREETINGS.some(g => norm === g)) {
-    console.log('[faq] kademe-0 (greeting) hit')
-    return GREETING_REPLY
-  }
+  if (GREETINGS.some(g => norm === g)) return GREETING_REPLY
   return null
 }
 
@@ -74,10 +71,7 @@ async function keywordSearch(text: string): Promise<string | null> {
     }
   }
 
-  if (bestScore >= 0.70) {
-    console.log(`[faq] kademe-1 (keyword) hit — skor: ${bestScore.toFixed(2)}`)
-    return bestAnswer
-  }
+  if (bestScore >= 0.70) return bestAnswer
   return null
 }
 
@@ -108,12 +102,9 @@ async function embeddingSearch(text: string): Promise<string | null> {
       match_threshold: 0.85,
       match_count: 1,
     })
-    if (data && data.length > 0) {
-      console.log(`[faq] kademe-2 (embedding) hit — benzerlik: ${data[0].similarity?.toFixed(3)}`)
-      return data[0].answer as string
-    }
-  } catch (e) {
-    console.warn('[faq] embedding search failed:', e)
+    if (data && data.length > 0) return data[0].answer as string
+  } catch {
+    // embedding search opsiyonel — başarısız olursa Claude'a düşer
   }
   return null
 }
@@ -127,6 +118,5 @@ export async function searchFaq(text: string): Promise<string | null> {
   const emb = await embeddingSearch(text)
   if (emb) return emb
 
-  console.log('[faq] kademe-3 (Claude) devreye giriyor')
   return null
 }

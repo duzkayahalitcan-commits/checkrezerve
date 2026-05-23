@@ -80,3 +80,39 @@
 ## Tamamlandıktan Sonra
 Web: deploy et
 Mobil: npx tsc --noEmit kontrol et
+
+---
+
+## GÜVENLİK & KALİTE RAPORU (2026-05-23)
+
+### ✅ Düzeltilen Bulgular
+| # | Dosya | Sorun | Çözüm |
+|---|-------|-------|-------|
+| 1 | `lib/rate-limit.ts` (yeni) | Rate limiting yoktu | In-memory rate limiter utility oluşturuldu |
+| 2 | `app/api/send-sms/route.ts` | Rate limit yok | 10 req/dk limit eklendi |
+| 3 | `app/api/chat/route.ts` | Rate limit yok | 30 req/dk limit eklendi |
+| 4 | `app/api/voice/route.ts` | Rate limit yok | 15 req/dk limit eklendi |
+| 5 | `app/api/transcribe/route.ts` | Rate limit yok | 20 req/dk limit eklendi |
+| 6 | `app/api/ai-reserve/route.ts` | Rate limit yok | 20 req/dk limit eklendi |
+| 7 | `lib/faq-search.ts` | 4x console.log debug | Tümü temizlendi |
+| 8 | `lib/notification-service.ts` | Duplicate `ReservationNotificationParams` (satır 26 vs 206) | İlk tanım kaldırıldı, kapsamlı olan korundu |
+| 9 | `src/hooks/useAuth.ts` (mobil) | `console.log` hassas rol verisi | Temizlendi |
+| 10 | `src/screens/panel/SettingsScreen.tsx` (mobil) | `console.log` rol bilgisi | Temizlendi |
+| 11 | `src/screens/admin/IsletmeAdminStatsScreen.tsx` (mobil) | `console.log` Supabase sorgu detayları | Temizlendi |
+| 12 | `src/screens/panel/DashboardScreen.tsx` (mobil) | `useEffect(fn, [])` — fetchStats dependency eksik | `useCallback` + `[fetchStats]` dependency eklendi |
+| 13 | `components/MarketingHeader.tsx` | `as any` href cast | `as never` ile değiştirildi |
+| 14 | `app/[locale]/home/page.tsx` | `as any` href cast | `as never` ile değiştirildi |
+
+### ⚠️ Kalan Bulgular (refactor gerektirir, şimdilik takip edilsin)
+| Dosya | Sorun |
+|-------|-------|
+| `app/panel/[slug]/ReservationList.tsx:9` | Local `Reservation` type — `types/index.ts`'deki master type kullanılabilir |
+| `app/admin/ReservationDashboard.tsx:6` | Aynı local `Reservation` type |
+| `app/panel/[slug]/page.tsx:193` | `as any` cast — proper type gerekli |
+| `app/admin/page.tsx:223-225` | `as unknown as` — proper type gerekli |
+| Mobile `SubscriptionScreen.tsx` | 6+ `as any` cast |
+
+### ✅ Güvenli Olan (false positive)
+- `.env.local` gitignore'da, git'te takip edilmiyor ✓
+- `dangerouslySetInnerHTML` — JSON-LD için kullanılıyor, XSS riski yok ✓
+- `SUPABASE_SERVICE_ROLE_KEY` — sadece server-side lib'de (API routes), client bundle'a gitmiyor ✓

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import twilio from 'twilio';
+import { rateLimit } from '@/lib/rate-limit';
 
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
@@ -7,6 +8,9 @@ const client = twilio(
 );
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, { prefix: 'send-sms', max: 10, windowMs: 60_000 });
+  if (limited) return limited;
+
   try {
     const { to, message } = await req.json();
 

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { checkGreeting, searchFaq } from '@/lib/faq-search'
+import { rateLimit } from '@/lib/rate-limit'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimit(request, { prefix: 'chat', max: 30, windowMs: 60_000 });
+  if (limited) return limited;
+
   try {
     const { messages, businessName, businessType, availableSlots } = await request.json()
 

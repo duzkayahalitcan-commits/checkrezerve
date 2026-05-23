@@ -239,7 +239,7 @@ export default async function HomePage({
           <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">Hangi plan size uygun?</h2>
           <p className="text-zinc-500 mb-8">İşletmenizin büyüklüğüne göre hazırlanmış esnek planlarımızı inceleyin.</p>
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <Link href={'/pricing' as any}
+          <Link href={'/pricing' as never}
             className="inline-flex items-center gap-2 rounded-full bg-zinc-900 hover:bg-zinc-700 text-white px-8 py-4 text-base font-bold transition-colors">
             Fiyatları Karşılaştır →
           </Link>

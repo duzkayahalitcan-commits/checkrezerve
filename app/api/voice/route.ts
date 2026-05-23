@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import fs from 'fs'
 import { checkGreeting, searchFaq } from '@/lib/faq-search'
 import { findAudioFile, type AudioVoice } from '@/lib/audio-sentences'
+import { rateLimit } from '@/lib/rate-limit'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -117,6 +118,9 @@ Bilgi toplarken bu cümleleri TAM OLARAK kullan, hiçbir şey ekleme:
 }
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimit(request, { prefix: 'voice', max: 15, windowMs: 60_000 });
+  if (limited) return limited;
+
   try {
     const {
       text,

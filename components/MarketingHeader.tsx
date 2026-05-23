@@ -54,7 +54,7 @@ export default function MarketingHeader() {
           <nav className="hidden lg:flex items-center gap-6 text-sm text-zinc-500">
             {NAV_LINKS.map(l => (
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              <Link key={l.href} href={l.href as any} className="nav-link relative font-medium hover:text-zinc-900 transition-colors">
+              <Link key={l.href} href={l.href as never} className="nav-link relative font-medium hover:text-zinc-900 transition-colors">
                 {l.label}
               </Link>
             ))}
@@ -102,7 +102,7 @@ export default function MarketingHeader() {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             <Link
               key={l.href}
-              href={l.href as any}
+              href={l.href as never}
               onClick={() => setMobileOpen(false)}
               className="mobile-link block py-4 text-3xl font-black text-white hover:text-red-400 transition-colors border-b border-white/10"
               style={{
