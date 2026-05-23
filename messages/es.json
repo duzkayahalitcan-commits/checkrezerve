@@ -185,7 +185,9 @@
     "faqTitle": "Preguntas frecuentes",
     "ctaTitle": "Empieza ahora, prueba gratis durante 14 días",
     "ctaSubtitle": "No se necesita tarjeta de crédito. La configuración tarda unos minutos.",
-    "ctaButton": "Prueba gratis 14 días →"
+    "ctaButton": "Prueba gratis 14 días →",
+    "demoCta": "¿Quieres ver CheckRezerve en vivo?",
+    "demoButton": "Solicitar demo →"
   },
   "about": {
     "heroBadge": "Sobre nosotros",

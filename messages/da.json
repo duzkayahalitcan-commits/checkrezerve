@@ -185,7 +185,9 @@
     "faqTitle": "Ofte stillede spørgsmål",
     "ctaTitle": "Kom i gang nu, prøv gratis i 14 dage",
     "ctaSubtitle": "Intet kreditkort krævet. Opsætning tager et par minutter.",
-    "ctaButton": "Prøv gratis i 14 dage →"
+    "ctaButton": "Prøv gratis i 14 dage →",
+    "demoCta": "Vil du se CheckRezerve live?",
+    "demoButton": "Anmod om demo →"
   },
   "about": {
     "heroBadge": "Om os",

@@ -185,7 +185,9 @@
     "faqTitle": "Häufig gestellte Fragen",
     "ctaTitle": "Jetzt starten, 14 Tage kostenlos testen",
     "ctaSubtitle": "Keine Kreditkarte erforderlich. Die Einrichtung dauert wenige Minuten.",
-    "ctaButton": "14 Tage kostenlos testen →"
+    "ctaButton": "14 Tage kostenlos testen →",
+    "demoCta": "Möchten Sie CheckRezerve live sehen?",
+    "demoButton": "Demo anfragen →"
   },
   "about": {
     "heroBadge": "Über uns",

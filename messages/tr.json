@@ -185,7 +185,9 @@
     "faqTitle": "Sıkça Sorulan Sorular",
     "ctaTitle": "Hemen Başlayın, 14 Gün Ücretsiz Deneyin",
     "ctaSubtitle": "Kredi kartı gerekmez. Kurulum birkaç dakika sürer.",
-    "ctaButton": "14 Gün Ücretsiz Dene →"
+    "ctaButton": "14 Gün Ücretsiz Dene →",
+    "demoCta": "CheckRezerve'i canlı görmek ister misiniz?",
+    "demoButton": "Demo İste →"
   },
   "about": {
     "heroBadge": "Hakkımızda",

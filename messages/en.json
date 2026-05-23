@@ -185,7 +185,9 @@
     "faqTitle": "Frequently Asked Questions",
     "ctaTitle": "Get Started Now, Try Free for 14 Days",
     "ctaSubtitle": "No credit card required. Setup takes a few minutes.",
-    "ctaButton": "Try Free for 14 Days →"
+    "ctaButton": "Try Free for 14 Days →",
+    "demoCta": "Want to see CheckRezerve live?",
+    "demoButton": "Request Demo →"
   },
   "about": {
     "heroBadge": "About Us",
