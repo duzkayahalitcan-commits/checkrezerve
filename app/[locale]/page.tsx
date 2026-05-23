@@ -237,7 +237,7 @@ export default async function HomePage({
           {/* Demo Video Placeholder */}
           <div className="rounded-2xl overflow-hidden border border-zinc-200 max-w-3xl mx-auto relative aspect-video">
             <Image
-              src="/images/hero-restaurant.jpg"
+              src="/images/hero-restaurant-new.jpg"
               alt="CheckRezerve demo"
               fill
               className="object-cover"

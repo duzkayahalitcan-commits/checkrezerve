@@ -79,7 +79,7 @@ export default async function OzelliklerPage({
     },
     {
       num: '08',
-      img: '/tablet-mockup.jpg',
+      img: '/tablet-mockup-new.jpg',
       titleKey: 'feat8Title',
       descKey: 'feat8Desc',
       items: ['feat8Item1', 'feat8Item2', 'feat8Item3', 'feat8Item4'],
