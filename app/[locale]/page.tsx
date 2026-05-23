@@ -21,7 +21,6 @@ export default async function HomePage({
 }) {
   const { locale } = await params
   setRequestLocale(locale)
-  const t = await getTranslations('hero')
   const hp = await getTranslations('homepage')
 
   const SECTORS = [
@@ -130,45 +129,6 @@ export default async function HomePage({
     <div className="min-h-screen bg-white">
       <MarketingHeader />
 
-      {/* ── Hero ── */}
-      <section className="pt-24 pb-24 text-white relative" style={{backgroundImage:"linear-gradient(rgba(0,0,0,0.45),rgba(0,0,0,0.45)),url('/images/hero-premium.jpg')",backgroundSize:'cover',backgroundPosition:'center'}}>
-        <div className="mx-auto max-w-5xl px-6 text-center">
-          <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/30 rounded-full px-4 py-1.5 text-sm mb-8 text-red-300 font-medium">
-            {t('badge')}
-          </div>
-
-          <h1 className="text-4xl sm:text-6xl font-extrabold leading-tight mb-6 tracking-tight">
-            {t('mainTitle1')}<br />
-            <span className="text-red-400">{t('mainTitle2')}</span>
-          </h1>
-          <p className="text-white/70 text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
-            {t('mainSubtitle')}
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10 text-sm text-white/70">
-            {[
-              t('benefit1'),
-              t('benefit2'),
-              t('benefit3'),
-            ].map(item => (
-              <span key={item} className="flex items-center gap-1.5 justify-center">
-                <span className="text-red-400 font-bold">✓</span> {item}
-              </span>
-            ))}
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <BasvuruModal className="rounded-full bg-red-600 hover:bg-red-700 px-8 py-4 text-base font-semibold text-white transition-colors shadow-lg shadow-red-900/30">
-              {t('ctaPrimary')}
-            </BasvuruModal>
-            <a href="#nasil-calisir"
-              className="rounded-full border border-white/30 hover:border-white/60 px-8 py-4 text-base font-semibold text-white transition-colors">
-              {t('howItWorks')}
-            </a>
-          </div>
-        </div>
-      </section>
-
       {/* ── Diagonal Split ── */}
       <DiagonalSplit />
 
@@ -185,11 +145,11 @@ export default async function HomePage({
       <section className="bg-red-600 py-5">
         <div className="mx-auto max-w-5xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-white font-semibold text-base">
-            {t('demoCta')}
+            {hp('demoCta')}
           </p>
           <Link href="/iletisim"
             className="shrink-0 rounded-full bg-white text-red-600 hover:bg-red-50 px-7 py-2.5 text-sm font-bold transition-colors shadow">
-            {t('demoButton')}
+            {hp('demoButton')}
           </Link>
         </div>
       </section>

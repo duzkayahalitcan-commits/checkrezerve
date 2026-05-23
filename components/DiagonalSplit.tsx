@@ -51,6 +51,7 @@ export default function DiagonalSplit() {
               className="ds-panel"
               style={{
                 backgroundImage: `url(${panel.img})`,
+                backgroundPosition: panel.id === 'restoran' ? 'center 40%' : 'center',
                 clipPath: panel.clip,
                 zIndex: isHov ? 10 : idx + 1,
                 filter: isOther ? 'brightness(0.3) saturate(0.4)' : 'brightness(1) saturate(1)',
@@ -97,6 +98,7 @@ export default function DiagonalSplit() {
           height: 100%;
           margin-left: -8%;
           position: relative;
+          transform: translateZ(0);
         }
         .ds-panel {
           position: relative;
@@ -106,9 +108,11 @@ export default function DiagonalSplit() {
           cursor: pointer;
           transition:
             flex 0.65s cubic-bezier(0.23, 1, 0.32, 1),
-            filter 0.45s ease,
-            clip-path 0.65s cubic-bezier(0.23, 1, 0.32, 1);
+            filter 0.45s ease;
           overflow: hidden;
+          will-change: flex, filter;
+          transform: translateZ(0);
+          backface-visibility: hidden;
         }
         .ds-overlay {
           position: absolute;
