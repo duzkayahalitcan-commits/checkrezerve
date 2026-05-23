@@ -5,6 +5,7 @@ import { UtensilsCrossed, Scissors, Sparkles, BedDouble, CalendarRange, Dumbbell
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import BasvuruModal from '@/components/BasvuruModal'
+import DiagonalSplit from '@/components/DiagonalSplit'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
@@ -167,6 +168,9 @@ export default async function HomePage({
           </div>
         </div>
       </section>
+
+      {/* ── Diagonal Split ── */}
+      <DiagonalSplit />
 
       {/* ── Slogan Band ── */}
       <section className="bg-zinc-900 py-6">
