@@ -23,9 +23,7 @@ export const CATEGORIES: Category[] = [
     types: ['restaurant'],
     heroOverlay: 'linear-gradient(135deg,rgba(146,64,14,0.93) 0%,rgba(180,83,9,0.80) 50%,rgba(217,119,6,0.70) 100%)',
     accentColor: '#D97706',
-    subCategories: [
-      { key: 'restoran', icon: '🍽️', label: 'Restoran & Kafe', types: ['restaurant'] },
-    ],
+    subCategories: [],
   },
   {
     key: 'guzellik',
@@ -62,8 +60,7 @@ export const CATEGORIES: Category[] = [
     heroOverlay: 'linear-gradient(135deg,rgba(185,28,28,0.93) 0%,rgba(220,38,38,0.80) 50%,rgba(234,88,12,0.70) 100%)',
     accentColor: '#EA580C',
     subCategories: [
-      { key: 'spor-salonu',  icon: '🏋️', label: 'Spor Salonu',    types: ['fitness'] },
-      { key: 'pilates-yoga', icon: '🧘', label: 'Pilates & Yoga',  types: ['pilates'] },
+      { key: 'pilates-yoga', icon: '🧘', label: 'Pilates & Yoga', types: ['pilates'] },
     ],
   },
 ]

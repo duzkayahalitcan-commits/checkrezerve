@@ -47,6 +47,8 @@ const TIME_SLOTS = Array.from({ length: 27 }, (_, i) => {
   return `${h}:${m}`
 })
 
+const BARBER_SERVICES = ['Saç Kesimi', 'Sakal', 'Saç + Sakal', 'Saç Boyama', 'Fön', 'Keratin', 'Komple Bakım']
+
 export default function BookingForm({
   businessId, businessName, businessType,
   masaTipleri, hizmetler, calisanlar,
@@ -94,6 +96,7 @@ export default function BookingForm({
   const [petType, setPetType]             = useState('')  // veterinary
   const [sessionFormat, setSessionFormat] = useState('')  // fitness/pilates
   const [sessionLevel, setSessionLevel]   = useState('')  // fitness/pilates
+  const [selectedBarberServices, setSelectedBarberServices] = useState<string[]>([])  // barber/hairdresser
 
   useEffect(() => {
     if (success) {
@@ -104,8 +107,9 @@ export default function BookingForm({
   }, [success])
 
   const isRestaurant    = businessType === 'restaurant' || businessType === 'other'
-  const hasServices     = hizmetler.length > 0 && !isRestaurant
-  const hasStaff        = calisanlar.length > 0 && !isRestaurant
+  const isBarberType    = ['barber', 'hairdresser', 'beauty_salon'].includes(businessType)
+  const hasServices     = hizmetler.length > 0 && !isRestaurant && !isBarberType
+  const hasStaff        = calisanlar.length > 0 && !isRestaurant && !isBarberType
   const specialLabelKey = SPECIAL_LABEL_KEYS[businessType] ?? SPECIAL_LABEL_KEYS.default
 
   async function handleSubmit(e: React.FormEvent) {
@@ -122,6 +126,7 @@ export default function BookingForm({
     }
 
     const typeExtras: string[] = []
+    if (isBarberType && selectedBarberServices.length > 0) typeExtras.push(`[${selectedBarberServices.join(', ')}]`)
     if (occasion)      typeExtras.push(`[${occasion}]`)
     if (sessionMode)   typeExtras.push(`[${sessionMode}]`)
     if (problemArea)   typeExtras.push(`[${problemArea}]`)
@@ -345,7 +350,81 @@ export default function BookingForm({
         </div>
       )}
 
-      {/* Hizmet seçimi — restoran olmayan türler */}
+      {/* Kuaför/Berber — Hizmet chip'leri (hardcoded, multi-select) */}
+      {isBarberType && (
+        <div>
+          <label className="block text-sm font-semibold text-zinc-700 mb-3">
+            Hizmet Seçimi <span className="font-normal text-zinc-400">(birden fazla seçebilirsiniz)</span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {BARBER_SERVICES.map(svc => {
+              const isSelected = selectedBarberServices.includes(svc)
+              return (
+                <button
+                  key={svc}
+                  type="button"
+                  onClick={() => setSelectedBarberServices(prev =>
+                    prev.includes(svc) ? prev.filter(s => s !== svc) : [...prev, svc]
+                  )}
+                  className={`px-4 py-2 rounded-full border text-sm font-semibold transition-colors
+                    ${isSelected
+                      ? 'bg-red-600 border-red-600 text-white shadow-sm'
+                      : 'bg-white border-zinc-200 text-zinc-700 hover:border-red-300'}`}
+                >
+                  {svc}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Kuaför/Berber — Çalışan kartları */}
+      {isBarberType && (
+        <div>
+          <label className="block text-sm font-semibold text-zinc-700 mb-3">
+            Çalışan Seçimi <span className="font-normal text-zinc-400">(opsiyonel)</span>
+          </label>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => setSelectedCalisan(null)}
+              className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border w-[76px] transition-colors
+                ${selectedCalisan === null
+                  ? 'border-red-500 bg-red-50'
+                  : 'border-zinc-200 bg-white hover:border-red-200'}`}
+            >
+              <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-xl">🎲</div>
+              <span className="text-xs font-semibold text-zinc-600">Fark Etmez</span>
+            </button>
+            {calisanlar.map(c => {
+              const initials = c.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+              const isSelected = selectedCalisan === c.id
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setSelectedCalisan(isSelected ? null : c.id)}
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border w-[76px] transition-colors
+                    ${isSelected
+                      ? 'border-red-500 bg-red-50'
+                      : 'border-zinc-200 bg-white hover:border-red-200'}`}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold
+                    ${isSelected ? 'bg-red-100 text-red-700' : 'bg-zinc-100 text-zinc-600'}`}>
+                    {initials}
+                  </div>
+                  <span className="text-xs font-semibold text-zinc-700 truncate w-full text-center">
+                    {c.name.split(' ')[0]}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Hizmet seçimi — diğer türler (DB'den) */}
       {hasServices && (
         <div>
           <label className="block text-sm font-semibold text-zinc-700 mb-3">{t('selectService')}</label>
@@ -377,7 +456,7 @@ export default function BookingForm({
         </div>
       )}
 
-      {/* Personel seçimi — restoran olmayan türler */}
+      {/* Personel seçimi — diğer türler */}
       {hasStaff && (
         <div>
           <label className="block text-sm font-semibold text-zinc-700 mb-3">
