@@ -1,11 +1,11 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'motion/react'
 
-type MasaTipi   = { id: string; ad: string; ad_en: string | null; ad_ar: string | null; ad_de: string | null; ad_da: string | null; ad_es: string | null; ad_ru: string | null; kapasite: number }
+type MasaTipi = { id: string; ad: string; ad_en: string | null; ad_ar: string | null; ad_de: string | null; ad_da: string | null; ad_es: string | null; ad_ru: string | null; kapasite: number }
 
 function getMasaAd(m: MasaTipi, locale: string): string {
   const key = `ad_${locale}` as keyof MasaTipi
@@ -13,12 +13,8 @@ function getMasaAd(m: MasaTipi, locale: string): string {
 }
 type Hizmet     = { id: string; name: string; duration_minutes: number; price: number | null }
 type Calisan    = { id: string; name: string; title: string | null }
-type FloorTable = {
-  id: string; label: string; capacity: number
-  x: number; y: number; width: number; height: number; shape: 'rect' | 'circle'
-}
+type FloorTable = { id: string; label: string; capacity: number; x: number; y: number; width: number; height: number; shape: 'rect' | 'circle' }
 
-// react-konva is browser-only
 const FloorPlanPicker = dynamic(() => import('./FloorPlanPicker'), { ssr: false })
 
 interface Props {
@@ -51,8 +47,6 @@ const TIME_SLOTS = Array.from({ length: 27 }, (_, i) => {
   return `${h}:${m}`
 })
 
-const BEAUTY_TYPES = ['spa', 'beauty_salon', 'barber', 'hairdresser']
-
 export default function BookingForm({
   businessId, businessName, businessType,
   masaTipleri, hizmetler, calisanlar,
@@ -75,35 +69,43 @@ export default function BookingForm({
 
   const dates = getDates()
 
-  const [selectedDate, setSelectedDate] = useState(dates[0].value)
-  const [selectedTime, setSelectedTime] = useState('')
-  const [selectedMasa, setSelectedMasa] = useState<string | null>(null)
-  const [selectedHizmet, setSelectedHizmet] = useState<string | null>(null)
+  const [selectedDate, setSelectedDate]       = useState(dates[0].value)
+  const [selectedTime, setSelectedTime]       = useState('')
+  const [selectedMasa, setSelectedMasa]       = useState<string | null>(null)
+  const [selectedHizmet, setSelectedHizmet]   = useState<string | null>(null)
   const [selectedCalisan, setSelectedCalisan] = useState<string | null>(null)
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [partySize, setPartySize] = useState('2')
+  const [name, setName]                       = useState('')
+  const [phone, setPhone]                     = useState('')
+  const [partySize, setPartySize]             = useState('2')
   const [specialRequests, setSpecialRequests] = useState('')
-  const [selectedTable, setSelectedTable] = useState<string | null>(null)
-  const [dresscode, setDresscode] = useState('')
+  const [selectedTable, setSelectedTable]     = useState<string | null>(null)
   const [privacyAccepted, setPrivacyAccepted] = useState(false)
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false)
-  const [privacyError, setPrivacyError] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [privacyError, setPrivacyError]       = useState(false)
+  const [loading, setLoading]                 = useState(false)
+  const [error, setError]                     = useState<string | null>(null)
+  const [success, setSuccess]                 = useState(false)
 
-  const isBeauty = BEAUTY_TYPES.includes(businessType)
+  // Type-specific fields
+  const [occasion, setOccasion]           = useState('')  // restaurant
+  const [sessionMode, setSessionMode]     = useState('')  // psychologist
+  const [problemArea, setProblemArea]     = useState('')  // chiropractor
+  const [visitReason, setVisitReason]     = useState('')  // dentist
+  const [petType, setPetType]             = useState('')  // veterinary
+  const [sessionFormat, setSessionFormat] = useState('')  // fitness/pilates
+  const [sessionLevel, setSessionLevel]   = useState('')  // fitness/pilates
 
-  const DRESSCODE_OPTIONS: Record<string, string[]> = {
-    restaurant:    ['Serbest', 'Smart Casual', 'Business Casual', 'Formal', 'Kokteyl'],
-    spa:           ['Rahat', 'Havlu/Bornoz sağlanır', 'Spor kıyafet önerilir'],
-    beauty_salon:  ['Rahat', 'Havlu/Bornoz sağlanır', 'Spor kıyafet önerilir'],
-    barber:        ['Serbest'],
-    hairdresser:   ['Serbest'],
-    default:       ['Serbest', 'Smart Casual', 'Casual'],
-  }
-  const dresscodeOptions = DRESSCODE_OPTIONS[businessType] ?? DRESSCODE_OPTIONS.default
+  useEffect(() => {
+    if (success) {
+      import('canvas-confetti').then(m => {
+        m.default({ particleCount: 140, spread: 90, origin: { y: 0.6 } })
+      })
+    }
+  }, [success])
+
+  const isRestaurant    = businessType === 'restaurant' || businessType === 'other'
+  const hasServices     = hizmetler.length > 0 && !isRestaurant
+  const hasStaff        = calisanlar.length > 0 && !isRestaurant
   const specialLabelKey = SPECIAL_LABEL_KEYS[businessType] ?? SPECIAL_LABEL_KEYS.default
 
   async function handleSubmit(e: React.FormEvent) {
@@ -118,6 +120,16 @@ export default function BookingForm({
       setPrivacyError(true)
       return
     }
+
+    const typeExtras: string[] = []
+    if (occasion)      typeExtras.push(`[${occasion}]`)
+    if (sessionMode)   typeExtras.push(`[${sessionMode}]`)
+    if (problemArea)   typeExtras.push(`[${problemArea}]`)
+    if (visitReason)   typeExtras.push(`[${visitReason}]`)
+    if (petType)       typeExtras.push(`[${petType}]`)
+    if (sessionFormat) typeExtras.push(`[${sessionFormat}]`)
+    if (sessionLevel)  typeExtras.push(`[${sessionLevel}]`)
+    const finalSpecialRequests = [...typeExtras, specialRequests].filter(Boolean).join(' ').trim()
 
     setLoading(true)
     const res = await fetch('/api/rezervasyon', {
@@ -134,7 +146,7 @@ export default function BookingForm({
         staff_id: selectedCalisan,
         masa_tipi_id: selectedMasa,
         table_id: selectedTable,
-        special_requests: dresscode ? `[Dresscode: ${dresscode}] ${specialRequests}`.trim() : specialRequests,
+        special_requests: finalSpecialRequests,
       }),
     })
     setLoading(false)
@@ -156,7 +168,6 @@ export default function BookingForm({
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
       >
-        {/* Animated checkmark */}
         <motion.div
           className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6"
           initial={{ scale: 0, rotate: -180 }}
@@ -192,7 +203,6 @@ export default function BookingForm({
             {selectedDate} — {selectedTime} | {partySize} kişi
           </p>
 
-          {/* Summary card */}
           <div className="bg-zinc-50 rounded-2xl p-5 text-left max-w-sm mx-auto mb-8 border border-zinc-100">
             <div className="flex items-center gap-3 mb-3">
               <span className="text-2xl">📅</span>
@@ -245,6 +255,30 @@ export default function BookingForm({
         </div>
       </div>
 
+      {/* Psikolog — seans türü */}
+      {businessType === 'psychologist' && (
+        <div>
+          <label className="block text-sm font-semibold text-zinc-700 mb-3">Seans Türü *</label>
+          <div className="flex gap-3">
+            {[{ val: 'Yüz Yüze', icon: '🏢' }, { val: 'Online', icon: '💻' }].map(opt => (
+              <button
+                key={opt.val}
+                type="button"
+                onClick={() => setSessionMode(sessionMode === opt.val ? '' : opt.val)}
+                className={`flex-1 flex flex-col items-center gap-1.5 p-4 rounded-xl border text-sm font-semibold transition-colors
+                  ${sessionMode === opt.val
+                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                    : 'border-zinc-200 bg-white hover:border-emerald-200 text-zinc-700'}`}
+              >
+                <span className="text-2xl">{opt.icon}</span>
+                {opt.val}
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-zinc-400">🔒 Tüm seanslar KVKK kapsamında gizlilik içinde yürütülür.</p>
+        </div>
+      )}
+
       {/* Saat */}
       <div>
         <label className="block text-sm font-semibold text-zinc-700 mb-3">{t('selectTime')} *</label>
@@ -270,7 +304,7 @@ export default function BookingForm({
         </div>
       </div>
 
-      {/* Kroki — masa seçimi (floor_plan_enabled işletmelerde) */}
+      {/* Kroki — masa seçimi */}
       {floorPlanEnabled && floorTables.length > 0 && selectedDate && selectedTime && (
         <div>
           <label className="block text-sm font-semibold text-zinc-700 mb-3">
@@ -288,8 +322,8 @@ export default function BookingForm({
         </div>
       )}
 
-      {/* Masa tipi — restoran */}
-      {!isBeauty && masaTipleri.length > 0 && (
+      {/* Masa tipi — sadece restoran */}
+      {isRestaurant && masaTipleri.length > 0 && (
         <div>
           <label className="block text-sm font-semibold text-zinc-700 mb-3">{t('tableType')}</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -311,8 +345,8 @@ export default function BookingForm({
         </div>
       )}
 
-      {/* Hizmet seçimi — güzellik sektörü */}
-      {isBeauty && hizmetler.length > 0 && (
+      {/* Hizmet seçimi — restoran olmayan türler */}
+      {hasServices && (
         <div>
           <label className="block text-sm font-semibold text-zinc-700 mb-3">{t('selectService')}</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -343,8 +377,8 @@ export default function BookingForm({
         </div>
       )}
 
-      {/* Personel seçimi — güzellik sektörü */}
-      {isBeauty && calisanlar.length > 0 && (
+      {/* Personel seçimi — restoran olmayan türler */}
+      {hasStaff && (
         <div>
           <label className="block text-sm font-semibold text-zinc-700 mb-3">
             {t('selectStaff')} <span className="font-normal text-zinc-400">({t('optional')})</span>
@@ -394,7 +428,8 @@ export default function BookingForm({
         </div>
       </div>
 
-      {!isBeauty && (
+      {/* Kişi sayısı — sadece restoran */}
+      {isRestaurant && (
         <div>
           <label className="block text-sm font-semibold text-zinc-700 mb-3">{t('partySize')}</label>
           <div className="flex gap-2 flex-wrap">
@@ -415,27 +450,161 @@ export default function BookingForm({
         </div>
       )}
 
-      {/* Dresscode */}
-      <div>
-        <label className="block text-sm font-semibold text-zinc-700 mb-3">
-          Dresscode <span className="font-normal text-zinc-400">(opsiyonel)</span>
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {dresscodeOptions.map(opt => (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => setDresscode(dresscode === opt ? '' : opt)}
-              className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors
-                ${dresscode === opt
-                  ? 'bg-zinc-900 border-zinc-900 text-white'
-                  : 'bg-white border-zinc-200 text-zinc-700 hover:border-zinc-400'}`}
-            >
-              {opt}
-            </button>
-          ))}
+      {/* Restoran — Ziyaret Sebebi */}
+      {businessType === 'restaurant' && (
+        <div>
+          <label className="block text-sm font-semibold text-zinc-700 mb-3">
+            Ziyaret Sebebi <span className="font-normal text-zinc-400">(opsiyonel)</span>
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { val: 'Sıradan Ziyaret', icon: '🍽️' },
+              { val: 'Doğum Günü',      icon: '🎂' },
+              { val: 'Yıldönümü',       icon: '💑' },
+              { val: 'İş Yemeği',       icon: '💼' },
+            ].map(opt => (
+              <button
+                key={opt.val}
+                type="button"
+                onClick={() => setOccasion(occasion === opt.val ? '' : opt.val)}
+                className={`flex items-center gap-2.5 p-3 rounded-xl border text-sm font-medium transition-colors
+                  ${occasion === opt.val
+                    ? 'border-amber-500 bg-amber-50 text-amber-700'
+                    : 'border-zinc-200 bg-white hover:border-amber-200 text-zinc-700'}`}
+              >
+                <span className="text-xl">{opt.icon}</span>
+                {opt.val}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Diş Kliniği — Ziyaret Sebebi */}
+      {businessType === 'dentist' && (
+        <div>
+          <label className="block text-sm font-semibold text-zinc-700 mb-3">
+            Ziyaret Sebebi <span className="font-normal text-zinc-400">(opsiyonel)</span>
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {['Kontrol', 'Temizlik', 'Dolgu', 'Çekim', 'Kanal Tedavisi', 'Diğer'].map(reason => (
+              <button
+                key={reason}
+                type="button"
+                onClick={() => setVisitReason(visitReason === reason ? '' : reason)}
+                className={`p-3 rounded-xl border text-sm font-medium text-center transition-colors
+                  ${visitReason === reason
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-zinc-200 bg-white hover:border-blue-200 text-zinc-700'}`}
+              >
+                {reason}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Veteriner — Evcil Hayvan Türü */}
+      {businessType === 'veterinary' && (
+        <div>
+          <label className="block text-sm font-semibold text-zinc-700 mb-3">
+            Evcil Hayvan Türü <span className="font-normal text-zinc-400">(opsiyonel)</span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { val: 'Köpek', icon: '🐕' },
+              { val: 'Kedi',  icon: '🐈' },
+              { val: 'Kuş',   icon: '🐦' },
+              { val: 'Balık', icon: '🐠' },
+              { val: 'Diğer', icon: '🐾' },
+            ].map(pet => (
+              <button
+                key={pet.val}
+                type="button"
+                onClick={() => setPetType(petType === pet.val ? '' : pet.val)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-sm font-medium transition-colors
+                  ${petType === pet.val
+                    ? 'bg-violet-600 border-violet-600 text-white'
+                    : 'bg-white border-zinc-200 text-zinc-700 hover:border-violet-300'}`}
+              >
+                <span>{pet.icon}</span>
+                {pet.val}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Kayropraktik — Şikâyet Bölgesi */}
+      {businessType === 'chiropractor' && (
+        <div>
+          <label className="block text-sm font-semibold text-zinc-700 mb-3">
+            Şikâyet Bölgesi <span className="font-normal text-zinc-400">(opsiyonel)</span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {['Boyun', 'Üst Sırt', 'Bel', 'Omuz', 'Kalça', 'Tüm Vücut'].map(area => (
+              <button
+                key={area}
+                type="button"
+                onClick={() => setProblemArea(problemArea === area ? '' : area)}
+                className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors
+                  ${problemArea === area
+                    ? 'bg-emerald-600 border-emerald-600 text-white'
+                    : 'bg-white border-zinc-200 text-zinc-700 hover:border-emerald-300'}`}
+              >
+                {area}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Spor Salonu / Pilates — Format ve Seviye */}
+      {['fitness', 'pilates'].includes(businessType) && (
+        <>
+          <div>
+            <label className="block text-sm font-semibold text-zinc-700 mb-3">
+              Ders Formatı <span className="font-normal text-zinc-400">(opsiyonel)</span>
+            </label>
+            <div className="flex gap-3">
+              {[{ val: 'Bireysel', icon: '👤' }, { val: 'Grup', icon: '👥' }].map(f => (
+                <button
+                  key={f.val}
+                  type="button"
+                  onClick={() => setSessionFormat(sessionFormat === f.val ? '' : f.val)}
+                  className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border text-sm font-semibold transition-colors
+                    ${sessionFormat === f.val
+                      ? 'border-orange-500 bg-orange-50 text-orange-700'
+                      : 'border-zinc-200 bg-white hover:border-orange-200 text-zinc-700'}`}
+                >
+                  <span className="text-lg">{f.icon}</span>
+                  {f.val}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-zinc-700 mb-3">
+              Seviye <span className="font-normal text-zinc-400">(opsiyonel)</span>
+            </label>
+            <div className="flex gap-2">
+              {['Başlangıç', 'Orta', 'İleri'].map(level => (
+                <button
+                  key={level}
+                  type="button"
+                  onClick={() => setSessionLevel(sessionLevel === level ? '' : level)}
+                  className={`flex-1 py-2.5 rounded-xl border text-sm font-semibold transition-colors
+                    ${sessionLevel === level
+                      ? 'bg-orange-500 border-orange-500 text-white'
+                      : 'bg-white border-zinc-200 text-zinc-700 hover:border-orange-300'}`}
+                >
+                  {level}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       <div>
         <label className="block text-sm font-semibold text-zinc-700 mb-1.5">
