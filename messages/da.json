@@ -585,6 +585,9 @@
     "emailLabel": "E-mail:"
   },
   "pricing": {
+    "pageHeroLabel": "Prissætning",
+    "pageTitle": "Planer der vokser med din forretning",
+    "pageSubtitle": "Ingen provisioner, ingen kontrakter. Gennemsigtig prissætning for virksomheder af alle størrelser.",
     "monthly": "Månedlig",
     "yearly": "Årlig",
     "switchYearly": "Skift til årlig betaling",

@@ -585,6 +585,9 @@
     "emailLabel": "Correo electrónico:"
   },
   "pricing": {
+    "pageHeroLabel": "Precios",
+    "pageTitle": "Planes que crecen con tu negocio",
+    "pageSubtitle": "Sin comisiones, sin contratos. Precios transparentes para empresas de todos los tamaños.",
     "monthly": "Mensual",
     "yearly": "Anual",
     "switchYearly": "Cambiar a pago anual",

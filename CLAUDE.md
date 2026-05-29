@@ -3,9 +3,9 @@
 ## Proje Bilgileri
 - Web: ~/Desktop/checkrezerve (Next.js, next-intl, Tailwind)
 - Mobil: ~/Desktop/checkrezerve-app (Expo/React Native)
-- VPS: 161.97.68.236, SSH: ~/.ssh/checkrezerve_vps
+- VPS: 178.105.51.245 (Hetzner), SSH: ~/.ssh/checkrezerve_vps
 - Supabase: posarvagedpqtsrcrwfe
-- Deploy komutu: rsync -avz --exclude='.git' --exclude='node_modules' --exclude='.next' ./ root@161.97.68.236:/opt/checkrezerve/ && ssh -i ~/.ssh/checkrezerve_vps root@161.97.68.236 "cd /opt/checkrezerve && docker-compose up -d --build"
+- Deploy komutu: rsync -avz -e "ssh -i ~/.ssh/checkrezerve_vps" --exclude='.git' --exclude='node_modules' --exclude='.next' ./ root@178.105.51.245:/opt/checkrezerve/ && ssh -i ~/.ssh/checkrezerve_vps root@178.105.51.245 "cd /opt/checkrezerve && docker-compose up -d --build"
 
 ## Tasarım Kuralları — HER ZAMAN UYGULA
 - Hiçbir zaman generic/bootstrap görünüm. Her component "vay be" dedirtmeli.

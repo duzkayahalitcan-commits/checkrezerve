@@ -590,6 +590,9 @@
     "emailLabel": "E-posta:"
   },
   "pricing": {
+    "pageHeroLabel": "Fiyatlandırma",
+    "pageTitle": "İşinize Değer Katan Fiyatlar",
+    "pageSubtitle": "Komisyon yok, sözleşme yok. Küçük işletmeden zincir operasyonlarına kadar her büyüklük için şeffaf fiyatlandırma.",
     "monthly": "Aylık",
     "yearly": "Yıllık",
     "switchYearly": "Yıllık ödemeye geç",

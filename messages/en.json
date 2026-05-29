@@ -590,6 +590,9 @@
     "emailLabel": "Email:"
   },
   "pricing": {
+    "pageHeroLabel": "Pricing",
+    "pageTitle": "Plans That Grow With Your Business",
+    "pageSubtitle": "No commissions, no contracts. Transparent pricing for businesses of all sizes.",
     "monthly": "Monthly",
     "yearly": "Yearly",
     "switchYearly": "Switch to yearly payment",

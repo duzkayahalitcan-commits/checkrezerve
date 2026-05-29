@@ -590,6 +590,9 @@
     "emailLabel": "E-Mail:"
   },
   "pricing": {
+    "pageHeroLabel": "Preisgestaltung",
+    "pageTitle": "Pläne für jede Unternehmensgröße",
+    "pageSubtitle": "Keine Provisionen, keine Verträge. Transparente Preisgestaltung für Unternehmen jeder Größe.",
     "monthly": "Monatlich",
     "yearly": "Jährlich",
     "switchYearly": "Zur jährlichen Zahlung wechseln",
