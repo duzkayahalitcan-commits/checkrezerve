@@ -7,6 +7,7 @@ import ExportButton         from './ExportButton'
 import ReservationList      from './ReservationList'
 import PanelLangSelector    from '../_components/PanelLangSelector'
 import SettingsForm           from './SettingsForm'
+import CountUp              from '@/components/CountUp'
 import type { Reservation, SpecialArea, Restaurant } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -239,7 +240,7 @@ function StatCard({ label, value, accent }: { label: string; value: number; acce
   const colors = { amber: 'text-amber-400', green: 'text-emerald-400', blue: 'text-blue-400' }
   return (
     <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center">
-      <div className={`text-2xl font-bold ${colors[accent]}`}>{value}</div>
+      <CountUp to={value} className={`text-2xl font-bold ${colors[accent]}`} />
       <div className="text-stone-500 text-xs mt-0.5">{label}</div>
     </div>
   )

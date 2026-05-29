@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
-import { UtensilsCrossed, Scissors, Sparkles, BedDouble, CalendarRange, Dumbbell } from 'lucide-react'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import BasvuruModal from '@/components/BasvuruModal'
 import HomeHero from '@/components/HomeHero'
 import FeaturesSection from '@/components/FeaturesSection'
+import { AnimatedSectors, AnimatedHowSteps, AnimatedTestimonials } from '@/components/AnimatedSections'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
@@ -25,12 +25,12 @@ export default async function HomePage({
   const hp = await getTranslations('homepage')
 
   const SECTORS = [
-    { Icon: UtensilsCrossed, titleKey: 'useCaseRestaurant', descKey: 'sectorRestaurantDesc' },
-    { Icon: Scissors,        titleKey: 'useCaseBarber',     descKey: 'sectorBarberDesc' },
-    { Icon: Sparkles,        titleKey: 'useCaseSpa',        descKey: 'sectorSpaDesc' },
-    { Icon: BedDouble,       titleKey: 'useCaseHotel',      descKey: 'sectorHotelDesc' },
-    { Icon: CalendarRange,   titleKey: 'useCaseEvent',      descKey: 'sectorEventDesc' },
-    { Icon: Dumbbell,        titleKey: 'useCaseFitness',    descKey: 'sectorFitnessDesc' },
+    { iconName: 'UtensilsCrossed', titleKey: 'useCaseRestaurant', descKey: 'sectorRestaurantDesc' },
+    { iconName: 'Scissors',        titleKey: 'useCaseBarber',     descKey: 'sectorBarberDesc' },
+    { iconName: 'Sparkles',        titleKey: 'useCaseSpa',        descKey: 'sectorSpaDesc' },
+    { iconName: 'BedDouble',       titleKey: 'useCaseHotel',      descKey: 'sectorHotelDesc' },
+    { iconName: 'CalendarRange',   titleKey: 'useCaseEvent',      descKey: 'sectorEventDesc' },
+    { iconName: 'Dumbbell',        titleKey: 'useCaseFitness',    descKey: 'sectorFitnessDesc' },
   ]
 
   const HOW_STEPS = [
@@ -102,18 +102,11 @@ export default async function HomePage({
             <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">{hp('sectorsTitle')}</h2>
             <p className="text-zinc-500 max-w-2xl mx-auto">{hp('sectorsSubtitle')}</p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {SECTORS.map(s => (
-              <div key={s.titleKey}
-                className="rounded-2xl border border-zinc-100 bg-zinc-50 p-7 hover:border-red-100 hover:shadow-sm transition-all duration-200">
-                <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center mb-4">
-                  <s.Icon className="w-5 h-5 text-red-600" />
-                </div>
-                <h3 className="text-base font-bold text-zinc-900 mb-2">{hp(s.titleKey as Parameters<typeof hp>[0])}</h3>
-                <p className="text-sm text-zinc-600 leading-relaxed">{hp(s.descKey as Parameters<typeof hp>[0])}</p>
-              </div>
-            ))}
-          </div>
+          <AnimatedSectors sectors={SECTORS.map(s => ({
+            iconName: s.iconName,
+            title: hp(s.titleKey as Parameters<typeof hp>[0]),
+            desc: hp(s.descKey as Parameters<typeof hp>[0]),
+          }))} />
         </div>
       </section>
 
@@ -123,17 +116,11 @@ export default async function HomePage({
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">{hp('howTitle')}</h2>
           </div>
-          <div className="grid sm:grid-cols-3 gap-8 mb-16">
-            {HOW_STEPS.map(step => (
-              <div key={step.num} className="flex flex-col items-center text-center">
-                <div className="w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center text-xl font-extrabold mb-5 shadow-lg shadow-red-200">
-                  {step.num}
-                </div>
-                <h3 className="text-base font-bold text-zinc-900 mb-2">{hp(step.titleKey as Parameters<typeof hp>[0])}</h3>
-                <p className="text-sm text-zinc-600 leading-relaxed">{hp(step.descKey as Parameters<typeof hp>[0])}</p>
-              </div>
-            ))}
-          </div>
+          <AnimatedHowSteps steps={HOW_STEPS.map(step => ({
+            num: step.num,
+            title: hp(step.titleKey as Parameters<typeof hp>[0]),
+            desc: hp(step.descKey as Parameters<typeof hp>[0]),
+          }))} />
           <div className="rounded-2xl overflow-hidden border border-zinc-200 max-w-3xl mx-auto relative aspect-video">
             <Image src="/images/hero-restaurant-new.jpg" alt="CheckRezerve demo" fill className="object-cover" />
             <div className="absolute inset-0 bg-zinc-900/65 flex flex-col items-center justify-center gap-4">
@@ -211,25 +198,13 @@ export default async function HomePage({
             <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">{hp('testimonialsTitle')}</h2>
             <p className="text-zinc-500 max-w-xl mx-auto">{hp('testimonialsSubtitle')}</p>
           </div>
-          <div className="grid sm:grid-cols-3 gap-6">
-            {TESTIMONIALS.map(tm => (
-              <div key={tm.name} className="bg-white rounded-2xl border border-zinc-100 p-7 hover:border-red-100 hover:shadow-md transition-all duration-200 flex flex-col">
-                <div className="flex-1">
-                  <div className="text-red-500 text-2xl mb-4 leading-none">&ldquo;</div>
-                  <p className="text-sm text-zinc-600 leading-relaxed mb-6">{hp(tm.quoteKey as Parameters<typeof hp>[0])}</p>
-                </div>
-                <div className="flex items-center gap-3 pt-4 border-t border-zinc-100">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-600 to-red-400 text-white flex items-center justify-center text-sm font-bold shrink-0">
-                    {tm.initials}
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-zinc-900">{tm.name}</div>
-                    <div className="text-xs text-zinc-500">{tm.business} · {hp(tm.typeKey as Parameters<typeof hp>[0])}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <AnimatedTestimonials testimonials={TESTIMONIALS.map(tm => ({
+            quote: hp(tm.quoteKey as Parameters<typeof hp>[0]),
+            name: tm.name,
+            business: tm.business,
+            type: hp(tm.typeKey as Parameters<typeof hp>[0]),
+            initials: tm.initials,
+          }))} />
         </div>
       </section>
 

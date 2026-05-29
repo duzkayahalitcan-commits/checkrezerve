@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@supabase/supabase-js'
+import { motion, AnimatePresence } from 'motion/react'
 
 type Status = 'pending' | 'confirmed' | 'cancelled' | 'completed'
 
@@ -116,41 +117,66 @@ export default function ReservationList({
 
       <div className="flex gap-1 p-1 bg-white/5 rounded-xl mb-5 overflow-x-auto">
         {tabs.map(tb => (
-          <button
+          <motion.button
             key={tb.key}
             onClick={() => setTab(tb.key)}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-              tab === tb.key ? 'bg-amber-500 text-white shadow' : 'text-stone-400 hover:text-white'
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 28 }}
+            className={`relative flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+              tab === tb.key ? 'text-white' : 'text-stone-400 hover:text-white'
             }`}
           >
+            {tab === tb.key && (
+              <motion.span
+                layoutId="panel-tab"
+                className="absolute inset-0 rounded-lg bg-amber-500"
+                style={{ zIndex: -1 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
             {tb.label}
             {tb.count > 0 && (
               <span className={`ml-1.5 ${tab === tb.key ? 'text-white/80' : 'text-stone-600'}`}>
                 {tb.count}
               </span>
             )}
-          </button>
+          </motion.button>
         ))}
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-white/5 bg-white/3 py-10 text-center text-stone-500 text-sm">
+        <motion.div
+          key={`empty-${tab}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="rounded-xl border border-white/5 bg-white/3 py-10 text-center text-stone-500 text-sm"
+        >
           {emptyMsg}
-        </div>
+        </motion.div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {filtered.map(r => (
-            <ReservationCard
-              key={r.id}
-              reservation={r}
-              updating={updating === r.id}
-              onStatusChange={updateStatus}
-              locale={locale}
-              statusLabel={statusLabel}
-              t={t}
-            />
-          ))}
-        </div>
+        <AnimatePresence mode="popLayout">
+          <div className="flex flex-col gap-3">
+            {filtered.map((r, i) => (
+              <motion.div
+                key={r.id}
+                layout
+                initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.97, y: -8 }}
+                transition={{ duration: 0.25, delay: i * 0.04, ease: [0.23, 1, 0.32, 1] }}
+              >
+                <ReservationCard
+                  reservation={r}
+                  updating={updating === r.id}
+                  onStatusChange={updateStatus}
+                  locale={locale}
+                  statusLabel={statusLabel}
+                  t={t}
+                />
+              </motion.div>
+            ))}
+          </div>
+        </AnimatePresence>
       )}
     </section>
   )

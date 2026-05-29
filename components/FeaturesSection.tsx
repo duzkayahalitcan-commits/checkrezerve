@@ -39,7 +39,7 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
               ref={el => { rowRefs.current[i] = el }}
               className={`fs-row ${isRight ? 'fs-row--right' : 'fs-row--left'}`}
             >
-              <div className="fs-img-wrap">
+              <div className="fs-img-wrap img-zoom">
                 <Image
                   src={f.img}
                   alt={f.title}

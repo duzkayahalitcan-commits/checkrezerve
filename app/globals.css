@@ -27,3 +27,72 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Global button micro-interactions */
+button:not([disabled]) {
+  transition: transform 0.15s cubic-bezier(0.23, 1, 0.32, 1);
+}
+button:not([disabled]):active {
+  transform: scale(0.97);
+}
+
+/* Smooth focus rings */
+:focus-visible {
+  outline: 2px solid #E53935;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Page fade-in animation */
+@keyframes page-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+main, .page-content {
+  animation: page-fade-in 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+/* Dark mode support for marketing pages */
+@media (prefers-color-scheme: dark) {
+  .dark-adapt {
+    background-color: #0a0a0a;
+    color: #ededed;
+  }
+}
+
+/* Image zoom on hover utility */
+.img-zoom {
+  overflow: hidden;
+}
+.img-zoom img {
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.img-zoom:hover img {
+  transform: scale(1.05);
+}
+
+/* Input focus animation */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(229, 57, 53, 0.2);
+}
+
+/* Smooth image loading */
+img {
+  transition: opacity 0.3s ease;
+}
+img[loading="lazy"] {
+  opacity: 0;
+}
+img[loading="lazy"].loaded {
+  opacity: 1;
+}

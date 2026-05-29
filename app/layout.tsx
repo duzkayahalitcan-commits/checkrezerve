@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar'
+import ScrollToTop from '@/components/ScrollToTop'
+import CookieBanner from '@/components/CookieBanner'
 import './globals.css'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
@@ -137,6 +139,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-full flex flex-col">
           <ServiceWorkerRegistrar />
           {children}
+          <ScrollToTop />
+          <CookieBanner />
           {/* WhatsApp Destek Butonu */}
           <a
             href="https://wa.me/905424626295"

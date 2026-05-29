@@ -9,6 +9,7 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { BUSINESS_TYPE_ICONS, type BusinessType, type Restaurant, type Service, type StaffMember } from '@/types'
 import BookingForm from './BookingForm'
+import BusinessDetailHero from './BusinessDetailHero'
 
 // Next.js 15+ — params is a Promise
 type Props = { params: Promise<{ id: string; locale: string }> }
@@ -101,43 +102,15 @@ export default async function BusinessDetailPage({ params }: Props) {
     <div className="min-h-screen bg-white">
       <MarketingHeader />
 
-      <div className="pt-24 pb-6 bg-zinc-900 text-white">
-        <div className="mx-auto max-w-3xl px-6">
-          <Link href="/rezervasyon" className="text-zinc-400 hover:text-white text-sm transition-colors">
-            ← {t('allBusinesses')}
-          </Link>
-          <div className="flex items-center gap-4 mt-4">
-            <div className="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center text-3xl shrink-0">
-              {icon}
-            </div>
-            <div>
-              <h1 className="text-2xl font-extrabold">{business.name}</h1>
-              <span className="inline-block bg-red-600/25 text-red-300 text-xs font-semibold px-2.5 py-0.5 rounded-full mt-1">
-                {label}
-              </span>
-            </div>
-          </div>
-
-          {(business.address || business.phone) && (
-            <div className="flex flex-wrap gap-4 mt-4 text-sm text-zinc-400">
-              {business.address && (
-                <span>📍 {business.address}</span>
-              )}
-              {business.phone && (
-                <a href={`tel:${business.phone}`} className="hover:text-white transition-colors">
-                  📞 {business.phone}
-                </a>
-              )}
-            </div>
-          )}
-
-          {business.description && (
-            <p className="mt-4 text-zinc-400 text-sm leading-relaxed max-w-xl">
-              {business.description}
-            </p>
-          )}
-        </div>
-      </div>
+      <BusinessDetailHero
+        name={business.name}
+        icon={icon}
+        label={label}
+        address={business.address ?? null}
+        phone={business.phone ?? null}
+        description={business.description ?? null}
+        backLabel={t('allBusinesses')}
+      />
 
       <section className="py-10">
         <div className="mx-auto max-w-3xl px-6">

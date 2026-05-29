@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import dynamic from 'next/dynamic'
+import { motion, AnimatePresence } from 'motion/react'
 
 type MasaTipi   = { id: string; ad: string; ad_en: string | null; ad_ar: string | null; ad_de: string | null; ad_da: string | null; ad_es: string | null; ad_ru: string | null; kapasite: number }
 
@@ -149,22 +150,71 @@ export default function BookingForm({
 
   if (success) {
     return (
-      <div className="text-center py-12">
-        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4 text-3xl">
-          ✓
-        </div>
-        <h2 className="text-2xl font-bold text-zinc-900 mb-2">{t('successTitle')}</h2>
-        <p className="text-zinc-500 mb-6">
-          <span className="font-semibold text-zinc-700">{businessName}</span>{' '}
-          {t('successDesc')}
-        </p>
-        <button
-          onClick={() => router.push('/rezervasyon')}
-          className="rounded-full bg-zinc-900 text-white px-6 py-2.5 text-sm font-semibold hover:bg-zinc-700 transition-colors"
+      <motion.div
+        className="text-center py-16"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+      >
+        {/* Animated checkmark */}
+        <motion.div
+          className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6"
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.1 }}
         >
-          {t('backToBusinesses')}
-        </button>
-      </div>
+          <motion.svg
+            viewBox="0 0 24 24"
+            className="w-12 h-12 stroke-green-600"
+            fill="none"
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
+          >
+            <motion.path d="M5 13l4 4L19 7" />
+          </motion.svg>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+        >
+          <h2 className="text-2xl font-bold text-zinc-900 mb-2">{t('successTitle')}</h2>
+          <p className="text-zinc-500 mb-2">
+            <span className="font-semibold text-zinc-700">{businessName}</span>{' '}
+            {t('successDesc')}
+          </p>
+          <p className="text-sm text-zinc-400 mb-8">
+            {selectedDate} — {selectedTime} | {partySize} kişi
+          </p>
+
+          {/* Summary card */}
+          <div className="bg-zinc-50 rounded-2xl p-5 text-left max-w-sm mx-auto mb-8 border border-zinc-100">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-2xl">📅</span>
+              <div>
+                <p className="text-sm font-bold text-zinc-900">{businessName}</p>
+                <p className="text-xs text-zinc-500">{selectedDate} — {selectedTime}</p>
+              </div>
+            </div>
+            <div className="text-xs text-zinc-500 flex gap-4">
+              <span>👤 {name}</span>
+              <span>📞 {phone}</span>
+            </div>
+          </div>
+
+          <button
+            onClick={() => router.push('/rezervasyon')}
+            className="rounded-full bg-zinc-900 text-white px-8 py-3 text-sm font-semibold hover:bg-zinc-700 transition-colors"
+          >
+            {t('backToBusinesses')}
+          </button>
+        </motion.div>
+      </motion.div>
     )
   }
 
@@ -176,18 +226,21 @@ export default function BookingForm({
         <label className="block text-sm font-semibold text-zinc-700 mb-3">{t('selectDate')} *</label>
         <div className="flex gap-2 overflow-x-auto pb-1">
           {dates.map(d => (
-            <button
+            <motion.button
               key={d.value}
               type="button"
               onClick={() => setSelectedDate(d.value)}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.94 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 25 }}
               className={`shrink-0 flex flex-col items-center px-4 py-3 rounded-xl border text-sm font-semibold transition-colors
                 ${selectedDate === d.value
-                  ? 'bg-red-600 border-red-600 text-white'
+                  ? 'bg-red-600 border-red-600 text-white shadow-md shadow-red-200'
                   : 'bg-white border-zinc-200 text-zinc-700 hover:border-red-300'}`}
             >
               <span className="text-xs font-normal opacity-80">{d.label}</span>
               <span className="text-lg font-extrabold">{d.day}</span>
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>
@@ -196,18 +249,23 @@ export default function BookingForm({
       <div>
         <label className="block text-sm font-semibold text-zinc-700 mb-3">{t('selectTime')} *</label>
         <div className="flex flex-wrap gap-2">
-          {TIME_SLOTS.map(slot => (
-            <button
+          {TIME_SLOTS.map((slot, i) => (
+            <motion.button
               key={slot}
               type="button"
               onClick={() => setSelectedTime(slot)}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.2, delay: i * 0.015 }}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.9 }}
               className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors
                 ${selectedTime === slot
-                  ? 'bg-red-600 border-red-600 text-white'
+                  ? 'bg-red-600 border-red-600 text-white shadow-sm'
                   : 'bg-white border-zinc-200 text-zinc-700 hover:border-red-300'}`}
             >
               {slot}
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>
@@ -418,14 +476,26 @@ export default function BookingForm({
         </div>
       )}
 
-      <button
+      <motion.button
         type="submit"
         disabled={loading}
+        whileHover={{ scale: loading ? 1 : 1.02 }}
+        whileTap={{ scale: loading ? 1 : 0.97 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
         className={`w-full rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-bold py-4 text-base transition-colors
           ${!privacyAccepted ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
-        {loading ? t('submitting') : t('submit')}
-      </button>
+        {loading ? (
+          <span className="flex items-center justify-center gap-2">
+            <motion.span
+              className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full inline-block"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+            />
+            {t('submitting')}
+          </span>
+        ) : t('submit')}
+      </motion.button>
 
       <p className="text-center text-xs text-zinc-400">
         {t('confirmationNote')}

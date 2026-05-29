@@ -3,11 +3,13 @@ import { useState, useEffect } from 'react'
 import NextLink from 'next/link'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
-import { Link } from '@/i18n/navigation'
+import { Link, usePathname } from '@/i18n/navigation'
+import { motion, AnimatePresence } from 'motion/react'
 import LanguageSelector from './LanguageSelector'
 
 export default function MarketingHeader() {
   const t = useTranslations('nav')
+  const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled]     = useState(false)
 
@@ -52,12 +54,25 @@ export default function MarketingHeader() {
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-6 text-sm text-zinc-500">
-            {NAV_LINKS.map(l => (
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              <Link key={l.href} href={l.href as never} className="nav-link relative font-medium hover:text-zinc-900 transition-colors">
-                {l.label}
-              </Link>
-            ))}
+            {NAV_LINKS.map(l => {
+              const isActive = pathname.startsWith(l.href)
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href as never}
+                  className={`relative font-medium transition-colors pb-0.5 ${isActive ? 'text-zinc-900' : 'hover:text-zinc-900'}`}
+                >
+                  {l.label}
+                  {isActive && (
+                    <motion.span
+                      layoutId="nav-underline"
+                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-red-600 rounded-full"
+                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                    />
+                  )}
+                </Link>
+              )
+            })}
           </nav>
 
           {/* CTA + Language + Hamburger */}
@@ -87,80 +102,63 @@ export default function MarketingHeader() {
       </header>
 
       {/* Fullscreen mobile overlay */}
-      <div
-        className="fixed inset-0 z-40 lg:hidden flex flex-col"
-        style={{
-          background: '#0a0a0a',
-          opacity: mobileOpen ? 1 : 0,
-          pointerEvents: mobileOpen ? 'auto' : 'none',
-          transition: 'opacity 0.35s cubic-bezier(0.23, 1, 0.32, 1)',
-        }}
-        aria-hidden={!mobileOpen}
-      >
-        <div className="flex flex-col justify-center h-full px-8 pt-20 pb-10 gap-2">
-          {NAV_LINKS.map((l, i) => (
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            <Link
-              key={l.href}
-              href={l.href as never}
-              onClick={() => setMobileOpen(false)}
-              className="mobile-link block py-4 text-3xl font-black text-white hover:text-red-400 transition-colors border-b border-white/10"
-              style={{
-                opacity:   mobileOpen ? 1 : 0,
-                transform: mobileOpen ? 'translateX(0)' : 'translateX(-30px)',
-                transition: `opacity 0.4s cubic-bezier(0.23,1,0.32,1) ${0.08 + i * 0.07}s, transform 0.4s cubic-bezier(0.23,1,0.32,1) ${0.08 + i * 0.07}s`,
-              }}
-            >
-              {l.label}
-            </Link>
-          ))}
-
-          <div
-            className="flex flex-col gap-3 mt-8"
-            style={{
-              opacity:   mobileOpen ? 1 : 0,
-              transform: mobileOpen ? 'translateY(0)' : 'translateY(20px)',
-              transition: `opacity 0.4s ease ${0.08 + NAV_LINKS.length * 0.07}s, transform 0.4s ease ${0.08 + NAV_LINKS.length * 0.07}s`,
-            }}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            className="fixed inset-0 z-40 lg:hidden flex flex-col"
+            style={{ background: '#0a0a0a' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            <Link href="/kayit" onClick={() => setMobileOpen(false)}
-              className="w-full text-center rounded-full bg-red-600 text-white py-3.5 text-base font-bold hover:bg-red-700 transition-colors">
-              {t('startFree')}
-            </Link>
-            <NextLink href="/panel/login" onClick={() => setMobileOpen(false)}
-              className="w-full text-center rounded-full border border-white/20 text-white py-3.5 text-base font-semibold hover:bg-white/10 transition-colors">
-              {t('login')}
-            </NextLink>
-          </div>
+            <div className="flex flex-col justify-center h-full px-8 pt-20 pb-10 gap-2">
+              {NAV_LINKS.map((l, i) => (
+                <motion.div
+                  key={l.href}
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.08 + i * 0.07, duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                >
+                  <Link
+                    href={l.href as never}
+                    onClick={() => setMobileOpen(false)}
+                    className="block py-4 text-3xl font-black text-white hover:text-red-400 transition-colors border-b border-white/10"
+                  >
+                    {l.label}
+                  </Link>
+                </motion.div>
+              ))}
 
-          <div
-            className="mt-6"
-            style={{
-              opacity:   mobileOpen ? 1 : 0,
-              transition: `opacity 0.4s ease ${0.08 + (NAV_LINKS.length + 1) * 0.07}s`,
-            }}
-          >
-            <LanguageSelector />
-          </div>
-        </div>
-      </div>
+              <motion.div
+                className="flex flex-col gap-3 mt-8"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.08 + NAV_LINKS.length * 0.07 + 0.05, duration: 0.4 }}
+              >
+                <Link href="/kayit" onClick={() => setMobileOpen(false)}
+                  className="w-full text-center rounded-full bg-red-600 text-white py-3.5 text-base font-bold hover:bg-red-700 transition-colors">
+                  {t('startFree')}
+                </Link>
+                <NextLink href="/panel/login" onClick={() => setMobileOpen(false)}
+                  className="w-full text-center rounded-full border border-white/20 text-white py-3.5 text-base font-semibold hover:bg-white/10 transition-colors">
+                  {t('login')}
+                </NextLink>
+              </motion.div>
 
-      <style jsx global>{`
-        .nav-link::after {
-          content: '';
-          position: absolute;
-          bottom: -4px;
-          left: 0;
-          width: 0;
-          height: 2px;
-          background: #E53935;
-          border-radius: 2px;
-          transition: width 0.25s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        .nav-link:hover::after {
-          width: 100%;
-        }
-      `}</style>
+              <motion.div
+                className="mt-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.08 + (NAV_LINKS.length + 1) * 0.07, duration: 0.4 }}
+              >
+                <LanguageSelector />
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </>
   )
 }
