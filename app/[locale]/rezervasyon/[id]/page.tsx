@@ -116,30 +116,17 @@ export default async function BusinessDetailPage({ params }: Props) {
         <div className="mx-auto max-w-3xl px-6">
           <h2 className="text-xl font-bold text-zinc-900 mb-6">{t('makeBooking', { term: bookingTerm })}</h2>
 
-          {(biz.dress_code || biz.special_notes) && (
-            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 space-y-3">
-              {biz.dress_code && (
-                <div className="flex gap-3 text-sm">
-                  <span className="text-amber-500 shrink-0 text-base">👔</span>
-                  <div>
-                    <span className="font-semibold text-amber-800 text-xs uppercase tracking-wide">
-                      {t('dressCode')}
-                    </span>
-                    <p className="text-amber-700 mt-0.5 leading-snug">{biz.dress_code}</p>
-                  </div>
+          {biz.special_notes && (
+            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+              <div className="flex gap-3 text-sm">
+                <span className="text-amber-500 shrink-0 text-base">ℹ️</span>
+                <div>
+                  <span className="font-semibold text-amber-800 text-xs uppercase tracking-wide">
+                    {t('specialNotes')}
+                  </span>
+                  <p className="text-amber-700 mt-0.5 leading-snug">{biz.special_notes}</p>
                 </div>
-              )}
-              {biz.special_notes && (
-                <div className="flex gap-3 text-sm">
-                  <span className="text-amber-500 shrink-0 text-base">ℹ️</span>
-                  <div>
-                    <span className="font-semibold text-amber-800 text-xs uppercase tracking-wide">
-                      {t('specialNotes')}
-                    </span>
-                    <p className="text-amber-700 mt-0.5 leading-snug">{biz.special_notes}</p>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           )}
 

@@ -6,7 +6,7 @@ import type { Restaurant, WorkingHours, WorkingDayHours } from '@/types'
 
 type Props = {
   restaurant: Pick<Restaurant,
-    'id' | 'working_hours' | 'closed_dates' | 'prepayment_amount' | 'dress_code' | 'special_notes'
+    'id' | 'working_hours' | 'closed_dates' | 'prepayment_amount' | 'special_notes'
   >
 }
 
@@ -32,7 +32,6 @@ export default function SettingsForm({ restaurant }: Props) {
   const [hours, setHours]     = useState<Record<Day, WorkingDayHours>>(initHours(restaurant.working_hours ?? null))
   const [closedDates, setClosedDates] = useState<string[]>(restaurant.closed_dates ?? [])
   const [prepay, setPrepay]   = useState<number>(restaurant.prepayment_amount ?? 0)
-  const [dressCode, setDressCode]   = useState(restaurant.dress_code ?? '')
   const [notes, setNotes]     = useState(restaurant.special_notes ?? '')
   const [dateInput, setDateInput] = useState('')
 
@@ -63,7 +62,6 @@ export default function SettingsForm({ restaurant }: Props) {
             working_hours:     hours,
             closed_dates:      closedDates,
             prepayment_amount: prepay,
-            dress_code:        dressCode,
             special_notes:     notes,
           }),
         })
@@ -172,18 +170,6 @@ export default function SettingsForm({ restaurant }: Props) {
           />
           <span className="text-stone-400 text-sm">₺</span>
         </div>
-      </div>
-
-      {/* Dress code */}
-      <div>
-        <h3 className="text-sm font-semibold text-stone-200 mb-1">{t('dressCode')}</h3>
-        <input
-          type="text"
-          value={dressCode}
-          onChange={e => setDressCode(e.target.value)}
-          placeholder={t('dressCodePlaceholder')}
-          className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white placeholder-stone-600 focus:outline-none focus:border-amber-500"
-        />
       </div>
 
       {/* Special notes */}

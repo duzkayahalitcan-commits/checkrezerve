@@ -108,7 +108,6 @@ export type Restaurant = {
   working_hours?:            WorkingHours | null
   closed_dates?:             string[] | null
   prepayment_amount?:        number | null
-  dress_code?:               string | null
   special_notes?:            string | null
 }
 

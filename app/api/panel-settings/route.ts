@@ -11,7 +11,6 @@ export async function PATCH(req: NextRequest) {
     working_hours?:     WorkingHours
     closed_dates?:      string[]
     prepayment_amount?: number
-    dress_code?:        string | null
     special_notes?:     string | null
     restaurant_id?:     string
   }
@@ -25,7 +24,6 @@ export async function PATCH(req: NextRequest) {
   if (body.working_hours     !== undefined) update.working_hours     = body.working_hours
   if (body.closed_dates      !== undefined) update.closed_dates      = body.closed_dates
   if (body.prepayment_amount !== undefined) update.prepayment_amount = body.prepayment_amount
-  if (body.dress_code        !== undefined) update.dress_code        = body.dress_code || null
   if (body.special_notes     !== undefined) update.special_notes     = body.special_notes || null
 
   if (Object.keys(update).length === 0) {

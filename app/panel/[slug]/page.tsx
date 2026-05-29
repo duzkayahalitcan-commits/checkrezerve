@@ -46,7 +46,7 @@ export default async function PanelDashboardPage({
 
   const { data: restaurant } = await db
     .from('restaurants')
-    .select('id, name, slug, address, capacity, working_hours, closed_dates, prepayment_amount, dress_code, special_notes')
+    .select('id, name, slug, address, capacity, working_hours, closed_dates, prepayment_amount, special_notes')
     .eq('slug', slug)
     .eq('id', session.restaurantId)
     .single()
