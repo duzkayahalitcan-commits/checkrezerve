@@ -4,16 +4,32 @@ import { Link } from '@/i18n/navigation'
 import { BUSINESS_TYPE_ICONS, type BusinessType } from '@/types'
 
 const TYPE_BG: Record<string, string> = {
-  restaurant:   'bg-orange-50',
+  restaurant:   'bg-amber-50',
   barber:       'bg-sky-50',
   hairdresser:  'bg-fuchsia-50',
-  psychologist: 'bg-emerald-50',
-  spa:          'bg-teal-50',
   beauty_salon: 'bg-rose-50',
+  psychologist: 'bg-emerald-50',
+  chiropractor: 'bg-green-50',
+  spa:          'bg-teal-50',
   dentist:      'bg-blue-50',
-  fitness:      'bg-amber-50',
+  fitness:      'bg-orange-50',
+  pilates:      'bg-orange-50',
   veterinary:   'bg-violet-50',
   other:        'bg-zinc-50',
+}
+
+const TYPE_ACCENT: Record<string, string> = {
+  restaurant:   '#D97706',
+  barber:       '#DB2777',
+  hairdresser:  '#DB2777',
+  beauty_salon: '#DB2777',
+  spa:          '#DB2777',
+  psychologist: '#059669',
+  chiropractor: '#059669',
+  dentist:      '#059669',
+  veterinary:   '#059669',
+  fitness:      '#EA580C',
+  pilates:      '#EA580C',
 }
 
 type Biz = {
@@ -29,12 +45,13 @@ type Biz = {
 
 interface Props {
   list: Biz[]
+  activeCategory?: string
   emptyTitle: string
   emptySubtitle: string
   emptyLink: string
 }
 
-export default function AnimatedBusinessCards({ list, emptyTitle, emptySubtitle, emptyLink }: Props) {
+export default function AnimatedBusinessCards({ list, activeCategory: _activeCategory, emptyTitle, emptySubtitle, emptyLink }: Props) {
   if (list.length === 0) {
     return (
       <motion.div
@@ -56,16 +73,17 @@ export default function AnimatedBusinessCards({ list, emptyTitle, emptySubtitle,
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {list.map((biz, i) => {
-        const icon = BUSINESS_TYPE_ICONS[biz.business_type as BusinessType] ?? '🏪'
-        const label = biz.typeLabel
-        const bg = TYPE_BG[biz.business_type] ?? 'bg-zinc-50'
+        const icon   = BUSINESS_TYPE_ICONS[biz.business_type as BusinessType] ?? '🏪'
+        const label  = biz.typeLabel
+        const bg     = TYPE_BG[biz.business_type] ?? 'bg-zinc-50'
+        const accent = TYPE_ACCENT[biz.business_type] ?? '#E53935'
         return (
           <motion.div
             key={biz.id}
             initial={{ opacity: 0, y: 20, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.35, delay: i * 0.05, ease: [0.23, 1, 0.32, 1] }}
-            whileHover={{ y: -4, boxShadow: '0 16px 40px rgba(0,0,0,0.12)' }}
+            whileHover={{ y: -4, boxShadow: `0 16px 40px ${accent}28` }}
             className="rounded-2xl border border-zinc-100 bg-white"
             style={{ willChange: 'transform' }}
           >
@@ -80,7 +98,10 @@ export default function AnimatedBusinessCards({ list, emptyTitle, emptySubtitle,
                 <p className="font-bold text-zinc-900 group-hover:text-red-600 transition-colors truncate">
                   {biz.name}
                 </p>
-                <span className="inline-block bg-red-50 text-red-700 text-xs font-semibold px-2 py-0.5 rounded-full mt-1 mb-2">
+                <span
+                  className="inline-block text-xs font-semibold px-2 py-0.5 rounded-full mt-1 mb-2"
+                  style={{ backgroundColor: `${accent}18`, color: accent }}
+                >
                   {label}
                 </span>
                 {biz.address && (

@@ -213,7 +213,7 @@ export default async function PanelDashboardPage({
         <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
           <h2 className="font-semibold text-sm text-stone-200 mb-5">{t('settingsTitle')}</h2>
           <SettingsForm restaurant={restaurant as Pick<Restaurant,
-            'id' | 'working_hours' | 'closed_dates' | 'prepayment_amount' | 'dress_code' | 'special_notes'
+            'id' | 'working_hours' | 'closed_dates' | 'prepayment_amount' | 'special_notes'
           >} />
         </section>
 
