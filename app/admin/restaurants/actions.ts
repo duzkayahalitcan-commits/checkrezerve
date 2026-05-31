@@ -37,9 +37,25 @@ export async function createRestaurant(
 
   const slug = toSlug(name)
 
+  const BUSINESS_TYPE_TO_KATEGORI: Record<string, string> = {
+    restaurant:    'restoran',
+    barber:        'berber',
+    hairdresser:   'kuafor',
+    spa:           'spa',
+    beauty_salon:  'guzellik_salonu',
+    fitness:       'fitness',
+    pilates:       'pilates',
+    chiropractor:  'diger',
+    psychologist:  'diger',
+    veterinary:    'diger',
+    dentist:       'diger',
+    other:         'diger',
+  }
+  const kategori = BUSINESS_TYPE_TO_KATEGORI[business_type] ?? 'restoran'
+
   const { error } = await getSupabaseAdmin()
     .from('restaurants')
-    .insert({ name, slug, phone, address, capacity, business_type, instagram, website, booking_duration_minutes })
+    .insert({ name, slug, phone, address, capacity, business_type, instagram, website, booking_duration_minutes, kategori })
 
   if (error) {
     if (error.code === '23505') {
