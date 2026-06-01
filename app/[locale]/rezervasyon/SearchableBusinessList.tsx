@@ -48,13 +48,22 @@ const TYPE_BG: Record<string, string> = {
   veterinary:   'bg-violet-50',
 }
 
+const TYPE_UNSPLASH: Record<string, string> = {
+  restaurant:   'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=128&q=75',
+  barber:       'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=128&q=75',
+  hairdresser:  'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=128&q=75',
+  beauty_salon: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=128&q=75',
+  spa:          'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=128&q=75',
+  fitness:      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=128&q=75',
+  pilates:      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=128&q=75',
+}
+
 export default function SearchableBusinessList({ allBusinesses }: { allBusinesses: Biz[] }) {
   const params    = useSearchParams()
   const t         = useTranslations('rezervasyon')
   const activeKey = params.get('kategori') ?? ''
   const [query, setQuery] = useState('')
 
-  // Reset search when category changes
   useEffect(() => { setQuery('') }, [activeKey])
 
   const filtered = useMemo(() => {
@@ -91,17 +100,17 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
   return (
     <div className="space-y-6">
       {/* Search bar */}
-      <div className="relative">
+      <div className="relative transition-shadow duration-300 focus-within:shadow-[0_4px_24px_rgba(229,57,53,0.12)] rounded-2xl">
         <Search
           size={16}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none"
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none z-10"
         />
         <input
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="İşletme, adres veya hizmet ara…"
-          className="w-full pl-10 pr-10 py-3 rounded-2xl border border-zinc-200 bg-white text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 transition-all"
+          className="w-full pl-10 pr-10 py-3 rounded-2xl border border-zinc-200 bg-white text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 transition-all duration-300"
         />
         {query && (
           <button
@@ -121,8 +130,8 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
             return (
               <motion.div
                 key={tab.key}
-                whileTap={{ scale: 0.93 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 28 }}
+                whileTap={{ scale: 0.91 }}
+                transition={{ type: 'spring', stiffness: 600, damping: 28 }}
               >
                 <Link
                   href={tab.href as never}
@@ -132,11 +141,11 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                       : 'bg-white border-zinc-200 text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50'
                   }`}
                   style={isActive && (tab as { accentColor?: string }).accentColor ? {
-                    background: (tab as { accentColor?: string }).accentColor,
+                    background:  (tab as { accentColor?: string }).accentColor,
                     borderColor: (tab as { accentColor?: string }).accentColor,
-                    boxShadow: `0 4px 14px ${(tab as { accentColor?: string }).accentColor}55`,
+                    boxShadow:   `0 4px 14px ${(tab as { accentColor?: string }).accentColor}55`,
                   } : isActive ? {
-                    background: '#18181B',
+                    background:  '#18181B',
                     borderColor: '#18181B',
                   } : {}}
                 >
@@ -168,13 +177,14 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                       initial={{ opacity: 0, scale: 0.85, x: -8 }}
                       animate={{ opacity: 1, scale: 1, x: 0 }}
                       transition={{ delay: i * 0.04, duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+                      whileTap={{ scale: 0.91 }}
                     >
                       <Link
                         href={{ pathname: '/rezervasyon' as const, query: { kategori: sub.key } } as never}
                         className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
                           isSubActive
-                            ? 'bg-zinc-900 border-zinc-900 text-white'
-                            : 'bg-white border-zinc-200 text-zinc-500 hover:border-zinc-400'
+                            ? 'bg-zinc-900 border-zinc-900 text-white shadow-md'
+                            : 'bg-white border-zinc-200 text-zinc-500 hover:border-zinc-400 hover:bg-zinc-50'
                         }`}
                       >
                         <span>{sub.icon}</span>
@@ -229,9 +239,10 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
         <AnimatePresence mode="popLayout">
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((biz, i) => {
-              const icon   = BUSINESS_TYPE_ICONS[biz.business_type as BusinessType] ?? '🏪'
-              const accent = TYPE_ACCENT[biz.business_type] ?? '#E53935'
-              const bg     = TYPE_BG[biz.business_type] ?? 'bg-zinc-50'
+              const icon      = BUSINESS_TYPE_ICONS[biz.business_type as BusinessType] ?? '🏪'
+              const accent    = TYPE_ACCENT[biz.business_type] ?? '#E53935'
+              const bg        = TYPE_BG[biz.business_type] ?? 'bg-zinc-50'
+              const thumbSrc  = biz.cover_image ?? TYPE_UNSPLASH[biz.business_type] ?? null
               return (
                 <motion.div
                   key={biz.id}
@@ -239,8 +250,9 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                   initial={{ opacity: 0, y: 16, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.3, delay: Math.min(i * 0.04, 0.3), ease: [0.23, 1, 0.32, 1] }}
-                  whileHover={{ y: -3, boxShadow: `0 12px 32px ${accent}22` }}
+                  transition={{ duration: 0.3, delay: Math.min(i * 0.05, 0.35), ease: [0.23, 1, 0.32, 1] }}
+                  whileHover={{ y: -4, boxShadow: `0 16px 40px ${accent}33` }}
+                  whileTap={{ scale: 0.98 }}
                   className="rounded-2xl border border-zinc-100 bg-white overflow-hidden group cursor-pointer"
                   style={{ willChange: 'transform' }}
                 >
@@ -248,17 +260,17 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                     href={{ pathname: '/rezervasyon/[id]', params: { id: biz.id } }}
                     className="flex items-start gap-4 p-5 h-full"
                   >
-                    {/* Cover image / icon area */}
+                    {/* Thumbnail */}
                     <div
                       className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden relative ${bg} flex items-center justify-center text-2xl`}
                       style={{ boxShadow: `inset 0 0 0 1px ${accent}20` }}
                     >
-                      {biz.cover_image ? (
+                      {thumbSrc ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img
-                          src={biz.cover_image}
+                          src={thumbSrc}
                           alt=""
-                          className="absolute inset-0 w-full h-full object-cover"
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                           loading="lazy"
                         />
                       ) : (
