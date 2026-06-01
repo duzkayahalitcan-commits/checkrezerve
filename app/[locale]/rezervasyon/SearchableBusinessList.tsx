@@ -271,7 +271,7 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                           src={thumbSrc}
                           alt=""
                           className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                          loading="lazy"
+                          loading="eager"
                         />
                       ) : (
                         <span>{icon}</span>
