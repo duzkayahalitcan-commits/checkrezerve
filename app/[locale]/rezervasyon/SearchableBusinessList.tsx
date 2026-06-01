@@ -18,6 +18,7 @@ type Biz = {
   address: string | null
   description: string | null
   is_active: boolean
+  cover_image: string | null
 }
 
 const TYPE_ACCENT: Record<string, string> = {
@@ -247,12 +248,22 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                     href={{ pathname: '/rezervasyon/[id]', params: { id: biz.id } }}
                     className="flex items-start gap-4 p-5 h-full"
                   >
-                    {/* Icon area */}
+                    {/* Cover image / icon area */}
                     <div
-                      className={`shrink-0 w-12 h-12 rounded-xl ${bg} flex items-center justify-center text-2xl`}
+                      className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden relative ${bg} flex items-center justify-center text-2xl`}
                       style={{ boxShadow: `inset 0 0 0 1px ${accent}20` }}
                     >
-                      {icon}
+                      {biz.cover_image ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={biz.cover_image}
+                          alt=""
+                          className="absolute inset-0 w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span>{icon}</span>
+                      )}
                     </div>
 
                     {/* Content */}

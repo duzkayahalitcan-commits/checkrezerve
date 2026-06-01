@@ -34,13 +34,20 @@ export default async function RezervasyonPage({ params }: Props) {
   // Fetch ALL active businesses — client component handles filtering
   const { data: businesses } = await getSupabaseAdmin()
     .from('restaurants')
-    .select('id, name, slug, business_type, address, description, is_active')
+    .select('id, name, slug, business_type, address, description, is_active, cover_image')
     .eq('is_active', true)
     .order('name')
 
-  const list = (businesses ?? [] as Pick<Restaurant, 'id' | 'name' | 'slug' | 'business_type' | 'address' | 'description' | 'is_active'>[]).map(b => ({
-    ...(b as Pick<Restaurant, 'id' | 'name' | 'slug' | 'business_type' | 'address' | 'description' | 'is_active'>),
-    typeLabel: tBiz(b.business_type as Parameters<typeof tBiz>[0]),
+  const list = (businesses ?? []).map(b => ({
+    id:            b.id as string,
+    name:          b.name as string,
+    slug:          b.slug as string | null,
+    business_type: b.business_type as string,
+    address:       b.address as string | null,
+    description:   b.description as string | null,
+    is_active:     b.is_active as boolean,
+    cover_image:   b.cover_image as string | null,
+    typeLabel:     tBiz(b.business_type as Parameters<typeof tBiz>[0]),
   }))
 
   return (
