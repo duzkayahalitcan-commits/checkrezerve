@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@supabase/supabase-js'
 import { motion, AnimatePresence } from 'motion/react'
+import { useToast } from '@/components/ui/Toast'
 
 type Status = 'pending' | 'confirmed' | 'cancelled' | 'completed'
 
@@ -44,6 +45,7 @@ export default function ReservationList({
 }) {
   const t      = useTranslations('panel')
   const locale = useLocale()
+  const toast  = useToast()
   const [reservations, setReservations] = useState<Reservation[]>(initialReservations)
   const [tab, setTab] = useState<Tab>('pending')
   const [updating, setUpdating] = useState<string | null>(null)
@@ -79,11 +81,22 @@ export default function ReservationList({
 
   async function updateStatus(id: string, status: Status) {
     setUpdating(id)
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    const url    = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const key    = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     const client = createClient(url, key)
-    await client.from('reservations').update({ status }).eq('id', id)
+    const { error } = await client.from('reservations').update({ status }).eq('id', id)
     setUpdating(null)
+    if (error) {
+      toast.show('Güncelleme başarısız.', 'error')
+    } else {
+      const msg: Record<Status, string> = {
+        confirmed: '✓ Rezervasyon onaylandı',
+        cancelled: 'Rezervasyon iptal edildi',
+        completed: 'Rezervasyon tamamlandı',
+        pending:   'Rezervasyon beklemeye alındı',
+      }
+      toast.show(msg[status] ?? 'Güncellendi', status === 'cancelled' ? 'error' : 'success')
+    }
   }
 
   const filtered = reservations.filter(r => {

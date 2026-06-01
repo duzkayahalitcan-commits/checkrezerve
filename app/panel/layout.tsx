@@ -1,5 +1,6 @@
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, getLocale } from 'next-intl/server'
+import { ToastProvider } from '@/components/ui/Toast'
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const locale   = await getLocale()
@@ -8,9 +9,11 @@ export default async function PanelLayout({ children }: { children: React.ReactN
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <div dir={dir} lang={locale}>
-        {children}
-      </div>
+      <ToastProvider>
+        <div dir={dir} lang={locale}>
+          {children}
+        </div>
+      </ToastProvider>
     </NextIntlClientProvider>
   )
 }
