@@ -4,6 +4,7 @@ import { useActionState, useRef, useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { createReservation, type ActionState } from './actions'
 import { type BusinessType } from '@/types'
+import { FloatingInput } from '@/components/ui/FloatingInput'
 
 const initialState: ActionState = {
   success: false,
@@ -72,6 +73,8 @@ export function ReservationForm({
   const [selectedStaff, setSelectedStaff]     = useState<string>('')
   const [selectedMasa, setSelectedMasa]       = useState<string | null>(null)
   const [showNotes, setShowNotes]             = useState(false)
+  const [guestName,  setGuestName]            = useState('')
+  const [guestPhone, setGuestPhone]           = useState('')
   const formRef = useRef<HTMLFormElement>(null)
 
   const term         = tTerms(businessType as Parameters<typeof tTerms>[0])
@@ -102,6 +105,8 @@ export function ReservationForm({
           onClick={() => {
             formRef.current?.reset()
             setSelectedTime('')
+            setGuestName('')
+            setGuestPhone('')
           }}
           className="text-sm text-stone-400 underline underline-offset-2"
         >
@@ -259,31 +264,29 @@ export function ReservationForm({
       )}
 
       {/* Ad Soyad */}
-      <Field label={t('fullName')} htmlFor="guest_name">
-        <input
-          id="guest_name"
-          name="guest_name"
-          type="text"
-          required
-          autoComplete="name"
-          placeholder={t('fullNamePlaceholder')}
-          className={inputCls}
-        />
-      </Field>
+      <FloatingInput
+        id="guest_name"
+        name="guest_name"
+        type="text"
+        required
+        autoComplete="name"
+        label={t('fullName')}
+        value={guestName}
+        onChange={e => setGuestName(e.target.value)}
+      />
 
       {/* Telefon */}
-      <Field label={t('phone')} htmlFor="guest_phone">
-        <input
-          id="guest_phone"
-          name="guest_phone"
-          type="tel"
-          required
-          autoComplete="tel"
-          inputMode="tel"
-          placeholder={t('phonePlaceholder')}
-          className={inputCls}
-        />
-      </Field>
+      <FloatingInput
+        id="guest_phone"
+        name="guest_phone"
+        type="tel"
+        required
+        autoComplete="tel"
+        inputMode="tel"
+        label={t('phone')}
+        value={guestPhone}
+        onChange={e => setGuestPhone(e.target.value)}
+      />
 
       {/* Kişi Sayısı — sadece restoran için */}
       {isRestaurant && (
@@ -386,24 +389,3 @@ export function ReservationForm({
   )
 }
 
-function Field({
-  label,
-  htmlFor,
-  children,
-}: {
-  label: string
-  htmlFor: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={htmlFor} className="text-sm font-semibold text-stone-700">
-        {label}
-      </label>
-      {children}
-    </div>
-  )
-}
-
-const inputCls =
-  'rounded-xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-900 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100 w-full'

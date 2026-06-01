@@ -7,6 +7,7 @@ import ExportButton   from './ExportButton'
 import ReservationList from './ReservationList'
 import SettingsForm   from './SettingsForm'
 import CountUp        from '@/components/CountUp'
+import ReservationChart from '@/components/ui/ReservationChart'
 import type { Reservation, SpecialArea, Restaurant } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -130,9 +131,9 @@ export default async function PanelDashboardPage({
 
         {/* Stat Cards */}
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard label={t('todayTotal')}     value={todayCount ?? 0}     accent="amber" />
-          <StatCard label={t('confirmedCount')} value={todayConfirmed ?? 0} accent="green" />
-          <StatCard label={t('thisWeek')}        value={weekTotal}           accent="blue"  />
+          <StatCard label={t('todayTotal')}     value={todayCount ?? 0}     accent="amber" delay="0ms"   />
+          <StatCard label={t('confirmedCount')} value={todayConfirmed ?? 0} accent="green" delay="70ms"  />
+          <StatCard label={t('thisWeek')}        value={weekTotal}           accent="blue"  delay="140ms" />
           {weekRevenue > 0 ? (
             <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center">
               <div className="text-2xl font-bold text-emerald-400">
@@ -162,6 +163,13 @@ export default async function PanelDashboardPage({
             <span>{t('cancelledCount')}: <b className="text-red-400">{weekCancelled}</b></span>
           </div>
         </section>
+
+        {/* 7-Day Trend Chart */}
+        <ReservationChart
+          data={dailyStats.map(d => ({ label: d.label, count: d.count }))}
+          title={t('weeklyOccupancy')}
+          color="#F59E0B"
+        />
 
         {/* Special Area Occupancy */}
         {areaStats.length > 0 && (
@@ -229,10 +237,13 @@ export default async function PanelDashboardPage({
   )
 }
 
-function StatCard({ label, value, accent }: { label: string; value: number; accent: 'amber' | 'green' | 'blue' }) {
+function StatCard({ label, value, accent, delay = '0ms' }: { label: string; value: number; accent: 'amber' | 'green' | 'blue'; delay?: string }) {
   const colors = { amber: 'text-amber-400', green: 'text-emerald-400', blue: 'text-blue-400' }
   return (
-    <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center">
+    <div
+      className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center animate-[fadeSlideUp_0.4s_ease_forwards] opacity-0"
+      style={{ animationDelay: delay }}
+    >
       <CountUp to={value} className={`text-2xl font-bold ${colors[accent]}`} />
       <div className="text-stone-500 text-xs mt-0.5">{label}</div>
     </div>

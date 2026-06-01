@@ -26,6 +26,9 @@
   /* Brand colors available as Tailwind utilities */
   --color-primary:      var(--cr-primary);
   --color-primary-dark: var(--cr-primary-dark);
+
+  /* Custom animations */
+  --animate-fadeSlideUp: fadeSlideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -72,6 +75,12 @@ button:not([disabled]):active {
 }
 main, .page-content {
   animation: page-fade-in 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+/* Stat card entrance animation */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Dark mode support for marketing pages */

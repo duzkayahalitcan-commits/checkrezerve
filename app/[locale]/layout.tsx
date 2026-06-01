@@ -2,6 +2,9 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import { ToastProvider } from "@/components/ui/Toast";
+import PageTransition from "@/components/ui/PageTransition";
+import NavigationProgress from "@/components/ui/NavigationProgress";
 
 type Props = {
   children: React.ReactNode;
@@ -23,9 +26,14 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <div dir={dir} lang={locale} style={{ minHeight: '100%' }}>
-        {children}
-      </div>
+      <ToastProvider>
+        <NavigationProgress />
+        <div dir={dir} lang={locale} style={{ minHeight: '100%' }}>
+          <PageTransition>
+            {children}
+          </PageTransition>
+        </div>
+      </ToastProvider>
     </NextIntlClientProvider>
   );
 }

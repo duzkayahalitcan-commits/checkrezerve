@@ -2,6 +2,7 @@
 import { motion } from 'motion/react'
 import { Link } from '@/i18n/navigation'
 import { BUSINESS_TYPE_ICONS, type BusinessType } from '@/types'
+import FavoriteButton from '@/components/ui/FavoriteButton'
 
 const TYPE_BG: Record<string, string> = {
   restaurant:   'bg-amber-50',
@@ -83,19 +84,36 @@ export default function AnimatedBusinessCards({ list, activeCategory: _activeCat
             initial={{ opacity: 0, y: 20, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.35, delay: i * 0.05, ease: [0.23, 1, 0.32, 1] }}
-            whileHover={{ y: -4, boxShadow: `0 16px 40px ${accent}28` }}
-            className="rounded-2xl border border-zinc-100 bg-white"
+            whileHover={{ y: -5, boxShadow: `0 20px 48px ${accent}30` }}
+            className="rounded-2xl border border-zinc-100 bg-white relative overflow-hidden group/card"
             style={{ willChange: 'transform' }}
           >
+            {/* Hover color accent strip */}
+            <motion.div
+              className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-2xl"
+              style={{ backgroundColor: accent }}
+              initial={{ scaleY: 0 }}
+              whileHover={{ scaleY: 1 }}
+              transition={{ duration: 0.2 }}
+            />
+            {/* Favorite button */}
+            <div className="absolute top-3 right-3 z-10">
+              <FavoriteButton size="sm" />
+            </div>
+
             <Link
               href={{ pathname: '/rezervasyon/[id]', params: { id: biz.id } }}
-              className="flex items-start gap-4 p-5 h-full group"
+              className="flex items-start gap-4 p-5 pr-12 h-full"
             >
-              <div className={`shrink-0 w-12 h-12 rounded-xl ${bg} flex items-center justify-center text-2xl`}>
+              <motion.div
+                className={`shrink-0 w-12 h-12 rounded-xl ${bg} flex items-center justify-center text-2xl`}
+                whileHover={{ rotate: [0, -5, 5, 0], scale: 1.08 }}
+                transition={{ duration: 0.35 }}
+              >
                 {icon}
-              </div>
+              </motion.div>
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-zinc-900 group-hover:text-red-600 transition-colors truncate">
+                <p className="font-bold text-zinc-900 group-hover/card:text-red-600 transition-colors truncate">
                   {biz.name}
                 </p>
                 <span
@@ -109,8 +127,8 @@ export default function AnimatedBusinessCards({ list, activeCategory: _activeCat
                 )}
               </div>
               <motion.span
-                className="text-zinc-300 group-hover:text-red-400 text-xl mt-1"
-                whileHover={{ x: 3 }}
+                className="text-zinc-300 group-hover/card:text-red-400 text-xl mt-1 shrink-0"
+                whileHover={{ x: 4 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 20 }}
               >
                 ›
