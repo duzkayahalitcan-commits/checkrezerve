@@ -77,10 +77,15 @@ export function ReservationForm({
   const [guestPhone, setGuestPhone]           = useState('')
   const formRef = useRef<HTMLFormElement>(null)
 
-  const term         = tTerms(businessType as Parameters<typeof tTerms>[0])
-  const isRestaurant = businessType === 'restaurant'
-  const hasServices  = services.length > 0
-  const hasStaff     = staff.length > 0
+  const term             = tTerms(businessType as Parameters<typeof tTerms>[0])
+  const isRestaurant     = businessType === 'restaurant'
+  const hasServices      = services.length > 0
+  const hasStaff         = staff.length > 0
+  const isAppointmentType = ['psychologist', 'chiropractor', 'dentist'].includes(businessType)
+  const showStaff        = hasStaff && !isRestaurant
+  const ROOM_TYPES       = new Set(['spa', 'pilates', 'fitness', 'chiropractor', 'psychologist', 'dentist'])
+  const showRooms        = masaTipleri.length > 0 && (isRestaurant || ROOM_TYPES.has(businessType))
+  const roomLabel        = isRestaurant ? t('tableType') : 'Oda / Kabin'
 
   if (state.success) {
     return (
@@ -156,8 +161,8 @@ export function ReservationForm({
         </div>
       )}
 
-      {/* Personel Seçimi */}
-      {hasStaff && (
+      {/* Personel Seçimi — restoranda gizli */}
+      {showStaff && (
         <div className="flex flex-col gap-2">
           <label className="text-sm font-semibold text-stone-700">
             {t('selectStaff')} <span className="text-stone-400 font-normal">({t('optional')})</span>
@@ -237,11 +242,11 @@ export function ReservationForm({
         </div>
       </div>
 
-      {/* Masa Tipi — restoran için */}
-      {isRestaurant && masaTipleri.length > 0 && (
+      {/* Masa / Oda / Kabin — restoran, spa, pilates, klinik */}
+      {showRooms && (
         <div className="flex flex-col gap-2">
           <label className="text-sm font-semibold text-stone-700">
-            {t('tableType')} <span className="text-stone-400 font-normal">({t('optional')})</span>
+            {roomLabel} <span className="text-stone-400 font-normal">({t('optional')})</span>
           </label>
           <div className="grid grid-cols-2 gap-2">
             {masaTipleri.map(m => (
@@ -376,7 +381,7 @@ export function ReservationForm({
             {t('submitting')}
           </span>
         ) : selectedTime ? (
-          t('submit', { term: term })
+          isAppointmentType ? 'Randevu Al' : t('submit', { term: term })
         ) : (
           t('selectTimeFirst')
         )}

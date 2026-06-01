@@ -5,6 +5,7 @@ import { routing } from "@/i18n/routing";
 import { ToastProvider } from "@/components/ui/Toast";
 import PageTransition from "@/components/ui/PageTransition";
 import NavigationProgress from "@/components/ui/NavigationProgress";
+import ChatWidget from "@/components/ChatWidget";
 
 type Props = {
   children: React.ReactNode;
@@ -28,6 +29,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     <NextIntlClientProvider locale={locale} messages={messages}>
       <ToastProvider>
         <NavigationProgress />
+        <ChatWidget />
         <div dir={dir} lang={locale} style={{ minHeight: '100%' }}>
           <PageTransition>
             {children}

@@ -26,11 +26,10 @@ export async function POST(request: NextRequest) {
       if (faqAnswer) return NextResponse.json({ message: faqAnswer })
     }
 
-    const systemPrompt = `Sen ${businessName} adlı ${businessType} işletmesinin yapay zeka asistanısın.
-Müşterilere Türkçe olarak yardım ediyorsun.
-Görevlerin: randevu ayarlamak, sorulara cevap vermek, işletme hakkında bilgi vermek.
-Müsait randevu slotları: ${JSON.stringify(availableSlots || [])}.
-Kısa ve net cevaplar ver. Randevu için mutlaka isim, tarih ve saat bilgisi al.`
+    const isGeneral = !businessName || businessType === 'platform'
+    const systemPrompt = isGeneral
+      ? `Sen CheckRezerve'in yapay zeka asistanısın. CheckRezerve, restoran, kuaför, spa, psikolog, klinik ve daha pek çok işletme için online rezervasyon platformudur. Kullanıcılara Türkçe olarak yardım ediyorsun. Görevlerin: hangi tür işletmelerin olduğunu açıklamak, /rezervasyon sayfasından işletme aratmak için yönlendirmek, platform hakkında soruları cevaplamak. Kısa, samimi ve net cevaplar ver.`
+      : `Sen ${businessName} adlı ${businessType} işletmesinin yapay zeka asistanısın. Müşterilere Türkçe olarak yardım ediyorsun. Görevlerin: randevu ayarlamak, sorulara cevap vermek, işletme hakkında bilgi vermek. Müsait randevu slotları: ${JSON.stringify(availableSlots || [])}. Kısa ve net cevaplar ver. Randevu için mutlaka isim, tarih ve saat bilgisi al.`
 
     try {
       const response = await anthropic.messages.create({

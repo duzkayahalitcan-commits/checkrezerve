@@ -77,9 +77,39 @@
 - Rezervasyon özet kartı
 - "Takvime Ekle" + "Ana Sayfaya Dön" butonları
 
+[ ] 11. Özellikler Sayfası — Görsel Fix
+- Beyaz kutu sorunu: Next.js Image yerine <img> tag kullan, Unsplash URL'leri kullan
+- 01 AI Sesli Onay → https://images.unsplash.com/photo-1590650153855-d9e808231d41?w=600&q=80
+- 02 Gerçek Kişi → https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=600&q=80
+- 03 Anlık Bildirimler → https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=600&q=80
+- 04 Analiz → https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80
+- 05 Çoklu Hizmet → https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&q=80
+- 06 Masa/Seans/Oda → https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80
+
+[ ] 12. Kullanım Alanları — Görsel Fix + Yeni Sektörler
+- SectorTabs.tsx: <img> ile Unsplash görselleri, 3 yeni sektör ekle (psikolog, pilates, klinik)
+
+[ ] 13. Rezervasyon Mantık Düzeltmeleri
+- business_type'a göre koşullu render: kişi sayısı/masa (restoran only), oda/kabin (spa/pilates/klinik), buton metni (psikolog/klinik → Randevu Al), uzman seçimi (psikolog/klinik/kuafor/spa)
+
+[ ] 14. Web Chatbot İyileştirme
+- Floating chat widget tüm sayfalarda, hoş geldin mesajı, localStorage geçmiş, sistem promptu güncelle
+
+[ ] 15. Deploy
+- commit + push + rsync + docker-compose
+
+### MOBİL
+
+[ ] 16. Yeni Kategoriler (psikolog/pilates/klinik) — src/constants/
+[ ] 17. Rezervasyon Flow Mantık — aynı koşullu render kuralları
+[ ] 18. ChatbotScreen İyileştirme — AsyncStorage geçmiş, hızlı yanıt chip'leri, modern balon tasarımı
+[ ] 19. Mobil TypeScript Kontrol — npx tsc --noEmit
+
 ## Tamamlandıktan Sonra
 Web: deploy et
 Mobil: npx tsc --noEmit kontrol et
+
+DEVAM NOKTASI: Görev 11
 
 ---
 

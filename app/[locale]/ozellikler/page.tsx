@@ -1,7 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
-import Image from 'next/image'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 
@@ -22,7 +21,7 @@ export default async function OzelliklerPage({
   const FEATURES = [
     {
       num: '01',
-      img: '/images/feat-ai-voice-new.jpg',
+      img: 'https://images.unsplash.com/photo-1590650153855-d9e808231d41?w=600&q=80',
       titleKey: 'feat1Title',
       descKey: 'feat1Desc',
       items: ['feat1Item1', 'feat1Item2', 'feat1Item3', 'feat1Item4'],
@@ -30,7 +29,7 @@ export default async function OzelliklerPage({
     },
     {
       num: '02',
-      img: '/images/feat-human-agent-new.jpg',
+      img: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=600&q=80',
       titleKey: 'feat2Title',
       descKey: 'feat2Desc',
       items: ['feat2Item1', 'feat2Item2', 'feat2Item3', 'feat2Item4'],
@@ -38,8 +37,7 @@ export default async function OzelliklerPage({
     },
     {
       num: '03',
-      img: '/images/designer-15.png',
-      imgClass: 'object-bottom',
+      img: 'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=600&q=80',
       titleKey: 'feat3Title',
       descKey: 'feat3Desc',
       items: ['feat3Item1', 'feat3Item2', 'feat3Item3', 'feat3Item4'],
@@ -47,7 +45,7 @@ export default async function OzelliklerPage({
     },
     {
       num: '04',
-      img: '/images/designer-5.png',
+      img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80',
       titleKey: 'feat4Title',
       descKey: 'feat4Desc',
       items: ['feat4Item1', 'feat4Item2', 'feat4Item3', 'feat4Item4'],
@@ -55,7 +53,7 @@ export default async function OzelliklerPage({
     },
     {
       num: '05',
-      img: '/images/feature-calisan.jpg',
+      img: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&q=80',
       titleKey: 'feat5Title',
       descKey: 'feat5Desc',
       items: ['feat5Item1', 'feat5Item2', 'feat5Item3', 'feat5Item4'],
@@ -63,7 +61,7 @@ export default async function OzelliklerPage({
     },
     {
       num: '06',
-      img: '/images/feature-online.jpg',
+      img: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80',
       titleKey: 'feat6Title',
       descKey: 'feat6Desc',
       items: ['feat6Item1', 'feat6Item2', 'feat6Item3', 'feat6Item4'],
@@ -136,12 +134,11 @@ export default async function OzelliklerPage({
               </div>
               <div className="flex-shrink-0 w-full lg:w-[480px]">
                 <div className="rounded-2xl overflow-hidden shadow-xl border border-zinc-100">
-                  <Image
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
                     src={f.img}
                     alt={t(f.titleKey as Parameters<typeof t>[0])}
-                    width={480}
-                    height={340}
-                    className={`w-full h-72 object-cover ${f.imgClass ?? ''}`}
+                    className="w-full h-72 object-cover"
                     loading="lazy"
                   />
                 </div>

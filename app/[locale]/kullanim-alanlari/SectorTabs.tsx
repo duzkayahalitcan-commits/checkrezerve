@@ -1,59 +1,92 @@
 'use client'
 import { useState } from 'react'
-import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
+
+type Feature = { title: string; desc: string }
+type SectorData = { img: string; title: string; desc: string; features: Feature[] }
 
 export default function SectorTabs() {
   const t = useTranslations('useCases')
   const [active, setActive] = useState('restoran')
 
   const SECTORS = [
-    { id: 'restoran', icon: '🍽️', labelKey: 'sectorRestaurantLabel' },
-    { id: 'spa',      icon: '💆', labelKey: 'sectorSpaLabel' },
-    { id: 'kuafor',   icon: '✂️', labelKey: 'sectorBarberLabel' },
+    { id: 'restoran', icon: '🍽️', label: 'Restoran' },
+    { id: 'spa',      icon: '💆', label: 'Spa & Güzellik' },
+    { id: 'kuafor',   icon: '✂️', label: 'Kuaför & Berber' },
+    { id: 'psikolog', icon: '🧠', label: 'Psikolog & Danışman' },
+    { id: 'pilates',  icon: '🧘', label: 'Pilates & Yoga' },
+    { id: 'klinik',   icon: '🏥', label: 'Klinik & Fizik Tedavi' },
   ]
 
-  const SECTOR_DATA: Record<string, {
-    img: string
-    titleKey: string
-    descKey: string
-    features: { titleKey: string; descKey: string }[]
-  }> = {
+  const SECTOR_DATA: Record<string, SectorData> = {
     restoran: {
-      img: '/images/sector-restoran.jpg',
-      titleKey: 'sectorRestaurantTitle',
-      descKey: 'sectorRestaurantDesc',
+      img:   'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=700&q=80',
+      title: t('sectorRestaurantTitle'),
+      desc:  t('sectorRestaurantDesc'),
       features: [
-        { titleKey: 'restaurantF1T', descKey: 'restaurantF1D' },
-        { titleKey: 'restaurantF2T', descKey: 'restaurantF2D' },
-        { titleKey: 'restaurantF3T', descKey: 'restaurantF3D' },
-        { titleKey: 'restaurantF4T', descKey: 'restaurantF4D' },
-        { titleKey: 'restaurantF5T', descKey: 'restaurantF5D' },
+        { title: t('restaurantF1T'), desc: t('restaurantF1D') },
+        { title: t('restaurantF2T'), desc: t('restaurantF2D') },
+        { title: t('restaurantF3T'), desc: t('restaurantF3D') },
+        { title: t('restaurantF4T'), desc: t('restaurantF4D') },
+        { title: t('restaurantF5T'), desc: t('restaurantF5D') },
       ],
     },
     spa: {
-      img: '/images/sector-spa.jpg',
-      titleKey: 'sectorSpaTitle',
-      descKey: 'sectorSpaDesc',
+      img:   'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=700&q=80',
+      title: t('sectorSpaTitle'),
+      desc:  t('sectorSpaDesc'),
       features: [
-        { titleKey: 'spaF1T', descKey: 'spaF1D' },
-        { titleKey: 'spaF2T', descKey: 'spaF2D' },
-        { titleKey: 'spaF3T', descKey: 'spaF3D' },
-        { titleKey: 'spaF4T', descKey: 'spaF4D' },
-        { titleKey: 'spaF5T', descKey: 'spaF5D' },
+        { title: t('spaF1T'), desc: t('spaF1D') },
+        { title: t('spaF2T'), desc: t('spaF2D') },
+        { title: t('spaF3T'), desc: t('spaF3D') },
+        { title: t('spaF4T'), desc: t('spaF4D') },
+        { title: t('spaF5T'), desc: t('spaF5D') },
       ],
     },
     kuafor: {
-      img: '/images/sector-kuafor.jpg',
-      titleKey: 'sectorBarberTitle',
-      descKey: 'sectorBarberDesc',
+      img:   'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=700&q=80',
+      title: t('sectorBarberTitle'),
+      desc:  t('sectorBarberDesc'),
       features: [
-        { titleKey: 'barberF1T', descKey: 'barberF1D' },
-        { titleKey: 'barberF2T', descKey: 'barberF2D' },
-        { titleKey: 'barberF3T', descKey: 'barberF3D' },
-        { titleKey: 'barberF4T', descKey: 'barberF4D' },
-        { titleKey: 'barberF5T', descKey: 'barberF5D' },
+        { title: t('barberF1T'), desc: t('barberF1D') },
+        { title: t('barberF2T'), desc: t('barberF2D') },
+        { title: t('barberF3T'), desc: t('barberF3D') },
+        { title: t('barberF4T'), desc: t('barberF4D') },
+        { title: t('barberF5T'), desc: t('barberF5D') },
+      ],
+    },
+    psikolog: {
+      img:   'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=700&q=80',
+      title: 'Psikolog & Danışman Klinikleri İçin',
+      desc:  'Seans yönetiminden hasta takibine, randevu hatırlatmalarından gizlilik güvencesine kadar profesyonel danışmanlık altyapısı.',
+      features: [
+        { title: 'Online Seans Desteği',  desc: 'Video görüşme linki otomatik gönderilir' },
+        { title: 'Tekrarlayan Randevu',   desc: 'Haftalık/aylık seans serileri oluştur' },
+        { title: 'Hasta Notları',         desc: 'Her seans için özel not alanı' },
+        { title: 'Gizlilik Modu',         desc: 'Hasta bilgileri şifreli, paylaşılmaz' },
+      ],
+    },
+    pilates: {
+      img:   'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=700&q=80',
+      title: 'Pilates & Yoga Stüdyoları İçin',
+      desc:  'Ekipman rezervasyonundan grup derslerine, paket satışından devam takibine kadar stüdyo yönetimi.',
+      features: [
+        { title: 'Grup & Bireysel Ders', desc: 'Kapasiteye göre katılımcı yönetimi' },
+        { title: 'Ekipman Takibi',       desc: 'Reformer, halı, araç-gereç rezervasyonu' },
+        { title: 'Paket Satışı',         desc: '10 ders, 20 ders paketleri tanımla' },
+        { title: 'Devam Takibi',         desc: 'Müşteri katılım geçmişi ve istatistikleri' },
+      ],
+    },
+    klinik: {
+      img:   'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=700&q=80',
+      title: 'Klinik & Fizik Tedavi Merkezleri İçin',
+      desc:  'Doktor ve fizyoterapist randevu yönetiminden cihaz rezervasyonuna, tedavi takibine kadar klinik altyapısı.',
+      features: [
+        { title: 'Uzman Seçimi',     desc: 'Doktor/fizyoterapiste göre müsaitlik takvimi' },
+        { title: 'Tedavi Süresi',    desc: 'Seans uzunluğu servise göre otomatik hesaplanır' },
+        { title: 'Cihaz Rezervasyonu', desc: 'Ultrason, lazer, TENS cihazları için slot' },
+        { title: 'Takip Seansları',  desc: 'Tedavi protokolüne bağlı otomatik hatırlatma' },
       ],
     },
   }
@@ -70,11 +103,11 @@ export default function SectorTabs() {
             onClick={() => setActive(s.id)}
             className={`px-4 py-2.5 rounded-full border text-sm font-semibold transition-all duration-200 ${
               active === s.id
-                ? 'bg-red-600 text-white border-red-600'
+                ? 'bg-red-600 text-white border-red-600 shadow-md shadow-red-200'
                 : 'bg-white text-zinc-600 border-zinc-200 hover:border-red-300 hover:text-red-600'
             }`}
           >
-            {s.icon} {t(s.labelKey as Parameters<typeof t>[0])}
+            {s.icon} {s.label}
           </button>
         ))}
       </div>
@@ -83,26 +116,26 @@ export default function SectorTabs() {
       <div className="flex flex-col lg:flex-row gap-12 items-start">
         <div className="flex-shrink-0 w-full lg:w-[480px]">
           <div className="rounded-2xl overflow-hidden shadow-xl border border-zinc-100">
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={sector.img}
-              alt={t(sector.titleKey as Parameters<typeof t>[0])}
-              width={480}
-              height={340}
+              alt={sector.title}
               className="w-full h-72 object-cover"
+              loading="lazy"
             />
           </div>
         </div>
         <div className="flex-1 min-w-0">
           <span className="text-xs font-bold text-red-600 tracking-widest uppercase">{t('sectorUsageLabel')}</span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 mt-2 mb-3">{t(sector.titleKey as Parameters<typeof t>[0])}</h2>
-          <p className="text-zinc-600 leading-relaxed mb-6">{t(sector.descKey as Parameters<typeof t>[0])}</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 mt-2 mb-3">{sector.title}</h2>
+          <p className="text-zinc-600 leading-relaxed mb-6">{sector.desc}</p>
           <div className="space-y-3">
-            {sector.features.map(f => (
-              <div key={f.titleKey} className="flex items-start gap-3 bg-zinc-50 rounded-xl p-4 border border-zinc-100">
+            {sector.features.map((f, i) => (
+              <div key={i} className="flex items-start gap-3 bg-zinc-50 rounded-xl p-4 border border-zinc-100">
                 <span className="mt-0.5 text-red-500 font-bold shrink-0">✓</span>
                 <div>
-                  <strong className="text-sm text-zinc-900">{t(f.titleKey as Parameters<typeof t>[0])}</strong>
-                  <p className="text-xs text-zinc-500 mt-0.5">{t(f.descKey as Parameters<typeof t>[0])}</p>
+                  <strong className="text-sm text-zinc-900">{f.title}</strong>
+                  <p className="text-xs text-zinc-500 mt-0.5">{f.desc}</p>
                 </div>
               </div>
             ))}
