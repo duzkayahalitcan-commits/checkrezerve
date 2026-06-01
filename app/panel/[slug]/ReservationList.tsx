@@ -47,6 +47,7 @@ export default function ReservationList({
   const [reservations, setReservations] = useState<Reservation[]>(initialReservations)
   const [tab, setTab] = useState<Tab>('pending')
   const [updating, setUpdating] = useState<string | null>(null)
+  const [newId, setNewId] = useState<string | null>(null)
 
   useEffect(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -61,7 +62,11 @@ export default function ReservationList({
         filter: `restaurant_id=eq.${restaurantId}`,
       }, (payload) => {
         if (payload.eventType === 'INSERT') {
-          setReservations(prev => [payload.new as Reservation, ...prev])
+          const inserted = payload.new as Reservation
+          setReservations(prev => [inserted, ...prev])
+          // Flash highlight for 2.5s on new reservation
+          setNewId(inserted.id)
+          setTimeout(() => setNewId(null), 2500)
         } else if (payload.eventType === 'UPDATE') {
           setReservations(prev => prev.map(r => r.id === payload.new.id ? { ...r, ...(payload.new as Reservation) } : r))
         } else if (payload.eventType === 'DELETE') {
@@ -161,9 +166,13 @@ export default function ReservationList({
                 key={r.id}
                 layout
                 initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
+                animate={newId === r.id
+                  ? { opacity: 1, y: 0, scale: 1, boxShadow: ['0 0 0 0 rgba(245,158,11,0)', '0 0 0 6px rgba(245,158,11,0.35)', '0 0 0 0 rgba(245,158,11,0)'] }
+                  : { opacity: 1, y: 0, scale: 1 }
+                }
                 exit={{ opacity: 0, scale: 0.97, y: -8 }}
                 transition={{ duration: 0.25, delay: i * 0.04, ease: [0.23, 1, 0.32, 1] }}
+                className={newId === r.id ? 'rounded-xl ring-1 ring-amber-500/40' : ''}
               >
                 <ReservationCard
                   reservation={r}

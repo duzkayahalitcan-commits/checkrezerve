@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Calendar, ChevronRight, LogOut } from 'lucide-react'
 import PanelLangSelector from './PanelLangSelector'
+import NotificationBell from './NotificationBell'
 
 const ROLE_STYLES: Record<string, string> = {
   business_owner:   'text-amber-400 bg-amber-500/10 border-amber-500/20',
@@ -20,10 +21,12 @@ export default function PanelSidebar({
   slug,
   restaurantName,
   role,
+  restaurantId,
 }: {
   slug: string
   restaurantName: string
   role: string
+  restaurantId: string
 }) {
   const pathname = usePathname()
   const base = `/panel/${slug}`
@@ -77,8 +80,12 @@ export default function PanelSidebar({
           })}
         </nav>
 
-        {/* Bottom: lang + logout */}
+        {/* Bottom: bell + lang + logout */}
         <div className="px-4 pb-5 pt-3 border-t border-white/5 space-y-2">
+          <div className="flex items-center gap-3 px-3 py-1">
+            <NotificationBell restaurantId={restaurantId} />
+            <span className="text-xs text-stone-600 flex-1">Yeni rezervasyon</span>
+          </div>
           <PanelLangSelector />
           <form action="/panel/logout" method="POST">
             <button
@@ -102,7 +109,8 @@ export default function PanelSidebar({
             {restaurantName}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <NotificationBell restaurantId={restaurantId} />
           <PanelLangSelector />
           <form action="/panel/logout" method="POST">
             <button

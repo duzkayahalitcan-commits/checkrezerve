@@ -25,7 +25,7 @@ export default async function SlugLayout({
 
   return (
     <div className="flex bg-stone-950 text-white min-h-screen">
-      <PanelSidebar slug={slug} restaurantName={restaurant.name} role={session.role} />
+      <PanelSidebar slug={slug} restaurantName={restaurant.name} role={session.role} restaurantId={restaurant.id} />
       {/* Mobile: pt for top bar, pb for bottom nav */}
       <div className="flex-1 min-w-0 pt-14 pb-16 md:pt-0 md:pb-0">
         {children}
