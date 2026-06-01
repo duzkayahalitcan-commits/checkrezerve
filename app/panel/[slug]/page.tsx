@@ -2,30 +2,28 @@ import { redirect }        from 'next/navigation'
 import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { getTranslations, getLocale } from 'next-intl/server'
-import WeeklyChart          from './WeeklyChart'
-import ExportButton         from './ExportButton'
-import ReservationList      from './ReservationList'
-import PanelLangSelector    from '../_components/PanelLangSelector'
-import SettingsForm           from './SettingsForm'
-import CountUp              from '@/components/CountUp'
+import WeeklyChart    from './WeeklyChart'
+import ExportButton   from './ExportButton'
+import ReservationList from './ReservationList'
+import SettingsForm   from './SettingsForm'
+import CountUp        from '@/components/CountUp'
 import type { Reservation, SpecialArea, Restaurant } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
 function currentWeekRange(): { start: string; end: string } {
-  const now  = new Date()
-  const day  = now.getDay() === 0 ? 7 : now.getDay()
-  const mon  = new Date(now); mon.setDate(now.getDate() - day + 1)
-  const sun  = new Date(mon); sun.setDate(mon.getDate() + 6)
-  const fmt  = (d: Date) => d.toISOString().slice(0, 10)
+  const now = new Date()
+  const day = now.getDay() === 0 ? 7 : now.getDay()
+  const mon = new Date(now); mon.setDate(now.getDate() - day + 1)
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6)
+  const fmt = (d: Date) => d.toISOString().slice(0, 10)
   return { start: fmt(mon), end: fmt(sun) }
 }
 
 function last7Days(): string[] {
   const days: string[] = []
   for (let i = 6; i >= 0; i--) {
-    const d = new Date()
-    d.setDate(d.getDate() - i)
+    const d = new Date(); d.setDate(d.getDate() - i)
     days.push(d.toISOString().slice(0, 10))
   }
   return days
@@ -39,10 +37,10 @@ export default async function PanelDashboardPage({
   const session = await getPanelSession()
   if (!session) redirect('/panel/login')
 
-  const { slug }   = await params
-  const db         = getSupabaseAdmin()
-  const t          = await getTranslations('panel')
-  const locale     = await getLocale()
+  const { slug } = await params
+  const db       = getSupabaseAdmin()
+  const t        = await getTranslations('panel')
+  const locale   = await getLocale()
 
   const { data: restaurant } = await db
     .from('restaurants')
@@ -53,9 +51,9 @@ export default async function PanelDashboardPage({
 
   if (!restaurant) redirect('/panel/login')
 
-  const today  = new Date().toISOString().slice(0, 10)
-  const week   = currentWeekRange()
-  const days7  = last7Days()
+  const today = new Date().toISOString().slice(0, 10)
+  const week  = currentWeekRange()
+  const days7 = last7Days()
 
   const [
     { data: weekReservations },
@@ -107,45 +105,50 @@ export default async function PanelDashboardPage({
   const weekCancelled = allRes.filter(r => r.status === 'cancelled').length
   const weekPct       = Math.min(100, Math.round((weekTotal / (restaurant.capacity * 7)) * 100))
 
-  const roleLabel = ({
-    super_admin:      t('roleSuperAdmin'),
-    business_owner:   t('roleOwner'),
-    business_manager: t('roleManager'),
-  } as Record<string, string>)[session.role] ?? t('roleUnknown')
+  // Revenue estimate: sum of hizmetler.fiyat for confirmed/completed bookings this week
+  const weekRevenue = (allReservations ?? []).reduce((sum, r) => {
+    const res = r as unknown as { status: string; hizmetler?: { fiyat: number } | null }
+    if ((res.status === 'confirmed' || res.status === 'completed') && res.hizmetler?.fiyat) {
+      return sum + res.hizmetler.fiyat
+    }
+    return sum
+  }, 0)
+
+  const todayDateStr = new Date().toLocaleDateString(locale, {
+    weekday: 'long', day: 'numeric', month: 'long',
+  })
 
   return (
-    <div className="min-h-screen bg-stone-950 text-white">
-      {/* Header */}
-      <header className="border-b border-stone-800 px-4 py-3 flex items-center justify-between">
-        <div>
-          <span className="text-xs text-stone-500 font-mono">checkrezerve</span>
-          <div className="flex items-center gap-2 mt-0.5">
-            <h1 className="text-white font-bold text-lg leading-tight">{restaurant.name}</h1>
-            <RoleBadge role={session.role} label={roleLabel} />
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <PanelLangSelector />
-          <form action="/panel/logout" method="POST">
-            <button
-              type="submit"
-              className="text-stone-400 hover:text-white text-sm transition px-3 py-1.5
-                         rounded-lg border border-stone-700 hover:border-stone-500"
-            >
-              {t('logout')}
-            </button>
-          </form>
-        </div>
-      </header>
+    <div>
+      {/* Page header */}
+      <div className="px-6 pt-6 pb-5 border-b border-white/5">
+        <p className="text-xs text-stone-500 capitalize">{todayDateStr}</p>
+        <h1 className="text-lg font-bold text-white mt-0.5">Genel Bakış</h1>
+      </div>
 
-      <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-4xl mx-auto px-4 md:px-6 py-6 space-y-6">
 
-        <section className="grid grid-cols-3 gap-3">
-          <StatCard label={t('todayTotal')}    value={todayCount ?? 0}     accent="amber" />
+        {/* Stat Cards */}
+        <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatCard label={t('todayTotal')}     value={todayCount ?? 0}     accent="amber" />
           <StatCard label={t('confirmedCount')} value={todayConfirmed ?? 0} accent="green" />
-          <StatCard label={t('thisWeek')}       value={weekTotal}           accent="blue"  />
+          <StatCard label={t('thisWeek')}        value={weekTotal}           accent="blue"  />
+          {weekRevenue > 0 ? (
+            <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center">
+              <div className="text-2xl font-bold text-emerald-400">
+                {weekRevenue.toLocaleString(locale)} ₺
+              </div>
+              <div className="text-stone-500 text-xs mt-0.5">Haftalık Gelir</div>
+            </div>
+          ) : (
+            <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center">
+              <div className="text-2xl font-bold text-violet-400">{weekPct}%</div>
+              <div className="text-stone-500 text-xs mt-0.5">Haftalık Doluluk</div>
+            </div>
+          )}
         </section>
 
+        {/* Weekly Chart */}
         <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-sm text-stone-200">{t('weeklyOccupancy')}</h2>
@@ -160,6 +163,7 @@ export default async function PanelDashboardPage({
           </div>
         </section>
 
+        {/* Special Area Occupancy */}
         {areaStats.length > 0 && (
           <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
             <h2 className="font-semibold text-sm text-stone-200 mb-4">{t('specialAreaOccupancy')}</h2>
@@ -189,6 +193,7 @@ export default async function PanelDashboardPage({
           </section>
         )}
 
+        {/* Reservation List (realtime) */}
         <ReservationList
           restaurantId={restaurant.id}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -196,6 +201,7 @@ export default async function PanelDashboardPage({
           today={today}
         />
 
+        {/* Export */}
         <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
           <div className="flex items-center justify-between">
             <div>
@@ -210,6 +216,7 @@ export default async function PanelDashboardPage({
           </div>
         </section>
 
+        {/* Settings */}
         <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
           <h2 className="font-semibold text-sm text-stone-200 mb-5">{t('settingsTitle')}</h2>
           <SettingsForm restaurant={restaurant as Pick<Restaurant,
@@ -219,20 +226,6 @@ export default async function PanelDashboardPage({
 
       </main>
     </div>
-  )
-}
-
-function RoleBadge({ role, label }: { role: string; label: string }) {
-  const styles: Record<string, string> = {
-    business_owner:   'bg-amber-500/15 text-amber-400 border-amber-500/20',
-    business_manager: 'bg-blue-500/15  text-blue-400  border-blue-500/20',
-    super_admin:      'bg-red-500/15   text-red-400   border-red-500/20',
-  }
-  const cls = styles[role] ?? 'bg-stone-700/50 text-stone-400 border-stone-600/30'
-  return (
-    <span className={`inline-block border rounded-md px-1.5 py-0.5 text-[10px] font-medium ${cls}`}>
-      {label}
-    </span>
   )
 }
 

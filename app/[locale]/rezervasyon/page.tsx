@@ -1,15 +1,13 @@
 export const dynamic = 'force-dynamic'
 
-import type { Metadata } from 'next'
-import { Suspense } from 'react'
-import MarketingHeader from '@/components/MarketingHeader'
-import MarketingFooter from '@/components/MarketingFooter'
-import AnimatedBusinessCards from '@/components/AnimatedBusinessCards'
-import CategoryHeroBanner from '@/components/CategoryHeroBanner'
-import { getSupabaseAdmin } from '@/lib/supabase'
-import { type Restaurant } from '@/types'
-import CategoryTabs from './CategoryTabs'
-import { getTypesForKey } from './categories'
+import type { Metadata }     from 'next'
+import { Suspense }          from 'react'
+import MarketingHeader       from '@/components/MarketingHeader'
+import MarketingFooter       from '@/components/MarketingFooter'
+import CategoryHeroBanner    from '@/components/CategoryHeroBanner'
+import SearchableBusinessList from './SearchableBusinessList'
+import { getSupabaseAdmin }  from '@/lib/supabase'
+import { type Restaurant }   from '@/types'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
@@ -27,29 +25,21 @@ type Props = {
   searchParams: Promise<{ kategori?: string }>
 }
 
-export default async function RezervasyonPage({ params, searchParams }: Props) {
+export default async function RezervasyonPage({ params }: Props) {
   const { locale } = await params
   setRequestLocale(locale)
   const t    = await getTranslations('rezervasyon')
   const tBiz = await getTranslations('businessTypes')
 
-  const { kategori } = await searchParams
+  // Fetch ALL active businesses — client component handles filtering
   const { data: businesses } = await getSupabaseAdmin()
     .from('restaurants')
-    .select('id, name, slug, business_type, address, description, is_active, kategori')
+    .select('id, name, slug, business_type, address, description, is_active')
     .eq('is_active', true)
     .order('name')
 
-  const rawList = (businesses ?? []) as (Pick<Restaurant, 'id' | 'name' | 'slug' | 'business_type' | 'address' | 'description' | 'is_active'> & { kategori?: string })[]
-
-  const activeKey   = kategori ?? ''
-  const activeTypes = getTypesForKey(activeKey)
-  const filtered    = activeTypes
-    ? rawList.filter(b => activeTypes.includes(b.business_type))
-    : rawList
-
-  const list = filtered.map(b => ({
-    ...b,
+  const list = (businesses ?? [] as Pick<Restaurant, 'id' | 'name' | 'slug' | 'business_type' | 'address' | 'description' | 'is_active'>[]).map(b => ({
+    ...(b as Pick<Restaurant, 'id' | 'name' | 'slug' | 'business_type' | 'address' | 'description' | 'is_active'>),
     typeLabel: tBiz(b.business_type as Parameters<typeof tBiz>[0]),
   }))
 
@@ -74,32 +64,12 @@ export default async function RezervasyonPage({ params, searchParams }: Props) {
         />
       </Suspense>
 
-      {/* Category selection + list */}
+      {/* Search + Category + Business list */}
       <section className="py-12">
         <div className="mx-auto max-w-5xl px-6">
-
-          <div className="mb-8">
-            <Suspense fallback={<div className="h-10" />}>
-              <CategoryTabs />
-            </Suspense>
-          </div>
-
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-zinc-900">
-              {activeKey
-                ? (LABEL_MAP[activeKey] ?? t('allBusinesses'))
-                : t('allBusinesses')}
-            </h2>
-            <span className="text-sm text-zinc-400">{t('businessCount', { count: list.length })}</span>
-          </div>
-
-          <AnimatedBusinessCards
-            list={list}
-            activeCategory={activeKey}
-            emptyTitle={t('emptyTitle')}
-            emptySubtitle={t('emptySubtitle')}
-            emptyLink={t('emptyLink')}
-          />
+          <Suspense fallback={<BusinessListSkeleton />}>
+            <SearchableBusinessList allBusinesses={list} />
+          </Suspense>
         </div>
       </section>
 
@@ -108,19 +78,20 @@ export default async function RezervasyonPage({ params, searchParams }: Props) {
   )
 }
 
-const LABEL_MAP: Record<string, string> = {
-  'yeme-icme':    'Yeme & İçme',
-  'guzellik':     'Güzellik & Bakım',
-  'saglik':       'Sağlık',
-  'spor':         'Spor & Fitness',
-  'berber':       'Berber',
-  'kuafor':       'Kuaför & Salon',
-  'spa-masaj':    'Spa & Masaj',
-  'psikoloji':    'Psikoloji & Terapi',
-  'fizyoterapi':  'Kayropraktik & Fizyoterapi',
-  'dis':          'Diş Kliniği',
-  'veteriner':    'Veteriner',
-  'spor-salonu':  'Spor Salonu & PT',
-  'pilates-yoga': 'Pilates & Yoga',
-  'restoran':     'Restoran & Kafe',
+function BusinessListSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="h-12 bg-zinc-100 rounded-2xl animate-pulse" />
+      <div className="flex gap-2 overflow-hidden">
+        {[80, 110, 90, 120, 85].map((w, i) => (
+          <div key={i} className="h-9 bg-zinc-100 rounded-full animate-pulse flex-shrink-0" style={{ width: w }} />
+        ))}
+      </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="rounded-2xl border border-zinc-100 bg-zinc-50 h-28 animate-pulse" />
+        ))}
+      </div>
+    </div>
+  )
 }
