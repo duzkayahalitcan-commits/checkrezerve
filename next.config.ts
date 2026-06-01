@@ -7,6 +7,19 @@ const nextConfig: NextConfig = {
   // Docker / Railway / VPS için standalone çıktı
   output: "standalone",
 
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'posarvagedpqtsrcrwfe.supabase.co',
+      },
+    ],
+  },
+
   async headers() {
     return [
       {

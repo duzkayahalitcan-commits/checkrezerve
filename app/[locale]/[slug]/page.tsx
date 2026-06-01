@@ -111,35 +111,48 @@ export default async function BusinessPage({
     .eq('restaurant_id', restaurant.id)
     .eq('date', today)
 
+  const UNSPLASH_BY_TYPE: Record<string, string> = {
+    restaurant:   'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&q=80',
+    coffee_shop:  'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200&q=80',
+    spa:          'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&q=80',
+    barber:       'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=1200&q=80',
+    hairdresser:  'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=1200&q=80',
+    beauty_salon: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&q=80',
+  }
+  const heroPhoto =
+    (restaurant.cover_image as string | null) ??
+    UNSPLASH_BY_TYPE[businessType] ??
+    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&q=80'
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-900 via-stone-800 to-amber-950">
-      {/* Hero */}
-      <div className="relative px-6 pt-14 pb-10 text-center">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative flex flex-col items-center gap-4">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-2xl shadow-amber-900/50">
-            <span className="text-3xl select-none">{icon}</span>
+    <div className="min-h-screen bg-stone-900">
+      {/* Hero Photo Banner */}
+      <div
+        className="relative h-64 sm:h-72 overflow-hidden"
+        style={{
+          backgroundImage: `linear-gradient(to bottom,rgba(13,31,45,0.55) 0%,rgba(13,31,45,0.40) 40%,rgba(24,24,27,0.95) 100%),url('${heroPhoto}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className="relative z-10 flex flex-col items-center justify-end h-full pb-8 px-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-2xl shadow-amber-900/60 mb-3">
+            <span className="text-2xl select-none">{icon}</span>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">
-              {restaurant.name}
-            </h1>
-            {restaurant.address && (
-              <p className="mt-1 text-sm text-stone-400 flex items-center justify-center gap-1">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                {restaurant.address}
-              </p>
-            )}
-          </div>
-
+          <h1 className="text-3xl font-bold text-white tracking-tight drop-shadow-lg">
+            {restaurant.name}
+          </h1>
+          {restaurant.address && (
+            <p className="mt-1 text-sm text-stone-300 flex items-center justify-center gap-1">
+              <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              {restaurant.address}
+            </p>
+          )}
           {typeof count === 'number' && (
-            <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/10 rounded-full px-3 py-1">
+            <div className="mt-2 flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/10 rounded-full px-3 py-1">
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
               <span className="text-xs text-stone-300">
                 {t('todayCount', { count, term: termSingular.toLowerCase() })}

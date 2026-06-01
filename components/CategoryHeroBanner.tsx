@@ -10,7 +10,9 @@ interface Props {
 }
 
 const DEFAULT_OVERLAY =
-  "linear-gradient(135deg,rgba(13,18,26,0.92) 0%,rgba(13,110,110,0.70) 100%)"
+  "linear-gradient(135deg,rgba(13,31,45,0.92) 0%,rgba(13,31,45,0.60) 100%)"
+
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=80'
 
 export default function CategoryHeroBanner({ badgeText, defaultTitle, defaultSubtitle }: Props) {
   const params     = useSearchParams()
@@ -29,7 +31,7 @@ export default function CategoryHeroBanner({ badgeText, defaultTitle, defaultSub
     <section
       className="pt-28 pb-14 text-white text-center relative overflow-hidden"
       style={{
-        backgroundImage: `${overlay},url('/images/hero-premium.jpg')`,
+        backgroundImage: `${overlay},url('${HERO_IMAGE}')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         transition: 'background-image 0.6s ease',

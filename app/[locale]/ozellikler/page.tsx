@@ -63,7 +63,7 @@ export default async function OzelliklerPage({
     },
     {
       num: '06',
-      img: '/feat-mobile.jpg',
+      img: '/images/feature-online.jpg',
       titleKey: 'feat6Title',
       descKey: 'feat6Desc',
       items: ['feat6Item1', 'feat6Item2', 'feat6Item3', 'feat6Item4'],
@@ -79,7 +79,7 @@ export default async function OzelliklerPage({
     },
     {
       num: '08',
-      img: '/tablet-mockup-new.jpg',
+      img: '/images/feature-analitik.jpg',
       titleKey: 'feat8Title',
       descKey: 'feat8Desc',
       items: ['feat8Item1', 'feat8Item2', 'feat8Item3', 'feat8Item4'],
