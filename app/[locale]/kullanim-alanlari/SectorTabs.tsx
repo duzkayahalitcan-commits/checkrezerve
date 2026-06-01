@@ -115,13 +115,14 @@ export default function SectorTabs() {
       {/* Tab Content */}
       <div className="flex flex-col lg:flex-row gap-12 items-start">
         <div className="flex-shrink-0 w-full lg:w-[480px]">
-          <div className="rounded-2xl overflow-hidden shadow-xl border border-zinc-100">
+          <div className="rounded-2xl overflow-hidden shadow-xl border border-zinc-100 bg-zinc-100 w-full h-72">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
+              key={sector.img}
               src={sector.img}
               alt={sector.title}
-              className="w-full h-72 object-cover"
-              loading="lazy"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              loading="eager"
             />
           </div>
         </div>
