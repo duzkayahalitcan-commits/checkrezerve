@@ -3,7 +3,31 @@
 import { useActionState, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Eye, EyeOff } from 'lucide-react'
+import { createClient } from '@supabase/supabase-js'
 import { panelLoginAction } from './actions'
+
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+
+async function signInWithGoogle() {
+  const supabase = getSupabase()
+  await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + '/panel/auth/callback' },
+  })
+}
+
+async function signInWithApple() {
+  const supabase = getSupabase()
+  await supabase.auth.signInWithOAuth({
+    provider: 'apple',
+    options: { redirectTo: window.location.origin + '/panel/auth/callback' },
+  })
+}
 
 export default function LoginForm() {
   const t = useTranslations('panel')
@@ -92,7 +116,7 @@ export default function LoginForm() {
 
       <button
         type="button"
-        onClick={() => console.log('google oauth - coming soon')}
+        onClick={signInWithGoogle}
         className="w-full bg-stone-800 border border-stone-700 hover:bg-stone-700
                    flex items-center justify-center gap-2 text-white text-sm py-2.5 rounded-lg transition"
       >
@@ -107,7 +131,7 @@ export default function LoginForm() {
 
       <button
         type="button"
-        onClick={() => console.log('apple oauth - coming soon')}
+        onClick={signInWithApple}
         className="w-full bg-stone-800 border border-stone-700 hover:bg-stone-700
                    flex items-center justify-center gap-2 text-white text-sm py-2.5 rounded-lg transition"
       >

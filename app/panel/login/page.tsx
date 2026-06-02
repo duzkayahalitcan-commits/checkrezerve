@@ -47,10 +47,12 @@ export default async function PanelLoginPage() {
           <div className="text-2xl font-bold text-white tracking-tight">
             checkrezerve
           </div>
+          <div className="mx-auto mt-2 mb-1 h-0.5 w-16 rounded-full bg-gradient-to-r from-red-600 to-red-400" />
           <p className="text-white/60 text-sm mt-1">{t('businessPanel')}</p>
+          <p className="text-white/40 text-xs italic mt-0.5">Saniyeler içinde rezervasyon</p>
         </div>
 
-        <div className="bg-stone-900/80 backdrop-blur-sm border border-stone-700 rounded-2xl p-6">
+        <div className="bg-black/40 backdrop-blur-xl border border-stone-700 rounded-2xl p-6">
           <h1 className="text-white font-semibold mb-5">{t('login')}</h1>
           <Suspense>
             <LoginForm />
