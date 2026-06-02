@@ -110,6 +110,8 @@ export default async function BusinessDetailPage({ params }: Props) {
         phone={business.phone ?? null}
         description={business.description ?? null}
         backLabel={t('allBusinesses')}
+        rating={(business as Record<string, unknown>).rating as number | null ?? null}
+        coverImage={(business as Record<string, unknown>).cover_image as string | null ?? null}
       />
 
       <section className="py-10">

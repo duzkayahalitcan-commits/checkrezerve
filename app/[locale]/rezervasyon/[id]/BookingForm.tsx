@@ -84,6 +84,7 @@ export default function BookingForm({
   const [privacyAccepted, setPrivacyAccepted] = useState(false)
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false)
   const [privacyError, setPrivacyError]       = useState(false)
+  const [occupiedSlots, setOccupiedSlots]     = useState<Set<string>>(new Set())
   const [loading, setLoading]                 = useState(false)
   const [error, setError]                     = useState<string | null>(null)
   const [success, setSuccess]                 = useState(false)
@@ -97,6 +98,14 @@ export default function BookingForm({
   const [sessionFormat, setSessionFormat] = useState('')  // fitness/pilates
   const [sessionLevel, setSessionLevel]   = useState('')  // fitness/pilates
   const [selectedBarberServices, setSelectedBarberServices] = useState<string[]>([])  // barber/hairdresser
+
+  useEffect(() => {
+    if (!selectedDate || !businessId) return
+    fetch(`/api/rezervasyon/musait?business_id=${businessId}&date=${selectedDate}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(json => { if (json?.times) setOccupiedSlots(new Set(json.times)) })
+      .catch(() => {})
+  }, [selectedDate, businessId])
 
   useEffect(() => {
     if (success) {
@@ -288,24 +297,31 @@ export default function BookingForm({
       <div>
         <label className="block text-sm font-semibold text-zinc-700 mb-3">{t('selectTime')} *</label>
         <div className="flex flex-wrap gap-2">
-          {TIME_SLOTS.map((slot, i) => (
-            <motion.button
-              key={slot}
-              type="button"
-              onClick={() => setSelectedTime(slot)}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2, delay: i * 0.015 }}
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.9 }}
-              className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors
-                ${selectedTime === slot
-                  ? 'bg-red-600 border-red-600 text-white shadow-sm'
-                  : 'bg-white border-zinc-200 text-zinc-700 hover:border-red-300'}`}
-            >
-              {slot}
-            </motion.button>
-          ))}
+          {TIME_SLOTS.map((slot, i) => {
+            const isOccupied = occupiedSlots.has(slot)
+            const isSelected = selectedTime === slot
+            return (
+              <motion.button
+                key={slot}
+                type="button"
+                disabled={isOccupied}
+                onClick={() => !isOccupied && setSelectedTime(slot)}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2, delay: i * 0.015 }}
+                whileHover={isOccupied ? {} : { scale: 1.08 }}
+                whileTap={isOccupied ? {} : { scale: 0.9 }}
+                className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors
+                  ${isSelected
+                    ? 'bg-red-600 border-red-600 text-white shadow-sm'
+                    : isOccupied
+                      ? 'bg-zinc-100 border-zinc-200 text-zinc-400 line-through cursor-not-allowed'
+                      : 'bg-white border-zinc-200 text-zinc-700 hover:border-red-300'}`}
+              >
+                {slot}
+              </motion.button>
+            )
+          })}
         </div>
       </div>
 

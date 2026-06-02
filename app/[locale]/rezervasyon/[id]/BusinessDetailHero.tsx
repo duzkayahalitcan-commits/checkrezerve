@@ -10,12 +10,25 @@ interface Props {
   phone: string | null
   description: string | null
   backLabel: string
+  rating: number | null
+  coverImage: string | null
 }
 
-export default function BusinessDetailHero({ name, icon, label, address, phone, description, backLabel }: Props) {
+export default function BusinessDetailHero({ name, icon, label, address, phone, description, backLabel, rating, coverImage }: Props) {
   return (
-    <div className="pt-24 pb-6 bg-zinc-900 text-white overflow-hidden">
-      <div className="mx-auto max-w-3xl px-6">
+    <div className="pt-24 pb-6 bg-zinc-900 text-white overflow-hidden relative">
+      {coverImage && (
+        <>
+          <img
+            src={coverImage}
+            alt={name}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/70 to-zinc-900/40" />
+        </>
+      )}
+      <div className="mx-auto max-w-3xl px-6 relative z-10">
+
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -41,7 +54,12 @@ export default function BusinessDetailHero({ name, icon, label, address, phone, 
             {icon}
           </motion.div>
           <div>
-            <h1 className="text-2xl font-extrabold">{name}</h1>
+            <h1 className="text-2xl font-extrabold">
+              {name}
+              {rating !== null && (
+                <span className="ml-3 inline-flex items-center gap-1 text-amber-400 text-lg font-bold">⭐ {rating.toFixed(1)}</span>
+              )}
+            </h1>
             <span className="inline-block bg-red-600/25 text-red-300 text-xs font-semibold px-2.5 py-0.5 rounded-full mt-1">
               {label}
             </span>

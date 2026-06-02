@@ -146,7 +146,7 @@ export default function DiagonalSplit({ fullscreen = false }: { fullscreen?: boo
         .ds-content {
           position: absolute;
           bottom: 0;
-          left: max(16%, 40px);
+          left: 48px;
           right: 20px;
           padding: 0 0 56px 0;
           display: flex;
