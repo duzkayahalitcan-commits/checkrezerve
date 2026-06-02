@@ -37,19 +37,18 @@ export default async function PanelLoginPage() {
       <div className="w-full max-w-sm">
 
         <div className="text-center mb-8">
-          <Image
-            src="/images/logo-checkrezerve.jpg"
-            alt="CheckRezerve"
-            width={72}
-            height={72}
-            className="rounded-2xl mx-auto mb-3 shadow-xl"
-          />
-          <div className="text-2xl font-bold text-white tracking-tight">
-            checkrezerve
+          <div className="relative mx-auto w-18 h-18 mb-3">
+            <Image
+              src="/images/logo-checkrezerve.jpg"
+              alt="CheckRezerve"
+              width={72}
+              height={72}
+              className="rounded-2xl mx-auto shadow-xl"
+            />
           </div>
-          <div className="mx-auto mt-2 mb-1 h-0.5 w-16 rounded-full bg-gradient-to-r from-red-600 to-red-400" />
-          <p className="text-white/60 text-sm mt-1">{t('businessPanel')}</p>
-          <p className="text-white/40 text-xs italic mt-0.5">Saniyeler içinde rezervasyon</p>
+          <div className="text-2xl font-bold text-white tracking-tight">checkrezerve</div>
+          <div className="w-16 h-0.5 bg-gradient-to-r from-red-500 to-amber-500 mx-auto mt-2 mb-2 rounded-full" />
+          <p className="text-white/60 text-sm italic">Saniyeler içinde rezervasyon</p>
         </div>
 
         <div className="bg-black/40 backdrop-blur-xl border border-stone-700 rounded-2xl p-6">

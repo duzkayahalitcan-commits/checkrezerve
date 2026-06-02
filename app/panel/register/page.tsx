@@ -1,45 +1,34 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
-
-function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-}
+import Image from 'next/image'
 
 export default function RegisterPage() {
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [passwordConfirm, setPasswordConfirm] = useState('')
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
+  const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [done, setDone] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState('')
+
+  function update(field: string) {
+    return (e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, [field]: e.target.value }))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError(null)
-    if (password !== passwordConfirm) {
-      setError('Şifreler eşleşmiyor.')
-      return
-    }
+    if (form.password !== form.confirm) { setError('Şifreler eşleşmiyor.'); return }
+    if (form.password.length < 8) { setError('Şifre en az 8 karakter olmalı.'); return }
     setLoading(true)
-    const supabase = getSupabase()
+    setError('')
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName } },
+      email: form.email,
+      password: form.password,
+      options: { data: { full_name: form.name } },
     })
     setLoading(false)
-    if (error) {
-      setError(error.message)
-    } else {
-      setDone(true)
-    }
+    if (error) { setError(error.message); return }
+    setSent(true)
   }
 
   return (
@@ -51,107 +40,45 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <Image
-            src="/images/logo-checkrezerve.jpg"
-            alt="CheckRezerve"
-            width={72}
-            height={72}
-            className="rounded-2xl mx-auto mb-3 shadow-xl"
-          />
+          <Image src="/images/logo-checkrezerve.jpg" alt="CheckRezerve" width={72} height={72} className="rounded-2xl mx-auto mb-3 shadow-xl" />
           <div className="text-2xl font-bold text-white tracking-tight">checkrezerve</div>
-          <div className="mx-auto mt-2 mb-1 h-0.5 w-16 rounded-full bg-gradient-to-r from-red-600 to-red-400" />
-          <p className="text-white/40 text-xs italic mt-0.5">Saniyeler içinde rezervasyon</p>
+          <p className="text-white/60 text-sm mt-1 italic">Saniyeler içinde rezervasyon</p>
         </div>
 
         <div className="bg-black/40 backdrop-blur-xl border border-stone-700 rounded-2xl p-6">
-          <h1 className="text-white font-semibold mb-1">İşletme Kaydı</h1>
-          <p className="text-stone-400 text-xs mb-5">
-            Hesap oluşturun, işletmenizi hemen yönetmeye başlayın.
-          </p>
-
-          {done ? (
-            <div className="bg-emerald-950/50 border border-emerald-800/60 rounded-lg px-4 py-3 text-emerald-400 text-sm text-center">
-              Doğrulama e-postası gönderildi — kutunuzu kontrol edin.
+          {sent ? (
+            <div className="text-center space-y-4">
+              <div className="text-4xl">✅</div>
+              <p className="text-white font-semibold">Kayıt başarılı!</p>
+              <p className="text-stone-400 text-sm">E-posta adresinizi doğrulayın, ardından giriş yapabilirsiniz.</p>
+              <a href="/panel/login" className="block text-amber-500 hover:text-amber-400 text-sm transition">← Giriş sayfasına dön</a>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-stone-400 text-xs mb-1">Ad Soyad</label>
-                <input
-                  type="text"
-                  required
-                  value={fullName}
-                  onChange={e => setFullName(e.target.value)}
-                  className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2.5
-                             text-white text-sm placeholder-stone-600 focus:outline-none
-                             focus:border-amber-500 transition"
-                  placeholder="Ahmet Yılmaz"
-                />
-              </div>
-              <div>
-                <label className="block text-stone-400 text-xs mb-1">E-posta</label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2.5
-                             text-white text-sm placeholder-stone-600 focus:outline-none
-                             focus:border-amber-500 transition"
-                  placeholder="ad@sirket.com"
-                />
-              </div>
-              <div>
-                <label className="block text-stone-400 text-xs mb-1">Şifre</label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2.5
-                             text-white text-sm placeholder-stone-600 focus:outline-none
-                             focus:border-amber-500 transition"
-                  placeholder="••••••••"
-                />
-              </div>
-              <div>
-                <label className="block text-stone-400 text-xs mb-1">Şifre Tekrar</label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={passwordConfirm}
-                  onChange={e => setPasswordConfirm(e.target.value)}
-                  className={`w-full bg-stone-800 rounded-lg px-3 py-2.5 text-white text-sm
-                             placeholder-stone-600 focus:outline-none focus:border-amber-500 transition
-                             border ${passwordConfirm && password !== passwordConfirm ? 'border-red-500' : 'border-stone-700'}`}
-                  placeholder="••••••••"
-                />
-              </div>
-
-              {error && (
-                <p className="text-red-400 text-xs bg-red-950/40 border border-red-900/50 rounded-lg px-3 py-2">
-                  {error}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50
-                           text-black font-semibold rounded-lg py-2.5 text-sm transition"
-              >
-                {loading ? 'Kaydediliyor…' : 'Hesap Oluştur'}
-              </button>
-            </form>
+            <>
+              <h1 className="text-white font-semibold mb-5">İşletme Kaydı</h1>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {[
+                  { label: 'Ad Soyad', field: 'name', type: 'text', placeholder: 'Ahmet Yılmaz' },
+                  { label: 'E-posta', field: 'email', type: 'email', placeholder: 'ad@sirket.com' },
+                  { label: 'Şifre', field: 'password', type: 'password', placeholder: '••••••••' },
+                  { label: 'Şifre Tekrar', field: 'confirm', type: 'password', placeholder: '••••••••' },
+                ].map(f => (
+                  <div key={f.field}>
+                    <label className="block text-stone-400 text-xs mb-1">{f.label}</label>
+                    <input type={f.type} required value={form[f.field as keyof typeof form]} onChange={update(f.field)}
+                      className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2.5 text-white text-sm placeholder-stone-600 focus:outline-none focus:border-amber-500 transition"
+                      placeholder={f.placeholder} />
+                  </div>
+                ))}
+                {error && <p className="text-red-400 text-xs bg-red-950/40 border border-red-900/50 rounded-lg px-3 py-2">{error}</p>}
+                <button type="submit" disabled={loading}
+                  className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-semibold rounded-lg py-2.5 text-sm transition">
+                  {loading ? 'Kaydediliyor...' : 'İşletmeyi Kaydet'}
+                </button>
+                <a href="/panel/login" className="block text-center text-stone-500 hover:text-stone-300 text-xs transition">← Giriş sayfasına dön</a>
+              </form>
+            </>
           )}
-
-          <p className="text-center mt-4">
-            <a href="/panel/login" className="text-stone-400 hover:text-white text-xs transition">
-              ← Giriş sayfasına dön
-            </a>
-          </p>
         </div>
       </div>
     </main>

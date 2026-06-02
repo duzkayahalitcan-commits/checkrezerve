@@ -55,9 +55,22 @@ export function proxy(req: NextRequest) {
 
   // ── Panel auth ──────────────────────────────────────────────────
   if (pathname.startsWith('/panel')) {
-    if (pathname.startsWith(PANEL_LOGIN) || pathname.startsWith(PANEL_LOGOUT)) {
-      return NextResponse.next()
+    const panelLocale = req.cookies.get('panel_locale')?.value ?? 'tr'
+
+    // Public panel routes — no auth required
+    if (
+      pathname.startsWith(PANEL_LOGIN) ||
+      pathname.startsWith(PANEL_LOGOUT) ||
+      pathname.startsWith('/panel/register') ||
+      pathname.startsWith('/panel/forgot-password') ||
+      pathname.startsWith('/panel/reset-password') ||
+      pathname.startsWith('/panel/auth')
+    ) {
+      const res = NextResponse.next()
+      res.headers.set('x-next-intl-locale', panelLocale)
+      return res
     }
+
     const secret = process.env.ADMIN_SECRET ?? 'dev-secret-change-me'
     const raw    = req.cookies.get('cr_panel')?.value ?? ''
     if (!raw || !verifyPanelCookie(raw, secret)) {
@@ -65,7 +78,9 @@ export function proxy(req: NextRequest) {
       url.pathname = PANEL_LOGIN
       return NextResponse.redirect(url)
     }
-    return NextResponse.next()
+    const res = NextResponse.next()
+    res.headers.set('x-next-intl-locale', panelLocale)
+    return res
   }
 
   // ── Skip intl for non-public paths ──────────────────────────────
