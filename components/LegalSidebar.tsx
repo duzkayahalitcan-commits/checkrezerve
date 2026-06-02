@@ -12,6 +12,7 @@ export default function LegalSidebar({ activePath }: { activePath: string }) {
     { href: '/kvkk',                            labelKey: 'linkKvkk' },
     { href: '/yasal/basvuru-formu-aydinlatma',  labelKey: 'linkApplicationNotice' },
     { href: '/kvkk-basvuru',                    labelKey: 'linkKvkkApplication' },
+    { href: '/yasal/hesap-silme',               labelKey: 'linkAccountDeletion' },
   ]
 
   return (
