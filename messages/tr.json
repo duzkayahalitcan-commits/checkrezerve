@@ -384,7 +384,7 @@
     "s3Title": "3. Verilerin Kullanım Amacı",
     "s3Item1": "Rezervasyon oluşturulması ve yönetilmesi.",
     "s3Item2": "Onay ve hatırlatma bildirimleri (SMS / WhatsApp).",
-    "s3Item3": "Restoran doluluk ve raporlama analizleri (kişisel veri içermez).",
+    "s3Item3": "Restoran, kuaför/berber, spa, güzellik merkezi ve pilates/spor stüdyosu doluluk ve raporlama analizleri (kişisel veri içermez).",
     "s4Title": "4. Verilerin Paylaşımı",
     "s4Intro": "Kişisel verileriniz üçüncü taraflarla ticari amaçla paylaşılmamaktadır. Yalnızca aşağıdaki alt işlemcilerle hizmet sunumu amacıyla paylaşılabilir:",
     "s4Item1Label": "Supabase Inc.",
@@ -418,7 +418,13 @@
     "s10Prefix": "Sorularınız için:",
     "dataControllerLabel": "Veri Sorumlusu:",
     "dataControllerName": "CheckRezerve Teknoloji",
-    "emailLabel": "E-posta:"
+    "emailLabel": "E-posta:",
+    "s11Title": "11. Uygulama İçi Hesap Silme",
+    "s11Body": "Hesabınızı istediğiniz zaman kalıcı olarak silebilirsiniz. Hesabınız silindiğinde profil bilgileriniz, rezervasyon geçmişiniz ve tüm kişisel verileriniz sistemimizden kalıcı olarak kaldırılır.",
+    "s11Step1": "Mobil uygulamada Profil → Ayarlar → Hesabımı Sil yolunu takip edin.",
+    "s11Step2": "Alternatif olarak info@checkrezerve.com adresine \"Hesap silme talebi\" konulu bir e-posta gönderin.",
+    "s11Step3": "Talebiniz 7 iş günü içinde işleme alınır ve hesabınız kalıcı olarak silinir.",
+    "s11Note": "Yasal zorunluluklar kapsamındaki veriler (örn. fatura bilgileri) yasal saklama süresi dolana kadar anonim hâlde saklanabilir."
   },
   "kvkk": {
     "title": "Kişisel Verilerin Korunması ve İşlenmesi Politikası",

@@ -92,6 +92,15 @@ export default async function GizlilikPage({
               <a href="mailto:info@checkrezerve.com" className="text-red-600">info@checkrezerve.com</a>
             </p>
 
+            <h2 className="font-bold">{t('s11Title')}</h2>
+            <p>{t('s11Body')}</p>
+            <ol className="list-decimal pl-5 space-y-1">
+              <li>{t('s11Step1')}</li>
+              <li>{t('s11Step2')}</li>
+              <li>{t('s11Step3')}</li>
+            </ol>
+            <p className="text-sm text-zinc-500 italic">{t('s11Note')}</p>
+
             <div className="not-prose mt-10 p-5 bg-zinc-50 rounded-xl border border-zinc-200 text-sm text-zinc-600 space-y-1">
               <p><strong>{t('dataControllerLabel')}</strong> {t('dataControllerName')}</p>
               <p>

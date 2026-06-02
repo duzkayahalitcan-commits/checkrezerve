@@ -384,7 +384,7 @@
     "s3Title": "3. Zweck der Datenverwendung",
     "s3Item1": "Erstellung und Verwaltung von Reservierungen.",
     "s3Item2": "Bestätigungs- und Erinnerungsbenachrichtigungen (SMS / WhatsApp).",
-    "s3Item3": "Restaurant-Auslastungs- und Berichtsanalysen (ohne personenbezogene Daten).",
+    "s3Item3": "Auslastungs- und Berichtsanalysen für Restaurants, Friseure/Barbiere, Spas, Schönheitssalons und Fitness-/Pilatesstudios (ohne personenbezogene Daten).",
     "s4Title": "4. Datenweitergabe",
     "s4Intro": "Ihre personenbezogenen Daten werden nicht zu kommerziellen Zwecken an Dritte weitergegeben. Sie können ausschließlich zum Zweck der Leistungserbringung an folgende Auftragsverarbeiter weitergegeben werden:",
     "s4Item1Label": "Supabase Inc.",
@@ -418,7 +418,13 @@
     "s10Prefix": "Für Fragen:",
     "dataControllerLabel": "Verantwortlicher:",
     "dataControllerName": "CheckRezerve Teknoloji",
-    "emailLabel": "E-Mail:"
+    "emailLabel": "E-Mail:",
+    "s11Title": "11. Kontolöschung in der App",
+    "s11Body": "Sie können Ihr Konto jederzeit dauerhaft löschen. Bei der Löschung werden Ihr Profil, Ihre Reservierungshistorie und alle persönlichen Daten dauerhaft aus unseren Systemen entfernt.",
+    "s11Step1": "Navigieren Sie in der mobilen App zu Profil → Einstellungen → Mein Konto löschen.",
+    "s11Step2": "Alternativ senden Sie eine E-Mail mit dem Betreff „Kontolöschungsanfrage\" an info@checkrezerve.com.",
+    "s11Step3": "Ihre Anfrage wird innerhalb von 7 Werktagen bearbeitet und Ihr Konto dauerhaft gelöscht.",
+    "s11Note": "Daten, die gesetzlichen Aufbewahrungspflichten unterliegen (z. B. Rechnungsdaten), können bis zum Ablauf der gesetzlichen Aufbewahrungsfrist anonym gespeichert werden."
   },
   "kvkk": {
     "title": "Datenschutz- und Datenverarbeitungsrichtlinie",

@@ -384,7 +384,7 @@
     "s3Title": "3. Purpose of Data Use",
     "s3Item1": "Creation and management of reservations.",
     "s3Item2": "Confirmation and reminder notifications (SMS / WhatsApp).",
-    "s3Item3": "Restaurant occupancy and reporting analytics (no personal data included).",
+    "s3Item3": "Business occupancy and reporting analytics for restaurants, hairdressers/barbers, spas, beauty salons, and fitness/pilates studios (no personal data included).",
     "s4Title": "4. Data Sharing",
     "s4Intro": "Your personal data is not shared with third parties for commercial purposes. It may only be shared with the following sub-processors for service delivery:",
     "s4Item1Label": "Supabase Inc.",
@@ -418,7 +418,13 @@
     "s10Prefix": "For questions:",
     "dataControllerLabel": "Data Controller:",
     "dataControllerName": "CheckRezerve Teknoloji",
-    "emailLabel": "Email:"
+    "emailLabel": "Email:",
+    "s11Title": "11. In-App Account Deletion",
+    "s11Body": "You may permanently delete your account at any time. When deleted, your profile, reservation history, and all personal data are permanently removed from our systems.",
+    "s11Step1": "In the mobile app, go to Profile → Settings → Delete My Account.",
+    "s11Step2": "Alternatively, send an email with subject \"Account deletion request\" to info@checkrezerve.com.",
+    "s11Step3": "Your request will be processed within 7 business days and your account will be permanently deleted.",
+    "s11Note": "Data subject to legal retention obligations (e.g. invoicing records) may be retained anonymously until the statutory retention period expires."
   },
   "kvkk": {
     "title": "Personal Data Protection and Processing Policy",

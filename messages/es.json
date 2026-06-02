@@ -379,7 +379,7 @@
     "s3Title": "3. Finalidad del uso de datos",
     "s3Item1": "Creación y gestión de reservas.",
     "s3Item2": "Notificaciones de confirmación y recordatorio (SMS / WhatsApp).",
-    "s3Item3": "Análisis de ocupación e informes del restaurante (no contiene datos personales).",
+    "s3Item3": "Análisis de ocupación e informes para restaurantes, peluquerías/barberías, spas, salones de belleza y estudios de fitness/pilates (sin datos personales incluidos).",
     "s4Title": "4. Compartición de datos",
     "s4Intro": "Tus datos personales no se comparten con terceros con fines comerciales. Solo pueden compartirse con los siguientes subencargados para fines de prestación de servicios:",
     "s4Item1Label": "Supabase Inc.",
@@ -413,7 +413,13 @@
     "s10Prefix": "Para consultas:",
     "dataControllerLabel": "Responsable del tratamiento:",
     "dataControllerName": "CheckRezerve Teknoloji",
-    "emailLabel": "Correo electrónico:"
+    "emailLabel": "Correo electrónico:",
+    "s11Title": "11. Eliminación de cuenta en la app",
+    "s11Body": "Puede eliminar su cuenta de forma permanente en cualquier momento. Al eliminar su cuenta, su perfil, historial de reservas y todos sus datos personales se eliminan permanentemente de nuestros sistemas.",
+    "s11Step1": "En la aplicación móvil, vaya a Perfil → Configuración → Eliminar mi cuenta.",
+    "s11Step2": "Como alternativa, envíe un correo electrónico con el asunto \"Solicitud de eliminación de cuenta\" a info@checkrezerve.com.",
+    "s11Step3": "Su solicitud se procesará en un plazo de 7 días hábiles y su cuenta se eliminará de forma permanente.",
+    "s11Note": "Los datos sujetos a obligaciones legales de conservación (p. ej., registros de facturación) pueden conservarse de forma anónima hasta que expire el período de conservación legal."
   },
   "kvkk": {
     "title": "Política de protección y tratamiento de datos personales",

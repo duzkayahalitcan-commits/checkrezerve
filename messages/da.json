@@ -379,7 +379,7 @@
     "s3Title": "3. Formål med dataanvendelse",
     "s3Item1": "Oprettelse og styring af reservationer.",
     "s3Item2": "Bekræftelses- og påmindelsesnotifikationer (SMS / WhatsApp).",
-    "s3Item3": "Restaurant belægnings- og rapporteringsanalyser (indeholder ingen personoplysninger).",
+    "s3Item3": "Belægnings- og rapporteringsanalyser for restauranter, frisører/barberer, spaer, skønhedssaloner og fitness-/pilatesstudier (ingen personoplysninger inkluderet).",
     "s4Title": "4. Deling af data",
     "s4Intro": "Dine personoplysninger deles ikke med tredjeparter til kommercielle formål. De kan kun deles med følgende underbehandlere til serviceformål:",
     "s4Item1Label": "Supabase Inc.",
@@ -413,7 +413,13 @@
     "s10Prefix": "For spørgsmål:",
     "dataControllerLabel": "Dataansvarlig:",
     "dataControllerName": "CheckRezerve Teknoloji",
-    "emailLabel": "E-mail:"
+    "emailLabel": "E-mail:",
+    "s11Title": "11. Sletning af konto i appen",
+    "s11Body": "Du kan slette din konto permanent til enhver tid. Når din konto slettes, fjernes din profil, reservationshistorik og alle personlige data permanent fra vores systemer.",
+    "s11Step1": "I mobilappen, gå til Profil → Indstillinger → Slet min konto.",
+    "s11Step2": "Alternativt kan du sende en e-mail med emnet \"Anmodning om sletning af konto\" til info@checkrezerve.com.",
+    "s11Step3": "Din anmodning vil blive behandlet inden for 7 arbejdsdage, og din konto vil blive slettet permanent.",
+    "s11Note": "Data underlagt juridiske opbevaringskrav (f.eks. fakturaregistre) kan opbevares anonymt indtil udløbet af den lovpligtige opbevaringsperiode."
   },
   "kvkk": {
     "title": "Politik for beskyttelse og behandling af personoplysninger",
