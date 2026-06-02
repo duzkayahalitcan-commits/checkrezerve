@@ -124,27 +124,42 @@ export default async function PricingPage({
       </section>
 
       {/* ── Bottom CTA ── */}
-      <section className="bg-zinc-950 py-24 px-6 text-center">
+      <section
+        className="py-24 px-6 text-center"
+        style={{
+          backgroundImage: "linear-gradient(135deg, rgba(220,38,38,0.92) 0%, rgba(0,0,0,0.85) 100%), url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=80')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         <div className="mx-auto max-w-2xl">
-          <h2 className="text-4xl sm:text-5xl font-black text-white mb-5 leading-tight tracking-tight">
-            Bugün başlayın.
+          <span className="inline-block bg-white/20 border border-white/30 text-white text-xs font-semibold px-4 py-1.5 rounded-full mb-6">
+            ✦ 14 gün ücretsiz
+          </span>
+          <h2 className="text-4xl sm:text-5xl font-black text-white mb-4 leading-tight tracking-tight">
+            İşletmenizi dijitalleştirin
           </h2>
-          <p className="text-zinc-400 mb-10 text-lg leading-relaxed">
-            Kredi kartı gerektirmez. 14 gün ücretsiz deneyin.
+          <p className="text-white/70 mb-10 text-lg leading-relaxed">
+            Kredi kartı gerekmez. Kurulum 5 dakika. İstediğinizde iptal edin.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
             <Link
               href="/kayit"
-              className="rounded-full bg-red-600 hover:bg-red-500 px-9 py-4 text-base font-bold text-white transition-colors shadow-lg shadow-red-950/40 w-full sm:w-auto text-center"
+              className="rounded-full bg-white hover:bg-white/90 px-9 py-4 text-base font-bold text-red-600 transition-colors shadow-lg w-full sm:w-auto text-center"
             >
-              Ücretsiz Başla
+              Ücretsiz Başla →
             </Link>
             <Link
               href="/iletisim"
-              className="rounded-full border border-zinc-700 text-zinc-300 hover:bg-zinc-800 px-9 py-4 text-base font-semibold transition-colors w-full sm:w-auto text-center"
+              className="rounded-full border border-white/50 text-white hover:bg-white/10 px-9 py-4 text-base font-semibold transition-colors w-full sm:w-auto text-center"
             >
               Demo İste
             </Link>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-white/60 text-sm">
+            <span>✓ 500+ İşletme</span>
+            <span>✓ 50K+ Rezervasyon</span>
+            <span>✓ %98 Memnuniyet</span>
           </div>
         </div>
       </section>

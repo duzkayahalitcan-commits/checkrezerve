@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { MessageCircle, X, Send } from 'lucide-react'
+import { X, Send } from 'lucide-react'
 
 type Message = { role: 'user' | 'assistant'; content: string }
 
@@ -86,11 +86,11 @@ export default function ChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.94 }}
             transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-            className="w-80 sm:w-96 rounded-2xl border border-zinc-200 bg-white shadow-2xl shadow-black/12 overflow-hidden flex flex-col"
+            className="w-full sm:w-96 rounded-2xl border border-zinc-200 bg-white shadow-2xl shadow-black/12 overflow-hidden flex flex-col"
             style={{ maxHeight: '72vh', willChange: 'transform' }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-red-600 to-red-500 flex-shrink-0">
+            <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-red-600 to-red-700 flex-shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-extrabold text-white text-xs tracking-tight">
                   CR
@@ -180,38 +180,43 @@ export default function ChatWidget() {
       </AnimatePresence>
 
       {/* Toggle button */}
-      <motion.button
-        onClick={() => setOpen(v => !v)}
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.93 }}
-        className="w-14 h-14 rounded-full bg-gradient-to-br from-red-600 to-red-500 text-white flex items-center justify-center shadow-xl shadow-red-500/40"
-        style={{ willChange: 'transform' }}
-        aria-label="Chatbot'u aç/kapat"
-      >
-        <AnimatePresence mode="wait">
-          {open ? (
-            <motion.div
-              key="x"
-              initial={{ rotate: -90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: 90, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <X size={22} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="chat"
-              initial={{ rotate: 90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: -90, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <MessageCircle size={22} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.button>
+      <div className="relative">
+        {!open && (
+          <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-red-500 z-10 animate-ping" />
+        )}
+        <motion.button
+          onClick={() => setOpen(v => !v)}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.93 }}
+          className="w-14 h-14 rounded-full bg-gradient-to-br from-red-600 to-red-700 text-white flex items-center justify-center"
+          style={{ willChange: 'transform', boxShadow: '0 8px 32px rgba(229,57,53,0.4)' }}
+          aria-label="Chatbot'u aç/kapat"
+        >
+          <AnimatePresence mode="wait">
+            {open ? (
+              <motion.div
+                key="x"
+                initial={{ rotate: -90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: 90, opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <X size={22} />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="chat"
+                initial={{ rotate: 90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: -90, opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <svg viewBox="0 0 24 24" fill="white" width="22" height="22"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.button>
+      </div>
     </div>
   )
 }

@@ -21,17 +21,22 @@ export default async function IletisimPage({
     <div className="min-h-screen bg-white">
       <MarketingHeader />
 
-      <section className="pt-28 pb-16 text-white text-center relative" style={{backgroundImage:"linear-gradient(135deg,rgba(13,18,26,0.75) 0%,rgba(13,80,60,0.65) 100%),url('/images/feature-iletisim.jpg')",backgroundSize:'cover',backgroundPosition:'center'}}>
+      <section className="pt-28 pb-16 text-white text-center relative" style={{backgroundImage:"linear-gradient(135deg,rgba(15,23,42,0.88) 0%,rgba(220,38,38,0.7) 100%),url('https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&q=80')",backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="mx-auto max-w-2xl px-6 relative z-10">
           <span className="inline-block bg-red-600/20 border border-red-500/30 rounded-full px-4 py-1.5 text-sm text-red-300 font-medium mb-6">
-            {t('heroBadge')}
+            📬 7/24 Destek
           </span>
           <h1 className="text-4xl sm:text-5xl font-extrabold mb-5 leading-tight">
             {t('heroTitle')}
           </h1>
-          <p className="text-white/70 text-lg">
+          <p className="text-white/70 text-lg mb-8">
             {t('heroSubtitle')}
           </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-white/70 text-sm">
+            <span>⚡ 24 saat içinde yanıt</span>
+            <span>🔒 Güvenli iletişim</span>
+            <span>🌍 7 dil desteği</span>
+          </div>
         </div>
       </section>
 
