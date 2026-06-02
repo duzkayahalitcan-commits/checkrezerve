@@ -9,18 +9,29 @@ export async function createLead(
   formData: FormData,
 ): Promise<LeadState> {
   const name     = (formData.get('name')     as string)?.trim()
-  const phone    = (formData.get('phone')    as string)?.trim() || null
-  const email    = (formData.get('email')    as string)?.trim() || null
+  const phone    = (formData.get('phone')    as string)?.trim()
+  const email    = (formData.get('email')    as string)?.trim()
   const category = (formData.get('category') as string)?.trim()
 
-  if (!name)     return { error: 'Ad Soyad zorunludur.',   success: false }
-  if (!category) return { error: 'Firma türü seçiniz.',    success: false }
+  if (!name)     return { error: 'İşletme adı zorunludur.',      success: false }
+  if (!category) return { error: 'Firma türü seçiniz.',          success: false }
+  if (!phone)    return { error: 'Telefon numarası zorunludur.',  success: false }
+  if (!email)    return { error: 'E-posta adresi zorunludur.',    success: false }
 
   const { error } = await getSupabaseAdmin()
     .from('business_leads')
     .insert({ name, phone, email, category, payment_model: 'free', daily_avg_bookings: 1 })
 
   if (error) return { error: 'Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.', success: false }
+
+  const N8N_WEBHOOK = process.env.N8N_WEBHOOK_URL
+  if (N8N_WEBHOOK) {
+    fetch(N8N_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, email, category, source: 'checkrezerve_kayit' }),
+    }).catch(() => {})
+  }
 
   return { success: true, error: null }
 }

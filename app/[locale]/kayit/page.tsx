@@ -72,7 +72,7 @@ export default function KayitPage() {
               <span className="text-red-500">geleceğe taşıyın.</span>
             </h1>
             <ul className="flex flex-col gap-4 mb-10">
-              {['Ücretsiz başlayın', 'Kredi kartı gerekmez', '2 dakikada kurulum'].map(item => (
+              {['Demo ve kurulum ücretsiz', 'Kredi kartı gerekmez', 'Uzman ekibimiz kurar'].map(item => (
                 <li key={item} className="flex items-center gap-3">
                   <span className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center shrink-0">
                     <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -117,16 +117,16 @@ export default function KayitPage() {
             <span className="font-bold text-zinc-900 text-base tracking-tight">CheckRezerve</span>
           </div>
 
-          <h2 className="text-2xl font-bold text-zinc-900 mb-1">{t('formTitle')}</h2>
-          <p className="text-zinc-400 text-sm mb-8">{t('formSubtitle')}</p>
+          <h2 className="text-2xl font-bold text-zinc-900 mb-1">Ücretsiz Demo Talep Et</h2>
+          <p className="text-zinc-400 text-sm mb-8">Bilgilerinizi bırakın, uzman ekibimiz sisteminizi ücretsiz kursun.</p>
 
           <form action={formAction} className="flex flex-col gap-5">
 
-            <Field label={`${t('businessName')} / ${t('fullName')} *`}>
+            <Field label="İşletme Adı *">
               <input
                 name="name"
                 required
-                placeholder="Ahmet Yılmaz"
+                placeholder="Örn: Kahve Dünyası"
                 className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/10 transition-colors"
               />
             </Field>
@@ -144,18 +144,20 @@ export default function KayitPage() {
             </Field>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <Field label={t('phone')}>
+              <Field label="Telefon *">
                 <input
                   name="phone"
                   type="tel"
-                  placeholder="0532 000 00 00"
+                  required
+                  placeholder="5xx xxx xx xx"
                   className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/10 transition-colors"
                 />
               </Field>
-              <Field label={t('email')}>
+              <Field label="E-posta *">
                 <input
                   name="email"
                   type="email"
+                  required
                   placeholder="siz@firma.com"
                   className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/10 transition-colors"
                 />
@@ -168,22 +170,28 @@ export default function KayitPage() {
               </p>
             )}
 
+            <div className="flex items-start gap-2.5">
+              <input
+                type="checkbox"
+                name="kvkk"
+                id="kvkk"
+                required
+                className="mt-0.5 w-4 h-4 rounded border-zinc-300 accent-red-600 cursor-pointer"
+              />
+              <label htmlFor="kvkk" className="text-xs text-zinc-500 leading-relaxed cursor-pointer">
+                <a href="/kvkk" className="underline hover:text-zinc-700">KVKK Aydınlatma Metni</a>
+                {`'ni okudum, kişisel verilerimin işlenmesine ve ticari ileti gönderilmesine açık rıza veriyorum.`}
+              </label>
+            </div>
+
             <button
               type="submit"
               disabled={pending}
               className="mt-1 w-full rounded-xl py-3.5 text-sm font-semibold text-white transition-all disabled:opacity-60"
               style={{ background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)' }}
             >
-              {pending ? t('submitting') : t('submit')}
+              {pending ? 'Gönderiliyor...' : 'Demo Talep Et →'}
             </button>
-
-            <p className="text-center text-xs text-zinc-400">
-              Kaydolarak{' '}
-              <a href="/kullanim-kosullari" className="underline hover:text-zinc-600">Kullanım Koşulları</a>
-              {'nı ve '}
-              <a href="/gizlilik" className="underline hover:text-zinc-600">Gizlilik Politikası</a>
-              nı kabul etmiş olursunuz.
-            </p>
           </form>
         </div>
 
