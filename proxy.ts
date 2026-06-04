@@ -41,7 +41,14 @@ export function proxy(req: NextRequest) {
     }
     const adminPassword = process.env.ADMIN_PASSWORD
     const adminSecret   = process.env.ADMIN_SECRET ?? 'checkrezerve-fallback-secret'
-    if (!adminPassword) return NextResponse.next()
+    if (!adminPassword) {
+      if (process.env.NODE_ENV === 'production') {
+        const url = req.nextUrl.clone()
+        url.pathname = LOGIN
+        return NextResponse.redirect(url)
+      }
+      return NextResponse.next()
+    }
     const token    = req.cookies.get(COOKIE)?.value ?? ''
     const expected = makeToken(adminPassword, adminSecret)
     if (token !== expected) {

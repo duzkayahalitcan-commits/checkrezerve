@@ -19,10 +19,10 @@ export default function manifest(): MetadataRoute.Manifest {
     categories:          ['food', 'business', 'productivity'],
 
     icons: [
-      { src: '/favicon.ico',    sizes: 'any',       type: 'image/x-icon'  },
-      { src: '/icon-192.png',   sizes: '192x192',   type: 'image/png', purpose: 'maskable'        },
-      { src: '/icon-512.png',   sizes: '512x512',   type: 'image/png', purpose: 'any'             },
-      { src: '/apple-icon.png', sizes: '180x180',   type: 'image/png', purpose: 'any'             },
+      { src: '/favicon.ico',        sizes: 'any',       type: 'image/x-icon'  },
+      { src: '/favicon-192x192.png', sizes: '192x192',   type: 'image/png', purpose: 'maskable'        },
+      { src: '/favicon-512x512.png', sizes: '512x512',   type: 'image/png', purpose: 'any'             },
+      { src: '/apple-touch-icon.png', sizes: '180x180',   type: 'image/png', purpose: 'any'             },
     ],
 
     // Safari / iOS için "Add to Home Screen" kısa yolları
@@ -32,14 +32,14 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name:  'Admin',
         url:         '/admin',
         description: 'Tüm rezervasyonları yönet',
-        icons:       [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
+        icons:       [{ src: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' }],
       },
       {
         name:        'Restoran Paneli',
         short_name:  'Panel',
         url:         '/panel/login',
         description: 'Restoran yönetici girişi',
-        icons:       [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
+        icons:       [{ src: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' }],
       },
     ],
 

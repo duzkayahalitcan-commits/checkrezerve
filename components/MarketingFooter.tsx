@@ -57,7 +57,7 @@ export default function MarketingFooter() {
         </div>
 
         <div className="pt-8 border-t border-zinc-800 text-center">
-          <p className="text-sm text-zinc-500">© 2026 CheckRezerve. {t('rights')}</p>
+          <p className="text-sm text-zinc-500">© {new Date().getFullYear()} CheckRezerve. {t('rights')}</p>
         </div>
       </div>
     </footer>

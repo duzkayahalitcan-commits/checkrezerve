@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'CheckRezerve' }],
   creator: 'CheckRezerve',
   alternates: { canonical: 'https://checkrezerve.com' },
-  verification: { google: 'GOOGLE_SEARCH_CONSOLE_VERIFICATION_TOKEN' },
+  verification: { google: 'PLACEHOLDER_GOOGLE_SEARCH_CONSOLE' },
   icons: {
     icon: [
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
@@ -99,8 +99,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   // Açık sayfalarda amber, admin/panel sayfalarında koyu
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#dc2626' },
@@ -147,7 +145,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             target="_blank"
             rel="noopener noreferrer"
             aria-label="WhatsApp ile iletişim"
-            className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full shadow-lg hover:scale-105 transition-transform"
+            className="fixed bottom-6 right-6 z-40 flex items-center justify-center w-14 h-14 rounded-full shadow-lg hover:scale-105 transition-transform"
             style={{ backgroundColor: '#25D366' }}
           >
             <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white" xmlns="http://www.w3.org/2000/svg">

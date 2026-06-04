@@ -1,17 +1,49 @@
 'use client'
-import { useState, useEffect } from 'react'
-import NextLink from 'next/link'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
-import { Link, usePathname } from '@/i18n/navigation'
+import { Link, usePathname, useRouter } from '@/i18n/navigation'
 import { motion, AnimatePresence } from 'motion/react'
+import { Calendar, User as UserIcon, Heart, Settings, LogOut } from 'lucide-react'
 import LanguageSelector from './LanguageSelector'
+import { supabase } from '@/lib/supabase'
+import type { User } from '@supabase/supabase-js'
 
 export default function MarketingHeader() {
   const t = useTranslations('nav')
   const pathname = usePathname()
+  const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled]     = useState(false)
+  const [user, setUser]             = useState<User | null>(null)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    setUserMenuOpen(false)
+    router.replace('/giris')
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -75,17 +107,75 @@ export default function MarketingHeader() {
             })}
           </nav>
 
-          {/* CTA + Language + Hamburger */}
+          {/* CTA + Language + Auth + Hamburger */}
           <div className="flex items-center gap-3">
             <LanguageSelector />
-            <Link href="/kayit"
-              className="hidden sm:block rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors shadow-sm">
-              {t('startFree')}
-            </Link>
-            <NextLink href="/panel/login"
-              className="hidden sm:block rounded-full border border-zinc-300 text-zinc-700 px-4 py-2 text-sm font-semibold hover:bg-zinc-50 transition-colors">
-              {t('login')}
-            </NextLink>
+
+            {user ? (
+              <div className="relative hidden sm:block" ref={userMenuRef}>
+                <button
+                  onClick={() => setUserMenuOpen(v => !v)}
+                  className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                >
+                  <div className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                    {user.email?.charAt(0).toUpperCase()}
+                  </div>
+                </button>
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-12 bg-white border border-zinc-100 rounded-2xl shadow-xl py-2 w-52 z-50">
+                    <div className="px-4 py-2 border-b border-zinc-50 mb-1">
+                      <p className="text-xs text-zinc-400 truncate">{user.email}</p>
+                    </div>
+                    <Link
+                      href={"/rezervasyonlarim" as never}
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+                    >
+                      <Calendar size={15} className="shrink-0" /> Rezervasyonlarım
+                    </Link>
+                    <Link
+                      href={"/profil" as never}
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+                    >
+                      <UserIcon size={15} className="shrink-0" /> Kişisel Bilgiler
+                    </Link>
+                    <Link
+                      href={"/favorilerim" as never}
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+                    >
+                      <Heart size={15} className="shrink-0" /> Favorilerim
+                    </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      <LogOut size={15} className="shrink-0" /> Çıkış Yap
+                    </button>
+                    <a
+                      href="/panel/login"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-xs text-zinc-400 hover:bg-zinc-50 transition-colors border-t border-zinc-100 mt-1"
+                    >
+                      <Settings size={13} className="shrink-0" /> Yönetici Paneli
+                    </a>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Link href="/kayit"
+                  className="hidden sm:block rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors shadow-sm">
+                  {t('startFree')}
+                </Link>
+                <Link href="/giris"
+                  className="hidden sm:block rounded-full border border-zinc-300 text-zinc-700 px-4 py-2 text-sm font-semibold hover:bg-zinc-50 transition-colors">
+                  {t('login')}
+                </Link>
+              </>
+            )}
+
             <button
               className="lg:hidden p-2 rounded-lg text-zinc-500 hover:bg-zinc-100 transition-colors z-[60] relative"
               onClick={() => setMobileOpen(v => !v)}
@@ -136,14 +226,28 @@ export default function MarketingHeader() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.08 + NAV_LINKS.length * 0.07 + 0.05, duration: 0.4 }}
               >
-                <Link href="/kayit" onClick={() => setMobileOpen(false)}
-                  className="w-full text-center rounded-full bg-red-600 text-white py-3.5 text-base font-bold hover:bg-red-700 transition-colors">
-                  {t('startFree')}
-                </Link>
-                <NextLink href="/panel/login" onClick={() => setMobileOpen(false)}
-                  className="w-full text-center rounded-full border border-white/20 text-white py-3.5 text-base font-semibold hover:bg-white/10 transition-colors">
-                  {t('login')}
-                </NextLink>
+                {user ? (
+                  <>
+                    <p className="text-sm text-white/60 text-center truncate">{user.email}</p>
+                    <button
+                      onClick={() => { setMobileOpen(false); handleSignOut() }}
+                      className="w-full text-center rounded-full border border-red-500/50 text-red-400 py-3.5 text-base font-semibold hover:bg-red-500/10 transition-colors"
+                    >
+                      Çıkış Yap
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/kayit" onClick={() => setMobileOpen(false)}
+                      className="w-full text-center rounded-full bg-red-600 text-white py-3.5 text-base font-bold hover:bg-red-700 transition-colors">
+                      {t('startFree')}
+                    </Link>
+                    <Link href="/giris" onClick={() => setMobileOpen(false)}
+                      className="w-full text-center rounded-full border border-white/20 text-white py-3.5 text-base font-semibold hover:bg-white/10 transition-colors">
+                      {t('login')}
+                    </Link>
+                  </>
+                )}
               </motion.div>
 
               <motion.div

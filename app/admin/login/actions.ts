@@ -20,6 +20,9 @@ export async function loginAction(
   const from        = (formData.get('from')       as string) || '/admin'
 
   if (!adminPw) {
+    if (process.env.NODE_ENV === 'production') {
+      return { error: 'Yönetici paneline erişim yapılandırılmamış.' }
+    }
     // Geliştirme: şifre tanımlı değil → direkt geç
     redirect(from)
   }

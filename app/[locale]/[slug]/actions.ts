@@ -59,7 +59,7 @@ export async function createReservation(
   }
   // ─────────────────────────────────────────────────────────────────────────────
 
-  const { error } = await supabase.from('reservations').insert({
+  const { error } = await db.from('reservations').insert({
     restaurant_id:    restaurantId,
     guest_name:       guestName,
     guest_phone:      guestPhone,

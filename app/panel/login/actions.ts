@@ -17,7 +17,7 @@ function makeSessionToken(userId: string, restaurantId: string): string {
   return createHmac('sha256', secret).update(payload).digest('base64url')
 }
 
-async function setSessionCookie(userId: string, restaurantId: string, role: string) {
+async function setSessionCookie(userId: string, restaurantId: string, role: string, remember = true) {
   const token         = makeSessionToken(userId, restaurantId)
   const cookiePayload = `${userId}:${restaurantId}:${role}:${token}`
   const jar           = await cookies()
@@ -25,8 +25,8 @@ async function setSessionCookie(userId: string, restaurantId: string, role: stri
     httpOnly: true,
     secure:   process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    maxAge:   60 * 60 * 24 * 7,
-    path:     '/panel',
+    ...(remember ? { maxAge: 60 * 60 * 24 * 7 } : {}),
+    path:     '/',
   })
 }
 
@@ -36,8 +36,9 @@ export async function panelLoginAction(
   _prev: PanelLoginState,
   formData: FormData,
 ): Promise<PanelLoginState> {
-  const username = (formData.get('username') as string)?.trim()
-  const password = (formData.get('password') as string)?.trim()
+  const username   = (formData.get('username') as string)?.trim()
+  const password   = (formData.get('password') as string)?.trim()
+  const rememberMe = formData.get('rememberMe') === 'on'
 
   if (!username || !password) {
     return { error: 'errorRequired' as const }
@@ -55,7 +56,7 @@ export async function panelLoginAction(
     .single()
 
   if (panelUser && panelUser.is_active && panelUser.password_hash === hashPassword(password)) {
-    await setSessionCookie(panelUser.id, panelUser.restaurant_id, panelUser.role ?? 'business_manager')
+    await setSessionCookie(panelUser.id, panelUser.restaurant_id, panelUser.role ?? 'business_manager', rememberMe)
     const { data: restaurant } = await db.from('restaurants').select('slug').eq('id', panelUser.restaurant_id).single()
     redirect(`/panel/${restaurant?.slug ?? ''}`)
   }
@@ -93,7 +94,7 @@ export async function panelLoginAction(
   }
   const role = roleMap[profile.role] ?? profile.role ?? 'business_manager'
 
-  await setSessionCookie(authData.user.id, profile.isletme_id, role)
+  await setSessionCookie(authData.user.id, profile.isletme_id, role, rememberMe)
 
   const { data: restaurant } = await db.from('restaurants').select('slug').eq('id', profile.isletme_id).single()
   redirect(`/panel/${restaurant?.slug ?? ''}`)

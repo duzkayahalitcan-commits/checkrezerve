@@ -14,18 +14,18 @@ export default function NotFound() {
         Aradığınız sayfa taşınmış, silinmiş veya hiç var olmamış olabilir.
       </p>
       <div className="flex gap-3">
-        <Link
-          href="/tr/home"
+        <a
+          href="/"
           className="rounded-full bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 text-sm font-semibold transition-colors"
         >
           Ana Sayfa
-        </Link>
-        <Link
-          href="/tr/rezervasyon"
+        </a>
+        <a
+          href="/rezervasyon"
           className="rounded-full border border-zinc-700 hover:border-zinc-500 text-zinc-300 px-6 py-2.5 text-sm font-semibold transition-colors"
         >
           Rezervasyon Yap
-        </Link>
+        </a>
       </div>
     </div>
   )
