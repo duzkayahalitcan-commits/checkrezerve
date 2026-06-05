@@ -160,7 +160,7 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
               >
                 <Link
                   href={tab.href as never}
-                  className={`relative shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition-all duration-200 ${
+                  className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition-all duration-200 flex-1 min-w-fit ${
                     isActive
                       ? 'bg-red-600 text-white border-transparent shadow-md shadow-red-200'
                       : 'bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:border-zinc-300'
@@ -198,7 +198,7 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                     >
                       <Link
                         href={{ pathname: '/rezervasyon' as const, query: { kategori: sub.key } } as never}
-                        className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold border transition-all duration-200 ${
+                        className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold border transition-all duration-200 flex-1 min-w-fit ${
                           isSubActive
                             ? 'bg-red-600 border-transparent text-white shadow-md shadow-red-200'
                             : 'bg-white border-zinc-200 text-zinc-500 hover:bg-zinc-50 hover:border-zinc-300'
