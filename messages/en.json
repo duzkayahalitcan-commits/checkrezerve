@@ -49,6 +49,7 @@
     "invalidCredentials": "Invalid email or password.",
     "signupSuccess": "Your account has been created! You can log in after verifying your email address.",
     "forgotPasswordTitle": "Forgot Password",
+    "forgotPasswordHeroTitle": "Reset Your<br/>Password",
     "forgotPasswordDescription": "We'll send a password reset link to your email.",
     "forgotPasswordSent": "Email sent!",
     "forgotPasswordEmailSent": "Check your inbox and click the reset link.",
@@ -1042,6 +1043,8 @@
   },
   "panel": {
     "pageTitle": "Business Login — CheckRezerve",
+    "heroTitle": "Manage Your<br/>Business",
+    "heroSubtitle": "Reservations, staff & customer management in one panel.",
     "businessPanel": "Business Panel",
     "welcomeTitle": "Welcome",
     "welcomeSubtitle": "Sign in to your account",

@@ -49,6 +49,7 @@
     "invalidCredentials": "Correo electrónico o contraseña incorrectos.",
     "signupSuccess": "¡Tu cuenta ha sido creada! Puedes iniciar sesión después de verificar tu dirección de correo electrónico.",
     "forgotPasswordTitle": "Olvidé mi contraseña",
+    "forgotPasswordHeroTitle": "Restablece tu<br/>Contraseña",
     "forgotPasswordDescription": "Te enviaremos un enlace de restablecimiento a tu correo.",
     "forgotPasswordSent": "¡Correo enviado!",
     "forgotPasswordEmailSent": "Revisa tu bandeja de entrada y haz clic en el enlace.",
@@ -1042,6 +1043,8 @@
   },
   "panel": {
     "pageTitle": "Acceso empresarial — CheckRezerve",
+    "heroTitle": "Administra tu<br/>Negocio",
+    "heroSubtitle": "Gestión de reservas, empleados y clientes en un solo panel.",
     "businessPanel": "Panel empresarial",
     "welcomeTitle": "Bienvenido",
     "welcomeSubtitle": "Inicie sesión en su cuenta",

@@ -49,6 +49,7 @@
     "invalidCredentials": "Ungültige E-Mail oder ungültiges Passwort.",
     "signupSuccess": "Ihr Konto wurde erstellt! Sie können sich nach der Bestätigung Ihrer E-Mail-Adresse anmelden.",
     "forgotPasswordTitle": "Passwort vergessen",
+    "forgotPasswordHeroTitle": "Passwort<br/>Zurücksetzen",
     "forgotPasswordDescription": "Wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts per E-Mail.",
     "forgotPasswordSent": "E-Mail gesendet!",
     "forgotPasswordEmailSent": "Überprüfen Sie Ihren Posteingang und klicken Sie auf den Link.",
@@ -1042,6 +1043,8 @@
   },
   "panel": {
     "pageTitle": "Unternehmensanmeldung — CheckRezerve",
+    "heroTitle": "Verwalten Sie<br/>Ihr Unternehmen",
+    "heroSubtitle": "Buchungen, Mitarbeiter- und Kundenverwaltung in einem Panel.",
     "businessPanel": "Unternehmensbereich",
     "welcomeTitle": "Willkommen",
     "welcomeSubtitle": "Melden Sie sich in Ihrem Konto an",

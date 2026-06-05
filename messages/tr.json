@@ -49,6 +49,7 @@
     "invalidCredentials": "E-posta veya şifre hatalı.",
     "signupSuccess": "Hesabınız oluşturuldu! E-posta adresinizi doğruladıktan sonra giriş yapabilirsiniz.",
     "forgotPasswordTitle": "Şifremi Unuttum",
+    "forgotPasswordHeroTitle": "Şifrenizi<br/>Sıfırlayın",
     "forgotPasswordDescription": "E-posta adresinize şifre sıfırlama bağlantısı göndereceğiz.",
     "forgotPasswordSent": "E-posta gönderildi!",
     "forgotPasswordEmailSent": "Gelen kutunuzu kontrol edin ve şifre sıfırlama bağlantısına tıklayın.",
@@ -1042,6 +1043,8 @@
   },
   "panel": {
     "pageTitle": "İşletme Girişi — checkrezerve",
+    "heroTitle": "İşletmenizi<br/>Yönetin",
+    "heroSubtitle": "Rezervasyon, çalışan ve müşteri yönetimi tek panelde.",
     "businessPanel": "İşletme Paneli",
     "welcomeTitle": "Hoş geldiniz",
     "welcomeSubtitle": "Hesabınıza giriş yapın",

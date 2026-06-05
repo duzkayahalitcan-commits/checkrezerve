@@ -49,6 +49,7 @@
     "invalidCredentials": "Forkert e-mail eller adgangskode.",
     "signupSuccess": "Din konto er oprettet! Du kan logge ind efter at have bekræftet din e-mailadresse.",
     "forgotPasswordTitle": "Glemt adgangskode",
+    "forgotPasswordHeroTitle": "Nulstil din<br/>Adgangskode",
     "forgotPasswordDescription": "Vi sender et link til at nulstille din adgangskode.",
     "forgotPasswordSent": "E-mail sendt!",
     "forgotPasswordEmailSent": "Tjek din indbakke og klik på linket.",
@@ -1042,6 +1043,8 @@
   },
   "panel": {
     "pageTitle": "Virksomhedslogin — CheckRezerve",
+    "heroTitle": "Administrer din<br/>Virksomhed",
+    "heroSubtitle": "Booking, medarbejder- og kundeadministration i ét panel.",
     "businessPanel": "Virksomhedspanel",
     "welcomeTitle": "Velkommen",
     "welcomeSubtitle": "Log ind på din konto",

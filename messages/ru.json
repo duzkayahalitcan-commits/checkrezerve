@@ -49,6 +49,7 @@
     "invalidCredentials": "Неверный адрес электронной почты или пароль.",
     "signupSuccess": "Ваш аккаунт создан! Вы можете войти после подтверждения адреса электронной почты.",
     "forgotPasswordTitle": "Забыл пароль",
+    "forgotPasswordHeroTitle": "Сбросьте<br/>пароль",
     "forgotPasswordDescription": "Мы отправим ссылку для сброса пароля на вашу почту.",
     "forgotPasswordSent": "Письмо отправлено!",
     "forgotPasswordEmailSent": "Проверьте свой почтовый ящик и нажмите на ссылку.",
@@ -1042,6 +1043,8 @@
   },
   "panel": {
     "pageTitle": "Вход для бизнеса — CheckRezerve",
+    "heroTitle": "Управляйте<br/>своим бизнесом",
+    "heroSubtitle": "Управление бронированиями, сотрудниками и клиентами в одной панели.",
     "businessPanel": "Панель управления",
     "welcomeTitle": "Добро пожаловать",
     "welcomeSubtitle": "Войдите в свою учетную запись",

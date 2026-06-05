@@ -60,11 +60,8 @@ export default async function ForgotPasswordPage() {
           <h1
             className="text-5xl sm:text-6xl font-black text-white leading-[1.1] mb-4"
             style={{ fontFamily: 'var(--font-playfair)' }}
-          >
-            Şifrenizi
-            <br />
-            Sıfırlayın
-          </h1>
+            dangerouslySetInnerHTML={{ __html: t.raw('forgotPasswordHeroTitle') }}
+          />
           <p className="text-white/65 text-base sm:text-lg max-w-md leading-relaxed font-medium">
             {t('forgotPasswordDescription')}
           </p>

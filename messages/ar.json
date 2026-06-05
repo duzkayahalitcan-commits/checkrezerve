@@ -49,6 +49,7 @@
     "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
     "signupSuccess": "تم إنشاء حسابك! يمكنك تسجيل الدخول بعد التحقق من بريدك الإلكتروني.",
     "forgotPasswordTitle": "نسيت كلمة المرور",
+    "forgotPasswordHeroTitle": "إعادة تعيين<br/>كلمة المرور",
     "forgotPasswordDescription": "سنرسل رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.",
     "forgotPasswordSent": "تم إرسال البريد الإلكتروني!",
     "forgotPasswordEmailSent": "تحقق من صندوق الوارد الخاص بك وانقر على الرابط.",
@@ -1042,6 +1043,8 @@
   },
   "panel": {
     "pageTitle": "تسجيل دخول الأعمال — CheckRezerve",
+    "heroTitle": "إدارة<br/>عملك",
+    "heroSubtitle": "إدارة الحجوزات والموظفين والعملاء من لوحة تحكم واحدة.",
     "businessPanel": "لوحة تحكم الأعمال",
     "welcomeTitle": "مرحباً",
     "welcomeSubtitle": "تسجيل الدخول إلى حسابك",

@@ -60,13 +60,10 @@ export default async function PanelLoginPage() {
           <h1
             className="text-5xl sm:text-6xl font-black text-white leading-[1.1] mb-4"
             style={{ fontFamily: 'var(--font-playfair)' }}
-          >
-            İşletmenizi
-            <br />
-            Yönetin
-          </h1>
+            dangerouslySetInnerHTML={{ __html: t.raw('heroTitle') }}
+          />
           <p className="text-white/65 text-base sm:text-lg max-w-md leading-relaxed font-medium">
-            Rezervasyon, çalışan ve müşteri yönetimi tek panelde.
+            {t('heroSubtitle')}
           </p>
 
           {/* Kategori badge'leri — sağ alt */}
