@@ -93,6 +93,15 @@ export default function HomeHero({ title, subtitle, badge, ctaPrimary, ctaSecond
         </AnimatePresence>
         <div className="hero-overlay-lr" />
         <div className="hero-overlay-tb" />
+        {/* Decorative dot-grid pattern */}
+        <svg className="hero-pattern" aria-hidden>
+          <defs>
+            <pattern id="dot-grid" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
+              <circle cx="2" cy="2" r="1.5" fill="white" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#dot-grid)" />
+        </svg>
       </div>
 
       {/* ── Main Content ── */}
@@ -229,6 +238,14 @@ export default function HomeHero({ title, subtitle, badge, ctaPrimary, ctaSecond
           position: absolute;
           inset: 0;
           background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+        }
+        .hero-pattern {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          opacity: 0.06;
+          pointer-events: none;
         }
 
         /* Two-column layout */

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono, Outfit } from 'next/font/google'
+import { Geist, Geist_Mono, Outfit, DM_Serif_Display } from 'next/font/google'
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar'
 import ScrollToTop from '@/components/ScrollToTop'
 import CookieBanner from '@/components/CookieBanner'
@@ -7,7 +7,8 @@ import './globals.css'
 
 const geistSans  = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
 const geistMono  = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
-const outfitFont = Outfit({ variable: '--font-outfit', subsets: ['latin'], weight: ['400', '500', '600', '700', '800'] })
+const outfitFont   = Outfit({ variable: '--font-outfit', subsets: ['latin'], weight: ['400', '500', '600', '700', '800'] })
+const dmSerif      = DM_Serif_Display({ variable: '--font-display', subsets: ['latin'], weight: '400', style: ['normal', 'italic'] })
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://checkrezerve.com'),
@@ -128,7 +129,7 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr" className={`${geistSans.variable} ${geistMono.variable} ${outfitFont.variable} h-full antialiased`}>
+    <html lang="tr" className={`${geistSans.variable} ${geistMono.variable} ${outfitFont.variable} ${dmSerif.variable} h-full antialiased`}>
       <head>
         <script
           type="application/ld+json"
