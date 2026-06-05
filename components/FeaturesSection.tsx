@@ -1,5 +1,4 @@
 'use client'
-import Image from 'next/image'
 import { CalendarCheck, CreditCard, Bell, Users, BarChart3, Globe } from 'lucide-react'
 
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -31,13 +30,12 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
               style={{ flexDirection: isRight ? 'row-reverse' : 'row' } as React.CSSProperties}
             >
               <div className="fs-img-wrap">
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src={f.img}
                   alt={f.title}
-                  width={580}
-                  height={380}
                   className="fs-img"
-                  style={{ width: '100%', height: '280px', objectFit: 'cover', display: 'block' }}
+                  loading="lazy"
                 />
                 <div className="fs-img-overlay" />
                 <div className="fs-icon-badge">{ICON_MAP[f.icon] ?? f.icon}</div>
@@ -82,6 +80,12 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
         .fs-img-wrap:hover {
           transform: scale(1.02);
           box-shadow: 0 40px 100px rgba(0,0,0,0.22);
+        }
+        .fs-img {
+          width: 100%;
+          height: 280px;
+          object-fit: cover;
+          display: block;
         }
         .fs-img-overlay {
           position: absolute;
@@ -135,6 +139,7 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
           .fs-inner { gap: 3rem; }
           .fs-row { flex-direction: column !important; }
           .fs-img-wrap { flex: none; width: 100%; }
+          .fs-img { height: 220px; }
         }
       `}</style>
     </section>

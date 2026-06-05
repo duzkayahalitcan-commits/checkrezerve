@@ -21,15 +21,6 @@ self.addEventListener('activate', (event) => {
   self.clients.claim()
 })
 
-// Fetch: navigate isteklerinde offline fallback
-self.addEventListener('fetch', (event) => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(OFFLINE_URL))
-    )
-  }
-})
-
 // Push bildirimleri
 self.addEventListener('push', (event) => {
   let data = { title: 'Yeni Rezervasyon!', body: '', url: '/admin' }
