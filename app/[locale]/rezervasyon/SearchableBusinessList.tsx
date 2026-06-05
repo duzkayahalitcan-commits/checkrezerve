@@ -5,7 +5,12 @@ import { motion, AnimatePresence } from 'motion/react'
 import { Link }            from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { Search, X, MapPin } from 'lucide-react'
+import {
+  Search, X, MapPin,
+  LayoutGrid, UtensilsCrossed, Sparkles, HeartPulse, Dumbbell,
+  Scissors, Wand2, Waves, Brain, Activity, PawPrint, Stethoscope,
+  type LucideIcon,
+} from 'lucide-react'
 import { BUSINESS_TYPE_ICONS, type BusinessType } from '@/types'
 import { CATEGORIES, getTypesForKey } from './categories'
 
@@ -19,6 +24,25 @@ type Biz = {
   description: string | null
   is_active: boolean
   cover_image: string | null
+}
+
+const CAT_ICON: Record<string, LucideIcon> = {
+  '':           LayoutGrid,
+  'yeme-icme':  UtensilsCrossed,
+  'guzellik':   Sparkles,
+  'saglik':     HeartPulse,
+  'spor':       Dumbbell,
+}
+
+const SUB_ICON: Record<string, LucideIcon> = {
+  'berber':       Scissors,
+  'kuafor':       Wand2,
+  'spa-masaj':    Waves,
+  'psikoloji':    Brain,
+  'fizyoterapi':  Activity,
+  'dis':          Stethoscope,
+  'veteriner':    PawPrint,
+  'pilates-yoga': Activity,
 }
 
 const TYPE_ACCENT: Record<string, string> = {
@@ -127,29 +151,22 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {tabs.map(tab => {
             const isActive = activeKey === tab.key || (tab.key !== '' && activeParent?.key === tab.key)
+            const Icon = CAT_ICON[tab.key] ?? LayoutGrid
             return (
               <motion.div
                 key={tab.key}
-                whileTap={{ scale: 0.91 }}
+                whileTap={{ scale: 0.93 }}
                 transition={{ type: 'spring', stiffness: 600, damping: 28 }}
               >
                 <Link
                   href={tab.href as never}
-                  className={`relative shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200 ${
+                  className={`relative shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition-all duration-200 ${
                     isActive
-                      ? 'text-white shadow-md border-transparent'
-                      : 'bg-white border-zinc-200 text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50'
+                      ? 'bg-red-600 text-white border-transparent shadow-md shadow-red-200'
+                      : 'bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:border-zinc-300'
                   }`}
-                  style={isActive && (tab as { accentColor?: string }).accentColor ? {
-                    background:  (tab as { accentColor?: string }).accentColor,
-                    borderColor: (tab as { accentColor?: string }).accentColor,
-                    boxShadow:   `0 4px 14px ${(tab as { accentColor?: string }).accentColor}55`,
-                  } : isActive ? {
-                    background:  '#18181B',
-                    borderColor: '#18181B',
-                  } : {}}
                 >
-                  <span>{tab.icon}</span>
+                  <Icon size={16} className={isActive ? 'text-white' : 'text-zinc-400'} />
                   {tab.label}
                 </Link>
               </motion.div>
@@ -162,7 +179,7 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
           {activeParent && (
             <motion.div
               key={activeParent.key}
-              initial={{ opacity: 0, height: 0, y: -8 }}
+              initial={false}
               animate={{ opacity: 1, height: 'auto', y: 0 }}
               exit={{ opacity: 0, height: 0, y: -8 }}
               transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
@@ -171,23 +188,23 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide pl-1">
                 {activeParent.subCategories.map((sub, i) => {
                   const isSubActive = activeKey === sub.key
+                  const SubIcon = SUB_ICON[sub.key] ?? Scissors
                   return (
                     <motion.div
                       key={sub.key}
-                      initial={{ opacity: 0, scale: 0.85, x: -8 }}
+                      initial={false}
                       animate={{ opacity: 1, scale: 1, x: 0 }}
-                      transition={{ delay: i * 0.04, duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
-                      whileTap={{ scale: 0.91 }}
+                      whileTap={{ scale: 0.93 }}
                     >
                       <Link
                         href={{ pathname: '/rezervasyon' as const, query: { kategori: sub.key } } as never}
-                        className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
+                        className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold border transition-all duration-200 ${
                           isSubActive
-                            ? 'bg-zinc-900 border-zinc-900 text-white shadow-md'
-                            : 'bg-white border-zinc-200 text-zinc-500 hover:border-zinc-400 hover:bg-zinc-50'
+                            ? 'bg-red-600 border-transparent text-white shadow-md shadow-red-200'
+                            : 'bg-white border-zinc-200 text-zinc-500 hover:bg-zinc-50 hover:border-zinc-300'
                         }`}
                       >
-                        <span>{sub.icon}</span>
+                        <SubIcon size={13} className={isSubActive ? 'text-white' : 'text-zinc-400'} />
                         {sub.label}
                       </Link>
                     </motion.div>
@@ -247,10 +264,10 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                 <motion.div
                   key={biz.id}
                   layout
-                  initial={{ opacity: 0, y: 16, scale: 0.97 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.3, delay: Math.min(i * 0.05, 0.35), ease: [0.23, 1, 0.32, 1] }}
+                  transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
                   whileHover={{ y: -4, boxShadow: `0 16px 40px ${accent}33` }}
                   whileTap={{ scale: 0.98 }}
                   className="rounded-2xl border border-zinc-100 bg-white overflow-hidden group cursor-pointer"

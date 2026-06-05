@@ -47,7 +47,18 @@
     "pleaseWait": "Lütfen bekleyin...",
     "createAccount": "Hesap Oluştur",
     "invalidCredentials": "E-posta veya şifre hatalı.",
-    "signupSuccess": "Hesabınız oluşturuldu! E-posta adresinizi doğruladıktan sonra giriş yapabilirsiniz."
+    "signupSuccess": "Hesabınız oluşturuldu! E-posta adresinizi doğruladıktan sonra giriş yapabilirsiniz.",
+    "forgotPasswordTitle": "Şifremi Unuttum",
+    "forgotPasswordDescription": "E-posta adresinize şifre sıfırlama bağlantısı göndereceğiz.",
+    "forgotPasswordSent": "E-posta gönderildi!",
+    "forgotPasswordEmailSent": "Gelen kutunuzu kontrol edin ve şifre sıfırlama bağlantısına tıklayın.",
+    "forgotPasswordButton": "Sıfırlama Bağlantısı Gönder",
+    "forgotPasswordBackToLogin": "Giriş sayfasına dön",
+    "resetPasswordTitle": "Yeni Şifre Belirleyin",
+    "resetPasswordNewPassword": "Yeni şifreniz",
+    "resetPasswordButton": "Şifreyi Güncelle",
+    "resetPasswordSuccess": "Şifreniz başarıyla güncellendi! Yönlendiriliyorsunuz...",
+    "resetPasswordError": "Şifre güncellenemedi. Bağlantının süresi dolmuş olabilir, lütfen tekrar deneyin."
   },
   "reservation": {
     "title": "Rezervasyon Yap",
@@ -1115,7 +1126,66 @@
     "guzellikSub": "Kuaför, berber & tırnak",
     "spa": "Sağlık & Spa",
     "spaSub": "Spa, masaj & wellness",
+    "heroTitle": "Bugün nereye?",
+    "heroSlogan": "Keyfine bakacağın yeri seç, anında rezerve et.",
     "discover": "Keşfet",
     "forBusiness": "İşletmeler için"
+  },
+  "accountDelete": {
+    "title": "Hesap Silme",
+    "breadcrumb": { "home": "Ana Sayfa", "legal": "Yasal", "current": "Hesap Silme" },
+    "intro": "CheckRezerve mobil uygulamasında oluşturduğunuz hesabı kalıcı olarak silmek için aşağıdaki adımları takip edebilirsiniz.",
+    "mobileSteps": {
+      "title": "Mobil Uygulama Üzerinden",
+      "steps": [
+        "Sağ alttaki \"Profil\" sekmesine dokunun.",
+        "\"Ayarlar\" menüsüne dokunun.",
+        "\"Hesap Güvenliği\" > \"Hesap Ayarları\" > \"Hesabımı Kalıcı Olarak Sil\" butonuna dokunun.",
+        "Doğrulama adımlarını tamamlayarak işlemi onaylayın."
+      ]
+    },
+    "deletedData": {
+      "title": "Silinen Veriler ve Saklama Süresi",
+      "items": [
+        "Profil, rezervasyon ve iletişim verileri anında kalıcı olarak silinir.",
+        "Yasal yükümlülük gereği kişisel olmayan bazı veriler (rezervasyon kayıtları gibi) 2 yıl süreyle saklanabilir."
+      ]
+    },
+    "consequences": {
+      "title": "Silme İşleminin Sonuçları",
+      "items": [
+        "Hesap silme işlemi kalıcıdır ve geri alınamaz.",
+        "Silinen hesapla ilişkili tüm bilgiler erişilemez hale gelir.",
+        "Aktif rezervasyonlarınız iptal edilir.",
+        "Birikmiş puan ve avantajlarınız silinir."
+      ]
+    },
+    "screenSteps": {
+      "title": "Adım Adım Ekran Görselleri",
+      "subtitle": "Hesap silme işlemini daha rahat takip edebilmeniz için aşağıdaki adım adım açıklamaları inceleyebilirsiniz.",
+      "step1": { "label": "Adım 1", "desc": "Profil sekmesine tıklayın ve Ayarlar menüsünü açın." },
+      "step2": { "label": "Adım 2", "desc": "Hesap Güvenliği > Hesap Ayarları ekranına girin." },
+      "step3": { "label": "Adım 3", "desc": "\"Hesabımı Kalıcı Olarak Sil\" butonuna tıklayın." },
+      "step4": { "label": "Adım 4", "desc": "Silmeyi onaylayın. Bu işlem geri alınamaz." }
+    },
+    "kvkk": "Verileriniz KVKK ve GDPR uyumlu şekilde sistemlerimizden silinecektir. Daha fazla bilgi için",
+    "kvkkLink": "Gizlilik Politikamıza",
+    "kvkkEnd": "göz atabilirsiniz.",
+    "contact": {
+      "title": "Destek ve İletişim",
+      "desc": "Hesap silme konusunda yardıma ihtiyacınız varsa bize ulaşabilirsiniz.",
+      "email": "destek@checkrezerve.com"
+    }
+  },
+  "notFound": {
+    "title": "Sayfa Bulunamadı",
+    "subtitle": "Aradığın sayfa taşınmış veya hiç var olmamış olabilir.",
+    "button": "Ana Sayfaya Dön"
+  },
+  "error": {
+    "title": "Bir Şeyler Ters Gitti",
+    "subtitle": "Beklenmedik bir sorun oluştu. Lütfen tekrar deneyin.",
+    "retry": "Tekrar Dene",
+    "home": "Ana Sayfa"
   }
 }

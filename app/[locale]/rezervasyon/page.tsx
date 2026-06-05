@@ -9,6 +9,7 @@ import SearchableBusinessList from './SearchableBusinessList'
 import { getSupabaseAdmin }  from '@/lib/supabase'
 import { type Restaurant }   from '@/types'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getTypesForKey } from './categories'
 
 export const metadata: Metadata = {
   title: 'Online Rezervasyon — CheckRezerve',
@@ -25,30 +26,51 @@ type Props = {
   searchParams: Promise<{ kategori?: string }>
 }
 
-export default async function RezervasyonPage({ params }: Props) {
+export default async function RezervasyonPage({ params, searchParams }: Props) {
   const { locale } = await params
+  const { kategori } = await searchParams
   setRequestLocale(locale)
   const t    = await getTranslations('rezervasyon')
   const tBiz = await getTranslations('businessTypes')
 
-  // Fetch ALL active businesses — client component handles filtering
-  const { data: businesses } = await getSupabaseAdmin()
-    .from('restaurants')
-    .select('id, name, slug, business_type, address, description, is_active, cover_image')
-    .eq('is_active', true)
-    .order('name')
+  // DiagonalSplit sends ?kategori=restoran → map to category key 'yeme-icme'
+  const KATEGORI_ALIAS: Record<string, string> = { 'restoran': 'yeme-icme' }
+  const resolvedKey = KATEGORI_ALIAS[kategori ?? ''] ?? kategori ?? ''
+  const activeTypes = getTypesForKey(resolvedKey)
 
-  const list = (businesses ?? []).map(b => ({
-    id:            b.id as string,
-    name:          b.name as string,
-    slug:          b.slug as string | null,
-    business_type: b.business_type as string,
-    address:       b.address as string | null,
-    description:   b.description as string | null,
-    is_active:     b.is_active as boolean,
-    cover_image:   b.cover_image as string | null,
-    typeLabel:     tBiz(b.business_type as Parameters<typeof tBiz>[0]),
-  }))
+  let list: Array<{
+    id: string; name: string; slug: string | null; business_type: string
+    address: string | null; description: string | null; is_active: boolean
+    cover_image: string | null; typeLabel: string
+  }> = []
+
+  try {
+    let q = getSupabaseAdmin()
+      .from('restaurants')
+      .select('id, name, slug, business_type, address, description, is_active, cover_image')
+      .eq('is_active', true)
+
+    if (activeTypes && activeTypes.length > 0) {
+      q = q.in('business_type', activeTypes)
+    }
+
+    const { data: businesses } = await q.order('name')
+
+    list = (businesses ?? []).map(b => ({
+      id:            b.id as string,
+      name:          b.name as string,
+      slug:          b.slug as string | null,
+      business_type: b.business_type as string,
+      address:       b.address as string | null,
+      description:   b.description as string | null,
+      is_active:     b.is_active as boolean,
+      cover_image:   b.cover_image as string | null,
+      typeLabel:     tBiz(b.business_type as Parameters<typeof tBiz>[0]),
+    }))
+  } catch (e) {
+    console.error('RezervasyonPage fetch error:', e)
+    // fallback: empty list, error boundary handles UI
+  }
 
   return (
     <div className="min-h-screen bg-white">

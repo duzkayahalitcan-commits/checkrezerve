@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
+import { sendTelegramNotification } from './actions'
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
@@ -28,6 +29,7 @@ export default function RegisterPage() {
     })
     setLoading(false)
     if (error) { setError(error.message); return }
+    await sendTelegramNotification(form.name, form.email)
     setSent(true)
   }
 

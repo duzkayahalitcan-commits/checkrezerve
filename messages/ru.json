@@ -47,7 +47,18 @@
     "pleaseWait": "Пожалуйста, подождите...",
     "createAccount": "Создать аккаунт",
     "invalidCredentials": "Неверный адрес электронной почты или пароль.",
-    "signupSuccess": "Ваш аккаунт создан! Вы можете войти после подтверждения адреса электронной почты."
+    "signupSuccess": "Ваш аккаунт создан! Вы можете войти после подтверждения адреса электронной почты.",
+    "forgotPasswordTitle": "Забыл пароль",
+    "forgotPasswordDescription": "Мы отправим ссылку для сброса пароля на вашу почту.",
+    "forgotPasswordSent": "Письмо отправлено!",
+    "forgotPasswordEmailSent": "Проверьте свой почтовый ящик и нажмите на ссылку.",
+    "forgotPasswordButton": "Отправить ссылку",
+    "forgotPasswordBackToLogin": "Вернуться ко входу",
+    "resetPasswordTitle": "Установить новый пароль",
+    "resetPasswordNewPassword": "Новый пароль",
+    "resetPasswordButton": "Обновить пароль",
+    "resetPasswordSuccess": "Пароль успешно обновлён! Перенаправление...",
+    "resetPasswordError": "Не удалось обновить пароль. Возможно, срок действия ссылки истёк."
   },
   "reservation": {
     "title": "Забронировать",
@@ -187,7 +198,12 @@
     "ctaSubtitle": "Кредитная карта не нужна. Настройка займёт несколько минут.",
     "ctaButton": "Попробовать бесплатно 14 дней →",
     "demoCta": "Хотите увидеть CheckRezerve вживую?",
-    "demoButton": "Запросить демо →"
+    "demoButton": "Запросить демо →",
+    "heroTitle": "Управляйте бронированиями умно",
+    "heroSubtitle": "Контролируйте все процессы бронирования для вашего ресторана, спа или салона с единой панели.",
+    "heroBadge": "Более 2.400 компаний доверяют",
+    "heroCtaPrimary": "Попробовать бесплатно 14 дней",
+    "heroCtaSecondary": "Как это работает"
   },
   "about": {
     "heroBadge": "О нас",
@@ -1110,7 +1126,66 @@
     "guzellikSub": "Парикмахер, барбер и ногти",
     "spa": "Здоровье и Спа",
     "spaSub": "Спа, массаж и велнес",
+    "heroTitle": "Куда сегодня?",
+    "heroSlogan": "Выбери место и забронируй за секунды.",
     "discover": "Открыть",
     "forBusiness": "Для бизнеса"
+  },
+  "accountDelete": {
+    "title": "Account Deletion",
+    "breadcrumb": { "home": "Home", "legal": "Legal", "current": "Account Deletion" },
+    "intro": "You can follow the steps below to permanently delete your account created in the CheckRezerve mobile application.",
+    "mobileSteps": {
+      "title": "Via Mobile Application",
+      "steps": [
+        "Tap the \"Profile\" tab at the bottom right.",
+        "Tap the \"Settings\" menu.",
+        "Go to \"Account Security\" > \"Account Settings\" > tap \"Permanently Delete My Account\".",
+        "Complete the verification steps to confirm the action."
+      ]
+    },
+    "deletedData": {
+      "title": "Deleted Data & Retention Period",
+      "items": [
+        "Profile, reservation, and contact data are permanently deleted immediately.",
+        "Some non-personal data (such as reservation records) may be retained for 2 years due to legal obligations."
+      ]
+    },
+    "consequences": {
+      "title": "Consequences of Deletion",
+      "items": [
+        "Account deletion is permanent and cannot be undone.",
+        "All information associated with the deleted account becomes inaccessible.",
+        "Active reservations will be cancelled.",
+        "Accumulated points and benefits will be deleted."
+      ]
+    },
+    "screenSteps": {
+      "title": "Step-by-Step Screenshots",
+      "subtitle": "Review the step-by-step instructions below for a smoother account deletion experience.",
+      "step1": { "label": "Step 1", "desc": "Open the Profile tab and access the Settings menu." },
+      "step2": { "label": "Step 2", "desc": "Navigate to Account Security > Account Settings." },
+      "step3": { "label": "Step 3", "desc": "Tap \"Permanently Delete My Account\" button." },
+      "step4": { "label": "Step 4", "desc": "Confirm the deletion. This action cannot be undone." }
+    },
+    "kvkk": "Your data will be deleted from our systems in compliance with KVKK and GDPR. For more information, please see our",
+    "kvkkLink": "Privacy Policy",
+    "kvkkEnd": ".",
+    "contact": {
+      "title": "Support & Contact",
+      "desc": "If you need help with account deletion, feel free to reach out.",
+      "email": "destek@checkrezerve.com"
+    }
+  },
+  "notFound": {
+    "title": "Страница Не Найдена",
+    "subtitle": "Возможно, страница была перемещена или никогда не существовала.",
+    "button": "На главную"
+  },
+  "error": {
+    "title": "Что-то пошло не так",
+    "subtitle": "Произошла непредвиденная ошибка. Попробуйте снова.",
+    "retry": "Повторить",
+    "home": "На главную"
   }
 }

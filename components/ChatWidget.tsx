@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { X, Send } from 'lucide-react'
+import { X, Send, Trash2 } from 'lucide-react'
 
 type Message = { role: 'user' | 'assistant'; content: string }
 
@@ -9,8 +9,10 @@ const WELCOME: Message = {
   role: 'assistant',
   content: 'Merhaba! Rezervasyon için yardımcı olabilirim 👋 Nasıl yardımcı olabilirim?',
 }
-const STORAGE_KEY = 'cr_chat_history'
-const MAX_STORED = 50
+const STORAGE_KEY     = 'cr_chat_history'
+const STORAGE_TS_KEY  = 'cr_chat_ts'
+const STORAGE_EXPIRY  = 4 * 60 * 60 * 1000 // 4 saat
+const MAX_STORED      = 50
 
 const QUICK_REPLIES = ['Rezervasyon yaptır', 'İşletme bul', 'Nasıl çalışır?']
 
@@ -22,9 +24,19 @@ export default function ChatWidget() {
   const bottomRef               = useRef<HTMLDivElement>(null)
   const inputRef                = useRef<HTMLInputElement>(null)
 
+  // Load chat history with expiry check
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY)
+      const ts = sessionStorage.getItem(STORAGE_TS_KEY)
+      if (ts) {
+        const elapsed = Date.now() - Number(ts)
+        if (elapsed > STORAGE_EXPIRY) {
+          sessionStorage.removeItem(STORAGE_KEY)
+          sessionStorage.removeItem(STORAGE_TS_KEY)
+          return // keep fresh welcome
+        }
+      }
+      const stored = sessionStorage.getItem(STORAGE_KEY)
       if (stored) {
         const parsed = JSON.parse(stored) as Message[]
         if (parsed.length > 0) setMessages(parsed)
@@ -32,10 +44,12 @@ export default function ChatWidget() {
     } catch { /* ignore */ }
   }, [])
 
+  // Persist to sessionStorage + update timestamp
   useEffect(() => {
     if (messages.length === 1 && messages[0].content === WELCOME.content) return
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-MAX_STORED)))
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-MAX_STORED)))
+      sessionStorage.setItem(STORAGE_TS_KEY, String(Date.now()))
     } catch { /* ignore */ }
   }, [messages])
 
@@ -45,6 +59,12 @@ export default function ChatWidget() {
       setTimeout(() => inputRef.current?.focus(), 120)
     }
   }, [open, messages])
+
+  const resetChat = () => {
+    sessionStorage.removeItem(STORAGE_KEY)
+    sessionStorage.removeItem(STORAGE_TS_KEY)
+    setMessages([WELCOME])
+  }
 
   async function send(text: string) {
     const trimmed = text.trim()
@@ -100,12 +120,23 @@ export default function ChatWidget() {
                   <p className="text-red-200 text-[10px] mt-0.5">Online · Hemen yanıt verir</p>
                 </div>
               </div>
-              <button
-                onClick={() => setOpen(false)}
-                className="text-white/70 hover:text-white transition-colors p-1"
-              >
-                <X size={17} />
-              </button>
+              <div className="flex items-center gap-1">
+                {messages.length > 1 && (
+                  <button
+                    onClick={resetChat}
+                    title="Yeni sohbet"
+                    className="text-white/60 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                )}
+                <button
+                  onClick={() => setOpen(false)}
+                  className="text-white/70 hover:text-white transition-colors p-1"
+                >
+                  <X size={17} />
+                </button>
+              </div>
             </div>
 
             {/* Messages */}

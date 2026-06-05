@@ -47,7 +47,18 @@
     "pleaseWait": "Please wait...",
     "createAccount": "Create Account",
     "invalidCredentials": "Invalid email or password.",
-    "signupSuccess": "Your account has been created! You can log in after verifying your email address."
+    "signupSuccess": "Your account has been created! You can log in after verifying your email address.",
+    "forgotPasswordTitle": "Forgot Password",
+    "forgotPasswordDescription": "We'll send a password reset link to your email.",
+    "forgotPasswordSent": "Email sent!",
+    "forgotPasswordEmailSent": "Check your inbox and click the reset link.",
+    "forgotPasswordButton": "Send Reset Link",
+    "forgotPasswordBackToLogin": "Back to login",
+    "resetPasswordTitle": "Set New Password",
+    "resetPasswordNewPassword": "New password",
+    "resetPasswordButton": "Update Password",
+    "resetPasswordSuccess": "Password updated successfully! Redirecting...",
+    "resetPasswordError": "Failed to update password. The link may have expired, please try again."
   },
   "reservation": {
     "title": "Make a Reservation",
@@ -1115,7 +1126,66 @@
     "guzellikSub": "Hairdresser, barber & nails",
     "spa": "Health & Spa",
     "spaSub": "Spa, massage & wellness",
+    "heroTitle": "Where to today?",
+    "heroSlogan": "Pick your spot and book in seconds.",
     "discover": "Explore",
     "forBusiness": "For businesses"
+  },
+  "accountDelete": {
+    "title": "Account Deletion",
+    "breadcrumb": { "home": "Home", "legal": "Legal", "current": "Account Deletion" },
+    "intro": "You can follow the steps below to permanently delete your account created in the CheckRezerve mobile application.",
+    "mobileSteps": {
+      "title": "Via Mobile Application",
+      "steps": [
+        "Tap the \"Profile\" tab at the bottom right.",
+        "Tap the \"Settings\" menu.",
+        "Go to \"Account Security\" > \"Account Settings\" > tap \"Permanently Delete My Account\".",
+        "Complete the verification steps to confirm the action."
+      ]
+    },
+    "deletedData": {
+      "title": "Deleted Data & Retention Period",
+      "items": [
+        "Profile, reservation, and contact data are permanently deleted immediately.",
+        "Some non-personal data (such as reservation records) may be retained for 2 years due to legal obligations."
+      ]
+    },
+    "consequences": {
+      "title": "Consequences of Deletion",
+      "items": [
+        "Account deletion is permanent and cannot be undone.",
+        "All information associated with the deleted account becomes inaccessible.",
+        "Active reservations will be cancelled.",
+        "Accumulated points and benefits will be deleted."
+      ]
+    },
+    "screenSteps": {
+      "title": "Step-by-Step Screenshots",
+      "subtitle": "Review the step-by-step instructions below for a smoother account deletion experience.",
+      "step1": { "label": "Step 1", "desc": "Open the Profile tab and access the Settings menu." },
+      "step2": { "label": "Step 2", "desc": "Navigate to Account Security > Account Settings." },
+      "step3": { "label": "Step 3", "desc": "Tap \"Permanently Delete My Account\" button." },
+      "step4": { "label": "Step 4", "desc": "Confirm the deletion. This action cannot be undone." }
+    },
+    "kvkk": "Your data will be deleted from our systems in compliance with KVKK and GDPR. For more information, please see our",
+    "kvkkLink": "Privacy Policy",
+    "kvkkEnd": ".",
+    "contact": {
+      "title": "Support & Contact",
+      "desc": "If you need help with account deletion, feel free to reach out.",
+      "email": "destek@checkrezerve.com"
+    }
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "subtitle": "The page you're looking for may have moved or never existed.",
+    "button": "Back to Home"
+  },
+  "error": {
+    "title": "Something Went Wrong",
+    "subtitle": "An unexpected error occurred. Please try again.",
+    "retry": "Try Again",
+    "home": "Home"
   }
 }

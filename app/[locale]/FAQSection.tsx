@@ -25,25 +25,25 @@ export default function FAQSection() {
           <div
             key={i}
             className={`rounded-2xl border transition-colors ${
-              isOpen ? 'border-red-200 bg-red-50' : 'border-zinc-100 bg-zinc-50 hover:border-zinc-200'
+              isOpen ? 'border-red-500/20 bg-red-500/[0.04]' : 'border-white/[0.06] bg-white/[0.03] hover:border-white/[0.12]'
             }`}
           >
             <button
               onClick={() => setOpen(isOpen ? null : i)}
               className="w-full flex items-center justify-between px-6 py-5 text-left gap-4"
             >
-              <span className={`text-sm font-semibold leading-snug ${isOpen ? 'text-red-700' : 'text-zinc-800'}`}>
+              <span className={`text-sm font-semibold leading-snug ${isOpen ? 'text-red-400' : 'text-zinc-300'}`}>
                 {faq.q}
               </span>
               <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                isOpen ? 'bg-red-600 text-white' : 'bg-zinc-200 text-zinc-500'
+                isOpen ? 'bg-red-600 text-white' : 'bg-white/10 text-zinc-500'
               }`}>
                 {isOpen ? '−' : '+'}
               </span>
             </button>
             {isOpen && (
               <div className="px-6 pb-5">
-                <p className="text-sm text-zinc-600 leading-relaxed">{faq.a}</p>
+                <p className="text-sm text-zinc-400 leading-relaxed">{faq.a}</p>
               </div>
             )}
           </div>

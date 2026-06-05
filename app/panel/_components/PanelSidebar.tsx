@@ -87,15 +87,13 @@ export default function PanelSidebar({
             <span className="text-xs text-stone-600 flex-1">Yeni rezervasyon</span>
           </div>
           <PanelLangSelector />
-          <form action="/panel/logout" method="POST">
-            <button
-              type="submit"
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-stone-500 hover:text-white hover:bg-white/5 transition-all"
-            >
-              <LogOut size={14} />
-              Çıkış Yap
-            </button>
-          </form>
+          <a
+            href="/panel/logout"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-stone-500 hover:text-white hover:bg-white/5 transition-all"
+          >
+            <LogOut size={14} />
+            Çıkış Yap
+          </a>
         </div>
       </aside>
 
@@ -112,14 +110,12 @@ export default function PanelSidebar({
         <div className="flex items-center gap-3">
           <NotificationBell restaurantId={restaurantId} />
           <PanelLangSelector />
-          <form action="/panel/logout" method="POST">
-            <button
-              type="submit"
-              className="text-stone-400 hover:text-white text-xs border border-stone-700 hover:border-stone-500 transition px-3 py-1.5 rounded-lg"
-            >
-              Çıkış
-            </button>
-          </form>
+          <a
+            href="/panel/logout"
+            className="text-stone-400 hover:text-white text-xs border border-stone-700 hover:border-stone-500 transition px-3 py-1.5 rounded-lg"
+          >
+            Çıkış
+          </a>
         </div>
       </header>
 

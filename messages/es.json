@@ -47,7 +47,18 @@
     "pleaseWait": "Por favor espera...",
     "createAccount": "Crear cuenta",
     "invalidCredentials": "Correo electrónico o contraseña incorrectos.",
-    "signupSuccess": "¡Tu cuenta ha sido creada! Puedes iniciar sesión después de verificar tu dirección de correo electrónico."
+    "signupSuccess": "¡Tu cuenta ha sido creada! Puedes iniciar sesión después de verificar tu dirección de correo electrónico.",
+    "forgotPasswordTitle": "Olvidé mi contraseña",
+    "forgotPasswordDescription": "Te enviaremos un enlace de restablecimiento a tu correo.",
+    "forgotPasswordSent": "¡Correo enviado!",
+    "forgotPasswordEmailSent": "Revisa tu bandeja de entrada y haz clic en el enlace.",
+    "forgotPasswordButton": "Enviar enlace",
+    "forgotPasswordBackToLogin": "Volver al inicio de sesión",
+    "resetPasswordTitle": "Establecer nueva contraseña",
+    "resetPasswordNewPassword": "Nueva contraseña",
+    "resetPasswordButton": "Actualizar contraseña",
+    "resetPasswordSuccess": "¡Contraseña actualizada! Redirigiendo...",
+    "resetPasswordError": "No se pudo actualizar la contraseña. El enlace puede haber expirado."
   },
   "reservation": {
     "title": "Hacer una reserva",
@@ -187,7 +198,12 @@
     "ctaSubtitle": "No se necesita tarjeta de crédito. La configuración tarda unos minutos.",
     "ctaButton": "Prueba gratis 14 días →",
     "demoCta": "¿Quieres ver CheckRezerve en vivo?",
-    "demoButton": "Solicitar demo →"
+    "demoButton": "Solicitar demo →",
+    "heroTitle": "Gestiona tus reservas de forma inteligente",
+    "heroSubtitle": "Controla todos los procesos de reserva de tu restaurante, spa o salón desde un solo panel.",
+    "heroBadge": "Más de 2.400 empresas confían",
+    "heroCtaPrimary": "Prueba gratis 14 días",
+    "heroCtaSecondary": "Cómo funciona"
   },
   "about": {
     "heroBadge": "Sobre nosotros",
@@ -1110,7 +1126,66 @@
     "guzellikSub": "Peluquería, barbería y uñas",
     "spa": "Salud y Spa",
     "spaSub": "Spa, masajes y bienestar",
+    "heroTitle": "¿A dónde hoy?",
+    "heroSlogan": "Elige tu lugar y reserva en segundos.",
     "discover": "Explorar",
     "forBusiness": "Para empresas"
+  },
+  "accountDelete": {
+    "title": "Account Deletion",
+    "breadcrumb": { "home": "Home", "legal": "Legal", "current": "Account Deletion" },
+    "intro": "You can follow the steps below to permanently delete your account created in the CheckRezerve mobile application.",
+    "mobileSteps": {
+      "title": "Via Mobile Application",
+      "steps": [
+        "Tap the \"Profile\" tab at the bottom right.",
+        "Tap the \"Settings\" menu.",
+        "Go to \"Account Security\" > \"Account Settings\" > tap \"Permanently Delete My Account\".",
+        "Complete the verification steps to confirm the action."
+      ]
+    },
+    "deletedData": {
+      "title": "Deleted Data & Retention Period",
+      "items": [
+        "Profile, reservation, and contact data are permanently deleted immediately.",
+        "Some non-personal data (such as reservation records) may be retained for 2 years due to legal obligations."
+      ]
+    },
+    "consequences": {
+      "title": "Consequences of Deletion",
+      "items": [
+        "Account deletion is permanent and cannot be undone.",
+        "All information associated with the deleted account becomes inaccessible.",
+        "Active reservations will be cancelled.",
+        "Accumulated points and benefits will be deleted."
+      ]
+    },
+    "screenSteps": {
+      "title": "Step-by-Step Screenshots",
+      "subtitle": "Review the step-by-step instructions below for a smoother account deletion experience.",
+      "step1": { "label": "Step 1", "desc": "Open the Profile tab and access the Settings menu." },
+      "step2": { "label": "Step 2", "desc": "Navigate to Account Security > Account Settings." },
+      "step3": { "label": "Step 3", "desc": "Tap \"Permanently Delete My Account\" button." },
+      "step4": { "label": "Step 4", "desc": "Confirm the deletion. This action cannot be undone." }
+    },
+    "kvkk": "Your data will be deleted from our systems in compliance with KVKK and GDPR. For more information, please see our",
+    "kvkkLink": "Privacy Policy",
+    "kvkkEnd": ".",
+    "contact": {
+      "title": "Support & Contact",
+      "desc": "If you need help with account deletion, feel free to reach out.",
+      "email": "destek@checkrezerve.com"
+    }
+  },
+  "notFound": {
+    "title": "Página No Encontrada",
+    "subtitle": "La página que buscas pudo haberse movido o nunca existió.",
+    "button": "Volver al inicio"
+  },
+  "error": {
+    "title": "Algo salió mal",
+    "subtitle": "Ocurrió un error inesperado. Inténtalo de nuevo.",
+    "retry": "Reintentar",
+    "home": "Inicio"
   }
 }

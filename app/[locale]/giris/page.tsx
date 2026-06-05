@@ -195,6 +195,16 @@ function GirisForm() {
                 placeholder="Minimum 6 karakter"
                 className="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all"
               />
+              {tab === 'login' && (
+                <div className="flex justify-end mt-1.5">
+                  <a
+                    href={`/${window.location.pathname.split('/')[1] || 'tr'}/sifre-sifirla`}
+                    className="text-xs font-semibold text-zinc-400 hover:text-red-600 transition-colors"
+                  >
+                    Şifremi Unuttum
+                  </a>
+                </div>
+              )}
             </div>
 
             {error && (
