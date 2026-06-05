@@ -4,176 +4,19 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-const features = [
-  {
-    icon: '🚀',
-    title: 'Hızlı Kurulum',
-    desc: '24 saat içinde sisteminizi kurun ve müşteri almaya başlayın.',
-  },
-  {
-    icon: '💳',
-    title: 'Komisyonsuz',
-    desc: 'Her rezervasyondan kesinti yok. Kazancınızın tamamı sizin.',
-  },
-  {
-    icon: '🤖',
-    title: 'AI Destekli',
-    desc: 'Sesli asistan ve otomatik hatırlatmalar ile müşteri kaybetmeyin.',
-  },
-]
-
-const clientPills = [
-  'Bella Kuaför',
-  'Mavi Restoran',
-  'Zen Spa',
-  'Dr. Ayşe Klinik',
-  'FitLife Spor',
-  'Güneş Berber',
-]
-
-const quickLinks = [
-  {
-    title: 'Ürün',
-    items: [
-      { label: 'Özellikler', href: '/ozellikler' },
-      { label: 'Fiyatlandırma', href: '/pricing' },
-      { label: 'Güvenlik', href: '/gizlilik' },
-      { label: 'Yol Haritası', href: '/' },
-    ],
-  },
-  {
-    title: 'Kullanım Alanları',
-    items: [
-      { label: 'Restoran', href: '/kullanim-alanlari' },
-      { label: 'Kuaför', href: '/kullanim-alanlari' },
-      { label: 'Güzellik Merkezi', href: '/kullanim-alanlari' },
-      { label: 'Klinik', href: '/kullanim-alanlari' },
-      { label: 'Spor Merkezi', href: '/kullanim-alanlari' },
-    ],
-  },
-  {
-    title: 'Şirket',
-    items: [
-      { label: 'Hakkımızda', href: '/hakkimizda' },
-      { label: 'Blog', href: '/blog' },
-      { label: 'Basın', href: '/hakkimizda' },
-      { label: 'Kariyer', href: '/hakkimizda' },
-    ],
-  },
-  {
-    title: 'Destek',
-    items: [
-      { label: 'Yardım Merkezi', href: '/iletisim' },
-      { label: 'İletişim', href: '/iletisim' },
-      { label: 'Demo Talebi', href: '/iletisim' },
-      { label: 'WhatsApp Destek', href: '#' },
-    ],
-  },
-  {
-    title: 'Hukuki',
-    items: [
-      { label: 'Kullanım Koşulları', href: '/kullanim-kosullari' },
-      { label: 'Gizlilik Politikası', href: '/gizlilik' },
-      { label: 'KVKK', href: '/kvkk' },
-      { label: 'Çerez Politikası', href: '/cerez-politikasi' },
-    ],
-  },
-]
-
-const communityCards = [
-  {
-    platform: 'WhatsApp',
-    cardClass: 'bg-green-50 border-green-100',
-    iconClass: 'bg-green-500',
-    labelClass: 'text-green-700',
-    btnClass: 'bg-green-500 hover:bg-green-600 text-white',
-    icon: '💬',
-    desc: 'Anında destek ve güncel duyurular için WhatsApp topluluğumuza katılın.',
-    cta: 'Gruba Katıl',
-    href: '#',
-  },
-  {
-    platform: 'X',
-    cardClass: 'bg-zinc-50 border-zinc-200',
-    iconClass: 'bg-zinc-900',
-    labelClass: 'text-zinc-900',
-    btnClass: 'bg-zinc-900 hover:bg-zinc-700 text-white',
-    icon: '✕',
-    desc: 'Sektör ipuçları ve güncellikler için bizi X\'te takip edin.',
-    cta: 'Takip Et',
-    href: '#',
-  },
-  {
-    platform: 'LinkedIn',
-    cardClass: 'bg-blue-50 border-blue-100',
-    iconClass: 'bg-blue-600',
-    labelClass: 'text-blue-700',
-    btnClass: 'bg-blue-600 hover:bg-blue-700 text-white',
-    icon: 'in',
-    desc: 'Profesyonel ağımıza katılın ve başarı hikâyelerini keşfedin.',
-    cta: 'Bağlan',
-    href: '#',
-  },
-  {
-    platform: 'Instagram',
-    cardClass: 'bg-pink-50 border-pink-100',
-    iconClass: 'bg-gradient-to-br from-purple-500 to-pink-500',
-    labelClass: 'text-pink-600',
-    btnClass: 'bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white',
-    icon: '📸',
-    desc: 'Müşteri hikayeleri ve ürün güncellemeleri için Instagram\'ı takip edin.',
-    cta: 'Takip Et',
-    href: '#',
-  },
-]
-
-const footerLinks = [
-  {
-    title: 'Hakkında',
-    items: [
-      { label: 'Neden CheckRezerve?', href: '/hakkimizda' },
-      { label: 'Başarı Hikayeleri', href: '/hakkimizda' },
-      { label: 'Blog', href: '/blog' },
-      { label: 'İletişim', href: '/iletisim' },
-    ],
-  },
-  {
-    title: 'Kullanım Alanları',
-    items: [
-      { label: 'Restoran', href: '/kullanim-alanlari' },
-      { label: 'Kuaför & Berber', href: '/kullanim-alanlari' },
-      { label: 'Spa & Güzellik', href: '/kullanim-alanlari' },
-    ],
-  },
-  {
-    title: 'Özellikler',
-    items: [
-      { label: 'Ön Ödeme Sistemi', href: '/ozellikler' },
-      { label: 'Online Rezervasyon', href: '/ozellikler' },
-      { label: 'SMS Bildirimleri', href: '/ozellikler' },
-      { label: 'Müşteri Yönetimi', href: '/ozellikler' },
-      { label: 'Sesli Asistan', href: '/ozellikler' },
-    ],
-  },
-  {
-    title: 'Hukuki',
-    items: [
-      { label: 'Kullanım Koşulları', href: '/kullanim-kosullari' },
-      { label: 'Gizlilik Politikası', href: '/gizlilik' },
-      { label: 'KVKK', href: '/kvkk' },
-      { label: 'Çerez Politikası', href: '/cerez-politikasi' },
-    ],
-  },
-]
-
 type FormState = {
   ad: string
   soyad: string
   isEmail: string
   isletme: string
   mesaj: string
-  kvkk: boolean
+  newsletter: boolean
 }
+
+const inputClass =
+  'w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-500/10 transition-all duration-200'
+
+const labelClass = 'block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-1.5'
 
 export default function IletisimPage() {
   const [form, setForm] = useState<FormState>({
@@ -182,7 +25,7 @@ export default function IletisimPage() {
     isEmail: '',
     isletme: '',
     mesaj: '',
-    kvkk: false,
+    newsletter: false,
   })
   const [submitted, setSubmitted] = useState(false)
 
@@ -190,11 +33,6 @@ export default function IletisimPage() {
     e.preventDefault()
     setSubmitted(true)
   }
-
-  const inputClass =
-    'w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-500/10 transition-all duration-200'
-
-  const labelClass = 'block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-1.5'
 
   return (
     <div className="min-h-screen bg-white">
@@ -220,31 +58,35 @@ export default function IletisimPage() {
           </nav>
           <Link
             href="/kayit"
-            className="hidden sm:inline-flex items-center bg-red-600 hover:bg-red-700 active:scale-[0.97] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-200"
+            className="hidden sm:inline-flex items-center bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-200 active:scale-[0.97]"
           >
             Demo Talebi
           </Link>
         </div>
       </header>
 
-      {/* ── Hero: Two-column ── */}
-      <section className="pt-32 pb-24 px-6">
+      {/* ── Section 1: Hero ── */}
+      <section className="pt-32 pb-16 px-6 text-center">
+        <div className="mx-auto max-w-2xl">
+          <span className="inline-block bg-red-50 border border-red-100 text-red-600 text-xs font-semibold uppercase tracking-wider px-3 py-1.5 rounded-full mb-6">
+            İletişim
+          </span>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-zinc-900 leading-tight mb-4">
+            Bizimle İletişime Geçin
+          </h1>
+          <p className="text-zinc-500 text-lg leading-relaxed">
+            İhtiyaçlarınızı görüşmek ve işbirliği fırsatlarını keşfetmek için buradayız.
+          </p>
+        </div>
+      </section>
+
+      {/* ── Section 2: Two Column ── */}
+      <section className="py-16 px-6">
         <div className="mx-auto max-w-6xl">
-          <div className="grid lg:grid-cols-2 gap-16 items-start">
+          <div className="grid lg:grid-cols-2 gap-12 items-start">
 
-            {/* Left: Contact Form */}
-            <div>
-              <span className="inline-block bg-red-50 border border-red-100 text-red-600 text-xs font-semibold uppercase tracking-wider px-3 py-1.5 rounded-full mb-6">
-                İletişim
-              </span>
-              <h1 className="text-4xl sm:text-5xl font-extrabold text-zinc-900 leading-tight mb-4">
-                Sizinle Tanışmak<br />
-                <span className="text-red-600">İstiyoruz</span>
-              </h1>
-              <p className="text-zinc-600 text-lg leading-relaxed mb-10">
-                Demo talebi, fiyat sorusu veya herhangi bir konuda bize yazın. 24 saat içinde dönüş yaparız.
-              </p>
-
+            {/* Left: Contact Form Card */}
+            <div className="bg-white shadow-md rounded-2xl p-8 border border-zinc-200">
               {submitted ? (
                 <div className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
                   <div className="text-4xl mb-3">✅</div>
@@ -252,8 +94,9 @@ export default function IletisimPage() {
                   <p className="text-green-700 text-sm">En kısa sürede sizinle iletişime geçeceğiz.</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="bg-zinc-50 border border-zinc-100 rounded-2xl p-8 space-y-5">
-                  <div className="grid sm:grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  {/* Row 1: Ad + Soyad */}
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className={labelClass}>Ad</label>
                       <input
@@ -278,102 +121,130 @@ export default function IletisimPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className={labelClass}>İş E-postası</label>
-                    <input
-                      type="email"
-                      required
-                      value={form.isEmail}
-                      onChange={e => setForm(f => ({ ...f, isEmail: e.target.value }))}
-                      placeholder="isim@isletme.com"
-                      className={inputClass}
-                    />
+                  {/* Row 2: Email + İşletme */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelClass}>İş E-postası</label>
+                      <input
+                        type="email"
+                        required
+                        value={form.isEmail}
+                        onChange={e => setForm(f => ({ ...f, isEmail: e.target.value }))}
+                        placeholder="isim@isletme.com"
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass}>İşletme Adı</label>
+                      <input
+                        type="text"
+                        required
+                        value={form.isletme}
+                        onChange={e => setForm(f => ({ ...f, isletme: e.target.value }))}
+                        placeholder="İşletmenizin adı"
+                        className={inputClass}
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className={labelClass}>İşletme Adı</label>
-                    <input
-                      type="text"
-                      required
-                      value={form.isletme}
-                      onChange={e => setForm(f => ({ ...f, isletme: e.target.value }))}
-                      placeholder="İşletmenizin adı"
-                      className={inputClass}
-                    />
-                  </div>
-
+                  {/* Mesaj */}
                   <div>
                     <label className={labelClass}>Mesajınız</label>
                     <textarea
                       required
+                      rows={5}
                       value={form.mesaj}
                       onChange={e => setForm(f => ({ ...f, mesaj: e.target.value }))}
                       placeholder="Nasıl yardımcı olabiliriz?"
-                      rows={4}
                       className={`${inputClass} resize-none`}
                     />
                   </div>
 
+                  {/* Newsletter checkbox */}
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      required
-                      checked={form.kvkk}
-                      onChange={e => setForm(f => ({ ...f, kvkk: e.target.checked }))}
+                      checked={form.newsletter}
+                      onChange={e => setForm(f => ({ ...f, newsletter: e.target.checked }))}
                       className="mt-0.5 w-4 h-4 rounded border-zinc-300 accent-red-600"
                     />
                     <span className="text-xs text-zinc-500 leading-relaxed">
-                      <Link href="/kvkk" className="text-red-600 hover:underline">KVKK Aydınlatma Metni</Link>
-                      {`'ni ve `}
-                      <Link href="/gizlilik" className="text-red-600 hover:underline">Gizlilik Politikası</Link>
-                      {`'nı okudum, onaylıyorum.`}
+                      E-posta ile haber ve güncellemeler almak istiyorum
                     </span>
                   </label>
 
-                  <button
-                    type="submit"
-                    className="w-full bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-semibold py-3.5 rounded-xl transition-all duration-200 text-sm"
-                  >
-                    Mesaj Gönder →
-                  </button>
+                  {/* Bottom bar */}
+                  <div className="flex items-center justify-between gap-4 pt-2">
+                    <p className="text-xs text-zinc-400">
+                      Bu formu göndererek{' '}
+                      <Link href="/gizlilik" className="hover:text-zinc-600 underline underline-offset-2 transition-colors">
+                        Gizlilik Politikamızı
+                      </Link>{' '}
+                      kabul etmiş olursunuz.
+                    </p>
+                    <button
+                      type="submit"
+                      className="shrink-0 bg-zinc-900 hover:bg-zinc-700 active:scale-[0.97] text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition-all duration-200"
+                    >
+                      Gönder →
+                    </button>
+                  </div>
                 </form>
               )}
             </div>
 
-            {/* Right: Features + Client Pills */}
-            <div className="lg:pt-16">
-              <div className="space-y-6 mb-10">
-                {features.map((feat) => (
-                  <div key={feat.title} className="flex gap-4 items-start">
-                    <div className="w-11 h-11 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-xl shrink-0">
-                      {feat.icon}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-zinc-900 mb-1">{feat.title}</h3>
-                      <p className="text-sm text-zinc-600 leading-relaxed">{feat.desc}</p>
-                    </div>
-                  </div>
-                ))}
+            {/* Right: Features + Pills */}
+            <div className="flex flex-col gap-8">
+              {/* Feature 1 */}
+              <div className="flex gap-4 items-start">
+                <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-lg shrink-0">
+                  📅
+                </div>
+                <div>
+                  <h3 className="font-bold text-zinc-900 mb-1">Anında rezervasyon onayı</h3>
+                  <p className="text-sm text-zinc-500">SMS ve e-posta onayları otomatik gönderilir.</p>
+                </div>
               </div>
 
-              <div className="bg-zinc-50 border border-zinc-100 rounded-2xl p-6">
-                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-4">
-                  Güvenilir İşletmeler
+              {/* Feature 2 */}
+              <div className="flex gap-4 items-start">
+                <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-lg shrink-0">
+                  📊
+                </div>
+                <div>
+                  <h3 className="font-bold text-zinc-900 mb-1">Takvim ve personel yönetimi</h3>
+                  <p className="text-sm text-zinc-500">Tüm randevularınızı tek ekrandan yönetin.</p>
+                </div>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="flex gap-4 items-start">
+                <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-lg shrink-0">
+                  🔒
+                </div>
+                <div>
+                  <h3 className="font-bold text-zinc-900 mb-1">KVKK uyumlu, Türkiye&apos;ye özel</h3>
+                  <p className="text-sm text-zinc-500">Komisyon yok, veri kilidi yok, tam kontrol sizde.</p>
+                </div>
+              </div>
+
+              <hr className="border-zinc-100" />
+
+              {/* Business Type Pills */}
+              <div>
+                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+                  İşletme Türleri
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {clientPills.map((name) => (
+                  {['Kuaför', 'Berber', 'Spa & Güzellik', 'Klinik', 'Restoran'].map((pill) => (
                     <span
-                      key={name}
-                      className="inline-flex items-center gap-1.5 bg-white border border-zinc-200 text-zinc-700 text-xs font-medium px-3 py-1.5 rounded-full"
+                      key={pill}
+                      className="bg-zinc-100 text-zinc-700 text-xs font-medium px-3 py-1.5 rounded-full"
                     >
-                      <span className="w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center text-[9px] font-bold shrink-0">
-                        {name[0]}
-                      </span>
-                      {name}
+                      {pill}
                     </span>
                   ))}
                 </div>
-                <p className="text-xs text-zinc-400 mt-4">+500 işletme CheckRezerve ile büyüyor</p>
               </div>
             </div>
 
@@ -381,108 +252,211 @@ export default function IletisimPage() {
         </div>
       </section>
 
-      {/* ── Quick Links Grid (5-column) ── */}
-      <section className="py-16 bg-zinc-50 border-y border-zinc-100">
-        <div className="mx-auto max-w-6xl px-6">
-          <p className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-10">Hızlı Bağlantılar</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
-            {quickLinks.map((col) => (
-              <div key={col.title}>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-4">{col.title}</h3>
-                <ul className="space-y-2.5">
-                  {col.items.map((item) => (
-                    <li key={item.label}>
-                      <Link
-                        href={item.href}
-                        className="text-sm text-zinc-600 hover:text-red-600 transition-colors duration-150"
-                      >
-                        {item.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+      {/* ── Section 3: Quick Links ── */}
+      <section className="bg-zinc-50 border-y border-zinc-100 py-20 px-6">
+        <div className="mx-auto max-w-6xl">
+          <p className="text-xs uppercase tracking-wider text-zinc-400 mb-3">Hızlı Bağlantılar</p>
+          <h2 className="text-3xl font-extrabold text-zinc-900">Başka bir şey mi arıyorsunuz?</h2>
+          <p className="text-zinc-500 mt-2 mb-12">İhtiyacınıza göre doğru kaynağa yönlendirelim.</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+
+            {/* Item 1: Belgeler */}
+            <div className="p-2">
+              <div className="w-10 h-10 rounded-xl bg-white border border-zinc-200 flex items-center justify-center text-lg mb-4">
+                📖
               </div>
-            ))}
+              <h3 className="font-semibold text-zinc-900 mb-1">Belgeler</h3>
+              <p className="text-sm text-zinc-500 mb-3 leading-relaxed">
+                Entegrasyon rehberleri ve API dökümantasyonu.
+              </p>
+              <Link
+                href="#"
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+              >
+                Dokümantasyon →
+              </Link>
+            </div>
+
+            {/* Item 2: Canlı Destek */}
+            <div className="p-2">
+              <div className="w-10 h-10 rounded-xl bg-white border border-zinc-200 flex items-center justify-center text-lg mb-4">
+                💬
+              </div>
+              <h3 className="font-semibold text-zinc-900 mb-1">Canlı Destek</h3>
+              <p className="text-sm text-zinc-500 mb-3 leading-relaxed">
+                Destek ekibimiz hafta içi 09:00–18:00 arası.
+              </p>
+              <Link
+                href="#"
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+              >
+                Destek portalı →
+              </Link>
+            </div>
+
+            {/* Item 3: Hakkımızda */}
+            <div className="p-2">
+              <div className="w-10 h-10 rounded-xl bg-white border border-zinc-200 flex items-center justify-center text-lg mb-4">
+                🏢
+              </div>
+              <h3 className="font-semibold text-zinc-900 mb-1">Hakkımızda</h3>
+              <p className="text-sm text-zinc-500 mb-3 leading-relaxed">
+                Misyonumuzu ve ekibimizi öğrenin.
+              </p>
+              <Link
+                href="/hakkimizda"
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+              >
+                Daha fazla →
+              </Link>
+            </div>
+
+            {/* Item 4: İş Ortağı Ol */}
+            <div className="p-2">
+              <div className="w-10 h-10 rounded-xl bg-white border border-zinc-200 flex items-center justify-center text-lg mb-4">
+                🤝
+              </div>
+              <h3 className="font-semibold text-zinc-900 mb-1">İş Ortağı Ol</h3>
+              <p className="text-sm text-zinc-500 mb-3 leading-relaxed">
+                Reseller veya entegrasyon ortağı olarak başvurun.
+              </p>
+              <Link
+                href="#"
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+              >
+                Başvur →
+              </Link>
+            </div>
+
+            {/* Item 5: Genel İletişim */}
+            <div className="p-2">
+              <div className="w-10 h-10 rounded-xl bg-white border border-zinc-200 flex items-center justify-center text-lg mb-4">
+                ✉️
+              </div>
+              <h3 className="font-semibold text-zinc-900 mb-1">Genel İletişim</h3>
+              <p className="text-sm text-zinc-500 mb-3 leading-relaxed">
+                Soru ve önerileriniz için bize ulaşın.
+              </p>
+              <Link
+                href="mailto:info@checkrezerve.com"
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+              >
+                info@checkrezerve.com
+              </Link>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* ── Community Cards (4-column) ── */}
-      <section className="py-20 px-6">
+      {/* ── Section 4: Community ── */}
+      <section className="bg-white py-20 px-6">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <span className="inline-block bg-red-50 border border-red-100 text-red-600 text-xs font-semibold uppercase tracking-wider px-3 py-1.5 rounded-full mb-4">
               Topluluk
             </span>
-            <h2 className="text-3xl font-extrabold text-zinc-900">Bizi Takip Edin</h2>
-            <p className="text-zinc-600 mt-3">Güncel kalın, topluluğumuza katılın.</p>
+            <h2 className="text-3xl font-extrabold text-zinc-900">Topluluğa Katılın</h2>
+            <p className="text-zinc-500 mt-2">Güncel haberler, ipuçları ve destek için bizi takip edin.</p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {communityCards.map((c) => (
-              <div
-                key={c.platform}
-                className={`${c.cardClass} border rounded-2xl p-6 flex flex-col transition-shadow duration-200 hover:shadow-md`}
-              >
-                <div
-                  className={`w-11 h-11 rounded-xl ${c.iconClass} flex items-center justify-center text-white font-bold mb-4`}
-                >
-                  {c.icon}
-                </div>
-                <h3 className={`font-bold text-base mb-2 ${c.labelClass}`}>{c.platform}</h3>
-                <p className="text-sm text-zinc-600 leading-relaxed mb-5 flex-1">{c.desc}</p>
-                <a
-                  href={c.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${c.btnClass} text-sm font-semibold py-2.5 px-4 rounded-xl text-center transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]`}
-                >
-                  {c.cta}
-                </a>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+            {/* WhatsApp */}
+            <div className="border border-zinc-200 rounded-2xl p-6 flex flex-col gap-3 hover:shadow-md transition-shadow duration-200">
+              <div className="w-10 h-10 rounded-xl bg-green-50 border border-green-100 flex items-center justify-center text-lg">
+                💬
               </div>
-            ))}
+              <h3 className="font-semibold text-zinc-900">WhatsApp</h3>
+              <p className="text-sm text-zinc-500 flex-1">
+                Topluluk grubuna katılın, sorularınızı anında yanıtlayalım.
+              </p>
+              <Link
+                href="#"
+                className="text-sm font-medium text-green-600 hover:text-green-700 transition-colors"
+              >
+                Gruba Katıl →
+              </Link>
+            </div>
+
+            {/* X (Twitter) */}
+            <div className="border border-zinc-200 rounded-2xl p-6 flex flex-col gap-3 hover:shadow-md transition-shadow duration-200">
+              <div className="w-10 h-10 rounded-xl bg-zinc-900 text-white flex items-center justify-center font-bold text-sm">
+                𝕏
+              </div>
+              <h3 className="font-semibold text-zinc-900">X (Twitter)</h3>
+              <p className="text-sm text-zinc-500 flex-1">
+                Sektör haberleri ve ürün güncellemeleri için takip edin.
+              </p>
+              <Link
+                href="#"
+                className="text-sm font-medium text-zinc-900 hover:text-zinc-700 transition-colors"
+              >
+                Takip Et →
+              </Link>
+            </div>
+
+            {/* LinkedIn */}
+            <div className="border border-zinc-200 rounded-2xl p-6 flex flex-col gap-3 hover:shadow-md transition-shadow duration-200">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
+                in
+              </div>
+              <h3 className="font-semibold text-zinc-900">LinkedIn</h3>
+              <p className="text-sm text-zinc-500 flex-1">
+                Profesyonel ağımıza katılın, başarı hikâyelerini keşfedin.
+              </p>
+              <Link
+                href="#"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                Bağlan →
+              </Link>
+            </div>
+
+            {/* Instagram */}
+            <div className="border border-zinc-200 rounded-2xl p-6 flex flex-col gap-3 hover:shadow-md transition-shadow duration-200">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center text-lg">
+                📸
+              </div>
+              <h3 className="font-semibold text-zinc-900">Instagram</h3>
+              <p className="text-sm text-zinc-500 flex-1">
+                Müşteri hikayeleri ve görsel içerikler için takip edin.
+              </p>
+              <Link
+                href="#"
+                className="text-sm font-medium text-pink-600 hover:text-pink-700 transition-colors"
+              >
+                Takip Et →
+              </Link>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* ── CTA Section ── */}
-      <section className="py-20 px-6 bg-zinc-900 text-white">
+      {/* ── Section 5: CTA ── */}
+      <section className="bg-zinc-900 text-white py-20 px-6">
         <div className="mx-auto max-w-4xl text-center">
-          <span className="inline-block bg-red-600/20 border border-red-500/30 text-red-300 text-xs font-semibold uppercase tracking-wider px-3 py-1.5 rounded-full mb-6">
-            Hemen Başlayın
-          </span>
-          <h2 className="text-4xl sm:text-5xl font-extrabold mb-5 leading-tight">
-            Rezervasyon Yönetimini<br />
-            <span className="text-red-400">Kolaylaştırın</span>
-          </h2>
-          <p className="text-white/70 text-lg mb-10 leading-relaxed">
-            Binlerce işletmenin tercih ettiği komisyonsuz rezervasyon sistemini deneyin. Kredi kartı gerekmez.
+          <h2 className="text-4xl font-extrabold mb-4">Başlamaya Hazır mısınız?</h2>
+          <p className="text-white/70 text-lg mb-8">
+            Ücretsiz hesap oluşturun, 14 gün tüm özellikleri deneyin.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/kayit"
-              className="bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-semibold px-8 py-4 rounded-xl text-base transition-all duration-200 hover:shadow-lg hover:shadow-red-500/25"
-            >
-              Ücretsiz Dene
-            </Link>
-            <Link
-              href="/iletisim"
-              className="border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white font-semibold px-8 py-4 rounded-xl text-base transition-all duration-200"
-            >
-              Demo Talebi Al
-            </Link>
-          </div>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-10 text-white/50 text-sm">
-            <span>✓ 14 gün ücretsiz</span>
-            <span>✓ Kurulum ücretsiz</span>
-            <span>✓ İstediğinizde iptal</span>
-          </div>
+          <Link
+            href="/kayit"
+            className="bg-white text-zinc-900 hover:bg-zinc-100 font-semibold px-8 py-4 rounded-xl transition-colors duration-200 inline-block"
+          >
+            Ücretsiz Deneyin →
+          </Link>
         </div>
       </section>
 
-      {/* ── Footer (4-column) ── */}
-      <footer className="bg-zinc-900 text-white border-t border-zinc-800 py-16 px-6">
+      {/* ── Footer ── */}
+      <footer className="bg-zinc-900 border-t border-zinc-800 py-16 px-6">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+
+            {/* Col 1: Logo + Hakkında */}
             <div>
               <div className="flex items-center gap-2 mb-5">
                 <Image
@@ -492,37 +466,53 @@ export default function IletisimPage() {
                   height={32}
                   className="rounded-xl brightness-0 invert"
                 />
-                <span className="text-base font-bold">CheckRezerve</span>
+                <span className="text-base font-bold text-white">CheckRezerve</span>
               </div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-3">
-                {footerLinks[0].title}
-              </h3>
               <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
-                {footerLinks[0].items.map((item) => (
-                  <Link key={item.label} href={item.href} className="hover:text-white transition-colors">
-                    {item.label}
-                  </Link>
-                ))}
+                <Link href="/hakkimizda" className="hover:text-white transition-colors">Neden CheckRezerve?</Link>
+                <Link href="/hakkimizda" className="hover:text-white transition-colors">Başarı Hikayeleri</Link>
+                <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>
+                <Link href="/iletisim" className="hover:text-white transition-colors">İletişim</Link>
               </div>
             </div>
 
-            {footerLinks.slice(1).map((col) => (
-              <div key={col.title}>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">{col.title}</h3>
-                <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
-                  {col.items.map((item) => (
-                    <Link key={item.label} href={item.href} className="hover:text-white transition-colors">
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
+            {/* Col 2: Kullanım Alanları */}
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">Kullanım Alanları</h3>
+              <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
+                <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Restoran</Link>
+                <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Kuaför &amp; Berber</Link>
+                <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">Spa &amp; Güzellik</Link>
               </div>
-            ))}
+            </div>
+
+            {/* Col 3: Özellikler */}
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">Özellikler</h3>
+              <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
+                <Link href="/ozellikler" className="hover:text-white transition-colors">Ön Ödeme</Link>
+                <Link href="/ozellikler" className="hover:text-white transition-colors">Online Rezervasyon</Link>
+                <Link href="/ozellikler" className="hover:text-white transition-colors">SMS Bildirimleri</Link>
+                <Link href="/ozellikler" className="hover:text-white transition-colors">Müşteri Yönetimi</Link>
+              </div>
+            </div>
+
+            {/* Col 4: Hukuki */}
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">Hukuki</h3>
+              <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
+                <Link href="/kullanim-kosullari" className="hover:text-white transition-colors">Kullanım Koşulları</Link>
+                <Link href="/gizlilik" className="hover:text-white transition-colors">Gizlilik Politikası</Link>
+                <Link href="/kvkk" className="hover:text-white transition-colors">KVKK</Link>
+                <Link href="/cerez-politikasi" className="hover:text-white transition-colors">Çerez Politikası</Link>
+              </div>
+            </div>
+
           </div>
 
-          <div className="pt-8 border-t border-zinc-800 text-center">
+          <div className="border-t border-zinc-800 pt-8 text-center">
             <p className="text-sm text-zinc-500">
-              © {new Date().getFullYear()} CheckRezerve. Tüm hakları saklıdır.
+              © 2026 CheckRezerve. Tüm hakları saklıdır.
             </p>
           </div>
         </div>
