@@ -37,6 +37,7 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
                   width={580}
                   height={380}
                   className="fs-img"
+                  style={{ width: '100%', height: '280px', objectFit: 'cover', display: 'block' }}
                 />
                 <div className="fs-img-overlay" />
                 <div className="fs-icon-badge">{ICON_MAP[f.icon] ?? f.icon}</div>
@@ -81,12 +82,6 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
         .fs-img-wrap:hover {
           transform: scale(1.02);
           box-shadow: 0 40px 100px rgba(0,0,0,0.22);
-        }
-        .fs-img {
-          width: 100%;
-          height: 280px;
-          object-fit: cover;
-          display: block;
         }
         .fs-img-overlay {
           position: absolute;
@@ -140,7 +135,6 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
           .fs-inner { gap: 3rem; }
           .fs-row { flex-direction: column !important; }
           .fs-img-wrap { flex: none; width: 100%; }
-          .fs-img { height: 220px; }
         }
       `}</style>
     </section>
