@@ -1043,6 +1043,8 @@
   "panel": {
     "pageTitle": "Acceso empresarial — CheckRezerve",
     "businessPanel": "Panel empresarial",
+    "welcomeTitle": "Bienvenido",
+    "welcomeSubtitle": "Inicie sesión en su cuenta",
     "login": "Iniciar sesión",
     "loggingIn": "Iniciando sesión…",
     "username": "Correo electrónico",

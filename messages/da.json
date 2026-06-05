@@ -1043,6 +1043,8 @@
   "panel": {
     "pageTitle": "Virksomhedslogin — CheckRezerve",
     "businessPanel": "Virksomhedspanel",
+    "welcomeTitle": "Velkommen",
+    "welcomeSubtitle": "Log ind på din konto",
     "login": "Log ind",
     "loggingIn": "Logger ind…",
     "username": "E-mail",

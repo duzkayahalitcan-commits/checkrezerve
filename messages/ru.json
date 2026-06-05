@@ -1043,6 +1043,8 @@
   "panel": {
     "pageTitle": "Вход для бизнеса — CheckRezerve",
     "businessPanel": "Панель управления",
+    "welcomeTitle": "Добро пожаловать",
+    "welcomeSubtitle": "Войдите в свою учетную запись",
     "login": "Войти",
     "loggingIn": "Выполняется вход…",
     "username": "Электронная почта",

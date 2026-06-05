@@ -40,12 +40,12 @@ export default async function HomePage({
   ]
 
   const FEATURES = [
-    { icon: '📅', img: '/images/feature-rezervasyon.jpg', titleKey: 'featureReservationTitle', descKey: 'featureReservationDesc' },
-    { icon: '💳', img: '/images/feature-odeme-new.png',   titleKey: 'featurePaymentTitle',      descKey: 'featurePaymentDesc' },
-    { icon: '📲', img: '/images/feature-bildirim.jpg',    titleKey: 'featureSmsTitle',          descKey: 'featureSmsDesc' },
-    { icon: '👥', img: '/images/feature-calisan.jpg',     titleKey: 'featureStaffTitle',        descKey: 'featureStaffDesc' },
-    { icon: '📊', img: '/images/blog-banner.jpg',         titleKey: 'featureReportsTitle',      descKey: 'featureReportsDesc' },
-    { icon: '🖥️', img: '/images/feature-online.jpg',     titleKey: 'featureOnlineTitle',       descKey: 'featureOnlineDesc' },
+    { icon: 'CalendarCheck', img: '/images/feature-rezervasyon.jpg', titleKey: 'featureReservationTitle', descKey: 'featureReservationDesc' },
+    { icon: 'CreditCard',    img: '/images/feature-odeme-new.png',   titleKey: 'featurePaymentTitle',      descKey: 'featurePaymentDesc' },
+    { icon: 'Bell',          img: '/images/feature-bildirim.jpg',    titleKey: 'featureSmsTitle',          descKey: 'featureSmsDesc' },
+    { icon: 'Users',         img: '/images/feature-calisan.jpg',     titleKey: 'featureStaffTitle',        descKey: 'featureStaffDesc' },
+    { icon: 'BarChart3',     img: '/images/feature-analitik.jpg',    titleKey: 'featureReportsTitle',      descKey: 'featureReportsDesc' },
+    { icon: 'Globe',         img: '/images/feature-online.jpg',      titleKey: 'featureOnlineTitle',       descKey: 'featureOnlineDesc' },
   ]
 
   const TESTIMONIALS = [

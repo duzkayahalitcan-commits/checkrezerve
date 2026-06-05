@@ -1043,6 +1043,8 @@
   "panel": {
     "pageTitle": "Business Login — CheckRezerve",
     "businessPanel": "Business Panel",
+    "welcomeTitle": "Welcome",
+    "welcomeSubtitle": "Sign in to your account",
     "login": "Log In",
     "loggingIn": "Logging in…",
     "username": "Email",

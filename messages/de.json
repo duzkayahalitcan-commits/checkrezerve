@@ -1043,6 +1043,8 @@
   "panel": {
     "pageTitle": "Unternehmensanmeldung — CheckRezerve",
     "businessPanel": "Unternehmensbereich",
+    "welcomeTitle": "Willkommen",
+    "welcomeSubtitle": "Melden Sie sich in Ihrem Konto an",
     "login": "Anmelden",
     "loggingIn": "Anmeldung läuft…",
     "username": "E-Mail",

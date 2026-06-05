@@ -1043,6 +1043,8 @@
   "panel": {
     "pageTitle": "تسجيل دخول الأعمال — CheckRezerve",
     "businessPanel": "لوحة تحكم الأعمال",
+    "welcomeTitle": "مرحباً",
+    "welcomeSubtitle": "تسجيل الدخول إلى حسابك",
     "login": "تسجيل الدخول",
     "loggingIn": "جارٍ تسجيل الدخول…",
     "username": "البريد الإلكتروني",

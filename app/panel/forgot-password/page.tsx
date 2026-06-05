@@ -1,77 +1,125 @@
-'use client'
+export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { Suspense } from 'react'
 import Image from 'next/image'
+import { getTranslations } from 'next-intl/server'
+import type { Metadata } from 'next'
+import { Playfair_Display, DM_Sans } from 'next/font/google'
+import ForgotPasswordForm from './ForgotPasswordForm'
+import PanelLangSelector from '../_components/PanelLangSelector'
 
-export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  display: 'swap',
+})
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/panel/auth/callback?type=recovery',
-    })
-    setLoading(false)
-    if (error) { setError('E-posta gönderilemedi. Adresi kontrol edin.'); return }
-    setSent(true)
-  }
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+  display: 'swap',
+})
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('auth')
+  return { title: t('forgotPasswordTitle') }
+}
+
+export default async function ForgotPasswordPage() {
+  const t = await getTranslations('auth')
+
+  const CATEGORIES = ['Restoran', 'Spa', 'Kuaför', 'Psikolog', 'Pilates', 'Klinik']
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 relative">
-      <div className="fixed inset-0 -z-10">
-        <Image src="/images/bg-emerald.jpg" alt="" fill className="object-cover" priority />
-        <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }} />
+    <div className={`min-h-screen flex ${playfair.variable} ${dmSans.variable}`}>
+      {/* ─── SOL: Görsel Panel (lg+) ─── */}
+      <div className="hidden lg:flex lg:w-[60%] relative overflow-hidden">
+        <Image
+          src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80"
+          alt=""
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* Katmanlı gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/5" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
+
+        {/* Grain texture */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            opacity: 0.04,
+            backgroundImage:
+              'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")',
+          }}
+        />
+
+        {/* İçerik — sol alt */}
+        <div className="relative z-10 flex flex-col justify-end p-12 sm:p-16 w-full">
+          <h1
+            className="text-5xl sm:text-6xl font-black text-white leading-[1.1] mb-4"
+            style={{ fontFamily: 'var(--font-playfair)' }}
+          >
+            Şifrenizi
+            <br />
+            Sıfırlayın
+          </h1>
+          <p className="text-white/65 text-base sm:text-lg max-w-md leading-relaxed font-medium">
+            {t('forgotPasswordDescription')}
+          </p>
+
+          {/* Kategori badge'leri — sağ alt */}
+          <div className="absolute bottom-8 right-8 flex flex-wrap gap-2 justify-end max-w-[260px]">
+            {CATEGORIES.map(cat => (
+              <span
+                key={cat}
+                className="text-[10px] font-semibold text-white/40 tracking-widest uppercase px-2.5 py-1 rounded-full border border-white/[0.08] bg-white/[0.04]"
+              >
+                {cat}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <Image src="/images/logo-checkrezerve.jpg" alt="CheckRezerve" width={72} height={72} className="rounded-2xl mx-auto mb-3 shadow-xl" />
-          <div className="text-2xl font-bold text-white tracking-tight">checkrezerve</div>
-          <p className="text-white/60 text-sm mt-1 italic">Saniyeler içinde rezervasyon</p>
+      {/* ─── SAĞ: Form Panel ─── */}
+      <div
+        className="w-full lg:w-[40%] flex flex-col justify-center px-6 sm:px-10 py-12 relative"
+        style={{ backgroundColor: '#0A0A0C' }}
+      >
+        {/* Dil seçici */}
+        <div className="absolute top-6 right-6 z-10">
+          <PanelLangSelector />
         </div>
 
-        <div className="bg-black/40 backdrop-blur-xl border border-stone-700 rounded-2xl p-6">
-          {sent ? (
-            <div className="text-center space-y-4">
-              <div className="text-4xl">📬</div>
-              <p className="text-white font-semibold">E-posta gönderildi!</p>
-              <p className="text-stone-400 text-sm">Gelen kutunuzu kontrol edin ve şifre sıfırlama linkine tıklayın.</p>
-              <a href="/panel/login" className="block text-amber-500 hover:text-amber-400 text-sm transition">← Giriş sayfasına dön</a>
+        <div className="max-w-sm mx-auto w-full">
+          {/* Logo */}
+          <div className="mb-10">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-900/40 flex-shrink-0">
+                <span className="text-white text-sm font-black">CR</span>
+              </div>
+              <div>
+                <span
+                  className="text-white text-lg font-black tracking-tight block leading-tight"
+                  style={{ fontFamily: 'var(--font-outfit, sans-serif)' }}
+                >
+                  checkrezerve
+                </span>
+                <span className="text-zinc-500 text-xs font-medium">{t('forgotPasswordTitle')}</span>
+              </div>
             </div>
-          ) : (
-            <>
-              <h1 className="text-white font-semibold mb-1">Şifremi Unuttum</h1>
-              <p className="text-stone-400 text-xs mb-5">E-posta adresinize sıfırlama linki göndereceğiz.</p>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-stone-400 text-xs mb-1">E-posta</label>
-                  <input
-                    type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                    className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2.5 text-white text-sm placeholder-stone-600 focus:outline-none focus:border-amber-500 transition"
-                    placeholder="ad@sirket.com"
-                  />
-                </div>
-                {error && <p className="text-red-400 text-xs bg-red-950/40 border border-red-900/50 rounded-lg px-3 py-2">{error}</p>}
-                <button type="submit" disabled={loading}
-                  className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-semibold rounded-lg py-2.5 text-sm transition">
-                  {loading ? 'Gönderiliyor...' : 'Sıfırlama Linki Gönder'}
-                </button>
-                <a href="/panel/login" className="block text-center text-stone-500 hover:text-stone-300 text-xs transition">← Giriş sayfasına dön</a>
-              </form>
-            </>
-          )}
+          </div>
+
+          <h2 className="text-white text-2xl font-bold mb-1 tracking-tight">{t('forgotPasswordTitle')}</h2>
+          <p className="text-zinc-500 text-sm mb-8">{t('forgotPasswordDescription')}</p>
+
+          <Suspense fallback={<div className="text-zinc-500 text-sm">Yükleniyor...</div>}>
+            <ForgotPasswordForm />
+          </Suspense>
         </div>
       </div>
-    </main>
+    </div>
   )
 }

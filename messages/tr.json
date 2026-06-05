@@ -1043,6 +1043,8 @@
   "panel": {
     "pageTitle": "İşletme Girişi — checkrezerve",
     "businessPanel": "İşletme Paneli",
+    "welcomeTitle": "Hoş geldiniz",
+    "welcomeSubtitle": "Hesabınıza giriş yapın",
     "login": "Giriş Yap",
     "loggingIn": "Giriş yapılıyor…",
     "username": "E-posta",

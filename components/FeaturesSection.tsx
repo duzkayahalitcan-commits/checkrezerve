@@ -1,6 +1,15 @@
 'use client'
-import { useEffect, useRef } from 'react'
 import Image from 'next/image'
+import { CalendarCheck, CreditCard, Bell, Users, BarChart3, Globe } from 'lucide-react'
+
+const ICON_MAP: Record<string, React.ReactNode> = {
+  CalendarCheck: <CalendarCheck size={22} />,
+  CreditCard:    <CreditCard size={22} />,
+  Bell:         <Bell size={22} />,
+  Users:        <Users size={22} />,
+  BarChart3:    <BarChart3 size={22} />,
+  Globe:        <Globe size={22} />,
+}
 
 interface Feature {
   icon: string
@@ -10,24 +19,6 @@ interface Feature {
 }
 
 export default function FeaturesSection({ features }: { features: Feature[] }) {
-  const rowRefs = useRef<(HTMLDivElement | null)[]>([])
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      entries => {
-        entries.forEach(e => {
-          if (e.isIntersecting) {
-            e.target.classList.add('visible')
-            obs.unobserve(e.target)
-          }
-        })
-      },
-      { threshold: 0.15 }
-    )
-    rowRefs.current.forEach(r => r && obs.observe(r))
-    return () => obs.disconnect()
-  }, [])
-
   return (
     <section className="fs-section">
       <div className="fs-inner">
@@ -36,10 +27,10 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
           return (
             <div
               key={f.title}
-              ref={el => { rowRefs.current[i] = el }}
-              className={`fs-row ${isRight ? 'fs-row--right' : 'fs-row--left'}`}
+              className={`fs-row`}
+              style={{ flexDirection: isRight ? 'row-reverse' : 'row' } as React.CSSProperties}
             >
-              <div className="fs-img-wrap img-zoom">
+              <div className="fs-img-wrap">
                 <Image
                   src={f.img}
                   alt={f.title}
@@ -48,7 +39,7 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
                   className="fs-img"
                 />
                 <div className="fs-img-overlay" />
-                <div className="fs-icon-badge">{f.icon}</div>
+                <div className="fs-icon-badge">{ICON_MAP[f.icon] ?? f.icon}</div>
               </div>
               <div className="fs-text">
                 <h3 className="fs-title">{f.title}</h3>
@@ -78,20 +69,6 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
           display: flex;
           align-items: center;
           gap: 4rem;
-          opacity: 0;
-          transition: opacity 0.8s cubic-bezier(0.23, 1, 0.32, 1), transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-          will-change: opacity, transform;
-        }
-        .fs-row--left {
-          transform: translateX(-50px);
-        }
-        .fs-row--right {
-          transform: translateX(50px);
-          flex-direction: row-reverse;
-        }
-        .fs-row.visible {
-          opacity: 1;
-          transform: translateX(0);
         }
         .fs-img-wrap {
           flex: 0 0 52%;
@@ -100,7 +77,6 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
           overflow: hidden;
           box-shadow: 0 30px 80px rgba(0,0,0,0.15);
           transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.4s ease;
-          will-change: transform;
         }
         .fs-img-wrap:hover {
           transform: scale(1.02);
@@ -122,16 +98,16 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
           position: absolute;
           bottom: 1.25rem;
           right: 1.25rem;
-          width: 52px;
-          height: 52px;
-          background: rgba(0,0,0,0.7);
+          width: 48px;
+          height: 48px;
+          background: rgba(0,0,0,0.65);
           backdrop-filter: blur(12px);
           border-radius: 1rem;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1.5rem;
-          border: 1px solid rgba(255,255,255,0.1);
+          color: #fca5a5;
+          border: 1px solid rgba(255,255,255,0.08);
         }
         .fs-text {
           flex: 1;
@@ -162,11 +138,7 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
         }
         @media (max-width: 768px) {
           .fs-inner { gap: 3rem; }
-          .fs-row, .fs-row--right {
-            flex-direction: column;
-            transform: translateY(30px);
-          }
-          .fs-row.visible { transform: translateY(0); }
+          .fs-row { flex-direction: column !important; }
           .fs-img-wrap { flex: none; width: 100%; }
           .fs-img { height: 220px; }
         }
