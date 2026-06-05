@@ -40,12 +40,12 @@ export default async function HomePage({
   ]
 
   const FEATURES = [
-    { icon: 'CalendarCheck', img: '/images/feature-rezervasyon.jpg', titleKey: 'featureReservationTitle', descKey: 'featureReservationDesc' },
-    { icon: 'CreditCard',    img: '/images/feature-odeme-new.png',   titleKey: 'featurePaymentTitle',      descKey: 'featurePaymentDesc' },
-    { icon: 'Bell',          img: '/images/feature-bildirim.jpg',    titleKey: 'featureSmsTitle',          descKey: 'featureSmsDesc' },
-    { icon: 'Users',         img: '/images/feature-calisan.jpg',     titleKey: 'featureStaffTitle',        descKey: 'featureStaffDesc' },
-    { icon: 'BarChart3',     img: '/images/feature-analitik.jpg',    titleKey: 'featureReportsTitle',      descKey: 'featureReportsDesc' },
-    { icon: 'Globe',         img: '/images/feature-online.jpg',      titleKey: 'featureOnlineTitle',       descKey: 'featureOnlineDesc' },
+    { icon: 'CalendarCheck', img: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&q=80', titleKey: 'featureReservationTitle', descKey: 'featureReservationDesc' },
+    { icon: 'CreditCard',    img: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&q=80',   titleKey: 'featurePaymentTitle',      descKey: 'featurePaymentDesc' },
+    { icon: 'Bell',          img: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80',       titleKey: 'featureSmsTitle',          descKey: 'featureSmsDesc' },
+    { icon: 'Users',         img: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80',      titleKey: 'featureStaffTitle',        descKey: 'featureStaffDesc' },
+    { icon: 'BarChart3',     img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',    titleKey: 'featureReportsTitle',      descKey: 'featureReportsDesc' },
+    { icon: 'Globe',         img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',      titleKey: 'featureOnlineTitle',       descKey: 'featureOnlineDesc' },
   ]
 
   const TESTIMONIALS = [
