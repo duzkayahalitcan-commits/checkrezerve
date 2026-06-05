@@ -229,14 +229,14 @@ export default function MarketingHeader() {
                 {user ? (
                   <>
                     <p className="text-sm text-white/60 text-center truncate">{user.email}</p>
-                    <Link
-                      href={"/panel/login" as never}
+                    <a
+                      href="/panel/login"
                       onClick={() => setMobileOpen(false)}
                       className="flex items-center justify-center gap-2 w-full text-center rounded-full border border-white/20 text-white py-3.5 text-base font-semibold hover:bg-white/10 transition-colors"
                     >
                       <Settings size={16} />
                       Yönetici Paneli
-                    </Link>
+                    </a>
                     <button
                       onClick={() => { setMobileOpen(false); handleSignOut() }}
                       className="w-full text-center rounded-full border border-red-500/50 text-red-400 py-3.5 text-base font-semibold hover:bg-red-500/10 transition-colors"
