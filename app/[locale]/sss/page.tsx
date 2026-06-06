@@ -4,12 +4,99 @@ import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
-import {
-  Search, Rocket, Calendar, CreditCard, Puzzle, Shield, Wrench,
-  ChevronDown, ArrowRight, MessageCircle,
-} from 'lucide-react'
+import { Search, ArrowRight, MessageCircle } from 'lucide-react'
 
-const CATEGORY_ICONS = [Rocket, Calendar, CreditCard, Puzzle, Shield, Wrench] as const
+function IconRocket() {
+  return (
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="36" fill="#FFF7ED"/>
+      <circle cx="40" cy="40" r="36" stroke="#FED7AA" strokeWidth="2"/>
+      <path d="M40 16L48 36H32L40 16Z" fill="#F97316"/>
+      <path d="M36 36C36 42 38 48 40 52C42 48 44 42 44 36H36Z" fill="#FB923C"/>
+      <circle cx="40" cy="34" r="3" fill="#FFF7ED"/>
+      <path d="M36 50L35 54L40 53L45 54L44 50" fill="#EA580C"/>
+      <path d="M34 54C34 54 30 56 32 60C34 58 38 58 40 58C42 58 46 58 48 60C50 56 46 54 46 54" fill="#F97316"/>
+      <circle cx="30" cy="38" r="1.5" fill="#FED7AA"/>
+      <circle cx="50" cy="42" r="1.5" fill="#FED7AA"/>
+      <circle cx="28" cy="44" r="1" fill="#FED7AA"/>
+      <circle cx="52" cy="36" r="1" fill="#FED7AA"/>
+    </svg>
+  )
+}
+
+function IconCalendar() {
+  return (
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="36" fill="#FEF2F2"/>
+      <circle cx="40" cy="40" r="36" stroke="#FECACA" strokeWidth="2"/>
+      <rect x="18" y="20" width="44" height="44" rx="6" fill="white" stroke="#EF4444" strokeWidth="2"/>
+      <path d="M18 26C18 22.6863 20.6863 20 24 20H56C59.3137 20 62 22.6863 62 26V28H18V26Z" fill="#EF4444"/>
+      <rect x="28" y="16" width="4" height="10" rx="2" fill="#FCA5A5"/>
+      <rect x="48" y="16" width="4" height="10" rx="2" fill="#FCA5A5"/>
+      <path d="M30 38L36 44L50 32" stroke="#3B82F6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+      <rect x="22" y="52" width="10" height="2" rx="1" fill="#FCA5A5"/>
+      <rect x="36" y="52" width="10" height="2" rx="1" fill="#FCA5A5"/>
+    </svg>
+  )
+}
+
+function IconCreditCard() {
+  return (
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="36" fill="#F0FDF4"/>
+      <circle cx="40" cy="40" r="36" stroke="#BBF7D0" strokeWidth="2"/>
+      <rect x="16" y="24" width="48" height="34" rx="6" fill="white" stroke="#22C55E" strokeWidth="2"/>
+      <rect x="16" y="30" width="48" height="10" fill="#22C55E"/>
+      <rect x="26" y="36" width="14" height="2" rx="1" fill="#86EFAC"/>
+      <rect x="26" y="42" width="10" height="2" rx="1" fill="#DCFCE7"/>
+      <circle cx="56" cy="48" r="8" fill="#EAB308" stroke="white" strokeWidth="2"/>
+      <text x="56" y="52" textAnchor="middle" fontSize="11" fontWeight="bold" fill="white">₺</text>
+      <rect x="44" y="42" width="4" height="4" rx="1" fill="#BBF7D0"/>
+    </svg>
+  )
+}
+
+function IconPuzzle() {
+  return (
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="36" fill="#F5F3FF"/>
+      <circle cx="40" cy="40" r="36" stroke="#DDD6FE" strokeWidth="2"/>
+      <path d="M26 24H42C43.1046 24 44 24.8954 44 26V28C44 30.2091 45.7909 32 48 32C50.2091 32 52 30.2091 52 28V26C52 24.8954 52.8954 24 54 24H56V38H54C51.7909 38 50 39.7909 50 42C50 44.2091 51.7909 46 54 46H56V56H44V54C44 51.7909 42.2091 50 40 50C37.7909 50 36 51.7909 36 54V56H24V44H26C28.2091 44 30 42.2091 30 40C30 37.7909 28.2091 36 26 36H24V24Z" fill="#8B5CF6" opacity="0.2" stroke="#7C3AED" strokeWidth="2"/>
+      <circle cx="48" cy="40" r="3" fill="#A78BFA"/>
+      <circle cx="40" cy="40" r="3" fill="#7C3AED"/>
+    </svg>
+  )
+}
+
+function IconShield() {
+  return (
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="36" fill="#EFF6FF"/>
+      <circle cx="40" cy="40" r="36" stroke="#BFDBFE" strokeWidth="2"/>
+      <path d="M40 16L22 24V40C22 52 30 62 40 66C50 62 58 52 58 40V24L40 16Z" fill="white" stroke="#3B82F6" strokeWidth="2"/>
+      <path d="M40 16L22 24V40C22 48 27 55 34 58" fill="none" stroke="#60A5FA" strokeWidth="2" opacity="0.5"/>
+      <path d="M34 41L38 45L48 35" stroke="#22C55E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="40" cy="32" r="2" fill="#3B82F6"/>
+    </svg>
+  )
+}
+
+function IconWrench() {
+  return (
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="36" fill="#FFF7ED"/>
+      <circle cx="40" cy="40" r="36" stroke="#FED7AA" strokeWidth="2"/>
+      <path d="M44 44L64 64" stroke="#78716C" strokeWidth="5" strokeLinecap="round"/>
+      <circle cx="32" cy="30" r="16" fill="white" stroke="#F97316" strokeWidth="3"/>
+      <circle cx="32" cy="30" r="8" fill="#F97316" opacity="0.2"/>
+      <circle cx="32" cy="30" r="4" fill="#F97316"/>
+      <path d="M28 30L32 26L36 30L32 34Z" fill="white"/>
+      <path d="M20 18L26 24" stroke="#FDBA74" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+const CATEGORY_SVGS = [IconRocket, IconCalendar, IconCreditCard, IconPuzzle, IconShield, IconWrench] as const
 
 export default function SSSPage() {
   const t = useTranslations('faq')
@@ -39,16 +126,16 @@ export default function SSSPage() {
     })
   }
 
-  const categories = [
-    { icon: 0, title: t('sssCatGettingStarted'), desc: t('sssCatGettingStartedDesc') },
-    { icon: 1, title: t('sssCatReservations'), desc: t('sssCatReservationsDesc') },
-    { icon: 2, title: t('sssCatPricing'), desc: t('sssCatPricingDesc') },
-    { icon: 3, title: t('sssCatIntegration'), desc: t('sssCatIntegrationDesc') },
-    { icon: 4, title: t('sssCatAccount'), desc: t('sssCatAccountDesc') },
-    { icon: 5, title: t('sssCatTroubleshoot'), desc: t('sssCatTroubleshootDesc') },
-  ]
+  const categories = useMemo(() => [
+    { svg: 0, title: t('sssCatGettingStarted'), desc: t('sssCatGettingStartedDesc') },
+    { svg: 1, title: t('sssCatReservations'), desc: t('sssCatReservationsDesc') },
+    { svg: 2, title: t('sssCatPricing'), desc: t('sssCatPricingDesc') },
+    { svg: 3, title: t('sssCatIntegration'), desc: t('sssCatIntegrationDesc') },
+    { svg: 4, title: t('sssCatAccount'), desc: t('sssCatAccountDesc') },
+    { svg: 5, title: t('sssCatTroubleshoot'), desc: t('sssCatTroubleshootDesc') },
+  ], [t])
 
-  const trendingTopics = [
+  const trendingTopics = useMemo(() => [
     { text: t('sssTrending1'), href: '#sss-faq' },
     { text: t('sssTrending2'), href: '#sss-faq' },
     { text: t('sssTrending3'), href: '#sss-faq' },
@@ -57,12 +144,12 @@ export default function SSSPage() {
     { text: t('sssTrending6'), href: '#sss-faq' },
     { text: t('sssTrending7'), href: '#sss-faq' },
     { text: t('sssTrending8'), href: '#sss-faq' },
-  ]
+  ], [t])
 
-  const faqItems = Array.from({ length: 12 }, (_, i) => ({
+  const faqItems = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     q: t(`sssQ${i + 1}`),
     a: t(`sssA${i + 1}`),
-  }))
+  })), [t])
 
   const filteredCategories = useMemo(() => {
     if (!search.trim()) return categories
@@ -91,7 +178,7 @@ export default function SSSPage() {
     <div className="min-h-screen bg-white">
       <MarketingHeader />
 
-      {/* ── 1. HERO + SEARCH ──────────────────────────────────────── */}
+      {/* Hero + Search */}
       <section
         className="relative pt-32 pb-20 text-white text-center overflow-hidden"
         style={{
@@ -123,13 +210,13 @@ export default function SSSPage() {
         </div>
       </section>
 
-      {/* ── 2. KATEGORİ GRID ──────────────────────────────────────── */}
+      {/* Category Grid — Miro-style vertical cards with custom SVGs */}
       {!search.trim() && (
         <section className="py-16">
           <div className="mx-auto max-w-6xl px-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {categories.map((cat, i) => {
-                const Icon = CATEGORY_ICONS[cat.icon]
+                const Svg = CATEGORY_SVGS[cat.svg]
                 return (
                   <button
                     key={i}
@@ -137,15 +224,13 @@ export default function SSSPage() {
                       setSearch(cat.title)
                       document.getElementById('sss-search')?.focus()
                     }}
-                    className="group flex items-start gap-4 rounded-2xl border border-zinc-100 bg-white p-6 text-left shadow-sm transition-all hover:shadow-md hover:border-red-200"
+                    className="group flex flex-col items-center text-center rounded-2xl border border-zinc-100 bg-white p-8 min-h-[200px] shadow-sm transition-all duration-200 hover:shadow-lg hover:border-red-200 hover:scale-[1.02]"
                   >
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600 transition-colors group-hover:bg-red-100">
-                      <Icon className="h-6 w-6" />
+                    <div className="mb-5 transition-transform duration-200 group-hover:scale-110">
+                      <Svg />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-zinc-900 text-base">{cat.title}</h3>
-                      <p className="mt-1 text-sm text-zinc-500 leading-relaxed">{cat.desc}</p>
-                    </div>
+                    <h3 className="font-bold text-zinc-900 text-base">{cat.title}</h3>
+                    <p className="mt-2 text-sm text-zinc-500 leading-relaxed max-w-[240px]">{cat.desc}</p>
                   </button>
                 )
               })}
@@ -154,7 +239,7 @@ export default function SSSPage() {
         </section>
       )}
 
-      {/* ── SEARCH RESULTS ────────────────────────────────────────── */}
+      {/* Search Results */}
       {search.trim() && !noResults && (
         <>
           {filteredCategories.length > 0 && (
@@ -163,10 +248,10 @@ export default function SSSPage() {
                 <h2 className="mb-5 text-lg font-bold text-zinc-900">Kategoriler</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredCategories.map((cat, i) => {
-                    const Icon = CATEGORY_ICONS[cat.icon]
+                    const Svg = CATEGORY_SVGS[cat.svg]
                     return (
-                      <div key={i} className="flex items-center gap-3 rounded-xl border border-zinc-100 bg-white p-4">
-                        <Icon className="h-5 w-5 text-red-500 shrink-0" />
+                      <div key={i} className="flex items-center gap-4 rounded-xl border border-zinc-100 bg-white p-4">
+                        <div className="shrink-0"><Svg /></div>
                         <div>
                           <p className="font-medium text-sm text-zinc-900">{cat.title}</p>
                           <p className="text-xs text-zinc-400">{cat.desc}</p>
@@ -197,7 +282,7 @@ export default function SSSPage() {
         </>
       )}
 
-      {/* ── no results ────────────────────────────────────────────── */}
+      {/* No Results */}
       {noResults && (
         <section className="py-20 text-center">
           <div className="mx-auto max-w-md px-6">
@@ -210,12 +295,12 @@ export default function SSSPage() {
         </section>
       )}
 
-      {/* ── 3. TRENDING TOPICS ─────────────────────────────────────── */}
+      {/* Trending Topics — pill/badge style */}
       {!search.trim() && (
         <section className="py-16 bg-zinc-50 border-y border-zinc-100">
-          <div className="mx-auto max-w-6xl px-6">
+          <div className="mx-auto max-w-4xl px-6">
             <h2 className="mb-8 text-2xl font-bold text-zinc-900 text-center">{t('sssTrendingTitle')}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 max-w-3xl mx-auto">
+            <div className="flex flex-wrap justify-center gap-3">
               {trendingTopics.map((topic, i) => (
                 <a
                   key={i}
@@ -225,13 +310,11 @@ export default function SSSPage() {
                     const el = document.getElementById('sss-faq')
                     if (el) {
                       setSearch('')
-                      // Scroll after render
                       setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 50)
                     }
                   }}
-                  className="group flex items-center gap-2.5 text-sm text-zinc-700 hover:text-red-600 transition-colors py-1.5"
+                  className="inline-flex items-center rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-700 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-colors"
                 >
-                  <ArrowRight className="h-3.5 w-3.5 text-red-500 shrink-0 transition-transform group-hover:translate-x-0.5" />
                   {topic.text}
                 </a>
               ))}
@@ -240,43 +323,43 @@ export default function SSSPage() {
         </section>
       )}
 
-      {/* ── 4. SSS ACCORDION ───────────────────────────────────────── */}
+      {/* FAQ Accordion — single column, +/- toggle */}
       <section id="sss-faq" className="py-16">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-4xl px-6">
           <h2 className="mb-8 text-2xl font-bold text-zinc-900 text-center">{t('sssFaqTitle')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-5xl mx-auto">
+          <div className="space-y-3">
             {faqItems.map((item, i) => {
               const isOpen = openItems.has(i)
               return (
                 <div
                   key={i}
-                  className={`rounded-2xl border transition-all duration-200 ${
+                  className={`rounded-2xl border transition-colors duration-200 ${
                     isOpen
-                      ? 'border-red-200 bg-red-50/50 shadow-sm'
+                      ? 'border-zinc-300 bg-white'
                       : 'border-zinc-100 bg-white hover:border-zinc-200'
                   }`}
                 >
                   <button
                     onClick={() => toggleItem(i)}
-                    className="w-full flex items-center justify-between px-5 py-4 text-left gap-3"
+                    className="w-full flex items-center justify-between px-6 py-5 text-left gap-4"
                   >
-                    <span className={`text-sm font-semibold leading-snug transition-colors ${
-                      isOpen ? 'text-red-700' : 'text-zinc-900'
-                    }`}>
+                    <span className="text-base font-semibold text-zinc-900 pr-4">
                       {item.q}
                     </span>
-                    <ChevronDown
-                      className={`h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-200 ${
-                        isOpen ? 'rotate-180 text-red-500' : ''
-                      }`}
-                    />
+                    <span className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors duration-200 text-lg font-medium leading-none ${
+                      isOpen
+                        ? 'border-zinc-900 bg-zinc-900 text-white'
+                        : 'border-zinc-300 text-zinc-400'
+                    }`}>
+                      {isOpen ? '−' : '+'}
+                    </span>
                   </button>
                   <div
                     className={`overflow-hidden transition-all duration-200 ease-in-out ${
                       isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
-                    <div className="px-5 pb-4">
+                    <div className="px-6 pb-5">
                       <p className="text-sm text-zinc-600 leading-relaxed">{item.a}</p>
                     </div>
                   </div>
@@ -287,7 +370,7 @@ export default function SSSPage() {
         </div>
       </section>
 
-      {/* ── 5. FOOTER CTA ──────────────────────────────────────────── */}
+      {/* Footer CTA */}
       <section className="py-16 bg-zinc-50 border-t border-zinc-100">
         <div className="mx-auto max-w-2xl px-6 text-center">
           <div className="mb-5 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-red-100">

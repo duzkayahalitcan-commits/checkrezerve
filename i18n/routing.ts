@@ -154,6 +154,7 @@ export const routing = defineRouting({
       ru: '/pricing',
     },
     '/offline': '/offline',
+    '/sss': '/sss',
     '/yasal/basvuru-formu-aydinlatma': '/yasal/basvuru-formu-aydinlatma',
   },
 })

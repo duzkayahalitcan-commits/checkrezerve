@@ -42,6 +42,7 @@ export default function MarketingFooter() {
               <Link href="/ozellikler" className="hover:text-white transition-colors">{t('featureSms')}</Link>
               <Link href="/ozellikler" className="hover:text-white transition-colors">{t('featureCustomer')}</Link>
               <Link href="/ozellikler" className="hover:text-white transition-colors">{t('featureOnline')}</Link>
+              <Link href="/sss" className="hover:text-white transition-colors">SSS</Link>
             </div>
           </div>
 
