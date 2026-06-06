@@ -50,5 +50,19 @@ export async function createLead(
     }).catch(() => {})
   }
 
+  const token = process.env.TELEGRAM_BOT_TOKEN
+  const chatId = process.env.TELEGRAM_CHAT_ID
+  if (token && chatId) {
+    fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: `🆕 Yeni Demo Talebi!\n\n🏢 İşletme: ${name}\n📞 Telefon: ${parsed.number}\n📧 Email: ${email}\n📂 Firma Türü: ${category}\n⏰ ${new Date().toLocaleString('tr-TR')}`,
+        parse_mode: 'HTML',
+      }),
+    }).catch(() => {})
+  }
+
   return { success: true, error: null }
 }

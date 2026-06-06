@@ -5,7 +5,7 @@ import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import ContactForm from './ContactForm'
 import {
-  Zap, BadgeDollarSign, HeadphonesIcon,
+  Zap, BadgeDollarSign, HeadphonesIcon, Shield, Globe,
   BookOpen, LifeBuoy, Info, Briefcase, Mail,
   ArrowRight,
 } from 'lucide-react'
@@ -104,20 +104,17 @@ export default async function IletisimPage({
 
   const FEATURES = [
     {
-      icon: <Zap className="h-5 w-5 text-amber-600" />,
-      bg: 'bg-amber-50',
+      icon: <Zap className="h-6 w-6 text-amber-600" />,
       title: t('rightFeature1Title'),
       desc: t('rightFeature1Desc'),
     },
     {
-      icon: <BadgeDollarSign className="h-5 w-5 text-green-600" />,
-      bg: 'bg-green-50',
+      icon: <BadgeDollarSign className="h-6 w-6 text-green-600" />,
       title: t('rightFeature2Title'),
       desc: t('rightFeature2Desc'),
     },
     {
-      icon: <HeadphonesIcon className="h-5 w-5 text-blue-600" />,
-      bg: 'bg-blue-50',
+      icon: <HeadphonesIcon className="h-6 w-6 text-blue-600" />,
       title: t('rightFeature3Title'),
       desc: t('rightFeature3Desc'),
     },
@@ -217,7 +214,7 @@ export default async function IletisimPage({
         }}
       >
         <div className="relative z-10 mx-auto max-w-2xl px-6">
-          <span className="mb-6 inline-block rounded-full border border-red-400/30 bg-red-600/20 px-4 py-1.5 text-sm font-medium text-red-200">
+          <span className="mb-6 inline-block rounded-full border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-1.5 text-sm font-medium text-white">
             {t('heroBadge')}
           </span>
           <h1 className="mb-5 text-4xl font-extrabold leading-tight sm:text-5xl">
@@ -226,10 +223,10 @@ export default async function IletisimPage({
           <p className="mb-10 text-lg text-white/70">
             {t('heroSubtitle')}
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-white/60">
-            <span className="flex items-center gap-2">⚡ {t('heroStat1')}</span>
-            <span className="flex items-center gap-2">🔒 {t('heroStat2')}</span>
-            <span className="flex items-center gap-2">🌍 {t('heroStat3')}</span>
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-white/70">
+            <span className="flex items-center gap-2"><Zap className="h-3.5 w-3.5 text-white" /> {t('heroStat1')}</span>
+            <span className="flex items-center gap-2"><Shield className="h-3.5 w-3.5 text-white" /> {t('heroStat2')}</span>
+            <span className="flex items-center gap-2"><Globe className="h-3.5 w-3.5 text-white" /> {t('heroStat3')}</span>
           </div>
         </div>
       </section>
@@ -240,9 +237,9 @@ export default async function IletisimPage({
           <div className="grid items-start gap-12 lg:grid-cols-2">
 
             {/* LEFT: Form card */}
-            <div className="rounded-2xl border border-zinc-100 bg-white p-8 shadow-sm">
+            <div className="rounded-2xl border border-zinc-100 bg-white p-8 shadow-md">
               <div className="mb-7">
-                <h2 className="text-2xl font-bold text-zinc-900">{t('formCardTitle')}</h2>
+                <h2 className="text-3xl font-extrabold text-zinc-900">{t('formCardTitle')}</h2>
                 <p className="mt-1.5 text-sm text-zinc-500">{t('formCardSubtitle')}</p>
               </div>
               <ContactForm />
@@ -254,14 +251,14 @@ export default async function IletisimPage({
               {FEATURES.map((f, i) => (
                 <div
                   key={i}
-                  className="flex items-start gap-4 rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+                  className="flex items-start gap-5 rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
                 >
-                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${f.bg}`}>
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center mt-0.5">
                     {f.icon}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-zinc-900">{f.title}</h3>
-                    <p className="mt-1 text-sm text-zinc-500 leading-relaxed">{f.desc}</p>
+                    <h3 className="text-lg font-bold text-zinc-900">{f.title}</h3>
+                    <p className="mt-1.5 text-sm text-zinc-500 leading-relaxed">{f.desc}</p>
                   </div>
                 </div>
               ))}
