@@ -28,9 +28,9 @@ export default function MarketingFooter() {
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">{t('useCases')}</h3>
             <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
-              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">{t('useCaseRestaurant')}</Link>
-              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">{t('useCaseBarber')}</Link>
-              <Link href="/kullanim-alanlari" className="hover:text-white transition-colors">{t('useCaseSpa')}</Link>
+              <Link href={"/kullanim-alanlari?sektor=restoran" as any} className="hover:text-white transition-colors">{t('useCaseRestaurant')}</Link>
+              <Link href={"/kullanim-alanlari?sektor=kuafor" as any} className="hover:text-white transition-colors">{t('useCaseBarber')}</Link>
+              <Link href={"/kullanim-alanlari?sektor=spa" as any} className="hover:text-white transition-colors">{t('useCaseSpa')}</Link>
             </div>
           </div>
 

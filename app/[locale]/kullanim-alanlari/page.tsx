@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import MarketingHeader from '@/components/MarketingHeader'
@@ -37,7 +38,9 @@ export default async function KullanimAlanlariPage({
 
       <section className="py-20">
         <div className="mx-auto max-w-6xl px-6">
-          <SectorTabs />
+          <Suspense fallback={null}>
+            <SectorTabs />
+          </Suspense>
         </div>
       </section>
 

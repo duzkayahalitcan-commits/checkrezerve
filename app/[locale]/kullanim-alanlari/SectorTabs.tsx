@@ -1,23 +1,36 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 
 type Feature = { title: string; desc: string }
 type SectorData = { img: string; title: string; desc: string; features: Feature[] }
 
+const SECTORS = [
+  { id: 'restoran', icon: '🍽️', label: 'Restoran' },
+  { id: 'spa',      icon: '💆', label: 'Spa & Güzellik' },
+  { id: 'kuafor',   icon: '✂️', label: 'Kuaför & Berber' },
+  { id: 'psikolog', icon: '🧠', label: 'Psikolog & Danışman' },
+  { id: 'pilates',  icon: '🧘', label: 'Pilates & Yoga' },
+  { id: 'klinik',   icon: '🏥', label: 'Klinik & Fizik Tedavi' },
+]
+
 export default function SectorTabs() {
   const t = useTranslations('useCases')
+  const searchParams = useSearchParams()
+  const tabsRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState('restoran')
 
-  const SECTORS = [
-    { id: 'restoran', icon: '🍽️', label: 'Restoran' },
-    { id: 'spa',      icon: '💆', label: 'Spa & Güzellik' },
-    { id: 'kuafor',   icon: '✂️', label: 'Kuaför & Berber' },
-    { id: 'psikolog', icon: '🧠', label: 'Psikolog & Danışman' },
-    { id: 'pilates',  icon: '🧘', label: 'Pilates & Yoga' },
-    { id: 'klinik',   icon: '🏥', label: 'Klinik & Fizik Tedavi' },
-  ]
+  useEffect(() => {
+    const sektor = searchParams.get('sektor')
+    if (sektor && SECTORS.find(s => s.id === sektor)) {
+      setActive(sektor)
+      setTimeout(() => {
+        tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+    }
+  }, [searchParams])
 
   const SECTOR_DATA: Record<string, SectorData> = {
     restoran: {
@@ -83,10 +96,10 @@ export default function SectorTabs() {
       title: 'Klinik & Fizik Tedavi Merkezleri İçin',
       desc:  'Doktor ve fizyoterapist randevu yönetiminden cihaz rezervasyonuna, tedavi takibine kadar klinik altyapısı.',
       features: [
-        { title: 'Uzman Seçimi',     desc: 'Doktor/fizyoterapiste göre müsaitlik takvimi' },
-        { title: 'Tedavi Süresi',    desc: 'Seans uzunluğu servise göre otomatik hesaplanır' },
+        { title: 'Uzman Seçimi',       desc: 'Doktor/fizyoterapiste göre müsaitlik takvimi' },
+        { title: 'Tedavi Süresi',      desc: 'Seans uzunluğu servise göre otomatik hesaplanır' },
         { title: 'Cihaz Rezervasyonu', desc: 'Ultrason, lazer, TENS cihazları için slot' },
-        { title: 'Takip Seansları',  desc: 'Tedavi protokolüne bağlı otomatik hatırlatma' },
+        { title: 'Takip Seansları',    desc: 'Tedavi protokolüne bağlı otomatik hatırlatma' },
       ],
     },
   }
@@ -95,8 +108,8 @@ export default function SectorTabs() {
 
   return (
     <>
-      {/* Tab Buttons */}
-      <div className="flex flex-wrap gap-2 justify-center mb-12">
+      {/* Tab Buttons — scroll hedefi, scroll-mt-28 sticky header için */}
+      <div ref={tabsRef} className="flex flex-wrap gap-2 justify-center mb-12 scroll-mt-28">
         {SECTORS.map(s => (
           <button
             key={s.id}
