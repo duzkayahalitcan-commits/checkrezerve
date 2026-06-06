@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# vps-setup.sh — Contabo VPS ilk kurulum scripti
+# vps-setup.sh — Hetzner VPS ilk kurulum scripti
 #
 # Bu scripti VPS'e SSH ile bağlandıktan sonra çalıştır:
 #   curl -fsSL https://raw.githubusercontent.com/KULLANICIN/checkrezerve/main/vps-setup.sh | bash

@@ -2,7 +2,7 @@
 
 Platform: Türkiye'nin komisyonsuz multi-sektör rezervasyon sistemi.
 Builder: Halitcan (solo)
-Stack: Next.js (web) + Expo (mobile) + Supabase + Contabo VPS
+Stack: Next.js (web) + Expo (mobile) + Supabase + Hetzner VPS
 
 ---
 
@@ -190,7 +190,8 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
 
 | Konu | Değer |
 |------|-------|
-| Web VPS | 161.97.68.236 |
+| Web VPS | 178.105.51.245 (Hetzner) |
+| SSH | ssh -i ~/.ssh/checkrezerve_vps root@178.105.51.245 |
 | Supabase | posarvagedpqtsrcrwfe.supabase.co |
 | tmux session | claude |
 | iOS build | ca15d22f (son başarılı) |

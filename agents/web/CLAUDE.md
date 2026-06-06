@@ -8,7 +8,7 @@ Sen CheckRezerve'in Next.js web uygulamasından sorumlusun.
 - Tailwind CSS
 - Supabase (client-side)
 - react-konva (masa planı)
-- Deployment: Contabo VPS (161.97.68.236), Docker
+- Deployment: Hetzner VPS, Docker
 
 ## Proje Klasörü
 ~/Desktop/checkrezerve

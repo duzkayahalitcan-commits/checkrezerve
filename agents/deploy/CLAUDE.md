@@ -3,10 +3,9 @@
 Sen CheckRezerve'in deployment ve DevOps süreçlerinden sorumlusun.
 
 ## Sunucu
-- VPS: Contabo — 161.97.68.236
+- VPS: Hetzner — 178.105.51.245
 - OS: Ubuntu
-- Erişim: SSH (Termius + Tailscale)
-- Monitoring: tmux session "claude"
+- Erişim: `ssh -i ~/.ssh/checkrezerve_vps root@178.105.51.245`
 
 ## Deploy Akışı
 1. Mac'te kod yaz, GitHub'a push et

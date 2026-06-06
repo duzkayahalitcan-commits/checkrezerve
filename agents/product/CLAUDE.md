@@ -15,7 +15,7 @@ EasyTable kalitesinde, daha geniş sektör kapsamıyla.
 - Web app: aktif geliştirme
 - Mobile app (customer): TestFlight'ta
 - Mobile app (admin/partner): Expo internal distribution
-- Deployment: Contabo VPS + Docker
+- Deployment: Hetzner VPS + Docker
 
 ## Roadmap (Öncelik Sırası)
 ### Kısa Vade (şimdi)
