@@ -61,6 +61,7 @@ export default function MarketingHeader() {
     { href: '/kullanim-alanlari', label: t('useCases') },
     { href: '/pricing',           label: t('pricing') },
     { href: '/rezervasyon',       label: t('makeReservation') },
+    { href: '/sss',               label: t('sss') },
   ]
 
   return (
