@@ -1003,7 +1003,78 @@
     "catFoodDrink": "Yeme & İçme",
     "catBeauty": "Güzellik & Bakım",
     "catHealth": "Sağlık",
-    "catSports": "Spor"
+    "catSports": "Spor",
+    "adim": {
+      "kisi": {
+        "baslik": "Kaç Kişilik?",
+        "kisi": "Kişi"
+      },
+      "tarih": {
+        "baslik": "Tarih Seçin"
+      },
+      "saat": {
+        "baslik": "Saat Seçin"
+      },
+      "alan": {
+        "baslik": "Alan Seçin",
+        "icMekan": "İç Mekan",
+        "bahce": "Bahçe",
+        "teras": "Teras",
+        "sigara": "Sigara Alanı",
+        "masaMusait": "{count} masa müsait"
+      },
+      "masa": {
+        "baslik": "Masa Seçin",
+        "kapasite": "Kapasite",
+        "dolu": "Dolu",
+        "musait": "Müsait",
+        "secili": "Seçili",
+        "yetersiz": "Yetersiz kapasite"
+      },
+      "bilgi": {
+        "baslik": "Bilgileriniz",
+        "adSoyad": "Ad Soyad",
+        "adSoyadPlaceholder": "Adınız ve soyadınız",
+        "telefon": "Telefon",
+        "telefonPlaceholder": "5XX XXX XX XX",
+        "eposta": "E-posta",
+        "epostaPlaceholder": "ornek@email.com",
+        "ozelNot": "Özel Not",
+        "ozelNotPlaceholder": "Varsa özel bir isteğiniz..."
+      },
+      "ozet": {
+        "baslik": "Özet",
+        "isletme": "İşletme",
+        "tarih": "Tarih",
+        "saat": "Saat",
+        "kisi": "Kişi Sayısı",
+        "alan": "Alan",
+        "masa": "Masa",
+        "tamamla": "Rezervasyonu Tamamla",
+        "iptalNotu": "Ücretsiz iptal: 2 saat öncesine kadar"
+      },
+      "basari": {
+        "baslik": "Rezervasyon Tamamlandı!",
+        "mesaj": "Rezervasyonunuz Alındı!",
+        "idKart": "Rezervasyon ID",
+        "rezervasyonlarim": "Rezervasyonlarıma Git",
+        "anaSayfa": "Ana Sayfaya Dön"
+      }
+    },
+    "step": {
+      "devam": "Devam",
+      "geri": "Geri"
+    },
+    "gizlilik": {
+      "baslik": "Gizlilik Sözleşmesi ve Rezervasyon Koşulları",
+      "kabul": "okudum, kabul ediyorum",
+      "hata": "Devam etmek için koşulları onaylamanız gerekmektedir.",
+      "modalBaslik": "Gizlilik Sözleşmesi & Rezervasyon Koşulları",
+      "onayla": "Okudum, Onaylıyorum"
+    },
+    "hata": {
+      "genel": "Bir hata oluştu, lütfen tekrar deneyin."
+    }
   },
   "bizDetail": {
     "allBusinesses": "Tüm İşletmeler",

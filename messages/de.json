@@ -1003,7 +1003,78 @@
     "catFoodDrink": "Essen & Trinken",
     "catBeauty": "Beauty & Pflege",
     "catHealth": "Gesundheit",
-    "catSports": "Sport"
+    "catSports": "Sport",
+    "adim": {
+      "kisi": {
+        "baslik": "How Many People?",
+        "kisi": "People"
+      },
+      "tarih": {
+        "baslik": "Select Date"
+      },
+      "saat": {
+        "baslik": "Select Time"
+      },
+      "alan": {
+        "baslik": "Select Area",
+        "icMekan": "Indoor",
+        "bahce": "Garden",
+        "teras": "Terrace",
+        "sigara": "Smoking Area",
+        "masaMusait": "{count} tables available"
+      },
+      "masa": {
+        "baslik": "Select Table",
+        "kapasite": "Capacity",
+        "dolu": "Occupied",
+        "musait": "Available",
+        "secili": "Selected",
+        "yetersiz": "Insufficient capacity"
+      },
+      "bilgi": {
+        "baslik": "Your Information",
+        "adSoyad": "Full Name",
+        "adSoyadPlaceholder": "Your full name",
+        "telefon": "Phone",
+        "telefonPlaceholder": "+44 7700 000000",
+        "eposta": "Email",
+        "epostaPlaceholder": "you@email.com",
+        "ozelNot": "Special Note",
+        "ozelNotPlaceholder": "Any special requests..."
+      },
+      "ozet": {
+        "baslik": "Summary",
+        "isletme": "Business",
+        "tarih": "Date",
+        "saat": "Time",
+        "kisi": "Guest Count",
+        "alan": "Area",
+        "masa": "Table",
+        "tamamla": "Complete Reservation",
+        "iptalNotu": "Free cancellation: up to 2 hours before"
+      },
+      "basari": {
+        "baslik": "Reservation Complete!",
+        "mesaj": "Your Reservation is Confirmed!",
+        "idKart": "Reservation ID",
+        "rezervasyonlarim": "My Reservations",
+        "anaSayfa": "Back to Home"
+      }
+    },
+    "step": {
+      "devam": "Continue",
+      "geri": "Back"
+    },
+    "gizlilik": {
+      "baslik": "Privacy Agreement & Reservation Terms",
+      "kabul": "I have read and accept",
+      "hata": "You must accept the terms to continue.",
+      "modalBaslik": "Privacy Agreement & Reservation Terms",
+      "onayla": "I've Read, I Confirm"
+    },
+    "hata": {
+      "genel": "An error occurred, please try again."
+    }
   },
   "bizDetail": {
     "allBusinesses": "Alle Unternehmen",

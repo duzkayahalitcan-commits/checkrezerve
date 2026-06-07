@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { Suspense } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { Playfair_Display, DM_Sans } from 'next/font/google'
@@ -88,6 +89,19 @@ export default async function PanelLoginPage() {
         {/* Dil seçici */}
         <div className="absolute top-6 right-6 z-10">
           <PanelLangSelector />
+        </div>
+
+        {/* Anasayfa linki — sol üst */}
+        <div className="absolute top-6 left-6 z-10">
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 text-zinc-500 hover:text-white text-xs font-medium transition-colors"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 5l-7 7 7 7"/>
+            </svg>
+            Anasayfa
+          </Link>
         </div>
 
         <div className="max-w-sm mx-auto w-full">
