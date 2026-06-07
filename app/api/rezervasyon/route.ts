@@ -32,13 +32,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    const safeTableId = table_id && UUID_RE.test(table_id) ? table_id : null
+
     // Check for double booking if a specific table was selected
-    if (table_id) {
+    if (safeTableId) {
       const { data: conflict } = await getSupabaseAdmin()
         .from('reservations')
         .select('id')
         .eq('restaurant_id', restaurant_id)
-        .eq('table_id', table_id)
+        .eq('table_id', safeTableId)
         .eq('date', date)
         .eq('time', time)
         .neq('status', 'cancelled')
@@ -65,7 +68,7 @@ export async function POST(request: NextRequest) {
         service_id:      service_id   || null,
         calisan_id:      staff_id     || null,
         masa_tipi_id:    masa_tipi_id || null,
-        table_id:        table_id     || null,
+        table_id:        safeTableId  || null,
         special_requests: special_requests?.trim() || null,
         status: 'pending',
         source: 'form',
