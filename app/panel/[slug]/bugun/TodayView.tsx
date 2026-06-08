@@ -136,14 +136,13 @@ export default function TodayView({
   async function updateStatus(id: string, status: string) {
     setUpdating(id)
     try {
-      const { createClient } = await import('@supabase/supabase-js')
-      const client = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
-      const { error } = await client.from('reservations').update({ status }).eq('id', id)
-      if (error) throw error
-      toast.show('Durum güncellendi', 'success')
+      const res = await fetch('/api/panel-reservations', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status }),
+      })
+      if (!res.ok) throw new Error('Güncelleme başarısız')
+      toast.show(status === 'confirmed' ? '✓ Onaylandı' : status === 'cancelled' ? 'İptal edildi' : 'Güncellendi', status === 'cancelled' ? 'error' : 'success')
       router.refresh()
     } catch {
       toast.show('Güncelleme başarısız', 'error')

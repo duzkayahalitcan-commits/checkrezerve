@@ -25,6 +25,16 @@ type SpecialArea = {
   capacity: number
 }
 
+async function apiCall(method: string, body: object) {
+  const res = await fetch('/api/panel-tables', {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error('İşlem başarısız')
+  return res.json()
+}
+
 export default function TableManager({
   tables,
   areas,
@@ -48,16 +58,10 @@ export default function TableManager({
   // Area form
   const [areaForm, setAreaForm] = useState({ name: '', capacity: '10' })
 
-  const supabase = async () => {
-    const { createClient } = await import('@supabase/supabase-js')
-    return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-  }
-
   // ─── Table CRUD ───
 
   async function saveTable(id?: string) {
     if (!tableForm.label.trim()) return
-    const client = await supabase()
     const payload = {
       label: tableForm.label.trim(),
       capacity: Number(tableForm.capacity) || 4,
@@ -66,15 +70,17 @@ export default function TableManager({
     }
 
     if (id) {
-      const { error } = await client.from('tables').update(payload).eq('id', id)
-      if (error) { toast.show('Güncellenemedi', 'error'); return }
-      setTableList(prev => prev.map(t => t.id === id ? { ...t, ...payload } as Table : t))
-      toast.show('Güncellendi', 'success')
+      try {
+        await apiCall('PATCH', { table: 'tables', id, payload })
+        setTableList(prev => prev.map(t => t.id === id ? { ...t, ...payload } as Table : t))
+        toast.show('Güncellendi', 'success')
+      } catch { toast.show('Güncellenemedi', 'error'); return }
     } else {
-      const { data, error } = await client.from('tables').insert({ ...payload, restaurant_id: restaurantId }).select().single()
-      if (error) { toast.show('Eklenemedi', 'error'); return }
-      setTableList(prev => [...prev, data as Table])
-      toast.show('Masa eklendi', 'success')
+      try {
+        const { data } = await apiCall('POST', { table: 'tables', payload })
+        setTableList(prev => [...prev, data as Table])
+        toast.show('Masa eklendi', 'success')
+      } catch { toast.show('Eklenemedi', 'error'); return }
     }
     setEditing(null)
     setTableForm({ label: '', capacity: '4', shape: 'rect', area_id: '' })
@@ -82,22 +88,22 @@ export default function TableManager({
   }
 
   async function deleteTable(id: string) {
-    const client = await supabase()
-    const { error } = await client.from('tables').delete().eq('id', id)
-    if (error) { toast.show('Silinemedi', 'error'); return }
-    setTableList(prev => prev.filter(t => t.id !== id))
-    setDeleting(null)
-    toast.show('Silindi', 'success')
-    router.refresh()
+    try {
+      await apiCall('DELETE', { table: 'tables', id })
+      setTableList(prev => prev.filter(t => t.id !== id))
+      setDeleting(null)
+      toast.show('Silindi', 'success')
+      router.refresh()
+    } catch { toast.show('Silinemedi', 'error') }
   }
 
   async function toggleTableActive(t: Table) {
-    const client = await supabase()
     const newVal = !t.is_active
-    const { error } = await client.from('tables').update({ is_active: newVal }).eq('id', t.id)
-    if (error) { toast.show('Güncellenemedi', 'error'); return }
-    setTableList(prev => prev.map(x => x.id === t.id ? { ...x, is_active: newVal } : x))
-    toast.show(newVal ? 'Aktif edildi' : 'Pasif edildi', 'success')
+    try {
+      await apiCall('PATCH', { table: 'tables', id: t.id, payload: { is_active: newVal } })
+      setTableList(prev => prev.map(x => x.id === t.id ? { ...x, is_active: newVal } : x))
+      toast.show(newVal ? 'Aktif edildi' : 'Pasif edildi', 'success')
+    } catch { toast.show('Güncellenemedi', 'error') }
   }
 
   function startEditTable(t: Table) {
@@ -109,19 +115,20 @@ export default function TableManager({
 
   async function saveArea(id?: string) {
     if (!areaForm.name.trim()) return
-    const client = await supabase()
     const payload = { name: areaForm.name.trim(), capacity: Number(areaForm.capacity) || 10 }
 
     if (id) {
-      const { error } = await client.from('special_areas').update(payload).eq('id', id)
-      if (error) { toast.show('Güncellenemedi', 'error'); return }
-      setAreaList(prev => prev.map(a => a.id === id ? { ...a, ...payload } : a))
-      toast.show('Güncellendi', 'success')
+      try {
+        await apiCall('PATCH', { table: 'special_areas', id, payload })
+        setAreaList(prev => prev.map(a => a.id === id ? { ...a, ...payload } : a))
+        toast.show('Güncellendi', 'success')
+      } catch { toast.show('Güncellenemedi', 'error'); return }
     } else {
-      const { data, error } = await client.from('special_areas').insert({ ...payload, restaurant_id: restaurantId }).select().single()
-      if (error) { toast.show('Eklenemedi', 'error'); return }
-      setAreaList(prev => [...prev, data as SpecialArea])
-      toast.show('Alan eklendi', 'success')
+      try {
+        const { data } = await apiCall('POST', { table: 'special_areas', payload })
+        setAreaList(prev => [...prev, data as SpecialArea])
+        toast.show('Alan eklendi', 'success')
+      } catch { toast.show('Eklenemedi', 'error'); return }
     }
     setEditing(null)
     setAreaForm({ name: '', capacity: '10' })
@@ -129,13 +136,13 @@ export default function TableManager({
   }
 
   async function deleteArea(id: string) {
-    const client = await supabase()
-    const { error } = await client.from('special_areas').delete().eq('id', id)
-    if (error) { toast.show('Silinemedi', 'error'); return }
-    setAreaList(prev => prev.filter(a => a.id !== id))
-    setDeleting(null)
-    toast.show('Silindi', 'success')
-    router.refresh()
+    try {
+      await apiCall('DELETE', { table: 'special_areas', id })
+      setAreaList(prev => prev.filter(a => a.id !== id))
+      setDeleting(null)
+      toast.show('Silindi', 'success')
+      router.refresh()
+    } catch { toast.show('Silinemedi', 'error') }
   }
 
   function startEditArea(a: SpecialArea) {

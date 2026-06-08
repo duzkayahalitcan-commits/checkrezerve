@@ -87,14 +87,13 @@ export default function RezervasyonList({
   async function updateStatus(id: string, status: string) {
     setUpdating(id)
     try {
-      const { createClient } = await import('@supabase/supabase-js')
-      const client = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
-      const { error } = await client.from('reservations').update({ status }).eq('id', id)
-      if (error) throw error
-      toast.show('Durum güncellendi', 'success')
+      const res = await fetch('/api/panel-reservations', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status }),
+      })
+      if (!res.ok) throw new Error('Güncelleme başarısız')
+      toast.show(status === 'confirmed' ? '✓ Onaylandı' : status === 'cancelled' ? 'İptal edildi' : 'Güncellendi', status === 'cancelled' ? 'error' : 'success')
       router.refresh()
     } catch {
       toast.show('Güncelleme başarısız', 'error')
@@ -220,9 +219,9 @@ export default function RezervasyonList({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2, delay: i * 0.02, ease: [0.23, 1, 0.32, 1] }}
-                className={`rounded-xl border border-stone-800 p-4 transition-opacity ${updating === r.id ? 'opacity-40' : ''}`}
+                className={`rounded-xl border border-stone-800 p-3 sm:p-4 transition-opacity ${updating === r.id ? 'opacity-40' : ''}`}
               >
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-semibold text-white text-sm">{r.guest_name ?? 'Misafir'}</span>
@@ -256,22 +255,22 @@ export default function RezervasyonList({
                     {r.status === 'pending' && (
                       <>
                         <button onClick={() => updateStatus(r.id, 'confirmed')} disabled={updating === r.id}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-semibold hover:bg-emerald-500/35 transition-colors disabled:opacity-50 whitespace-nowrap">Onayla</button>
+                          className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-semibold hover:bg-emerald-500/35 transition-colors disabled:opacity-50 min-w-0">Onayla</button>
                         <button onClick={() => updateStatus(r.id, 'cancelled')} disabled={updating === r.id}
-                          className="px-3 py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-semibold hover:bg-red-500/25 transition-colors disabled:opacity-50 whitespace-nowrap">Reddet</button>
+                          className="px-3 py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-semibold hover:bg-red-500/25 transition-colors disabled:opacity-50 min-w-0">Reddet</button>
                       </>
                     )}
                     {r.status === 'confirmed' && (
                       <button onClick={() => updateStatus(r.id, 'completed')} disabled={updating === r.id}
-                        className="px-3 py-1.5 rounded-lg bg-blue-500/15 text-blue-400 text-xs font-medium hover:bg-blue-500/25 transition-colors disabled:opacity-50 whitespace-nowrap">Tamamla</button>
+                        className="px-3 py-1.5 rounded-lg bg-blue-500/15 text-blue-400 text-xs font-medium hover:bg-blue-500/25 transition-colors disabled:opacity-50 min-w-0">Tamamla</button>
                     )}
                     {(r.status === 'confirmed' || r.status === 'pending') && (
                       <button onClick={() => updateStatus(r.id, 'cancelled')} disabled={updating === r.id}
-                        className="px-3 py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-medium hover:bg-red-500/25 transition-colors disabled:opacity-50 whitespace-nowrap">İptal</button>
+                        className="px-3 py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-medium hover:bg-red-500/25 transition-colors disabled:opacity-50 min-w-0">İptal</button>
                     )}
                     {r.status === 'cancelled' && (
                       <button onClick={() => updateStatus(r.id, 'pending')} disabled={updating === r.id}
-                        className="px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-xs font-medium hover:bg-amber-500/25 transition-colors disabled:opacity-50 whitespace-nowrap">Geri Al</button>
+                        className="px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-xs font-medium hover:bg-amber-500/25 transition-colors disabled:opacity-50 min-w-0">Geri Al</button>
                     )}
                   </div>
                 </div>

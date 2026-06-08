@@ -14,6 +14,16 @@ type Staff = {
   created_at?: string
 }
 
+async function apiCall(method: string, body: object) {
+  const res = await fetch('/api/panel-tables', {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error('İşlem başarısız')
+  return res.json()
+}
+
 export default function StaffManager({ staff, restaurantId }: { staff: Staff[]; restaurantId: string }) {
   const toast = useToast()
   const [list, setList] = useState<Staff[]>(staff)
@@ -21,45 +31,43 @@ export default function StaffManager({ staff, restaurantId }: { staff: Staff[]; 
   const [deleting, setDeleting] = useState<string | null>(null)
   const [form, setForm] = useState({ ad: '', telefon: '', pozisyon: '' })
 
-  const supabase = async () => {
-    const { createClient } = await import('@supabase/supabase-js')
-    return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-  }
-
   async function save(id?: string) {
     if (!form.ad.trim()) return
-    const client = await supabase()
+    const payload = { ad: form.ad, telefon: form.telefon || null, pozisyon: form.pozisyon || null }
+
     if (id) {
-      const { error } = await client.from('staff').update({ ad: form.ad, telefon: form.telefon || null, pozisyon: form.pozisyon || null }).eq('id', id)
-      if (error) { toast.show('Güncellenemedi', 'error'); return }
-      setList(prev => prev.map(s => s.id === id ? { ...s, ad: form.ad, telefon: form.telefon, pozisyon: form.pozisyon } : s))
-      toast.show('Güncellendi', 'success')
+      try {
+        await apiCall('PATCH', { table: 'staff', id, payload })
+        setList(prev => prev.map(s => s.id === id ? { ...s, ...payload } as Staff : s))
+        toast.show('Güncellendi', 'success')
+      } catch { toast.show('Güncellenemedi', 'error'); return }
     } else {
-      const { data, error } = await client.from('staff').insert({ restaurant_id: restaurantId, ad: form.ad, telefon: form.telefon || null, pozisyon: form.pozisyon || null }).select().single()
-      if (error) { toast.show('Eklenemedi', 'error'); return }
-      setList(prev => [...prev, data as Staff])
-      toast.show('Eklendi', 'success')
+      try {
+        const { data } = await apiCall('POST', { table: 'staff', payload })
+        setList(prev => [...prev, data as Staff])
+        toast.show('Eklendi', 'success')
+      } catch { toast.show('Eklenemedi', 'error'); return }
     }
     setEditing(null)
     setForm({ ad: '', telefon: '', pozisyon: '' })
   }
 
   async function remove(id: string) {
-    const client = await supabase()
-    const { error } = await client.from('staff').delete().eq('id', id)
-    if (error) { toast.show('Silinemedi', 'error'); return }
-    setList(prev => prev.filter(s => s.id !== id))
-    setDeleting(null)
-    toast.show('Silindi', 'success')
+    try {
+      await apiCall('DELETE', { table: 'staff', id })
+      setList(prev => prev.filter(s => s.id !== id))
+      setDeleting(null)
+      toast.show('Silindi', 'success')
+    } catch { toast.show('Silinemedi', 'error') }
   }
 
   async function toggleActive(s: Staff) {
-    const client = await supabase()
     const newVal = !s.aktif
-    const { error } = await client.from('staff').update({ aktif: newVal }).eq('id', s.id)
-    if (error) { toast.show('Güncellenemedi', 'error'); return }
-    setList(prev => prev.map(x => x.id === s.id ? { ...x, aktif: newVal } : x))
-    toast.show(newVal ? 'Aktif edildi' : 'Pasif edildi', 'success')
+    try {
+      await apiCall('PATCH', { table: 'staff', id: s.id, payload: { aktif: newVal } })
+      setList(prev => prev.map(x => x.id === s.id ? { ...x, aktif: newVal } : x))
+      toast.show(newVal ? 'Aktif edildi' : 'Pasif edildi', 'success')
+    } catch { toast.show('Güncellenemedi', 'error') }
   }
 
   function startEdit(s: Staff) {

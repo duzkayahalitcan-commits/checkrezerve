@@ -14,6 +14,16 @@ type Service = {
   created_at?: string
 }
 
+async function apiCall(method: string, body: object) {
+  const res = await fetch('/api/panel-tables', {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error('İşlem başarısız')
+  return res.json()
+}
+
 export default function ServiceManager({ services, restaurantId }: { services: Service[]; restaurantId: string }) {
   const toast = useToast()
   const [list, setList] = useState<Service[]>(services)
@@ -21,47 +31,43 @@ export default function ServiceManager({ services, restaurantId }: { services: S
   const [deleting, setDeleting] = useState<string | null>(null)
   const [form, setForm] = useState({ ad: '', fiyat: '', sure: '' })
 
-  const supabase = async () => {
-    const { createClient } = await import('@supabase/supabase-js')
-    return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-  }
-
   async function save(id?: string) {
     if (!form.ad.trim()) return
-    const client = await supabase()
     const payload = { ad: form.ad, fiyat: Number(form.fiyat) || 0, sure: form.sure ? Number(form.sure) : null }
 
     if (id) {
-      const { error } = await client.from('services').update(payload).eq('id', id)
-      if (error) { toast.show('Güncellenemedi', 'error'); return }
-      setList(prev => prev.map(s => s.id === id ? { ...s, ...payload } as Service : s))
-      toast.show('Güncellendi', 'success')
+      try {
+        await apiCall('PATCH', { table: 'services', id, payload })
+        setList(prev => prev.map(s => s.id === id ? { ...s, ...payload } as Service : s))
+        toast.show('Güncellendi', 'success')
+      } catch { toast.show('Güncellenemedi', 'error'); return }
     } else {
-      const { data, error } = await client.from('services').insert({ ...payload, restaurant_id: restaurantId }).select().single()
-      if (error) { toast.show('Eklenemedi', 'error'); return }
-      setList(prev => [...prev, data as Service])
-      toast.show('Eklendi', 'success')
+      try {
+        const { data } = await apiCall('POST', { table: 'services', payload })
+        setList(prev => [...prev, data as Service])
+        toast.show('Eklendi', 'success')
+      } catch { toast.show('Eklenemedi', 'error'); return }
     }
     setEditing(null)
     setForm({ ad: '', fiyat: '', sure: '' })
   }
 
   async function remove(id: string) {
-    const client = await supabase()
-    const { error } = await client.from('services').delete().eq('id', id)
-    if (error) { toast.show('Silinemedi', 'error'); return }
-    setList(prev => prev.filter(s => s.id !== id))
-    setDeleting(null)
-    toast.show('Silindi', 'success')
+    try {
+      await apiCall('DELETE', { table: 'services', id })
+      setList(prev => prev.filter(s => s.id !== id))
+      setDeleting(null)
+      toast.show('Silindi', 'success')
+    } catch { toast.show('Silinemedi', 'error') }
   }
 
   async function toggleActive(s: Service) {
-    const client = await supabase()
     const newVal = !s.aktif
-    const { error } = await client.from('services').update({ aktif: newVal }).eq('id', s.id)
-    if (error) { toast.show('Güncellenemedi', 'error'); return }
-    setList(prev => prev.map(x => x.id === s.id ? { ...x, aktif: newVal } : x))
-    toast.show(newVal ? 'Aktif edildi' : 'Pasif edildi', 'success')
+    try {
+      await apiCall('PATCH', { table: 'services', id: s.id, payload: { aktif: newVal } })
+      setList(prev => prev.map(x => x.id === s.id ? { ...x, aktif: newVal } : x))
+      toast.show(newVal ? 'Aktif edildi' : 'Pasif edildi', 'success')
+    } catch { toast.show('Güncellenemedi', 'error') }
   }
 
   function startEdit(s: Service) {

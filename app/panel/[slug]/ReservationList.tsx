@@ -81,14 +81,13 @@ export default function ReservationList({
 
   async function updateStatus(id: string, status: Status) {
     setUpdating(id)
-    const url    = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const key    = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    const client = createClient(url, key)
-    const { error } = await client.from('reservations').update({ status }).eq('id', id)
-    setUpdating(null)
-    if (error) {
-      toast.show('Güncelleme başarısız.', 'error')
-    } else {
+    try {
+      const res = await fetch('/api/panel-reservations', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status }),
+      })
+      if (!res.ok) throw new Error('Güncelleme başarısız')
       const msg: Record<Status, string> = {
         confirmed: '✓ Rezervasyon onaylandı',
         cancelled: 'Rezervasyon iptal edildi',
@@ -96,6 +95,10 @@ export default function ReservationList({
         pending:   'Rezervasyon beklemeye alındı',
       }
       toast.show(msg[status] ?? 'Güncellendi', status === 'cancelled' ? 'error' : 'success')
+    } catch {
+      toast.show('Güncelleme başarısız.', 'error')
+    } finally {
+      setUpdating(null)
     }
   }
 
@@ -227,13 +230,13 @@ function ReservationCard({
 
   return (
     <div
-      className={`rounded-xl border p-4 transition-opacity ${updating ? 'opacity-40' : ''} ${
+      className={`rounded-xl border p-3 sm:p-4 transition-opacity ${updating ? 'opacity-40' : ''} ${
         status === 'cancelled' ? 'border-white/5 opacity-60' :
         status === 'pending'   ? 'border-amber-500/20 bg-amber-500/3' :
         'border-white/8 bg-white/2'
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <span className="font-semibold text-white truncate">{r.guest_name ?? t('guest')}</span>
