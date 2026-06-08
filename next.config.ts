@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // HTML pages — always revalidate, never serve stale from CDN
+        // HTML pages — security headers + no cache
         source: "/((?!_next/static|_next/image|favicon.ico).*)",
         headers: [
           { key: "Cache-Control",            value: "no-cache, no-store, must-revalidate" },
@@ -31,6 +31,7 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options",   value: "nosniff" },
           { key: "Referrer-Policy",          value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy",       value: "geolocation=(), microphone=(), camera=()" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
         ],
       },
       {

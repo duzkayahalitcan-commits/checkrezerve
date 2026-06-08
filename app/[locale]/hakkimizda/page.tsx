@@ -2,12 +2,20 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
+import { Target, Shield, Zap, Sprout } from 'lucide-react'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 
 export const metadata: Metadata = {
   title: 'Hakkımızda — CheckRezerve',
   description: 'CheckRezerve ekibi, hikâyemiz ve misyonumuz. Rezervasyon yönetimini kolaylaştırmak için buradayız.',
+}
+
+const VALUE_ICONS: Record<string, React.ReactNode> = {
+  target: <Target size={24} className="text-red-600" />,
+  shield: <Shield size={24} className="text-red-600" />,
+  zap:    <Zap size={24} className="text-red-600" />,
+  sprout: <Sprout size={24} className="text-red-600" />,
 }
 
 export default async function HakkimizdaPage({
@@ -20,10 +28,10 @@ export default async function HakkimizdaPage({
   const t = await getTranslations('about')
 
   const VALUES = [
-    { icon: '🎯', titleKey: 'value1Title', descKey: 'value1Desc' },
-    { icon: '🔒', titleKey: 'value2Title', descKey: 'value2Desc' },
-    { icon: '⚡', titleKey: 'value3Title', descKey: 'value3Desc' },
-    { icon: '🌱', titleKey: 'value4Title', descKey: 'value4Desc' },
+    { icon: 'target', titleKey: 'value1Title', descKey: 'value1Desc' },
+    { icon: 'shield', titleKey: 'value2Title', descKey: 'value2Desc' },
+    { icon: 'zap',    titleKey: 'value3Title', descKey: 'value3Desc' },
+    { icon: 'sprout', titleKey: 'value4Title', descKey: 'value4Desc' },
   ]
 
   const TEAM = [
@@ -101,7 +109,7 @@ export default async function HakkimizdaPage({
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {VALUES.map(v => (
               <div key={v.titleKey} className="bg-white rounded-2xl border border-zinc-100 p-6 text-center hover:border-red-100 hover:shadow-sm transition-all">
-                <div className="text-3xl mb-3">{v.icon}</div>
+                <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center mx-auto mb-3">{VALUE_ICONS[v.icon]}</div>
                 <h3 className="font-bold text-zinc-900 mb-2 text-sm">{t(v.titleKey as Parameters<typeof t>[0])}</h3>
                 <p className="text-xs text-zinc-500 leading-relaxed">{t(v.descKey as Parameters<typeof t>[0])}</p>
               </div>

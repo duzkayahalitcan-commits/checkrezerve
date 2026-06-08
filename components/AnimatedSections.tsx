@@ -39,7 +39,7 @@ export function AnimatedSectors({ sectors }: { sectors: Sector[] }) {
           key={s.title}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-50px' }}
+          viewport={{ once: true, margin: '0px' }}
           transition={{ duration: 0.5, delay: i * 0.07, ease: [0.23, 1, 0.32, 1] }}
           whileHover={{ y: -4, boxShadow: '0 12px 32px rgba(0,0,0,0.08)' }}
           className="rounded-2xl border border-zinc-100 bg-zinc-50 p-7 hover:border-red-100 transition-all duration-200"
@@ -70,7 +70,7 @@ export function AnimatedHowSteps({ steps }: { steps: HowStep[] }) {
           className="flex flex-col items-center text-center"
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
+          viewport={{ once: true, margin: '0px' }}
           transition={{ duration: 0.6, delay: i * 0.12, ease: [0.23, 1, 0.32, 1] }}
         >
           <motion.div
@@ -98,7 +98,7 @@ export function AnimatedTestimonials({ testimonials }: { testimonials: Testimoni
           className="bg-white rounded-2xl border border-zinc-100 p-7 hover:border-red-100 hover:shadow-md transition-all duration-200 flex flex-col"
           initial={{ opacity: 0, y: 30, scale: 0.97 }}
           whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          viewport={{ once: true, margin: '-40px' }}
+          viewport={{ once: true, margin: '0px' }}
           transition={{ duration: 0.5, delay: i * 0.1, ease: [0.23, 1, 0.32, 1] }}
         >
           <div className="flex-1">

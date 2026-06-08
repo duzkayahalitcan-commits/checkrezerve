@@ -7,12 +7,14 @@ import { redirect }          from 'next/navigation'
 import { getSupabaseAdmin }  from '@/lib/supabase'
 
 function hashPassword(password: string): string {
-  const secret = process.env.ADMIN_SECRET ?? 'dev-secret-change-me'
+  const secret = process.env.ADMIN_SECRET
+  if (!secret) throw new Error('ADMIN_SECRET is not configured')
   return createHmac('sha256', secret).update(password).digest('hex')
 }
 
 function makeSessionToken(userId: string, restaurantId: string): string {
-  const secret  = process.env.ADMIN_SECRET ?? 'dev-secret-change-me'
+  const secret  = process.env.ADMIN_SECRET
+  if (!secret) throw new Error('ADMIN_SECRET is not configured')
   const payload = `${userId}:${restaurantId}`
   return createHmac('sha256', secret).update(payload).digest('base64url')
 }
@@ -26,7 +28,7 @@ async function setSessionCookie(userId: string, restaurantId: string, role: stri
     secure:   process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     ...(remember ? { maxAge: 60 * 60 * 24 * 7 } : {}),
-    path:     '/',
+    path:     '/panel',
   })
 }
 

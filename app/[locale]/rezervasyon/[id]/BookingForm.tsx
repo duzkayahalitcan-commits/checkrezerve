@@ -22,6 +22,7 @@ interface Props {
   businessId:       string
   businessName:     string
   businessType:     string
+  businessAddress:  string | null
   masaTipleri:      MasaTipi[]
   hizmetler:        Hizmet[]
   calisanlar:       Calisan[]
@@ -54,7 +55,7 @@ function formatDateTR(iso: string): string {
 }
 
 export default function BookingForm({
-  businessId, businessName, businessType,
+  businessId, businessName, businessType, businessAddress,
   masaTipleri, hizmetler, calisanlar,
   floorPlanEnabled, floorTables,
 }: Props) {
@@ -565,8 +566,12 @@ export default function BookingForm({
   // HATA 5: Tarih Türkçe formatlanıyor
   const renderSuccess = () => {
     const rezId = successData?.id ?? generateReservationId()
+    const mapsUrl = businessAddress
+      ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(businessAddress)}`
+      : null
+
     return (
-      <div className="text-center py-6">
+      <div className="text-center py-8 px-4 rounded-2xl bg-gradient-to-b from-red-50 via-white to-white">
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -596,7 +601,6 @@ export default function BookingForm({
           <h2 className="text-xl font-bold text-zinc-900 mb-1">{r('adim.basari.mesaj')}</h2>
 
           <div className="inline-flex items-center gap-2 bg-zinc-900 text-white px-4 py-2 rounded-full text-sm font-bold mt-3 mb-6">
-            <span>🎫</span>
             {r('adim.basari.idKart')}: <span className="tracking-wider">{rezId}</span>
           </div>
 
@@ -626,9 +630,20 @@ export default function BookingForm({
             >
               {r('adim.basari.rezervasyonlarim')}
             </button>
+            {mapsUrl && (
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-300 text-zinc-700 px-6 py-2.5 text-sm font-bold hover:bg-zinc-50 transition-colors"
+              >
+                <MapPin size={16} />
+                {r('adim.basari.yolTarifi')}
+              </a>
+            )}
             <button
               onClick={() => router.push('/')}
-              className="rounded-full border border-zinc-200 text-zinc-700 px-6 py-2.5 text-sm font-bold hover:bg-zinc-50 transition-colors"
+              className="rounded-full text-zinc-400 px-6 py-2.5 text-sm font-semibold hover:text-zinc-700 transition-colors"
             >
               {r('adim.basari.anaSayfa')}
             </button>

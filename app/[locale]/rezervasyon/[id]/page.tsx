@@ -118,8 +118,22 @@ export default async function BusinessDetailPage({ params }: Props) {
         <div className="mx-auto max-w-3xl px-6">
           <h2 className="text-xl font-bold text-zinc-900 mb-6">{t('makeBooking', { term: bookingTerm })}</h2>
 
+          <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6 sm:p-8">
+            <BookingForm
+              businessId={business.id}
+              businessName={business.name}
+              businessType={business.business_type}
+              masaTipleri={masaTipleri}
+              hizmetler={hizmetler}
+              calisanlar={calisanlar}
+              floorPlanEnabled={floorPlanEnabled}
+              floorTables={floorTables}
+              businessAddress={business.address ?? null}
+            />
+          </div>
+
           {biz.special_notes && (
-            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+            <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
               <div className="flex gap-3 text-sm">
                 <span className="text-amber-500 shrink-0 text-base">ℹ️</span>
                 <div>
@@ -131,19 +145,6 @@ export default async function BusinessDetailPage({ params }: Props) {
               </div>
             </div>
           )}
-
-          <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6 sm:p-8">
-            <BookingForm
-              businessId={business.id}
-              businessName={business.name}
-              businessType={business.business_type}
-              masaTipleri={masaTipleri}
-              hizmetler={hizmetler}
-              calisanlar={calisanlar}
-              floorPlanEnabled={floorPlanEnabled}
-              floorTables={floorTables}
-            />
-          </div>
         </div>
       </section>
 

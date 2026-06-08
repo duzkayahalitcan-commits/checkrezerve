@@ -68,10 +68,11 @@ export default function MarketingHeader() {
       <header
         className="fixed top-0 inset-x-0 z-50 transition-all duration-300"
         style={{
-          background: scrolled ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.95)',
-          backdropFilter: 'blur(16px)',
-          borderBottom: scrolled ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(0,0,0,0.05)',
-          boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.07)' : 'none',
+          background: scrolled ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.85)',
+          backdropFilter: scrolled ? 'blur(20px) saturate(1.2)' : 'blur(12px)',
+          WebkitBackdropFilter: scrolled ? 'blur(20px) saturate(1.2)' : 'blur(12px)',
+          borderBottom: scrolled ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(0,0,0,0)',
+          boxShadow: scrolled ? '0 4px 30px rgba(0,0,0,0.1)' : '0 0 0 rgba(0,0,0,0)',
         }}
       >
         <div className="mx-auto max-w-7xl flex items-center justify-between px-6 h-16">

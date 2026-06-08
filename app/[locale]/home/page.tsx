@@ -39,12 +39,12 @@ export default async function HomePage({
   ]
 
   const FEATURES = [
-    { icon: 'CalendarCheck', img: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&q=80', titleKey: 'featureReservationTitle', descKey: 'featureReservationDesc' },
-    { icon: 'CreditCard',    img: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&q=80',   titleKey: 'featurePaymentTitle',      descKey: 'featurePaymentDesc' },
-    { icon: 'Bell',          img: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80',       titleKey: 'featureSmsTitle',          descKey: 'featureSmsDesc' },
-    { icon: 'Users',         img: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80',      titleKey: 'featureStaffTitle',        descKey: 'featureStaffDesc' },
-    { icon: 'BarChart3',     img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',    titleKey: 'featureReportsTitle',      descKey: 'featureReportsDesc' },
-    { icon: 'Globe',         img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',      titleKey: 'featureOnlineTitle',       descKey: 'featureOnlineDesc' },
+    { icon: 'CalendarCheck', img: '/images/feature-rezervasyon.jpg', titleKey: 'featureReservationTitle', descKey: 'featureReservationDesc' },
+    { icon: 'CreditCard',    img: '/images/feature-odeme-new.png',   titleKey: 'featurePaymentTitle',      descKey: 'featurePaymentDesc' },
+    { icon: 'Bell',          img: '/images/feature-bildirim.jpg',    titleKey: 'featureSmsTitle',          descKey: 'featureSmsDesc' },
+    { icon: 'Users',         img: '/images/feature-calisan.jpg',     titleKey: 'featureStaffTitle',        descKey: 'featureStaffDesc' },
+    { icon: 'BarChart3',     img: '/images/feature-analitik.jpg',    titleKey: 'featureReportsTitle',      descKey: 'featureReportsDesc' },
+    { icon: 'Globe',         img: '/images/feature-online.jpg',      titleKey: 'featureOnlineTitle',       descKey: 'featureOnlineDesc' },
   ]
 
   const TESTIMONIALS = [
@@ -122,7 +122,7 @@ export default async function HomePage({
           }))} />
           <div className="rounded-2xl overflow-hidden border border-zinc-200 max-w-3xl mx-auto relative aspect-video">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/hero-restaurant-new.jpg" alt="CheckRezerve demo" loading="eager" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+            <img src="/images/hero-restaurant-new.jpg" alt="CheckRezerve demo" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
             <div className="absolute inset-0 bg-zinc-900/65 flex flex-col items-center justify-center gap-4">
               <div className="w-16 h-16 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg shadow-red-900/40">
                 <svg className="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
@@ -146,7 +146,8 @@ export default async function HomePage({
       <div className="bg-white py-4 border-y border-zinc-100">
         <div className="mx-auto max-w-4xl px-6 flex justify-center">
           <span className="inline-flex items-center gap-2 bg-red-50 border border-red-200 rounded-full px-5 py-2 text-red-700 font-bold text-sm tracking-wide">
-            🔒 Rezervasyonunuz, garantide.
+            <svg className="w-4 h-4 text-red-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+            Rezervasyonunuz, garantide.
           </span>
         </div>
       </div>
@@ -167,7 +168,7 @@ export default async function HomePage({
             <div className="flex-shrink-0 w-full lg:w-96">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/images/feature-rezervasyon.jpg" alt="CheckRezerve reservation management"
-                loading="eager" style={{ width: '100%', height: '340px', objectFit: 'cover' }} className="w-full rounded-2xl shadow-xl" />
+                loading="lazy" style={{ width: '100%', height: '340px', objectFit: 'cover' }} className="w-full rounded-2xl shadow-xl" />
             </div>
           </div>
         </div>

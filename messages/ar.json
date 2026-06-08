@@ -1029,7 +1029,8 @@
         "dolu": "Occupied",
         "musait": "Available",
         "secili": "Selected",
-        "yetersiz": "Insufficient capacity"
+        "yetersiz": "Insufficient capacity",
+        "opsiyonel": "اختيار الطاولة اختياري، يمكنك المتابعة دون اختيار"
       },
       "bilgi": {
         "baslik": "Your Information",
@@ -1058,7 +1059,8 @@
         "mesaj": "Your Reservation is Confirmed!",
         "idKart": "Reservation ID",
         "rezervasyonlarim": "My Reservations",
-        "anaSayfa": "Back to Home"
+        "anaSayfa": "Back to Home",
+        "yolTarifi": "احصل على الاتجاهات"
       }
     },
     "step": {

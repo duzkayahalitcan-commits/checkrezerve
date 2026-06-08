@@ -1,3 +1,4 @@
+import Link                from 'next/link'
 import { redirect }        from 'next/navigation'
 import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
@@ -5,10 +6,9 @@ import { getTranslations, getLocale } from 'next-intl/server'
 import WeeklyChart    from './WeeklyChart'
 import ExportButton   from './ExportButton'
 import ReservationList from './ReservationList'
-import SettingsForm   from './SettingsForm'
 import CountUp        from '@/components/CountUp'
 import ReservationChart from '@/components/ui/ReservationChart'
-import type { Reservation, SpecialArea, Restaurant } from '@/types'
+import type { Reservation, SpecialArea } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,7 +45,7 @@ export default async function PanelDashboardPage({
 
   const { data: restaurant } = await db
     .from('restaurants')
-    .select('id, name, slug, address, capacity, working_hours, closed_dates, prepayment_amount, special_notes')
+    .select('id, name, slug, address, capacity')
     .eq('slug', slug)
     .eq('id', session.restaurantId)
     .single()
@@ -149,6 +149,25 @@ export default async function PanelDashboardPage({
           )}
         </section>
 
+        {/* Quick-access cards */}
+        <section className="grid grid-cols-3 gap-3">
+          <Link href={`/panel/${slug}/bugun`}
+            className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center hover:border-amber-500/30 hover:bg-stone-800/80 transition-all group">
+            <div className="text-lg font-bold text-amber-400 group-hover:scale-110 transition-transform">→</div>
+            <div className="text-stone-400 text-xs mt-1">Bugün</div>
+          </Link>
+          <Link href={`/panel/${slug}/rezervasyonlar`}
+            className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center hover:border-amber-500/30 hover:bg-stone-800/80 transition-all group">
+            <div className="text-lg font-bold text-blue-400 group-hover:scale-110 transition-transform">→</div>
+            <div className="text-stone-400 text-xs mt-1">Rezervasyonlar</div>
+          </Link>
+          <Link href={`/panel/${slug}/misafirler`}
+            className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center hover:border-amber-500/30 hover:bg-stone-800/80 transition-all group">
+            <div className="text-lg font-bold text-emerald-400 group-hover:scale-110 transition-transform">→</div>
+            <div className="text-stone-400 text-xs mt-1">Misafirler</div>
+          </Link>
+        </section>
+
         {/* Weekly Chart */}
         <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
@@ -222,14 +241,6 @@ export default async function PanelDashboardPage({
               weekEnd={week.end}
             />
           </div>
-        </section>
-
-        {/* Settings */}
-        <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
-          <h2 className="font-semibold text-sm text-stone-200 mb-5">{t('settingsTitle')}</h2>
-          <SettingsForm restaurant={restaurant as Pick<Restaurant,
-            'id' | 'working_hours' | 'closed_dates' | 'prepayment_amount' | 'special_notes'
-          >} />
         </section>
 
       </main>

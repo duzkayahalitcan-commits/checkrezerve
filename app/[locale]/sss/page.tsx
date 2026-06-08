@@ -2,6 +2,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
+import Script from 'next/script'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import { Search, ArrowRight, MessageCircle, X } from 'lucide-react'
@@ -159,6 +160,56 @@ export default function SSSPage() {
   return (
     <div className="min-h-screen bg-white">
       <MarketingHeader />
+
+      {/* FAQPage Schema.org structured data */}
+      <Script id="faq-schema" type="application/ld+json" strategy="beforeInteractive">{`
+        {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "CheckRezerve nedir ve nasıl çalışır?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "CheckRezerve, restoran, berber, kuaför, spa ve kafe gibi işletmeler için online rezervasyon yönetim sistemidir. Müşterileriniz web siteniz veya sosyal medya üzerinden randevu alabilir, siz de tek panelden tüm rezervasyonlarınızı yönetebilirsiniz."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "CheckRezerve komisyon alıyor mu?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Hayır, CheckRezerve hiçbir işlemden komisyon almaz. Sadece sabit aylık abonelik ücreti ödersiniz. Tüm ödemeler %100 size aittir."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Hangi sektörler için uygundur?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Restoran, kafe, berber, kuaför, güzellik salonu, spa, otel, fitness merkezi ve etkinlik mekanları gibi rezervasyon bazlı tüm işletmeler için uygundur."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Ön ödemeli rezervasyon nasıl çalışır?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Müşterileriniz rezervasyon sırasında belirlediğiniz tutarda ön ödeme yapar, no-show (gelmeme) durumunda gelir kaybınız önlenir. Ödeme, güvenli ödeme altyapısı üzerinden gerçekleşir."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "CheckRezerve ücretsiz deneme imkanı sunuyor mu?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Evet, CheckRezerve tüm özellikleri ücretsiz deneyebileceğiniz bir deneme süresi sunar. Deneme süresince herhangi bir ödeme bilgisi girmeniz gerekmez."
+              }
+            }
+          ]
+        }
+      `}</Script>
 
       {/* Hero + Search */}
       <section

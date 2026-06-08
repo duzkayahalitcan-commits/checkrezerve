@@ -196,3 +196,17 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
 | tmux session | claude |
 | iOS build | ca15d22f (son başarılı) |
 | EAS submit | eas submit --platform ios --latest |
+
+---
+
+## Tamamlanan İşler
+
+- [x] **2026-06-06 — Rezervasyon sayfası yeniden tasarlandı**
+  - `app/[locale]/rezervasyon/[id]/BookingForm.tsx` → 8 adımlı wizard (Kişi, Tarih, Saat, Alan, Masa, Bilgi, Özet, Başarı)
+  - Restoran: 8 adım, diğer sektörler: 6 adım (alan/masa atlanır)
+  - Step progress bar, Framer Motion animasyonlu geçişler
+  - Tam takvim görünümü (bugün+30 gün), 4 sütunlu saat gridi
+  - Mock alan ve masa verisi (İç Mekan 11, Bahçe 6, Teras 8, Sigara 5 masa)
+  - `messages/*.json`: tüm dillerde yeni `rezervasyon.adim.*` key'leri eklendi
+  - Auth prefill: supabase.auth.getSession() ile e-posta ve ad otomatik doldurma
+  - Deployed: Hetzner VPS (docker compose up -d --build)

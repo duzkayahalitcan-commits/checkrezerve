@@ -1,8 +1,13 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Calendar, ChevronRight, LogOut } from 'lucide-react'
+import {
+  LayoutDashboard, CalendarDays, List, Calendar,
+  Users, UserCog, Scissors, Settings, CreditCard,
+  LayoutGrid, ChevronRight, LogOut, Menu, X,
+} from 'lucide-react'
 import PanelLangSelector from './PanelLangSelector'
 import NotificationBell from './NotificationBell'
 
@@ -30,18 +35,33 @@ export default function PanelSidebar({
 }) {
   const pathname = usePathname()
   const base = `/panel/${slug}`
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const NAV = [
-    { href: base,             label: 'Genel Bakış', icon: LayoutDashboard },
-    { href: `${base}/takvim`, label: 'Takvim',      icon: Calendar        },
+    { href: base,                    label: 'Genel Bakış',   icon: LayoutDashboard },
+    { href: `${base}/bugun`,         label: 'Bugün',         icon: CalendarDays    },
+    { href: `${base}/rezervasyonlar`,label: 'Rezervasyonlar',icon: List            },
+    { href: `${base}/takvim`,        label: 'Takvim',        icon: Calendar        },
+    { href: `${base}/masalar`,       label: 'Masalar',       icon: LayoutGrid      },
+    { href: `${base}/misafirler`,    label: 'Misafirler',    icon: Users           },
+    { href: `${base}/calisanlar`,    label: 'Çalışanlar',    icon: UserCog         },
+    { href: `${base}/hizmetler`,     label: 'Hizmetler',     icon: Scissors        },
+    { href: `${base}/ayarlar`,       label: 'Ayarlar',       icon: Settings        },
+    { href: `${base}/abonelik`,      label: 'Abonelik',      icon: CreditCard      },
   ]
 
   const roleCls   = ROLE_STYLES[role]   ?? 'text-stone-400 bg-stone-800 border-stone-700'
   const roleLabel = ROLE_LABELS[role]   ?? role
 
+  function isActive(item: typeof NAV[0]) {
+    return item.href === base
+      ? pathname === base || pathname === `${base}/`
+      : pathname.startsWith(item.href)
+  }
+
   return (
     <>
-      {/* ── Desktop Sidebar ─────────────────────────────────────────── */}
+      {/* ── Desktop Sidebar ── */}
       <aside className="hidden md:flex w-56 flex-shrink-0 flex-col bg-stone-900/80 border-r border-white/5 min-h-screen sticky top-0 h-screen overflow-y-auto">
         {/* Brand */}
         <div className="px-5 pt-6 pb-5 border-b border-white/5">
@@ -57,27 +77,22 @@ export default function PanelSidebar({
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {NAV.map(item => {
-            const isActive = item.href === base
-              ? pathname === base || pathname === `${base}/`
-              : pathname.startsWith(item.href)
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  isActive
-                    ? 'bg-red-500/12 text-red-400 border border-red-500/20'
-                    : 'text-stone-400 hover:text-white hover:bg-white/5 border border-transparent'
-                }`}
-              >
-                <item.icon size={15} className="flex-shrink-0" />
-                <span className="flex-1">{item.label}</span>
-                {isActive && <ChevronRight size={11} className="opacity-40" />}
-              </Link>
-            )
-          })}
+        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+          {NAV.map(item => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                isActive(item)
+                  ? 'bg-red-500/12 text-red-400 border border-red-500/20'
+                  : 'text-stone-400 hover:text-white hover:bg-white/5 border border-transparent'
+              }`}
+            >
+              <item.icon size={15} className="flex-shrink-0" />
+              <span className="flex-1">{item.label}</span>
+              {isActive(item) && <ChevronRight size={11} className="opacity-40" />}
+            </Link>
+          ))}
         </nav>
 
         {/* Bottom: bell + lang + logout */}
@@ -97,14 +112,23 @@ export default function PanelSidebar({
         </div>
       </aside>
 
-      {/* ── Mobile Top Bar ──────────────────────────────────────────── */}
+      {/* ── Mobile Top Bar + Hamburger ── */}
       <header className="md:hidden fixed top-0 inset-x-0 z-50 flex items-center justify-between px-4 py-3 bg-stone-900/95 backdrop-blur-md border-b border-white/5">
-        <div>
-          <span className="text-[9px] font-mono text-stone-600 uppercase tracking-widest select-none">
-            checkrezerve
-          </span>
-          <div className="text-white font-bold text-sm leading-tight truncate max-w-[160px]">
-            {restaurantName}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="text-stone-400 hover:text-white p-1 -ml-1"
+            aria-label="Menüyü aç"
+          >
+            <Menu size={20} />
+          </button>
+          <div>
+            <span className="text-[9px] font-mono text-stone-600 uppercase tracking-widest select-none">
+              checkrezerve
+            </span>
+            <div className="text-white font-bold text-sm leading-tight truncate max-w-[140px]">
+              {restaurantName}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -119,26 +143,78 @@ export default function PanelSidebar({
         </div>
       </header>
 
-      {/* ── Mobile Bottom Nav ───────────────────────────────────────── */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 flex bg-stone-900/95 backdrop-blur-md border-t border-white/5 safe-bottom">
-        {NAV.map(item => {
-          const isActive = item.href === base
-            ? pathname === base || pathname === `${base}/`
-            : pathname.startsWith(item.href)
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex-1 flex flex-col items-center py-2.5 gap-1 text-[11px] font-medium transition-colors ${
-                isActive ? 'text-red-400' : 'text-stone-500 hover:text-stone-300'
-              }`}
-            >
-              <item.icon size={20} />
-              {item.label}
-            </Link>
-          )
-        })}
-      </nav>
+      {/* ── Mobile Drawer Overlay ── */}
+      {drawerOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-50"
+          onClick={() => setDrawerOpen(false)}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+          {/* Drawer panel */}
+          <div
+            className="absolute left-0 top-0 bottom-0 w-64 bg-stone-900/95 backdrop-blur-md border-r border-white/5 shadow-2xl overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+            style={{ animation: 'slideInLeft 0.2s ease' }}
+          >
+            <style>{`@keyframes slideInLeft { from { transform: translateX(-100%) } to { transform: translateX(0) } }`}</style>
+
+            {/* Header */}
+            <div className="px-5 pt-6 pb-4 border-b border-white/5 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-mono tracking-widest text-stone-600 uppercase select-none">
+                  checkrezerve
+                </span>
+                <div className="mt-1 font-bold text-white text-sm leading-snug truncate max-w-[160px]" title={restaurantName}>
+                  {restaurantName}
+                </div>
+                <span className={`inline-block mt-2 text-[10px] font-semibold px-2 py-0.5 rounded-md border ${roleCls}`}>
+                  {roleLabel}
+                </span>
+              </div>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className="text-stone-400 hover:text-white p-1"
+                aria-label="Menüyü kapat"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Nav links */}
+            <nav className="px-3 py-4 space-y-0.5">
+              {NAV.map(item => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setDrawerOpen(false)}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    isActive(item)
+                      ? 'bg-red-500/12 text-red-400 border border-red-500/20'
+                      : 'text-stone-400 hover:text-white hover:bg-white/5 border border-transparent'
+                  }`}
+                >
+                  <item.icon size={15} className="flex-shrink-0" />
+                  <span className="flex-1">{item.label}</span>
+                  {isActive(item) && <ChevronRight size={11} className="opacity-40" />}
+                </Link>
+              ))}
+            </nav>
+
+            {/* Logout in drawer */}
+            <div className="px-3 pt-3 border-t border-white/5">
+              <a
+                href="/panel/logout"
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-stone-500 hover:text-white hover:bg-white/5 transition-all"
+              >
+                <LogOut size={14} />
+                Çıkış Yap
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

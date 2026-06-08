@@ -5,22 +5,24 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const {
-      restaurant_id, customer_name, phone, party_size,
-      date, time, service_id, staff_id, masa_tipi_id, table_id, special_requests,
+      restaurant_id, customer_name, phone, email, party_size,
+      date, time, service_id, staff_id, masa_tipi_id, special_requests,
     } = body
 
     if (!restaurant_id || !customer_name || !phone || !date || !time) {
       return NextResponse.json({ error: 'Zorunlu alanlar eksik' }, { status: 400 })
     }
 
-    // Check same phone at same restaurant+date+time (prevents double booking for any business type)
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    const safeMasaTipiId = masa_tipi_id && UUID_RE.test(masa_tipi_id) ? masa_tipi_id : null
+
     const { data: phoneConflict } = await getSupabaseAdmin()
       .from('reservations')
       .select('id')
       .eq('restaurant_id', restaurant_id)
-      .eq('phone', phone.trim())
-      .eq('date', date)
-      .eq('time', time)
+      .eq('guest_phone', phone.trim())
+      .eq('reserved_date', date)
+      .eq('reserved_time', time)
       .neq('status', 'cancelled')
       .limit(1)
       .maybeSingle()
@@ -32,43 +34,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-    const safeTableId = table_id && UUID_RE.test(table_id) ? table_id : null
-
-    // Check for double booking if a specific table was selected
-    if (safeTableId) {
-      const { data: conflict } = await getSupabaseAdmin()
-        .from('reservations')
-        .select('id')
-        .eq('restaurant_id', restaurant_id)
-        .eq('table_id', safeTableId)
-        .eq('date', date)
-        .eq('time', time)
-        .neq('status', 'cancelled')
-        .limit(1)
-        .maybeSingle()
-
-      if (conflict) {
-        return NextResponse.json(
-          { error: 'Bu masa seçilen tarih ve saatte dolu. Lütfen başka bir masa seçin.' },
-          { status: 409 }
-        )
-      }
-    }
-
     const { data, error } = await getSupabaseAdmin()
       .from('reservations')
       .insert({
         restaurant_id,
-        customer_name: customer_name.trim(),
-        phone: phone.trim(),
-        party_size: parseInt(party_size, 10) || 1,
-        date,
-        time,
-        service_id:      service_id   || null,
-        calisan_id:      staff_id     || null,
-        masa_tipi_id:    masa_tipi_id || null,
-        table_id:        safeTableId  || null,
+        guest_name:       customer_name.trim(),
+        guest_phone:      phone.trim(),
+        guest_email:      email?.trim() || null,
+        party_size:       parseInt(party_size, 10) || 1,
+        reserved_date:    date,
+        reserved_time:    time,
+        service_id:       service_id      || null,
+        calisan_id:       staff_id        || null,
+        masa_tipi_id:     safeMasaTipiId  || null,
+        table_id:         null,
         special_requests: special_requests?.trim() || null,
         status: 'pending',
         source: 'form',

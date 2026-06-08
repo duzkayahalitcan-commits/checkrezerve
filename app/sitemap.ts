@@ -29,6 +29,12 @@ const STATIC_PAGES: PageEntry[] = [
   { path: '/kullanim-kosullari',priority: 0.3, freq: 'yearly'  },
   { path: '/kvkk',              priority: 0.3, freq: 'yearly'  },
   { path: '/pricing',           priority: 0.8, freq: 'weekly'  },
+  { path: '/sss',               priority: 0.7, freq: 'monthly' },
+  { path: '/cerez-politikasi',  priority: 0.3, freq: 'yearly'  },
+  { path: '/kullanim-sartlari', priority: 0.3, freq: 'yearly'  },
+  { path: '/kvkk-basvuru',      priority: 0.3, freq: 'yearly'  },
+  { path: '/sifre-sifirla',     priority: 0.2, freq: 'yearly'  },
+  { path: '/rezervasyon',       priority: 0.7, freq: 'weekly'  },
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

@@ -4,8 +4,10 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { ToastProvider } from "@/components/ui/Toast";
 import PageTransition from "@/components/ui/PageTransition";
+import SmoothScroll from "@/components/SmoothScroll";
 import NavigationProgress from "@/components/ui/NavigationProgress";
 import ChatWidget from "@/components/ChatWidget";
+import type { Metadata } from "next";
 
 type Props = {
   children: React.ReactNode;
@@ -14,6 +16,19 @@ type Props = {
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const baseUrl = 'https://checkrezerve.com';
+  return {
+    alternates: {
+      canonical: `${baseUrl}/${locale}`,
+      languages: Object.fromEntries(
+        routing.locales.map(l => [l, `${baseUrl}/${l}`])
+      ),
+    },
+  };
 }
 
 export default async function LocaleLayout({ children, params }: Props) {
@@ -31,6 +46,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <NavigationProgress />
         <ChatWidget />
         <div dir={dir} lang={locale} style={{ minHeight: '100%' }}>
+          <SmoothScroll />
           <PageTransition>
             {children}
           </PageTransition>

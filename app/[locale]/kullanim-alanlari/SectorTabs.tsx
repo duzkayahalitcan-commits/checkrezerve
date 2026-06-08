@@ -3,17 +3,28 @@ import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
+import { motion } from 'motion/react'
+import { UtensilsCrossed, Sparkles, Scissors, Brain, Dumbbell, Stethoscope } from 'lucide-react'
 
 type Feature = { title: string; desc: string }
 type SectorData = { img: string; title: string; desc: string; features: Feature[] }
 
+const ICON_MAP: Record<string, React.ReactNode> = {
+  restoran: <UtensilsCrossed size={16} />,
+  spa:      <Sparkles size={16} />,
+  kuafor:   <Scissors size={16} />,
+  psikolog: <Brain size={16} />,
+  pilates:  <Dumbbell size={16} />,
+  klinik:   <Stethoscope size={16} />,
+}
+
 const SECTORS = [
-  { id: 'restoran', icon: '🍽️', label: 'Restoran' },
-  { id: 'spa',      icon: '💆', label: 'Spa & Güzellik' },
-  { id: 'kuafor',   icon: '✂️', label: 'Kuaför & Berber' },
-  { id: 'psikolog', icon: '🧠', label: 'Psikolog & Danışman' },
-  { id: 'pilates',  icon: '🧘', label: 'Pilates & Yoga' },
-  { id: 'klinik',   icon: '🏥', label: 'Klinik & Fizik Tedavi' },
+  { id: 'restoran', label: 'Restoran' },
+  { id: 'spa',      label: 'Spa & Güzellik' },
+  { id: 'kuafor',   label: 'Kuaför & Berber' },
+  { id: 'psikolog', label: 'Psikolog & Danışman' },
+  { id: 'pilates',  label: 'Pilates & Yoga' },
+  { id: 'klinik',   label: 'Klinik & Fizik Tedavi' },
 ]
 
 export default function SectorTabs() {
@@ -120,13 +131,19 @@ export default function SectorTabs() {
                 : 'bg-white text-zinc-600 border-zinc-200 hover:border-red-300 hover:text-red-600'
             }`}
           >
-            {s.icon} {s.label}
+            <span className="inline-flex">{ICON_MAP[s.id]}</span> {s.label}
           </button>
         ))}
       </div>
 
       {/* Tab Content */}
-      <div className="flex flex-col lg:flex-row gap-12 items-start">
+      <motion.div
+        key={active}
+        className="flex flex-col lg:flex-row gap-12 items-start"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+      >
         <div className="flex-shrink-0 w-full lg:w-[480px]">
           <div className="rounded-2xl overflow-hidden shadow-xl border border-zinc-100 bg-zinc-100 w-full h-72">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -136,6 +153,8 @@ export default function SectorTabs() {
               alt={sector.title}
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               loading="eager"
+              width={480}
+              height={288}
             />
           </div>
         </div>
@@ -161,7 +180,7 @@ export default function SectorTabs() {
             </Link>
           </div>
         </div>
-      </div>
+      </motion.div>
     </>
   )
 }

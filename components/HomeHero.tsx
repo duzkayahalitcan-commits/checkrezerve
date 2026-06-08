@@ -15,9 +15,21 @@ interface Props {
 }
 
 const SLIDES = [
-  { src: '/images/split-restoran.jpg',   label: '🍽️  Restoran' },
-  { src: '/images/split-guzellik.jpg',   label: '💇  Güzellik' },
-  { src: '/images/split-spa.jpg',        label: '💆  Spa & Masaj' },
+  {
+    poster: '/images/split-restoran.jpg',
+    video: 'https://videos.pexels.com/video-files/3196036/3196036-uhd_2560_1440_25fps.mp4',
+    label: '🍽️  Restoran',
+  },
+  {
+    poster: '/images/split-guzellik.jpg',
+    video: 'https://videos.pexels.com/video-files/3997798/3997798-hd_1920_1080_25fps.mp4',
+    label: '💇  Güzellik',
+  },
+  {
+    poster: '/images/split-spa.jpg',
+    video: 'https://videos.pexels.com/video-files/4426672/4426672-hd_1920_1080_25fps.mp4',
+    label: '💆  Spa & Masaj',
+  },
 ]
 
 const DEMO_CARDS = [
@@ -62,10 +74,28 @@ const STATUS_STYLE: Record<string, string> = {
 export default function HomeHero({ title, subtitle, badge, ctaPrimary, ctaSecondary, locale }: Props) {
   const words = title.split(' ')
   const [slide, setSlide] = useState(0)
+  const [canVideo, setCanVideo] = useState(false)
 
   useEffect(() => {
     const id = setInterval(() => setSlide(s => (s + 1) % SLIDES.length), 5500)
     return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    const mqMobile = window.matchMedia('(max-width: 639px)')
+    const mqReduced = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+    const check = () => {
+      setCanVideo(!mqMobile.matches && !mqReduced.matches)
+    }
+
+    check()
+    mqMobile.addEventListener('change', check)
+    mqReduced.addEventListener('change', check)
+    return () => {
+      mqMobile.removeEventListener('change', check)
+      mqReduced.removeEventListener('change', check)
+    }
   }, [])
 
   return (
@@ -81,8 +111,15 @@ export default function HomeHero({ title, subtitle, badge, ctaPrimary, ctaSecond
             exit={{ opacity: 0 }}
             transition={{ duration: 1.2, ease: 'easeInOut' }}
           >
+            {canVideo && (
+              <video
+                autoPlay muted loop playsInline
+                src={SLIDES[slide].video}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
             <Image
-              src={SLIDES[slide].src}
+              src={SLIDES[slide].poster}
               alt=""
               fill
               className="object-cover"
@@ -123,7 +160,7 @@ export default function HomeHero({ title, subtitle, badge, ctaPrimary, ctaSecond
               <span
                 key={i}
                 className="word"
-                style={{ '--d': `${i * 0.1}s` } as React.CSSProperties}
+                style={{ '--d': `${i * 0.12}s` } as React.CSSProperties}
               >
                 {word}{i < words.length - 1 ? ' ' : ''}
               </span>
@@ -197,7 +234,7 @@ export default function HomeHero({ title, subtitle, badge, ctaPrimary, ctaSecond
           <div className="slide-dots">
             {SLIDES.map((s, i) => (
               <button
-                key={s.src}
+                key={s.poster}
                 onClick={() => setSlide(i)}
                 className={`slide-dot ${i === slide ? 'active' : ''}`}
                 aria-label={s.label}
@@ -314,7 +351,6 @@ export default function HomeHero({ title, subtitle, badge, ctaPrimary, ctaSecond
           color: #fff;
           font-size: 0.85rem;
           font-weight: 700;
-          truncate: true;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -397,12 +433,13 @@ export default function HomeHero({ title, subtitle, badge, ctaPrimary, ctaSecond
 
         /* Title */
         .hero-title {
-          font-size: clamp(2.8rem, 5vw, 4.5rem);
+          font-size: clamp(3rem, 5.5vw, 5rem);
           font-weight: 900;
           color: #fff;
-          line-height: 1.05;
+          line-height: 1.02;
           letter-spacing: -0.03em;
           margin: 0 0 1.5rem;
+          font-family: var(--font-playfair), serif;
         }
         .word {
           display: inline;
@@ -412,10 +449,10 @@ export default function HomeHero({ title, subtitle, badge, ctaPrimary, ctaSecond
           will-change: transform, opacity;
         }
         .hero-sub {
-          font-size: 1.1rem;
+          font-size: 1.15rem;
           color: rgba(255,255,255,0.60);
-          max-width: 480px;
-          line-height: 1.6;
+          max-width: 520px;
+          line-height: 1.7;
           margin: 0 0 2.5rem;
           animation: fadeUp 0.8s cubic-bezier(0.23, 1, 0.32, 1) 0.6s both;
         }
@@ -478,7 +515,7 @@ export default function HomeHero({ title, subtitle, badge, ctaPrimary, ctaSecond
         /* Stats */
         .hero-stats {
           display: flex;
-          gap: 2.5rem;
+          gap: 3rem;
           margin-top: 3.5rem;
           animation: fadeUp 0.8s cubic-bezier(0.23, 1, 0.32, 1) 0.9s both;
         }

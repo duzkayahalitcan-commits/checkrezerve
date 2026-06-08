@@ -1,10 +1,11 @@
 // ─── Floor Plan / Masa Krokisi ────────────────────────────────────────────────
 
-export type FloorTable = {
+export type Table = {
   id: string
   restaurant_id: string
   label: string
   capacity: number
+  area_id: string | null
   x: number
   y: number
   width: number
@@ -13,6 +14,9 @@ export type FloorTable = {
   is_active: boolean
   created_at: string
 }
+
+// Backward compat
+export type FloorTable = Table
 
 // ─── İş Yeri Türleri ──────────────────────────────────────────────────────────
 
@@ -142,6 +146,8 @@ export type Reservation = {
   // Mevcut DB kolonları (geriye dönük uyumlu)
   customer_name:    string
   phone:            string
+  guest_name:       string | null
+  guest_phone:      string | null
   party_size:       number
   date:             string        // YYYY-MM-DD
   time:             string | null // HH:MM

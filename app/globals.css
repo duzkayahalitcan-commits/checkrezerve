@@ -23,6 +23,7 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-display);
+  --font-playfair: var(--font-playfair);
 
   /* Brand colors available as Tailwind utilities */
   --color-primary:      var(--cr-primary);
@@ -69,19 +70,30 @@ button:not([disabled]):active {
   display: none;
 }
 
-/* Page fade-in animation */
+/* Page fade-in animation — subtle entrance, no opacity:0 flash */
 @keyframes page-fade-in {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-main, .page-content {
-  animation: page-fade-in 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
+.page-content {
+  animation: page-fade-in 0.35s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 /* Stat card entrance animation */
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Lenis smooth scroll */
+html.lenis, html.lenis body {
+  scroll-behavior: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
 }
 
 /* Dark mode support for marketing pages */
@@ -112,6 +124,7 @@ input:focus, textarea:focus, select:focus {
 /* Smooth image loading */
 img {
   transition: opacity 0.3s ease;
+  min-height: 1px;
 }
 img[loading="lazy"] {
   opacity: 0;

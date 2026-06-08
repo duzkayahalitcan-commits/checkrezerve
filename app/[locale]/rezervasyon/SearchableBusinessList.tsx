@@ -73,13 +73,13 @@ const TYPE_BG: Record<string, string> = {
 }
 
 const TYPE_UNSPLASH: Record<string, string> = {
-  restaurant:   'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=128&q=75',
-  barber:       'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=128&q=75',
-  hairdresser:  'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=128&q=75',
-  beauty_salon: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=128&q=75',
-  spa:          'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=128&q=75',
-  fitness:      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=128&q=75',
-  pilates:      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=128&q=75',
+  restaurant:   'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=200&q=80',
+  barber:       'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=200&q=80',
+  hairdresser:  'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=200&q=80',
+  beauty_salon: 'https://images.unsplash.com/photo-1487412912498-0447578fcca8?w=200&q=80',
+  spa:          'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=200&q=80',
+  fitness:      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=200&q=80',
+  pilates:      'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=200&q=80',
 }
 
 export default function SearchableBusinessList({ allBusinesses }: { allBusinesses: Biz[] }) {
@@ -254,7 +254,7 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
         </motion.div>
       ) : (
         <AnimatePresence mode="popLayout">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map((biz, i) => {
               const icon      = BUSINESS_TYPE_ICONS[biz.business_type as BusinessType] ?? '🏪'
               const accent    = TYPE_ACCENT[biz.business_type] ?? '#E53935'
@@ -275,12 +275,11 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                 >
                   <Link
                     href={{ pathname: '/rezervasyon/[id]', params: { id: biz.id } }}
-                    className="flex items-start gap-4 p-5 h-full"
+                    className="flex flex-col h-full"
                   >
                     {/* Thumbnail */}
                     <div
-                      className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden relative ${bg} flex items-center justify-center text-2xl`}
-                      style={{ boxShadow: `inset 0 0 0 1px ${accent}20` }}
+                      className={`w-full h-36 overflow-hidden relative ${bg} flex items-center justify-center text-3xl`}
                     >
                       {thumbSrc ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
@@ -296,12 +295,12 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 p-5 flex flex-col justify-center">
                       <p className="font-bold text-zinc-900 group-hover:text-red-600 transition-colors truncate leading-snug">
                         {biz.name}
                       </p>
                       <span
-                        className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full mt-1 mb-2"
+                        className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full mt-1.5 mb-2"
                         style={{ backgroundColor: `${accent}15`, color: accent }}
                       >
                         {biz.typeLabel}
@@ -313,15 +312,6 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                         </p>
                       )}
                     </div>
-
-                    {/* Arrow */}
-                    <motion.span
-                      className="text-zinc-300 group-hover:text-red-400 text-xl mt-1 flex-shrink-0"
-                      whileHover={{ x: 3 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                    >
-                      ›
-                    </motion.span>
                   </Link>
                 </motion.div>
               )

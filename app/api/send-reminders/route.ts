@@ -17,11 +17,12 @@ import { sendReservationReminder }       from '@/lib/notification-service'
 export async function POST(req: NextRequest) {
   // ─── Auth ────────────────────────────────────────────────────────────────
   const cronSecret = process.env.CRON_SECRET
-  if (cronSecret) {
-    const auth = req.headers.get('authorization') ?? ''
-    if (auth !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 })
-    }
+  if (!cronSecret) {
+    return NextResponse.json({ error: 'CRON_SECRET not configured' }, { status: 500 })
+  }
+  const auth = req.headers.get('authorization') ?? ''
+  if (auth !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 })
   }
 
   const today = new Date().toISOString().slice(0, 10)

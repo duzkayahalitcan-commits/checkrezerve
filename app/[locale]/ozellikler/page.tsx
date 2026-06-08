@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
+import RevealSection from '@/components/RevealSection'
 
 export const metadata: Metadata = {
   title: 'Özellikler — CheckRezerve',
@@ -114,10 +115,8 @@ export default async function OzelliklerPage({
       {/* Feature Rows */}
       <section className="py-4">
         {FEATURES.map((f, i) => (
-          <div
-            key={f.num}
-            className={`py-20 ${i % 2 === 0 ? 'bg-white' : 'bg-zinc-50'}`}
-          >
+          <RevealSection key={f.num}>
+            <div className={`py-20 ${i % 2 === 0 ? 'bg-white' : 'bg-zinc-50'}`}>
             <div className={`mx-auto max-w-6xl px-6 flex flex-col ${f.reverse ? 'lg:flex-row-reverse' : 'lg:flex-row'} gap-16 items-center`}>
               <div className="flex-1 min-w-0">
                 <span className="text-xs font-bold text-red-600 tracking-widest uppercase">{f.num} — {t('featureLabel')}</span>
@@ -140,11 +139,14 @@ export default async function OzelliklerPage({
                     alt={t(f.titleKey as Parameters<typeof t>[0])}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                     loading="eager"
+                    width={480}
+                    height={288}
                   />
                 </div>
               </div>
             </div>
           </div>
+          </RevealSection>
         ))}
       </section>
 

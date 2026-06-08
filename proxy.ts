@@ -40,14 +40,11 @@ export function proxy(req: NextRequest) {
       return NextResponse.next()
     }
     const adminPassword = process.env.ADMIN_PASSWORD
-    const adminSecret   = process.env.ADMIN_SECRET ?? 'checkrezerve-fallback-secret'
-    if (!adminPassword) {
-      if (process.env.NODE_ENV === 'production') {
-        const url = req.nextUrl.clone()
-        url.pathname = LOGIN
-        return NextResponse.redirect(url)
-      }
-      return NextResponse.next()
+    const adminSecret   = process.env.ADMIN_SECRET
+    if (!adminPassword || !adminSecret) {
+      const url = req.nextUrl.clone()
+      url.pathname = LOGIN
+      return NextResponse.redirect(url)
     }
     const token    = req.cookies.get(COOKIE)?.value ?? ''
     const expected = makeToken(adminPassword, adminSecret)
@@ -78,7 +75,12 @@ export function proxy(req: NextRequest) {
       return res
     }
 
-    const secret = process.env.ADMIN_SECRET ?? 'dev-secret-change-me'
+    const secret = process.env.ADMIN_SECRET
+    if (!secret) {
+      const url = req.nextUrl.clone()
+      url.pathname = PANEL_LOGIN
+      return NextResponse.redirect(url)
+    }
     const raw    = req.cookies.get('cr_panel')?.value ?? ''
     if (!raw || !verifyPanelCookie(raw, secret)) {
       const url = req.nextUrl.clone()
