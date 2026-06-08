@@ -28,7 +28,7 @@ async function setSessionCookie(userId: string, restaurantId: string, role: stri
     secure:   process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     ...(remember ? { maxAge: 60 * 60 * 24 * 7 } : {}),
-    path:     '/panel',
+    path:     '/',
   })
 }
 
