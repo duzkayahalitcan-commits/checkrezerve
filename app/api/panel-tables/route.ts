@@ -1,10 +1,17 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { getPanelSession } from '@/app/panel/login/actions'
+import { cookies } from 'next/headers'
+import { verifySession } from '@/lib/panel-auth'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
 export async function POST(req: NextRequest) {
-  const session = await getPanelSession()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const jar = await cookies()
+  const raw = jar.get('cr_panel')?.value ?? ''
+
+  const session = verifySession(raw)
+  if (!session) {
+    console.log('[panel-tables POST] Unauthorized — cookie raw:', raw ? raw.slice(0, 30) + '...' : 'YOK')
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
   const body = await req.json()
   const db = getSupabaseAdmin()
@@ -18,8 +25,14 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ data })
 }
 
+async function getSessionOr401() {
+  const jar = await cookies()
+  const raw = jar.get('cr_panel')?.value ?? ''
+  return verifySession(raw)
+}
+
 export async function PATCH(req: NextRequest) {
-  const session = await getPanelSession()
+  const session = await getSessionOr401()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { table, id, payload } = await req.json()
@@ -37,7 +50,7 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const session = await getPanelSession()
+  const session = await getSessionOr401()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { table, id } = await req.json()
