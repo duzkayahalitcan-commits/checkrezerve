@@ -3,7 +3,7 @@
 Sen CheckRezerve'in Next.js web uygulamasından sorumlusun.
 
 ## Stack
-- Next.js 14 (App Router)
+- Next.js 15 (App Router)
 - TypeScript
 - Tailwind CSS
 - Supabase (client-side)
@@ -37,3 +37,16 @@ Sen CheckRezerve'in Next.js web uygulamasından sorumlusun.
 - /[slug] sayfasında rezervasyon formu zengin olmalı
 - react-konva ile masa planı: src/components/FloorPlan/ altında
 - Legal sayfalar mevcut: /kvkk, /gizlilik, /cerez-politikasi
+- middleware.ts mevcut — next-intl locale routing için gerekli
+
+## Güvenlik Kuralları
+- Panel API route'larda `verifySession` kullan (`lib/panel-auth.ts`)
+- `panel-tables` route: sadece whitelist tablolar (hizmetler, calisanlar, tables, special_areas)
+- Image loading: `loading='lazy'` + Framer Motion opacity:0 = invisible bug, `loading='eager'` kullan
+
+## Mevcut API Endpoint'leri
+- `POST /api/rezervasyon` — rezervasyon oluştur
+- `GET /api/rezervasyon/musait?business_id=&date=` — meşgul saat slotları
+- `PATCH /api/panel-reservations` — rezervasyon durumu güncelle (auth gerekli)
+- `POST|PATCH|DELETE /api/panel-tables` — masa/hizmet/calisan CRUD (auth gerekli)
+- `GET /api/tables/[restaurantId]/availability?date=&time=` — masa müsaitliği

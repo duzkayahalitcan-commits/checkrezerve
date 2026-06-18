@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const {
       restaurant_id, customer_name, phone, email, party_size,
-      date, time, service_id, staff_id, masa_tipi_id, special_requests,
+      date, time, table_id, service_id, staff_id, masa_tipi_id, special_requests,
     } = body
 
     if (!restaurant_id || !customer_name || !phone || !date || !time) {
@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
 
     const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     const safeMasaTipiId = masa_tipi_id && UUID_RE.test(masa_tipi_id) ? masa_tipi_id : null
+    const safeTableId = table_id && UUID_RE.test(table_id) ? table_id : null
 
     const { data: phoneConflict } = await getSupabaseAdmin()
       .from('reservations')
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
         service_id:       service_id      || null,
         calisan_id:       staff_id        || null,
         masa_tipi_id:     safeMasaTipiId  || null,
-        table_id:         null,
+        table_id:         safeTableId     || null,
         special_requests: special_requests?.trim() || null,
         status: 'pending',
         source: 'form',

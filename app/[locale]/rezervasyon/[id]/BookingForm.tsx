@@ -11,10 +11,10 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
-type MasaTipi = { id: string; ad: string; ad_en: string | null; ad_ar: string | null; ad_de: string | null; ad_da: string | null; ad_es: string | null; ad_ru: string | null; kapasite: number }
 type Hizmet     = { id: string; name: string; duration_minutes: number; price: number | null }
 type Calisan    = { id: string; name: string; title: string | null }
-type FloorTable = { id: string; label: string; capacity: number; x: number; y: number; width: number; height: number; shape: 'rect' | 'circle' }
+type FloorTable = { id: string; label: string; capacity: number; area_id: string | null; x: number; y: number; width: number; height: number; shape: 'rect' | 'circle'; rotation: number }
+type SpecialArea = { id: string; name: string; color: string | null }
 
 const FloorPlanPicker = dynamic(() => import('./FloorPlanPicker'), { ssr: false })
 
@@ -23,11 +23,11 @@ interface Props {
   businessName:     string
   businessType:     string
   businessAddress:  string | null
-  masaTipleri:      MasaTipi[]
   hizmetler:        Hizmet[]
   calisanlar:       Calisan[]
   floorPlanEnabled: boolean
   floorTables:      FloorTable[]
+  specialAreas:     SpecialArea[]
 }
 
 const TIME_SLOTS = Array.from({ length: 27 }, (_, i) => {
@@ -56,19 +56,21 @@ function formatDateTR(iso: string): string {
 
 export default function BookingForm({
   businessId, businessName, businessType, businessAddress,
-  masaTipleri, hizmetler, calisanlar,
-  floorPlanEnabled, floorTables,
+  hizmetler, calisanlar,
+  floorPlanEnabled, floorTables, specialAreas,
 }: Props) {
   const router = useRouter()
   const t = useTranslations('bookingForm')
   const r = useTranslations('rezervasyon')
   const locale = useLocale()
   const isRestaurant = businessType === 'restaurant' || businessType === 'other'
+  const isServiceBased = !isRestaurant
 
-  // HATA 3: 'alan' adımı kaldırıldı
   const allSteps = isRestaurant
-    ? ['kisi', 'tarih', 'saat', 'masa', 'bilgi', 'ozet', 'basari'] as const
-    : ['kisi', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
+    ? floorPlanEnabled
+      ? ['kisi', 'tarih', 'saat', 'masa', 'bilgi', 'ozet', 'basari'] as const
+      : ['kisi', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
+    : ['hizmet', 'calisan', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
   const [step, setStep] = useState(0)
 
   // Form state
@@ -76,6 +78,11 @@ export default function BookingForm({
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
   const [selectedTable, setSelectedTable] = useState<string | null>(null)
+  const [selectedService, setSelectedService] = useState<string | null>(null)
+  const [selectedStaff, setSelectedStaff] = useState<string | null>(null)
+  const [selectedArea, setSelectedArea] = useState<string | null>(
+    specialAreas.length > 0 ? specialAreas[0].id : null
+  )
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
@@ -162,14 +169,15 @@ export default function BookingForm({
     else setStep(s => s - 1)
   }
 
-  // Validate current step — HATA 3: 'alan' case kaldırıldı, 'masa' opsiyonel
   const canProceed = (() => {
     const s = allSteps[step]
-    if (s === 'kisi')  return partySize >= 1 && partySize <= 20
-    if (s === 'tarih') return !!selectedDate
-    if (s === 'saat')  return !!selectedTime
-    if (s === 'masa')  return true
-    if (s === 'bilgi') return !!(name.trim() && phone.trim())
+    if (s === 'kisi')    return partySize >= 1 && partySize <= 20
+    if (s === 'hizmet')  return selectedService !== null
+    if (s === 'calisan') return true
+    if (s === 'tarih')   return !!selectedDate
+    if (s === 'saat')    return !!selectedTime
+    if (s === 'masa')    return true
+    if (s === 'bilgi')   return !!(name.trim() && phone.trim())
     return true
   })()
 
@@ -193,6 +201,8 @@ export default function BookingForm({
         date:             selectedDate,
         time:             selectedTime,
         table_id:         safeTableId,
+        service_id:       selectedService ?? undefined,
+        staff_id:         selectedStaff ?? undefined,
         special_requests: specialNotes || undefined,
       }),
     })
@@ -350,8 +360,11 @@ export default function BookingForm({
         </div>
 
         <div className="grid grid-cols-7 gap-1">
-          {['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'].map(d => (
-            <div key={d} className="text-center text-xs font-semibold text-zinc-400 py-2">{d}</div>
+          {Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(2024, 0, 1 + i) // Pazartesi başlangıç (1 Jan 2024 = Pzt)
+            return new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(d).slice(0, 2)
+          }).map((d, i) => (
+            <div key={i} className="text-center text-xs font-semibold text-zinc-400 py-2">{d}</div>
           ))}
           {calDays.map((date, i) => {
             if (!date) return <div key={`e-${i}`} />
@@ -402,49 +415,109 @@ export default function BookingForm({
     </div>
   )
 
-  // HATA 3: Gerçek masaTipleri verisiyle masa seçimi
   const renderMasaSelect = () => {
-    if (!isRestaurant) return null
-    if (!masaTipleri.length) {
+    if (!floorTables.length) {
       return (
         <div className="text-center py-10 text-zinc-400">
           <p className="text-sm">{r('adim.masa.masaTipiYok')}</p>
         </div>
       )
     }
+
+    // Unique areas from tables + special_areas
+    const areas = specialAreas.length > 0 ? specialAreas : []
+    const areaTables = selectedArea
+      ? floorTables.filter(t => t.area_id === selectedArea)
+      : floorTables
+
     return (
       <div>
-        <p className="text-sm text-zinc-500 mb-5">{r('adim.masa.opsiyonel')}</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {masaTipleri.map(masa => {
-            const insufficient = masa.kapasite < partySize
-            const sel = selectedTable === masa.id
+        <p className="text-sm text-zinc-500 mb-4">{r('adim.masa.opsiyonel')}</p>
+
+        {/* Area tabs */}
+        {areas.length > 1 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {areas.map(a => {
+              const count = floorTables.filter(t => t.area_id === a.id).length
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => { setSelectedArea(a.id); setSelectedTable(null) }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+                    selectedArea === a.id
+                      ? 'bg-[#E53935] text-white border-[#E53935]'
+                      : 'bg-white text-zinc-600 border-zinc-200 hover:border-[#E53935] hover:text-[#E53935]'
+                  }`}
+                >
+                  {a.color && (
+                    <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: a.color }} />
+                  )}
+                  {a.name}
+                  <span className="text-[10px] opacity-70">({count})</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Floor plan canvas */}
+        <FloorPlanPicker
+          restaurantId={businessId}
+          tables={areaTables}
+          selectedDate={selectedDate}
+          selectedTime={selectedTime}
+          selectedTableId={selectedTable}
+          onSelect={setSelectedTable}
+        />
+
+        {/* Skip button */}
+        <div className="flex justify-center mt-4">
+          {!selectedTable && (
+            <button
+              onClick={() => goNext()}
+              className="text-xs text-zinc-400 hover:text-zinc-600 underline underline-offset-2 transition-colors"
+            >
+              {r('adim.masa.opsiyonel')} — {r('step.atla')}
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  const renderHizmetSelect = () => (
+    <div className="space-y-3">
+      {hizmetler.length === 0 ? (
+        <p className="text-center py-8 text-zinc-400 text-sm">{r('hata.genel')}</p>
+      ) : (
+        <div className="grid grid-cols-1 gap-3">
+          {hizmetler.map(h => {
+            const sel = selectedService === h.id
             return (
               <motion.button
-                key={masa.id}
-                onClick={() => !insufficient && setSelectedTable(sel ? null : masa.id)}
-                disabled={insufficient}
-                whileHover={insufficient ? {} : { y: -2, scale: 1.01 }}
-                whileTap={insufficient ? {} : { scale: 0.98 }}
+                key={h.id}
+                onClick={() => setSelectedService(sel ? null : h.id)}
+                whileHover={{ y: -2, scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
                 className={`flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all
                   ${sel
                     ? 'border-[#E53935] bg-red-50 shadow-md shadow-red-100'
-                    : insufficient
-                      ? 'border-zinc-200 bg-zinc-50 cursor-not-allowed opacity-60'
-                      : 'border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm'}`}
+                    : 'border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm'}`}
               >
                 <div>
                   <p className={`font-bold text-sm ${sel ? 'text-[#E53935]' : 'text-zinc-900'}`}>
-                    {masa.ad}
+                    {h.name}
                   </p>
-                  <p className="text-xs text-zinc-400 mt-0.5">
-                    {r('adim.masa.kapasite')}: {masa.kapasite} {r('adim.kisi.kisi')}
-                  </p>
-                  {insufficient && (
-                    <p className="text-xs text-amber-600 font-medium mt-1">
-                      {r('adim.masa.yetersiz')}
-                    </p>
-                  )}
+                  <div className="flex items-center gap-3 mt-1">
+                    {h.price != null && (
+                      <span className="text-xs font-semibold text-zinc-500">
+                        {r('adim.hizmet.fiyat')}: {h.price} ₺
+                      </span>
+                    )}
+                    <span className="text-xs text-zinc-400">
+                      {r('adim.hizmet.sure')}: {h.duration_minutes} {r('adim.hizmet.dk')}
+                    </span>
+                  </div>
                 </div>
                 {sel && (
                   <div className="w-6 h-6 rounded-full bg-[#E53935] text-white flex items-center justify-center shrink-0">
@@ -455,9 +528,67 @@ export default function BookingForm({
             )
           })}
         </div>
-      </div>
-    )
-  }
+      )}
+    </div>
+  )
+
+  const renderCalisanSelect = () => (
+    <div className="space-y-3">
+      <button
+        onClick={() => setSelectedStaff(selectedStaff === null ? '__any__' : null)}
+        className={`w-full flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all ${
+          selectedStaff === '__any__'
+            ? 'border-[#E53935] bg-red-50 shadow-md shadow-red-100'
+            : 'border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm'
+        }`}
+      >
+        <div>
+          <p className={`font-bold text-sm ${selectedStaff === '__any__' ? 'text-[#E53935]' : 'text-zinc-900'}`}>
+            {r('adim.calisan.farkEtmez')}
+          </p>
+        </div>
+        {selectedStaff === '__any__' && (
+          <div className="w-6 h-6 rounded-full bg-[#E53935] text-white flex items-center justify-center shrink-0">
+            <Check size={14} strokeWidth={3} />
+          </div>
+        )}
+      </button>
+      {calisanlar.map(c => {
+        const sel = selectedStaff === c.id
+        return (
+          <motion.button
+            key={c.id}
+            onClick={() => setSelectedStaff(sel ? null : c.id)}
+            whileHover={{ y: -2, scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            className={`w-full flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all
+              ${sel
+                ? 'border-[#E53935] bg-red-50 shadow-md shadow-red-100'
+                : 'border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm'}`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-stone-700 flex items-center justify-center text-sm font-bold text-white shrink-0">
+                {c.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p className={`font-bold text-sm ${sel ? 'text-[#E53935]' : 'text-zinc-900'}`}>
+                  {c.name}
+                </p>
+                {c.title && (
+                  <span className="text-xs text-zinc-400">{c.title}</span>
+                )}
+              </div>
+            </div>
+            {sel && (
+              <div className="w-6 h-6 rounded-full bg-[#E53935] text-white flex items-center justify-center shrink-0">
+                <Check size={14} strokeWidth={3} />
+              </div>
+            )}
+          </motion.button>
+        )
+      })}
+    </div>
+  )
 
   const renderInfoForm = () => (
     <div className="space-y-5">
@@ -506,21 +637,34 @@ export default function BookingForm({
     </div>
   )
 
-  // HATA 4: Lucide ikonlar, HATA 3: masa tipi DB'den
   const renderSummary = () => {
-    const masaTipiLabel = selectedTable
-      ? masaTipleri.find(t => t.id === selectedTable)?.ad ?? null
+    const masaLabel = selectedTable
+      ? floorTables.find(t => t.id === selectedTable)?.label ?? null
       : null
+    const hizmetLabel = selectedService
+      ? hizmetler.find(h => h.id === selectedService)?.name ?? null
+      : null
+    const calisanLabel = selectedStaff && selectedStaff !== '__any__'
+      ? calisanlar.find(c => c.id === selectedStaff)?.name ?? null
+      : selectedStaff === '__any__' ? r('adim.calisan.farkEtmez') : null
 
     return (
       <div className="space-y-5">
         <div className="bg-zinc-50 rounded-2xl p-5 border border-zinc-100 space-y-3">
           <SummaryRow icon={Building2} label={r('adim.ozet.isletme')} value={businessName} />
-          <SummaryRow icon={Calendar}  label={r('adim.ozet.tarih')}   value={selectedDate} />
-          <SummaryRow icon={Clock}     label={r('adim.ozet.saat')}    value={selectedTime} />
-          <SummaryRow icon={Users}     label={r('adim.ozet.kisi')}    value={`${partySize} ${r('adim.kisi.kisi')}`} />
-          {isRestaurant && masaTipiLabel && (
-            <SummaryRow icon={MapPin} label={r('adim.ozet.masa')} value={masaTipiLabel} />
+          {isServiceBased && hizmetLabel && (
+            <SummaryRow icon={Building2} label={r('adim.ozet.hizmet')} value={hizmetLabel} />
+          )}
+          {isServiceBased && calisanLabel && (
+            <SummaryRow icon={User} label={r('adim.ozet.calisan')} value={calisanLabel} />
+          )}
+          <SummaryRow icon={Calendar} label={r('adim.ozet.tarih')} value={selectedDate} />
+          <SummaryRow icon={Clock}    label={r('adim.ozet.saat')}  value={selectedTime} />
+          {isRestaurant && (
+            <SummaryRow icon={Users} label={r('adim.ozet.kisi')} value={`${partySize} ${r('adim.kisi.kisi')}`} />
+          )}
+          {isRestaurant && masaLabel && (
+            <SummaryRow icon={MapPin} label={r('adim.ozet.masa')} value={masaLabel} />
           )}
           <SummaryRow icon={User}  label={r('adim.bilgi.adSoyad')} value={name} />
           <SummaryRow icon={Phone} label={r('adim.bilgi.telefon')} value={phone} />
@@ -609,6 +753,18 @@ export default function BookingForm({
               <span className="text-zinc-400">{r('adim.ozet.isletme')}</span>
               <span className="font-semibold text-zinc-900">{businessName}</span>
             </div>
+            {isServiceBased && selectedService && (
+              <div className="flex justify-between">
+                <span className="text-zinc-400">{r('adim.ozet.hizmet')}</span>
+                <span className="font-semibold text-zinc-900">{hizmetler.find(h => h.id === selectedService)?.name}</span>
+              </div>
+            )}
+            {isServiceBased && selectedStaff && (
+              <div className="flex justify-between">
+                <span className="text-zinc-400">{r('adim.ozet.calisan')}</span>
+                <span className="font-semibold text-zinc-900">{selectedStaff === '__any__' ? r('adim.calisan.farkEtmez') : (calisanlar.find(c => c.id === selectedStaff)?.name ?? '')}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-zinc-400">{r('adim.ozet.tarih')}</span>
               <span className="font-semibold text-zinc-900">{formatDateTR(selectedDate)}</span>
@@ -617,10 +773,12 @@ export default function BookingForm({
               <span className="text-zinc-400">{r('adim.ozet.saat')}</span>
               <span className="font-semibold text-zinc-900">{selectedTime}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">{r('adim.ozet.kisi')}</span>
-              <span className="font-semibold text-zinc-900">{partySize} {r('adim.kisi.kisi')}</span>
-            </div>
+            {isRestaurant && (
+              <div className="flex justify-between">
+                <span className="text-zinc-400">{r('adim.ozet.kisi')}</span>
+                <span className="font-semibold text-zinc-900">{partySize} {r('adim.kisi.kisi')}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -668,13 +826,15 @@ export default function BookingForm({
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
         >
-          {allSteps[step] === 'kisi'   && renderPartySize()}
-          {allSteps[step] === 'tarih'  && renderCalendar()}
-          {allSteps[step] === 'saat'   && renderTimeSlots()}
-          {allSteps[step] === 'masa'   && renderMasaSelect()}
-          {allSteps[step] === 'bilgi'  && renderInfoForm()}
-          {allSteps[step] === 'ozet'   && renderSummary()}
-          {allSteps[step] === 'basari' && renderSuccess()}
+          {allSteps[step] === 'kisi'    && renderPartySize()}
+          {allSteps[step] === 'hizmet'  && renderHizmetSelect()}
+          {allSteps[step] === 'calisan' && renderCalisanSelect()}
+          {allSteps[step] === 'tarih'   && renderCalendar()}
+          {allSteps[step] === 'saat'    && renderTimeSlots()}
+          {allSteps[step] === 'masa'    && renderMasaSelect()}
+          {allSteps[step] === 'bilgi'   && renderInfoForm()}
+          {allSteps[step] === 'ozet'    && renderSummary()}
+          {allSteps[step] === 'basari'  && renderSuccess()}
         </motion.div>
       </AnimatePresence>
 

@@ -1030,7 +1030,8 @@
         "musait": "Available",
         "secili": "Selected",
         "yetersiz": "Insufficient capacity",
-        "opsiyonel": "Bordval er valgfrit, du kan fortsætte uden at vælge"
+        "opsiyonel": "Bordval er valgfrit, du kan fortsætte uden at vælge",
+        "masaTipiYok": "Ingen borde defineret endnu"
       },
       "bilgi": {
         "baslik": "Your Information",
@@ -1052,7 +1053,9 @@
         "alan": "Area",
         "masa": "Table",
         "tamamla": "Complete Reservation",
-        "iptalNotu": "Free cancellation: up to 2 hours before"
+        "iptalNotu": "Free cancellation: up to 2 hours before",
+        "hizmet": "Service",
+        "calisan": "Medarbejder"
       },
       "basari": {
         "baslik": "Reservation Complete!",
@@ -1061,11 +1064,22 @@
         "rezervasyonlarim": "My Reservations",
         "anaSayfa": "Back to Home",
         "yolTarifi": "Få rutevejledning"
+      },
+      "hizmet": {
+        "baslik": "Vælg en service",
+        "fiyat": "Pris",
+        "sure": "Varighed",
+        "dk": "min."
+      },
+      "calisan": {
+        "baslik": "Vælg medarbejder",
+        "farkEtmez": "Ligemeget"
       }
     },
     "step": {
       "devam": "Continue",
-      "geri": "Back"
+      "geri": "Back",
+      "atla": "Spring over"
     },
     "gizlilik": {
       "baslik": "Privacy Agreement & Reservation Terms",

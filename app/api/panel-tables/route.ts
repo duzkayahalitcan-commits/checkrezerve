@@ -3,17 +3,25 @@ import { cookies } from 'next/headers'
 import { verifySession } from '@/lib/panel-auth'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
-export async function POST(req: NextRequest) {
-  const jar = await cookies()
-  const raw = jar.get('cr_panel')?.value ?? ''
+const ALLOWED_TABLES = ['hizmetler', 'calisanlar', 'tables', 'special_areas'] as const
+type AllowedTable = typeof ALLOWED_TABLES[number]
 
-  const session = verifySession(raw)
-  if (!session) {
-    console.log('[panel-tables POST] Unauthorized — cookie raw:', raw ? raw.slice(0, 30) + '...' : 'YOK')
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+function isAllowedTable(t: unknown): t is AllowedTable {
+  return typeof t === 'string' && (ALLOWED_TABLES as readonly string[]).includes(t)
+}
+
+async function getSession() {
+  const jar = await cookies()
+  return verifySession(jar.get('cr_panel')?.value ?? '')
+}
+
+export async function POST(req: NextRequest) {
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
+  if (!isAllowedTable(body.table)) return NextResponse.json({ error: 'Invalid table' }, { status: 400 })
+
   const db = getSupabaseAdmin()
   const { data, error } = await db
     .from(body.table)
@@ -25,17 +33,13 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ data })
 }
 
-async function getSessionOr401() {
-  const jar = await cookies()
-  const raw = jar.get('cr_panel')?.value ?? ''
-  return verifySession(raw)
-}
-
 export async function PATCH(req: NextRequest) {
-  const session = await getSessionOr401()
+  const session = await getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { table, id, payload } = await req.json()
+  if (!isAllowedTable(table)) return NextResponse.json({ error: 'Invalid table' }, { status: 400 })
+
   const db = getSupabaseAdmin()
   const { data, error } = await db
     .from(table)
@@ -50,10 +54,12 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const session = await getSessionOr401()
+  const session = await getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { table, id } = await req.json()
+  if (!isAllowedTable(table)) return NextResponse.json({ error: 'Invalid table' }, { status: 400 })
+
   const db = getSupabaseAdmin()
   const { error } = await db
     .from(table)

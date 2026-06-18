@@ -36,12 +36,13 @@ export default async function BusinessDetailPage({ params }: Props) {
   const tBiz = await getTranslations('businessTypes')
   const supabase = getSupabaseAdmin()
 
-  const [{ data: biz }, { data: rawServices }, { data: rawStaff }, { data: rawMasa }, { data: rawTables }] = await Promise.all([
+  const [{ data: biz }, { data: rawServices }, { data: rawStaff }, { data: rawTables }, { data: featureFlags }, { data: rawAreas }] = await Promise.all([
     supabase.from('restaurants').select('*').eq('id', id).single(),
-    supabase.from('hizmetler').select('*').eq('isletme_id', id).eq('aktif', true).order('sira'),
-    supabase.from('calisanlar').select('*').eq('isletme_id', id).eq('aktif', true).order('sira'),
-    supabase.from('masa_tipleri').select('*').eq('isletme_id', id).eq('aktif', true).order('kapasite'),
+    supabase.from('hizmetler').select('*').eq('restaurant_id', id).eq('aktif', true).order('sira'),
+    supabase.from('calisanlar').select('*').eq('restaurant_id', id).eq('aktif', true).order('sira'),
     supabase.from('tables').select('*').eq('restaurant_id', id).eq('is_active', true).order('created_at'),
+    supabase.from('feature_flags').select('feature, enabled').eq('restaurant_id', id),
+    supabase.from('special_areas').select('id, name, color').eq('restaurant_id', id).order('name'),
   ])
 
   if (!biz) notFound()
@@ -67,31 +68,26 @@ export default async function BusinessDetailPage({ params }: Props) {
     title: (c.title ?? c.unvan ?? null) as string | null,
   }))
 
-  // Normalize masa tipleri
-  const masaTipleri = (rawMasa ?? []).map((m: Record<string, unknown>) => ({
-    id:       m.id as string,
-    ad:       ((localeKey ? m[`ad${localeKey}`] : null) ?? m.ad ?? m.name) as string,
-    ad_en:    (m.ad_en ?? null) as string | null,
-    ad_ar:    (m.ad_ar ?? null) as string | null,
-    ad_de:    (m.ad_de ?? null) as string | null,
-    ad_da:    (m.ad_da ?? null) as string | null,
-    ad_es:    (m.ad_es ?? null) as string | null,
-    ad_ru:    (m.ad_ru ?? null) as string | null,
-    kapasite: (m.kapasite ?? m.capacity ?? 4) as number,
-  }))
-
   const floorTables = (rawTables ?? []).map((t: Record<string, unknown>) => ({
     id:       t.id as string,
     label:    (t.label ?? 'Masa') as string,
     capacity: (t.capacity ?? 4) as number,
+    area_id:  (t.area_id ?? null) as string | null,
     x:        (t.x ?? 0) as number,
     y:        (t.y ?? 0) as number,
     width:    (t.width ?? 80) as number,
     height:   (t.height ?? 80) as number,
     shape:    (t.shape === 'circle' ? 'circle' : 'rect') as 'rect' | 'circle',
+    rotation: (t.rotation ?? 0) as number,
   }))
 
-  const floorPlanEnabled = Boolean((business as Record<string, unknown>).floor_plan_enabled)
+  const specialAreas = (rawAreas ?? []).map((a: Record<string, unknown>) => ({
+    id:    a.id as string,
+    name:  a.name as string,
+    color: (a.color ?? null) as string | null,
+  }))
+
+  const floorPlanEnabled = (featureFlags ?? []).some(f => f.feature === 'floor_plan' && f.enabled)
     && floorTables.length > 0
 
   const bookingTerm = ['restaurant', 'other'].includes(business.business_type)
@@ -123,11 +119,11 @@ export default async function BusinessDetailPage({ params }: Props) {
               businessId={business.id}
               businessName={business.name}
               businessType={business.business_type}
-              masaTipleri={masaTipleri}
               hizmetler={hizmetler}
               calisanlar={calisanlar}
               floorPlanEnabled={floorPlanEnabled}
               floorTables={floorTables}
+              specialAreas={specialAreas}
               businessAddress={business.address ?? null}
             />
           </div>

@@ -26,7 +26,7 @@ export default async function CalisanlarPage({
   if (!restaurant) redirect('/panel/login')
 
   const { data: staff } = await db
-    .from('staff')
+    .from('calisanlar')
     .select('*')
     .eq('restaurant_id', restaurant.id)
     .order('ad')

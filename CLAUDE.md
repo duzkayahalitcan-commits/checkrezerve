@@ -210,3 +210,14 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
   - `messages/*.json`: tüm dillerde yeni `rezervasyon.adim.*` key'leri eklendi
   - Auth prefill: supabase.auth.getSession() ile e-posta ve ad otomatik doldurma
   - Deployed: Hetzner VPS (docker compose up -d --build)
+
+- [x] **2026-06-19 — Kapsamlı kod incelemesi ve güvenlik düzeltmeleri (W-01..W-10)**
+  - **GÜVENLİK**: `panel-reservations` + `panel-tables` API route'ları HMAC token doğrulaması eklendi
+  - **GÜVENLİK**: `panel-tables` route'unda tablo whitelist eklendi (hizmetler/calisanlar/tables/special_areas)
+  - **BUG FİX**: `/api/rezervasyon/musait` endpoint'i oluşturuldu (meşgul saat slotları)
+  - **PERFORMANS**: BookingForm takvim gün başlıkları locale'e göre dinamik hale getirildi
+  - **SEO**: Home page ve portal sayfasına og:image + OpenGraph metadata eklendi
+  - **TYPESCRİPT**: Home page'deki `as never` TypeScript workaround temizlendi
+  - **ROUTING**: `middleware.ts` oluşturuldu (next-intl locale yönlendirmesi için)
+  - **DOC**: agents/web/CLAUDE.md güncellendi (Next.js 14 → 15)
+  - DEVAM NOKTASI: W-11

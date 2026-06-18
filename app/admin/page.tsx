@@ -194,6 +194,12 @@ export default async function AdminPage() {
                       Aç ↗
                     </a>
                     <Link
+                      href={`/admin/restaurants/${r.id}`}
+                      className="text-xs text-stone-500 hover:text-amber-400 transition-colors"
+                    >
+                      Yönet →
+                    </Link>
+                    <Link
                       href={`/admin/floor-plan/${r.id}`}
                       className="text-xs text-stone-500 hover:text-blue-400 transition-colors flex items-center gap-1"
                       title="Masa krokisini düzenle"

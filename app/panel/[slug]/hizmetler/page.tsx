@@ -26,7 +26,7 @@ export default async function HizmetlerPage({
   if (!restaurant) redirect('/panel/login')
 
   const { data: services } = await db
-    .from('services')
+    .from('hizmetler')
     .select('*')
     .eq('restaurant_id', restaurant.id)
     .order('ad')

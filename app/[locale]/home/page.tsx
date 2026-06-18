@@ -12,6 +12,20 @@ export const metadata: Metadata = {
   title: 'CheckRezerve — Randevu & Rezervasyon Yönetim Sistemi',
   description:
     'Doluluk oranınızı artırın, gelir kaybını önleyin. CheckRezerve ile işletmenizin rezervasyonlarını tek panelden yönetin. Komisyon yok.',
+  openGraph: {
+    title: 'CheckRezerve — Komisyonsuz Rezervasyon Sistemi',
+    description: 'Restoran, güzellik salonu, spa ve daha fazlası için online rezervasyon yönetimi. Komisyon yok.',
+    url: 'https://checkrezerve.com',
+    siteName: 'CheckRezerve',
+    images: [{ url: 'https://checkrezerve.com/images/og-home.jpg', width: 1200, height: 630 }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CheckRezerve — Komisyonsuz Rezervasyon Sistemi',
+    description: 'Restoran, güzellik salonu, spa ve daha fazlası için online rezervasyon yönetimi.',
+    images: ['https://checkrezerve.com/images/og-home.jpg'],
+  },
 }
 
 export default async function HomePage({
@@ -215,8 +229,7 @@ export default async function HomePage({
         <div className="mx-auto max-w-2xl px-6 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-4">Hangi plan size uygun?</h2>
           <p className="text-zinc-500 mb-8">İşletmenizin büyüklüğüne göre hazırlanmış esnek planlarımızı inceleyin.</p>
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <Link href={'/pricing' as never}
+          <Link href="/pricing"
             className="inline-flex items-center gap-2 rounded-full bg-zinc-900 hover:bg-zinc-700 text-white px-8 py-4 text-base font-bold transition-colors">
             Fiyatları Karşılaştır →
           </Link>

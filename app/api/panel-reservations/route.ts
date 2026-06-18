@@ -1,9 +1,15 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { getPanelSession } from '@/app/panel/login/actions'
+import { cookies } from 'next/headers'
+import { verifySession } from '@/lib/panel-auth'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
+async function getSession() {
+  const jar = await cookies()
+  return verifySession(jar.get('cr_panel')?.value ?? '')
+}
+
 export async function PATCH(req: NextRequest) {
-  const session = await getPanelSession()
+  const session = await getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id, status } = await req.json()

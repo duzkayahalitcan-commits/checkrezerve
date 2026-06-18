@@ -1030,7 +1030,8 @@
         "musait": "Müsait",
         "secili": "Seçili",
         "yetersiz": "Yetersiz kapasite",
-        "opsiyonel": "Masa seçimi isteğe bağlıdır, seçmeden devam edebilirsiniz"
+        "opsiyonel": "Masa seçimi isteğe bağlıdır, seçmeden devam edebilirsiniz",
+        "masaTipiYok": "Henüz masa tanımlanmamış"
       },
       "bilgi": {
         "baslik": "Bilgileriniz",
@@ -1052,7 +1053,9 @@
         "alan": "Alan",
         "masa": "Masa",
         "tamamla": "Rezervasyonu Tamamla",
-        "iptalNotu": "Ücretsiz iptal: 2 saat öncesine kadar"
+        "iptalNotu": "Ücretsiz iptal: 2 saat öncesine kadar",
+        "hizmet": "Hizmet",
+        "calisan": "Çalışan"
       },
       "basari": {
         "baslik": "Rezervasyon Tamamlandı!",
@@ -1061,11 +1064,22 @@
         "rezervasyonlarim": "Rezervasyonlarıma Git",
         "anaSayfa": "Ana Sayfaya Dön",
         "yolTarifi": "Yol Tarifi Al"
+      },
+      "hizmet": {
+        "baslik": "Hizmet Seçin",
+        "fiyat": "Fiyat",
+        "sure": "Süre",
+        "dk": "dk"
+      },
+      "calisan": {
+        "baslik": "Çalışan Seçin",
+        "farkEtmez": "Fark etmez"
       }
     },
     "step": {
       "devam": "Devam",
-      "geri": "Geri"
+      "geri": "Geri",
+      "atla": "Atla"
     },
     "gizlilik": {
       "baslik": "Gizlilik Sözleşmesi ve Rezervasyon Koşulları",

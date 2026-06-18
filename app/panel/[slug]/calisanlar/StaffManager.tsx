@@ -37,13 +37,13 @@ export default function StaffManager({ staff, restaurantId }: { staff: Staff[]; 
 
     if (id) {
       try {
-        await apiCall('PATCH', { table: 'staff', id, payload })
+        await apiCall('PATCH', { table: 'calisanlar', id, payload })
         setList(prev => prev.map(s => s.id === id ? { ...s, ...payload } as Staff : s))
         toast.show('Güncellendi', 'success')
       } catch { toast.show('Güncellenemedi', 'error'); return }
     } else {
       try {
-        const { data } = await apiCall('POST', { table: 'staff', payload })
+        const { data } = await apiCall('POST', { table: 'calisanlar', payload })
         setList(prev => [...prev, data as Staff])
         toast.show('Eklendi', 'success')
       } catch { toast.show('Eklenemedi', 'error'); return }
@@ -54,7 +54,7 @@ export default function StaffManager({ staff, restaurantId }: { staff: Staff[]; 
 
   async function remove(id: string) {
     try {
-      await apiCall('DELETE', { table: 'staff', id })
+      await apiCall('DELETE', { table: 'calisanlar', id })
       setList(prev => prev.filter(s => s.id !== id))
       setDeleting(null)
       toast.show('Silindi', 'success')
@@ -64,7 +64,7 @@ export default function StaffManager({ staff, restaurantId }: { staff: Staff[]; 
   async function toggleActive(s: Staff) {
     const newVal = !s.aktif
     try {
-      await apiCall('PATCH', { table: 'staff', id: s.id, payload: { aktif: newVal } })
+      await apiCall('PATCH', { table: 'calisanlar', id: s.id, payload: { aktif: newVal } })
       setList(prev => prev.map(x => x.id === s.id ? { ...x, aktif: newVal } : x))
       toast.show(newVal ? 'Aktif edildi' : 'Pasif edildi', 'success')
     } catch { toast.show('Güncellenemedi', 'error') }
@@ -134,7 +134,6 @@ export default function StaffManager({ staff, restaurantId }: { staff: Staff[]; 
               ) : (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    {/* Avatar placeholder */}
                     <div className="w-8 h-8 rounded-full bg-stone-700 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                       {s.ad.charAt(0).toUpperCase()}
                     </div>

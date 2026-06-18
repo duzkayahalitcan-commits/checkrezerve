@@ -8,6 +8,14 @@ import LanguageSelector from '@/components/LanguageSelector'
 export const metadata: Metadata = {
   title: 'CheckRezerve — Rezervasyon',
   description: 'Restoran, güzellik salonu ve spa rezervasyonu — saniyeler içinde.',
+  openGraph: {
+    title: 'CheckRezerve — Rezervasyon',
+    description: 'Restoran, güzellik salonu ve spa rezervasyonu — saniyeler içinde.',
+    url: 'https://checkrezerve.com',
+    siteName: 'CheckRezerve',
+    images: [{ url: 'https://checkrezerve.com/images/og-home.jpg', width: 1200, height: 630 }],
+    type: 'website',
+  },
 }
 
 export default async function PortalPage({

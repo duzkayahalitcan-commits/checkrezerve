@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import TableManager from './TableManager'
+import FloorPlanEditor from './FloorPlanEditor'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,12 +38,32 @@ export default async function MasalarPage({
         <p className="text-xs text-stone-500 mt-0.5">{tables?.length ?? 0} masa, {areas?.length ?? 0} alan</p>
       </div>
       <main className="max-w-5xl mx-auto px-4 md:px-6 py-6">
-        <TableManager
+        <MasalarContent
           tables={tables ?? []}
           areas={areas ?? []}
           restaurantId={restaurant.id}
         />
       </main>
     </div>
+  )
+}
+
+// Client component for the tab switcher
+import MasalarContentClient from './MasalarContent'
+function MasalarContent({
+  tables,
+  areas,
+  restaurantId,
+}: {
+  tables: any[]
+  areas: any[]
+  restaurantId: string
+}) {
+  return (
+    <MasalarContentClient
+      tables={tables}
+      areas={areas}
+      restaurantId={restaurantId}
+    />
   )
 }

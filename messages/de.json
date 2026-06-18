@@ -1030,7 +1030,8 @@
         "musait": "Available",
         "secili": "Selected",
         "yetersiz": "Insufficient capacity",
-        "opsiyonel": "Tischauswahl ist optional, Sie können fortfahren ohne auszuwählen"
+        "opsiyonel": "Tischauswahl ist optional, Sie können fortfahren ohne auszuwählen",
+        "masaTipiYok": "Noch keine Tische definiert"
       },
       "bilgi": {
         "baslik": "Your Information",
@@ -1052,7 +1053,9 @@
         "alan": "Area",
         "masa": "Table",
         "tamamla": "Complete Reservation",
-        "iptalNotu": "Free cancellation: up to 2 hours before"
+        "iptalNotu": "Free cancellation: up to 2 hours before",
+        "hizmet": "Service",
+        "calisan": "Mitarbeiter"
       },
       "basari": {
         "baslik": "Reservation Complete!",
@@ -1061,11 +1064,22 @@
         "rezervasyonlarim": "My Reservations",
         "anaSayfa": "Back to Home",
         "yolTarifi": "Route berechnen"
+      },
+      "hizmet": {
+        "baslik": "Service auswählen",
+        "fiyat": "Preis",
+        "sure": "Dauer",
+        "dk": "Min."
+      },
+      "calisan": {
+        "baslik": "Mitarbeiter auswählen",
+        "farkEtmez": "Egal"
       }
     },
     "step": {
       "devam": "Continue",
-      "geri": "Back"
+      "geri": "Back",
+      "atla": "Überspringen"
     },
     "gizlilik": {
       "baslik": "Privacy Agreement & Reservation Terms",
