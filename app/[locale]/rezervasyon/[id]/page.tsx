@@ -38,8 +38,8 @@ export default async function BusinessDetailPage({ params }: Props) {
 
   const [{ data: biz }, { data: rawServices }, { data: rawStaff }, { data: rawTables }, { data: featureFlags }, { data: rawAreas }] = await Promise.all([
     supabase.from('restaurants').select('*').eq('id', id).single(),
-    supabase.from('hizmetler').select('*').eq('restaurant_id', id).eq('aktif', true).order('sira'),
-    supabase.from('calisanlar').select('*').eq('restaurant_id', id).eq('aktif', true).order('sira'),
+    supabase.from('hizmetler').select('*').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
+    supabase.from('calisanlar').select('*').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
     supabase.from('tables').select('*').eq('restaurant_id', id).eq('is_active', true).order('created_at'),
     supabase.from('feature_flags').select('feature, enabled').eq('restaurant_id', id),
     supabase.from('special_areas').select('id, name, color').eq('restaurant_id', id).order('name'),
