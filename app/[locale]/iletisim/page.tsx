@@ -6,7 +6,7 @@ import MarketingFooter from '@/components/MarketingFooter'
 import ContactForm from './ContactForm'
 import {
   Zap, BadgeDollarSign, HeadphonesIcon, Shield, Globe,
-  BookOpen, LifeBuoy, Info, Briefcase, Mail,
+  FileText, Headset, CalendarCheck, Handshake, Mail,
   ArrowRight,
 } from 'lucide-react'
 
@@ -121,41 +121,11 @@ export default async function IletisimPage({
   ]
 
   const QUICK_LINKS = [
-    {
-      icon: <BookOpen className="h-5 w-5" />,
-      title: t('quickDocTitle'), desc: t('quickDocDesc'),
-      href: '#',
-      gradient: 'from-violet-500 to-indigo-500',
-      hoverBg: 'hover:bg-violet-50/60',
-    },
-    {
-      icon: <LifeBuoy className="h-5 w-5" />,
-      title: t('quickSupportTitle'), desc: t('quickSupportDesc'),
-      href: '#',
-      gradient: 'from-sky-500 to-cyan-400',
-      hoverBg: 'hover:bg-sky-50/60',
-    },
-    {
-      icon: <Info className="h-5 w-5" />,
-      title: t('quickAboutTitle'), desc: t('quickAboutDesc'),
-      href: '/hakkimizda',
-      gradient: 'from-emerald-500 to-teal-400',
-      hoverBg: 'hover:bg-emerald-50/60',
-    },
-    {
-      icon: <Briefcase className="h-5 w-5" />,
-      title: t('quickCareerTitle'), desc: t('quickCareerDesc'),
-      href: '#',
-      gradient: 'from-amber-500 to-orange-400',
-      hoverBg: 'hover:bg-amber-50/60',
-    },
-    {
-      icon: <Mail className="h-5 w-5" />,
-      title: t('quickContactTitle'), desc: t('quickContactDesc'),
-      href: 'mailto:info@checkrezerve.com',
-      gradient: 'from-red-500 to-rose-400',
-      hoverBg: 'hover:bg-red-50/60',
-    },
+    { Icon: FileText,     title: t('quickDocTitle'),     desc: t('quickDocDesc'),     href: '/docs' },
+    { Icon: Headset,      title: t('quickSupportTitle'), desc: t('quickSupportDesc'), href: '/destek' },
+    { Icon: CalendarCheck,title: t('quickDemoTitle'),    desc: t('quickDemoDesc'),    href: '/demo' },
+    { Icon: Handshake,    title: t('quickSectorTitle'),  desc: t('quickSectorDesc'),  href: '/sektorler' },
+    { Icon: Mail,         title: t('quickContactTitle'), desc: t('quickContactDesc'), href: 'mailto:info@checkrezerve.com' },
   ]
 
   const SOCIALS = [
@@ -298,27 +268,23 @@ export default async function IletisimPage({
             <p className="mt-2 text-sm text-zinc-500">{t('quickLinksDesc')}</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
             {QUICK_LINKS.map((link, i) => (
               <a
                 key={i}
                 href={link.href}
-                className={`group relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-6 transition-all duration-200 hover:border-transparent hover:shadow-lg ${link.hoverBg}`}
+                className="group flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-6 transition-all duration-200 hover:border-zinc-300 hover:shadow-md"
               >
-                {/* Colored top border */}
-                <div className={`absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r ${link.gradient} transition-all duration-200`} />
-
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${link.gradient} text-white transition-all duration-200 group-hover:h-12 group-hover:w-12`}>
-                  {link.icon}
-                </div>
+                <link.Icon
+                  size={32}
+                  strokeWidth={1.5}
+                  className="text-neutral-900 dark:text-neutral-100"
+                />
                 <div className="flex-1">
                   <p className="font-semibold text-zinc-900 text-sm">{link.title}</p>
                   <p className="mt-1 text-xs text-zinc-500 leading-relaxed">{link.desc}</p>
                 </div>
-                <div className={`inline-flex items-center gap-1 rounded-lg bg-gradient-to-r ${link.gradient} px-3 py-1.5 text-xs font-semibold text-white transition-all duration-200 group-hover:gap-2`}>
-                  Keşfet
-                  <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-0.5" />
-                </div>
+                <ArrowRight className="h-4 w-4 text-zinc-400 transition-transform duration-200 group-hover:translate-x-1" />
               </a>
             ))}
           </div>
