@@ -254,32 +254,27 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
         </motion.div>
       ) : (
         <AnimatePresence mode="popLayout">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map((biz, i) => {
-              const icon      = BUSINESS_TYPE_ICONS[biz.business_type as BusinessType] ?? '🏪'
-              const accent    = TYPE_ACCENT[biz.business_type] ?? '#E53935'
-              const bg        = TYPE_BG[biz.business_type] ?? 'bg-zinc-50'
-              const thumbSrc  = biz.cover_image ?? TYPE_UNSPLASH[biz.business_type] ?? null
+          <div className="flex flex-col gap-3">
+            {filtered.map((biz) => {
+              const icon     = BUSINESS_TYPE_ICONS[biz.business_type as BusinessType] ?? '🏪'
+              const accent   = TYPE_ACCENT[biz.business_type] ?? '#E53935'
+              const bg       = TYPE_BG[biz.business_type] ?? 'bg-zinc-50'
+              const thumbSrc = biz.cover_image ?? TYPE_UNSPLASH[biz.business_type] ?? null
               return (
                 <motion.div
                   key={biz.id}
                   layout
                   initial={false}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-                  whileHover={{ y: -4, boxShadow: `0 16px 40px ${accent}33` }}
-                  whileTap={{ scale: 0.98 }}
-                  className="rounded-2xl border border-zinc-100 bg-white overflow-hidden group cursor-pointer"
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -8 }}
+                  transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+                  className="rounded-2xl border border-zinc-100 bg-white overflow-hidden group"
                   style={{ willChange: 'transform' }}
                 >
-                  <Link
-                    href={{ pathname: '/rezervasyon/[id]', params: { id: biz.id } }}
-                    className="flex flex-col h-full"
-                  >
-                    {/* Thumbnail */}
+                  <div className="flex items-center gap-0">
+                    {/* Thumbnail — left */}
                     <div
-                      className={`w-full h-36 overflow-hidden relative ${bg} flex items-center justify-center text-3xl`}
+                      className={`w-24 h-24 flex-shrink-0 overflow-hidden relative ${bg} flex items-center justify-center text-3xl`}
                     >
                       {thumbSrc ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
@@ -294,13 +289,13 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                       )}
                     </div>
 
-                    {/* Content */}
-                    <div className="flex-1 p-5 flex flex-col justify-center">
-                      <p className="font-bold text-zinc-900 group-hover:text-red-600 transition-colors truncate leading-snug">
+                    {/* Content — right */}
+                    <div className="flex-1 min-w-0 px-4 py-3 flex flex-col justify-center">
+                      <p className="font-bold text-zinc-900 group-hover:text-red-600 transition-colors truncate leading-snug text-sm">
                         {biz.name}
                       </p>
                       <span
-                        className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full mt-1.5 mb-2"
+                        className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full mt-1 mb-1.5 self-start"
                         style={{ backgroundColor: `${accent}15`, color: accent }}
                       >
                         {biz.typeLabel}
@@ -312,7 +307,18 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                         </p>
                       )}
                     </div>
-                  </Link>
+
+                    {/* CTA */}
+                    <div className="pr-4 flex-shrink-0">
+                      <Link
+                        href={{ pathname: '/rezervasyon/[id]', params: { id: biz.id } }}
+                        className="inline-block text-xs font-bold px-3 py-2 rounded-xl text-white transition-colors"
+                        style={{ backgroundColor: accent }}
+                      >
+                        Rezervasyon Yap
+                      </Link>
+                    </div>
+                  </div>
                 </motion.div>
               )
             })}

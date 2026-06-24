@@ -61,6 +61,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    // TODO: Resend/Nodemailer entegrasyonu için hazır — aşağıdaki log'u e-posta servisine bağla
+    console.log('[email-mock]', {
+      to: email?.trim() || phone.trim(),
+      subject: 'Rezervasyonunuz Onaylandı — CheckRezerve',
+      body: `Sayın ${customer_name.trim()}, ${date} ${time} rezervasyonunuz onaylandı. Kod: ${data.id}`,
+    })
+
     return NextResponse.json({ success: true, id: data.id })
   } catch (err) {
     console.error('[rezervasyon]', err)

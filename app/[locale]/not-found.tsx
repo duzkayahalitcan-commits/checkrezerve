@@ -27,12 +27,20 @@ export default function LocaleNotFound() {
       />
       <h1 className="text-3xl sm:text-4xl font-bold mb-4">{msg.title}</h1>
       <p className="text-zinc-400 mb-8 max-w-md">{msg.subtitle}</p>
-      <a
-        href="/"
-        className="rounded-full bg-[#E53935] hover:bg-red-700 text-white px-8 py-3 text-sm font-semibold transition-colors"
-      >
-        {msg.button}
-      </a>
+      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <a
+          href="/"
+          className="rounded-full bg-[#E53935] hover:bg-red-700 text-white px-8 py-3 text-sm font-semibold transition-colors"
+        >
+          {msg.button}
+        </a>
+        <a
+          href="/rezervasyon"
+          className="rounded-full border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-white px-8 py-3 text-sm font-semibold transition-colors"
+        >
+          Rezervasyon Yap
+        </a>
+      </div>
     </div>
   )
 }

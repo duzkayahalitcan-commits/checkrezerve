@@ -220,4 +220,15 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
   - **TYPESCRİPT**: Home page'deki `as never` TypeScript workaround temizlendi
   - **ROUTING**: `middleware.ts` oluşturuldu (next-intl locale yönlendirmesi için)
   - **DOC**: agents/web/CLAUDE.md güncellendi (Next.js 14 → 15)
-  - DEVAM NOKTASI: W-11
+
+- [x] **2026-06-24 — W-11..W-19: profil, panel takvim, arama fix, auth, cookie banner**
+  - **W-11**: `POST /api/rezervasyon` → e-posta log'u eklendi (console.log mock, Resend/Nodemailer'a hazır)
+  - **W-12**: `app/[locale]/isletme/[slug]/page.tsx` → public işletme profil sayfası (Server Component, SEO metadata, Rezervasyon Yap CTA)
+  - **W-13**: `SearchableBusinessList.tsx` kart layoutu güncellendi → yatay (görsel sol, isim+badge+buton sağ), loading="eager"
+  - **W-14**: `app/panel/[slug]/takvim/` → `WeeklyView.tsx` eklendi (7 sütun haftalık görünüm), monthly/weekly toggle (?view=haftalik)
+  - **W-15**: Panel dashboard stat kartları güncellendi → Bugünkü/Bu Hafta/Onay Bekleyen/İptal, her kart filtreli rezervasyon listesine link
+  - **W-16**: `app/[locale]/profil/page.tsx` → "Son Rezervasyonlar" bölümü eklendi (son 5, guest_email ile sorgu)
+  - **W-17**: `app/[locale]/giris/page.tsx` → zaten tam implement edilmiş (Google+Apple OAuth, Türkçe hatalar) — değişiklik yok
+  - **W-18**: `CookieBanner` locale layout'a eklendi (`app/[locale]/layout.tsx`)
+  - **W-19**: `not-found.tsx` güncellendi → "Rezervasyon Yap" butonu eklendi
+  - DEVAM NOKTASI: W-21

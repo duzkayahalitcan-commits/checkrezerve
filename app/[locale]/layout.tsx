@@ -7,6 +7,7 @@ import PageTransition from "@/components/ui/PageTransition";
 import SmoothScroll from "@/components/SmoothScroll";
 import NavigationProgress from "@/components/ui/NavigationProgress";
 import ChatWidget from "@/components/ChatWidget";
+import CookieBanner from "@/components/CookieBanner";
 import type { Metadata } from "next";
 
 type Props = {
@@ -45,6 +46,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       <ToastProvider>
         <NavigationProgress />
         <ChatWidget />
+        <CookieBanner />
         <div dir={dir} lang={locale} style={{ minHeight: '100%' }}>
           <SmoothScroll />
           <PageTransition>

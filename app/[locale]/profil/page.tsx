@@ -23,11 +23,31 @@ interface FavBusiness {
   id: string; name: string; kategori: string | null; address: string | null; slug: string
 }
 
+interface UserReservation {
+  id: string
+  reserved_date: string
+  reserved_time: string
+  party_size: number | null
+  status: string
+  restaurants: { name: string } | null
+}
+
+const RES_STATUS_LABEL: Record<string, string> = {
+  pending: 'Beklemede', confirmed: 'Onaylı', cancelled: 'İptal', completed: 'Tamamlandı',
+}
+const RES_STATUS_COLOR: Record<string, string> = {
+  pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+  confirmed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  cancelled: 'bg-red-50 text-red-700 border-red-200',
+  completed: 'bg-blue-50 text-blue-700 border-blue-200',
+}
+
 export default function ProfilPage() {
   const router = useRouter()
   const t = useTranslations('profil')
   const [user, setUser] = useState<User | null>(null)
   const [favs, setFavs] = useState<FavBusiness[]>([])
+  const [reservations, setReservations] = useState<UserReservation[]>([])
   const [loading, setLoading] = useState(true)
 
   const loadFavs = useCallback(async (uid: string) => {
@@ -42,14 +62,27 @@ export default function ProfilPage() {
     setFavs(list)
   }, [])
 
+  const loadReservations = useCallback(async (email: string) => {
+    const { data } = await supabase
+      .from('reservations')
+      .select('id, reserved_date, reserved_time, party_size, status, restaurants(name)')
+      .eq('guest_email', email)
+      .order('reserved_date', { ascending: false })
+      .limit(5)
+    setReservations((data ?? []) as unknown as UserReservation[])
+  }, [])
+
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.replace('/giris'); return }
       setUser(session.user)
-      await loadFavs(session.user.id)
+      await Promise.all([
+        loadFavs(session.user.id),
+        session.user.email ? loadReservations(session.user.email) : Promise.resolve(),
+      ])
       setLoading(false)
     })
-  }, [router, loadFavs])
+  }, [router, loadFavs, loadReservations])
 
   const removeFav = async (restaurantId: string) => {
     if (!user) return
@@ -97,6 +130,34 @@ export default function ProfilPage() {
             {t('signOut')}
           </button>
         </div>
+
+        {/* Son Rezervasyonlar */}
+        <h2 className="text-lg font-bold text-zinc-900 mb-5">📋 Son Rezervasyonlar</h2>
+        {reservations.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-dashed border-zinc-200 p-6 text-center mb-8">
+            <p className="text-zinc-400 text-sm">Henüz rezervasyonunuz yok.</p>
+            <Link href="/rezervasyon" className="mt-3 inline-block text-sm text-[#E53935] font-semibold hover:underline">
+              Rezervasyon Yap →
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-3 mb-8">
+            {reservations.map(r => (
+              <div key={r.id} className="bg-white rounded-2xl border border-zinc-100 p-4 flex items-center gap-4 shadow-sm">
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-zinc-900 truncate">{r.restaurants?.name ?? 'İşletme'}</p>
+                  <p className="text-xs text-zinc-500 mt-0.5">
+                    {r.reserved_date} · {(r.reserved_time ?? '').slice(0, 5)}
+                    {r.party_size ? ` · ${r.party_size} kişi` : ''}
+                  </p>
+                </div>
+                <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${RES_STATUS_COLOR[r.status] ?? 'bg-zinc-50 text-zinc-600 border-zinc-200'}`}>
+                  {RES_STATUS_LABEL[r.status] ?? r.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Favorites */}
         <h2 className="text-lg font-bold text-zinc-900 mb-5">

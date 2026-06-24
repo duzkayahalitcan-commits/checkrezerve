@@ -62,6 +62,8 @@ export default async function PanelDashboardPage({
     { count: todayCount },
     { count: todayConfirmed },
     { data: allReservations },
+    { count: pendingCount },
+    { count: cancelledCount },
   ] = await Promise.all([
     db.from('reservations').select('id, date, status, special_area_id, party_size')
       .eq('restaurant_id', restaurant.id).gte('date', week.start).lte('date', week.end)
@@ -82,6 +84,10 @@ export default async function PanelDashboardPage({
       .gte('reserved_date', new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10))
       .order('reserved_date', { ascending: false })
       .order('reserved_time', { ascending: false }),
+    db.from('reservations').select('*', { count: 'exact', head: true })
+      .eq('restaurant_id', restaurant.id).eq('status', 'pending'),
+    db.from('reservations').select('*', { count: 'exact', head: true })
+      .eq('restaurant_id', restaurant.id).eq('status', 'cancelled'),
   ])
 
   const allRes = (weekReservations ?? []) as Pick<Reservation, 'id' | 'date' | 'status' | 'special_area_id' | 'party_size'>[]
@@ -131,22 +137,18 @@ export default async function PanelDashboardPage({
 
         {/* Stat Cards */}
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard label={t('todayTotal')}     value={todayCount ?? 0}     accent="amber" delay="0ms"   />
-          <StatCard label={t('confirmedCount')} value={todayConfirmed ?? 0} accent="green" delay="70ms"  />
-          <StatCard label={t('thisWeek')}        value={weekTotal}           accent="blue"  delay="140ms" />
-          {weekRevenue > 0 ? (
-            <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-emerald-400">
-                {weekRevenue.toLocaleString(locale)} ₺
-              </div>
-              <div className="text-stone-500 text-xs mt-0.5">Haftalık Gelir</div>
-            </div>
-          ) : (
-            <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-violet-400">{weekPct}%</div>
-              <div className="text-stone-500 text-xs mt-0.5">Haftalık Doluluk</div>
-            </div>
-          )}
+          <Link href={`/panel/${slug}/rezervasyonlar?tarih=${today}`} className="block">
+            <StatCard label="Bugünkü Rezervasyon" value={todayCount ?? 0}    accent="amber" delay="0ms"   />
+          </Link>
+          <Link href={`/panel/${slug}/rezervasyonlar`} className="block">
+            <StatCard label="Bu Hafta"             value={weekTotal}          accent="blue"  delay="70ms"  />
+          </Link>
+          <Link href={`/panel/${slug}/rezervasyonlar?durum=pending`} className="block">
+            <StatCard label="Onay Bekleyen"        value={pendingCount ?? 0}  accent="yellow" delay="140ms" />
+          </Link>
+          <Link href={`/panel/${slug}/rezervasyonlar?durum=cancelled`} className="block">
+            <StatCard label="İptal"                value={cancelledCount ?? 0} accent="red"  delay="210ms" />
+          </Link>
         </section>
 
         {/* Quick-access cards */}
@@ -248,11 +250,17 @@ export default async function PanelDashboardPage({
   )
 }
 
-function StatCard({ label, value, accent, delay = '0ms' }: { label: string; value: number; accent: 'amber' | 'green' | 'blue'; delay?: string }) {
-  const colors = { amber: 'text-amber-400', green: 'text-emerald-400', blue: 'text-blue-400' }
+function StatCard({ label, value, accent, delay = '0ms' }: { label: string; value: number; accent: 'amber' | 'green' | 'blue' | 'yellow' | 'red'; delay?: string }) {
+  const colors = {
+    amber:  'text-amber-400',
+    green:  'text-emerald-400',
+    blue:   'text-blue-400',
+    yellow: 'text-yellow-400',
+    red:    'text-red-400',
+  }
   return (
     <div
-      className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center animate-[fadeSlideUp_0.4s_ease_forwards] opacity-0"
+      className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center animate-[fadeSlideUp_0.4s_ease_forwards] opacity-0 hover:border-stone-700 transition-colors h-full"
       style={{ animationDelay: delay }}
     >
       <CountUp to={value} className={`text-2xl font-bold ${colors[accent]}`} />
