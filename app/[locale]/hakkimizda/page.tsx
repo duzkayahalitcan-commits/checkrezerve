@@ -151,7 +151,7 @@ export default async function HakkimizdaPage({
           width={1440}
           height={320}
           className="w-full h-full object-cover"
-          loading="lazy"
+          loading="eager"
         />
       </div>
 

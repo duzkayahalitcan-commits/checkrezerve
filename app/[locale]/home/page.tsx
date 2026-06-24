@@ -136,7 +136,7 @@ export default async function HomePage({
           }))} />
           <div className="rounded-2xl overflow-hidden border border-zinc-200 max-w-3xl mx-auto relative aspect-video">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/hero-restaurant-new.jpg" alt="CheckRezerve demo" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+            <img src="/images/hero-restaurant-new.jpg" alt="CheckRezerve demo" loading="eager" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
             <div className="absolute inset-0 bg-zinc-900/65 flex flex-col items-center justify-center gap-4">
               <div className="w-16 h-16 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg shadow-red-900/40">
                 <svg className="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
@@ -182,7 +182,7 @@ export default async function HomePage({
             <div className="flex-shrink-0 w-full lg:w-96">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/images/feature-rezervasyon.jpg" alt="CheckRezerve reservation management"
-                loading="lazy" style={{ width: '100%', height: '340px', objectFit: 'cover' }} className="w-full rounded-2xl shadow-xl" />
+                loading="eager" style={{ width: '100%', height: '340px', objectFit: 'cover' }} className="w-full rounded-2xl shadow-xl" />
             </div>
           </div>
         </div>

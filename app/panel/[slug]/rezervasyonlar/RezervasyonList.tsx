@@ -68,6 +68,7 @@ export default function RezervasyonList({
   const [areaFilter, setAreaFilter] = useState('all')
   const [updating, setUpdating] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const filtered = useMemo(() => {
     let list = [...reservations]
@@ -83,6 +84,8 @@ export default function RezervasyonList({
     if (areaFilter !== 'all') list = list.filter(r => r.special_area_id === areaFilter)
     return list
   }, [reservations, search, statusFilter, dateFilter, areaFilter])
+
+  const selectedRes = selectedId ? (filtered.find(r => r.id === selectedId) ?? null) : null
 
   async function updateStatus(id: string, status: string) {
     setUpdating(id)
@@ -219,7 +222,8 @@ export default function RezervasyonList({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2, delay: i * 0.02, ease: [0.23, 1, 0.32, 1] }}
-                className={`rounded-xl border border-stone-800 p-3 sm:p-4 transition-opacity ${updating === r.id ? 'opacity-40' : ''}`}
+                onClick={() => setSelectedId(r.id)}
+                className={`rounded-xl border border-stone-800 p-3 sm:p-4 transition-opacity cursor-pointer hover:border-stone-700 hover:bg-stone-900/50 ${updating === r.id ? 'opacity-40' : ''}`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
@@ -251,7 +255,7 @@ export default function RezervasyonList({
                     )}
                     {r.notes && <p className="mt-1.5 text-xs text-stone-600 italic">&ldquo;{r.notes}&rdquo;</p>}
                   </div>
-                  <div className="flex flex-col gap-1.5 shrink-0">
+                  <div className="flex flex-col gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
                     {r.status === 'pending' && (
                       <>
                         <button onClick={() => updateStatus(r.id, 'confirmed')} disabled={updating === r.id}
@@ -279,6 +283,107 @@ export default function RezervasyonList({
           </AnimatePresence>
         </div>
       )}
+
+      {/* Detail Modal */}
+      <AnimatePresence>
+        {selectedRes && (
+          <motion.div
+            key="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSelectedId(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 40, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.96 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+              className="bg-stone-900 border border-stone-700 rounded-2xl p-6 w-full max-w-md shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="font-bold text-white text-base">Rezervasyon Detayı</h2>
+                <button
+                  onClick={() => setSelectedId(null)}
+                  className="text-stone-500 hover:text-white transition-colors p-1"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Status badge */}
+              <div className="flex items-center gap-2 mb-5">
+                <span className={`text-xs px-3 py-1 rounded-full font-semibold border ${STATUS_CLS[selectedRes.status] ?? ''}`}>
+                  {STATUS_TR[selectedRes.status] ?? selectedRes.status}
+                </span>
+                {selectedRes.source === 'ai' && (
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-purple-500/15 text-purple-400 border border-purple-500/20 font-semibold">AI</span>
+                )}
+              </div>
+
+              {/* Fields */}
+              <div className="space-y-3 mb-6">
+                {[
+                  { label: 'Müşteri', value: selectedRes.guest_name ?? '—' },
+                  { label: 'Telefon', value: selectedRes.guest_phone ?? '—' },
+                  { label: 'Tarih', value: new Date(selectedRes.reserved_date + 'T12:00').toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) },
+                  { label: 'Saat', value: selectedRes.reserved_time?.slice(0, 5) ?? '—' },
+                  { label: 'Kişi Sayısı', value: selectedRes.party_size ? `${selectedRes.party_size} kişi` : '—' },
+                  selectedRes.special_areas?.name ? { label: 'Alan', value: selectedRes.special_areas.name } : null,
+                  selectedRes.calisanlar?.ad ? { label: 'Çalışan', value: selectedRes.calisanlar.ad } : null,
+                  selectedRes.hizmetler?.ad ? { label: 'Hizmet', value: selectedRes.hizmetler.ad + (selectedRes.hizmetler.fiyat ? ` — ${selectedRes.hizmetler.fiyat} ₺` : '') } : null,
+                  selectedRes.notes ? { label: 'Notlar', value: selectedRes.notes } : null,
+                ].filter(Boolean).map(f => f && (
+                  <div key={f.label} className="flex gap-3">
+                    <span className="text-stone-500 text-xs w-24 shrink-0 pt-0.5">{f.label}</span>
+                    <span className="text-stone-200 text-sm font-medium">{f.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2 flex-wrap">
+                {selectedRes.status === 'pending' && (
+                  <button
+                    onClick={() => { updateStatus(selectedRes.id, 'confirmed'); setSelectedId(null) }}
+                    className="flex-1 py-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 text-sm font-semibold hover:bg-emerald-500/35 transition-colors"
+                  >
+                    Onayla
+                  </button>
+                )}
+                {selectedRes.status === 'confirmed' && (
+                  <button
+                    onClick={() => { updateStatus(selectedRes.id, 'completed'); setSelectedId(null) }}
+                    className="flex-1 py-2.5 rounded-xl bg-blue-500/15 text-blue-400 text-sm font-semibold hover:bg-blue-500/25 transition-colors"
+                  >
+                    Tamamla
+                  </button>
+                )}
+                {(selectedRes.status === 'pending' || selectedRes.status === 'confirmed') && (
+                  <button
+                    onClick={() => { updateStatus(selectedRes.id, 'cancelled'); setSelectedId(null) }}
+                    className="flex-1 py-2.5 rounded-xl bg-red-500/15 text-red-400 text-sm font-semibold hover:bg-red-500/25 transition-colors"
+                  >
+                    İptal Et
+                  </button>
+                )}
+                {selectedRes.status === 'cancelled' && (
+                  <button
+                    onClick={() => { updateStatus(selectedRes.id, 'pending'); setSelectedId(null) }}
+                    className="flex-1 py-2.5 rounded-xl bg-amber-500/15 text-amber-400 text-sm font-semibold hover:bg-amber-500/25 transition-colors"
+                  >
+                    Geri Al
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

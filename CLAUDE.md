@@ -244,3 +244,15 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
   - **W-28**: `FavoriteToggle.tsx` oluşturuldu (Supabase auth+DB bağlantılı), `BusinessDetailHero`'ya entegre, `restaurantId` prop eklendi
   - **W-29**: `BookingForm.tsx` → `useToast()` entegre (başarı=yeşil, hata=kırmızı)
   - DEVAM NOKTASI: W-31
+
+- [x] **2026-06-24 — W-31..W-39: işletme detay, filtre, panel CRUD, blog, performans**
+  - **W-31**: `isletme/[slug]/page.tsx` → hizmetler + çalışanlar bölümleri eklendi (paralel sorgu), FavoriteToggle hero'ya entegre
+  - **W-32**: `SearchableBusinessList.tsx` → sıralama chips (En Yeni / A–Z / Yakın) + temizle butonu eklendi
+  - **W-33**: `RezervasyonList.tsx` → satır tıklama → detay modal (AnimatePresence, spring anim, alan tablosu, Onayla/İptal/Tamamla/Geri Al aksiyonları)
+  - **W-34**: Panel StaffManager (çalışan CRUD) zaten tam implement edilmişti — değişiklik yok
+  - **W-35**: Panel ServiceManager (hizmet CRUD) zaten tam implement edilmişti — değişiklik yok
+  - **W-36**: `rezervasyonlarim/page.tsx` → 3 sekme (Yaklaşan/Geçmiş/İptal), guest_email sorgusu, satır tıklama detay modal, iptal butonu (sadece pending+gelecek tarih)
+  - **W-37**: Blog sayfaları zaten tam implement edilmişti (6 yazı, i18n, SEO) — değişiklik yok
+  - **W-38**: `app/[locale]/loading.tsx` oluşturuldu (spinner + "Yükleniyor..." metni)
+  - **W-39**: `home/page.tsx` + `hakkimizda/page.tsx` → `loading="lazy"` → `loading="eager"` (Framer Motion opacity:0 bug önlemi)
+  - DEVAM NOKTASI: W-41

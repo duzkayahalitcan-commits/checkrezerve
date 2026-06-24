@@ -88,6 +88,9 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
   const activeKey = params.get('kategori') ?? ''
   const [query, setQuery] = useState('')
 
+  const rawSiralama = params.get('siralama') ?? 'yeni'
+  const [siralama, setSiralama] = useState(rawSiralama)
+
   useEffect(() => { setQuery('') }, [activeKey])
 
   const filtered = useMemo(() => {
@@ -103,8 +106,16 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
         b.typeLabel.toLowerCase().includes(q)
       )
     }
+
+    if (siralama === 'yeni') {
+      list = [...list].reverse()
+    } else if (siralama === 'az') {
+      list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'tr'))
+    }
+    // 'yakin' would need geolocation — skipped for now, order as-is
+
     return list
-  }, [allBusinesses, activeKey, query])
+  }, [allBusinesses, activeKey, query, siralama])
 
   const activeParent = CATEGORIES.find(c =>
     c.key === activeKey || c.subCategories.some(s => s.key === activeKey)
@@ -216,16 +227,40 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
         </AnimatePresence>
       </div>
 
-      {/* Results header */}
-      <div className="flex items-center justify-between">
+      {/* Results header + sort chips */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <h2 className="text-base font-bold text-zinc-900">
           {query
             ? `"${query}" için sonuçlar`
             : activeKey
             ? (tabs.find(t => t.key === activeKey)?.label ?? t('allBusinesses'))
             : t('allBusinesses')}
+          <span className="text-zinc-400 font-normal text-sm ml-2">({filtered.length})</span>
         </h2>
-        <span className="text-sm text-zinc-400">{filtered.length} işletme</span>
+        <div className="flex gap-1.5">
+          {(['yeni', 'az', 'yakin'] as const).map(s => (
+            <button
+              key={s}
+              onClick={() => setSiralama(s)}
+              className={`text-xs px-3 py-1.5 rounded-full font-semibold transition-all ${
+                siralama === s
+                  ? 'bg-red-600 text-white'
+                  : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
+              }`}
+            >
+              {s === 'yeni' ? 'En Yeni' : s === 'az' ? 'A–Z' : 'Yakın'}
+            </button>
+          ))}
+          {(siralama !== 'yeni' || query || activeKey) && (
+            <button
+              onClick={() => { setSiralama('yeni'); setQuery('') }}
+              className="text-xs px-2.5 py-1.5 rounded-full text-zinc-400 hover:text-zinc-600 transition-colors"
+              title="Filtreleri temizle"
+            >
+              <X size={13} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Business grid */}

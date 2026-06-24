@@ -3,19 +3,36 @@ import { getSupabase } from '@/lib/supabase'
 import { Link } from '@/i18n/navigation'
 import type { Metadata } from 'next'
 import { BUSINESS_TYPE_ICONS, BUSINESS_TYPE_LABELS, type BusinessType } from '@/types'
+import FavoriteToggle from '@/app/[locale]/rezervasyon/[id]/FavoriteToggle'
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>
 }
 
 async function getRestaurant(slug: string) {
-  const { data } = await getSupabase()
+  const db = getSupabase()
+  const { data: r } = await db
     .from('restaurants')
     .select('id, name, slug, address, phone, description, business_type, is_active, cover_image')
     .eq('slug', slug)
     .eq('is_active', true)
     .single()
-  return data
+  if (!r) return null
+
+  const [{ data: hizmetler }, { data: calisanlar }] = await Promise.all([
+    db.from('hizmetler')
+      .select('id, ad, sure_dakika, fiyat')
+      .eq('restaurant_id', r.id)
+      .eq('aktif', true)
+      .order('ad'),
+    db.from('calisanlar')
+      .select('id, ad, pozisyon')
+      .eq('restaurant_id', r.id)
+      .eq('aktif', true)
+      .order('ad'),
+  ])
+
+  return { ...r, hizmetler: hizmetler ?? [], calisanlar: calisanlar ?? [] }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -63,8 +80,9 @@ export default async function IsletmePage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+
       {/* Hero */}
-      <div className="relative h-52 bg-gradient-to-br from-[#2B1B17] to-[#E53935] flex items-end">
+      <div className="relative h-56 bg-gradient-to-br from-[#2B1B17] to-[#E53935] flex items-end">
         {r.cover_image && (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
@@ -74,11 +92,16 @@ export default async function IsletmePage({ params }: Props) {
             className="absolute inset-0 w-full h-full object-cover opacity-40"
           />
         )}
-        <div className="relative z-10 px-6 pb-6 w-full">
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/80 bg-white/10 backdrop-blur px-3 py-1 rounded-full border border-white/20 mb-3">
-            {typeIcon} {typeLabel}
-          </span>
-          <h1 className="text-2xl font-black text-white leading-tight">{r.name}</h1>
+        <div className="relative z-10 px-6 pb-6 w-full flex items-end justify-between">
+          <div>
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/80 bg-white/10 backdrop-blur px-3 py-1 rounded-full border border-white/20 mb-3">
+              {typeIcon} {typeLabel}
+            </span>
+            <h1 className="text-2xl font-black text-white leading-tight">{r.name}</h1>
+          </div>
+          <div className="mb-1">
+            <FavoriteToggle restaurantId={r.id} />
+          </div>
         </div>
       </div>
 
@@ -103,6 +126,48 @@ export default async function IsletmePage({ params }: Props) {
             </div>
           )}
         </div>
+
+        {/* Hizmetler */}
+        {r.hizmetler.length > 0 && (
+          <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
+            <h2 className="text-base font-bold text-zinc-900 mb-4">Hizmetler</h2>
+            <div className="space-y-3">
+              {r.hizmetler.map((h: { id: string; ad: string; sure_dakika: number | null; fiyat: number | null }) => (
+                <div key={h.id} className="flex items-center justify-between py-2 border-b border-zinc-50 last:border-0">
+                  <div>
+                    <p className="text-sm font-semibold text-zinc-800">{h.ad}</p>
+                    {h.sure_dakika && (
+                      <p className="text-xs text-zinc-400 mt-0.5">⏱ {h.sure_dakika} dk</p>
+                    )}
+                  </div>
+                  {h.fiyat != null && (
+                    <span className="text-sm font-bold text-[#E53935]">{h.fiyat} ₺</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Çalışanlar */}
+        {r.calisanlar.length > 0 && (
+          <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
+            <h2 className="text-base font-bold text-zinc-900 mb-4">Ekibimiz</h2>
+            <div className="flex flex-wrap gap-3">
+              {r.calisanlar.map((c: { id: string; ad: string; pozisyon: string | null }) => (
+                <div key={c.id} className="flex items-center gap-2 bg-zinc-50 rounded-xl px-3 py-2">
+                  <div className="w-7 h-7 rounded-full bg-[#E53935]/10 flex items-center justify-center text-xs font-bold text-[#E53935]">
+                    {c.ad.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-zinc-800 leading-none">{c.ad}</p>
+                    {c.pozisyon && <p className="text-[11px] text-zinc-400 mt-0.5">{c.pozisyon}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* CTA */}
         <Link
