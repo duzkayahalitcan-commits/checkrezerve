@@ -4,21 +4,15 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import CustomerHeader from '@/components/CustomerHeader'
 import { Link } from '@/i18n/navigation'
-import NextLink from 'next/link'
-
-const KAT_ICON: Record<string, string> = {
-  berber: '💈', kuafor: '✂️', guzellik_salonu: '💅',
-  spa: '🧖', restoran: '🍽️', kafe: '☕', bar: '🍸', diger: '🏪',
-}
-const KAT_GRADIENT: Record<string, string> = {
-  berber: 'from-blue-900 to-blue-800', kuafor: 'from-pink-900 to-rose-800',
-  guzellik_salonu: 'from-rose-900 to-pink-800', spa: 'from-teal-900 to-emerald-800',
-  restoran: 'from-orange-900 to-amber-800', kafe: 'from-amber-900 to-yellow-800',
-  bar: 'from-purple-900 to-violet-800', diger: 'from-zinc-800 to-zinc-700',
-}
+import { BUSINESS_TYPE_ICONS, BUSINESS_TYPE_LABELS, type BusinessType } from '@/types'
 
 interface FavBusiness {
-  id: string; name: string; kategori: string | null; address: string | null; slug: string
+  id: string
+  name: string
+  business_type: string
+  address: string | null
+  slug: string
+  cover_image: string | null
 }
 
 export default function FavorilerimPage() {
@@ -29,7 +23,7 @@ export default function FavorilerimPage() {
   const loadFavs = useCallback(async (uid: string) => {
     const { data } = await supabase
       .from('user_favorites')
-      .select('restaurant_id, restaurants(id, name, kategori, address, slug)')
+      .select('restaurant_id, restaurants(id, name, business_type, address, slug, cover_image)')
       .eq('user_id', uid)
       .order('created_at', { ascending: false })
     type FavRow = { restaurants: FavBusiness }
@@ -58,8 +52,13 @@ export default function FavorilerimPage() {
     return (
       <div className="min-h-screen bg-zinc-50">
         <CustomerHeader />
-        <div className="pt-24 flex items-center justify-center h-64">
-          <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+        <div className="pt-24 pb-16 px-6 mx-auto max-w-4xl">
+          <div className="h-8 w-48 bg-zinc-200 rounded-xl animate-pulse mb-6" />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded-2xl border border-zinc-100 bg-zinc-100 h-44 animate-pulse" />
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -70,20 +69,20 @@ export default function FavorilerimPage() {
       <CustomerHeader />
       <div className="pt-24 pb-16 px-6 mx-auto max-w-4xl">
         <h1 className="text-2xl font-bold text-zinc-900 mb-6">
-          Favorilerim
+          ❤️ Favorilerim
           <span className="text-zinc-400 font-normal text-sm ml-2">({favs.length})</span>
         </h1>
 
         {favs.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-zinc-200">
             <div className="text-5xl mb-4">🤍</div>
-            <h3 className="text-lg font-semibold text-zinc-700 mb-2">Henüz favoriniz yok</h3>
+            <h3 className="text-lg font-semibold text-zinc-700 mb-2">Henüz favori işletme eklemediniz</h3>
             <p className="text-zinc-400 mb-6 max-w-sm mx-auto">
               İşletmeleri keşfedin ve favorilerinize ekleyin.
             </p>
             <Link
               href="/rezervasyon"
-              className="inline-flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors"
+              className="inline-flex items-center gap-2 bg-[#E53935] text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors"
             >
               İşletmeleri Keşfet
             </Link>
@@ -91,30 +90,42 @@ export default function FavorilerimPage() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {favs.map(b => {
-              const kat = b.kategori ?? 'diger'
-              const gradient = KAT_GRADIENT[kat] ?? 'from-zinc-800 to-zinc-700'
+              const icon  = BUSINESS_TYPE_ICONS[b.business_type as BusinessType] ?? '🏪'
+              const label = BUSINESS_TYPE_LABELS[b.business_type as BusinessType] ?? 'İşletme'
               return (
                 <div key={b.id} className="bg-white rounded-2xl border border-zinc-100 overflow-hidden hover:shadow-md hover:border-zinc-200 transition-all group">
-                  <div className={`relative h-24 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-                    <span className="text-4xl">{KAT_ICON[kat] ?? '🏪'}</span>
+                  <div className="relative h-28 bg-gradient-to-br from-[#2B1B17] to-[#E53935] flex items-center justify-center overflow-hidden">
+                    {b.cover_image ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={b.cover_image}
+                        alt=""
+                        loading="eager"
+                        className="absolute inset-0 w-full h-full object-cover opacity-60 transition-transform duration-300 group-hover:scale-110"
+                      />
+                    ) : (
+                      <span className="text-4xl relative z-10">{icon}</span>
+                    )}
                     <button
                       onClick={() => removeFav(b.id)}
-                      className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center hover:bg-red-500/80 transition-all text-sm"
+                      title="Favorilerden çıkar"
+                      className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:bg-red-500/80 transition-all text-sm z-10"
                     >
                       ❤️
                     </button>
                   </div>
                   <div className="p-4">
                     <h3 className="font-bold text-zinc-900 truncate">{b.name}</h3>
+                    <p className="text-xs text-zinc-500 font-medium mt-0.5">{label}</p>
                     {b.address && (
-                      <p className="text-xs text-zinc-400 mt-1 truncate">{b.address}</p>
+                      <p className="text-xs text-zinc-400 mt-1 truncate">📍 {b.address}</p>
                     )}
-                    <NextLink
-                      href={`/${b.slug}`}
-                      className="mt-3 block w-full text-center bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
+                    <Link
+                      href={{ pathname: '/rezervasyon/[id]', params: { id: b.id } }}
+                      className="mt-3 block w-full text-center bg-[#E53935] hover:bg-red-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
                     >
                       Rezervasyon Yap
-                    </NextLink>
+                    </Link>
                   </div>
                 </div>
               )

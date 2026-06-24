@@ -6,7 +6,7 @@ import MarketingHeader       from '@/components/MarketingHeader'
 import MarketingFooter       from '@/components/MarketingFooter'
 import CategoryHeroBanner    from '@/components/CategoryHeroBanner'
 import SearchableBusinessList from './SearchableBusinessList'
-import { getSupabaseAdmin }  from '@/lib/supabase'
+import { getSupabase }       from '@/lib/supabase'
 import { type Restaurant }   from '@/types'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getTypesForKey } from './categories'
@@ -45,7 +45,7 @@ export default async function RezervasyonPage({ params, searchParams }: Props) {
   }> = []
 
   try {
-    let q = getSupabaseAdmin()
+    let q = getSupabase()
       .from('restaurants')
       .select('id, name, slug, business_type, address, description, is_active, cover_image')
       .eq('is_active', true)

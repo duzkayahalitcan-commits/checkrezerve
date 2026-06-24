@@ -1,8 +1,10 @@
 'use client'
 import { motion } from 'motion/react'
 import { Link } from '@/i18n/navigation'
+import FavoriteToggle from './FavoriteToggle'
 
 interface Props {
+  restaurantId: string
   name: string
   icon: string
   label: string
@@ -14,7 +16,7 @@ interface Props {
   coverImage: string | null
 }
 
-export default function BusinessDetailHero({ name, icon, label, address, phone, description, backLabel, rating, coverImage }: Props) {
+export default function BusinessDetailHero({ restaurantId, name, icon, label, address, phone, description, backLabel, rating, coverImage }: Props) {
   return (
     <div className="pt-24 pb-6 bg-zinc-900 text-white overflow-hidden relative">
       {coverImage && (
@@ -53,7 +55,7 @@ export default function BusinessDetailHero({ name, icon, label, address, phone, 
           >
             {icon}
           </motion.div>
-          <div>
+          <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-extrabold">
               {name}
               {rating !== null && (
@@ -64,6 +66,7 @@ export default function BusinessDetailHero({ name, icon, label, address, phone, 
               {label}
             </span>
           </div>
+          <FavoriteToggle restaurantId={restaurantId} />
         </motion.div>
 
         {(address || phone) && (

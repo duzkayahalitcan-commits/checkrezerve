@@ -99,6 +99,7 @@ export default async function BusinessDetailPage({ params }: Props) {
       <MarketingHeader />
 
       <BusinessDetailHero
+        restaurantId={business.id}
         name={business.name}
         icon={icon}
         label={label}

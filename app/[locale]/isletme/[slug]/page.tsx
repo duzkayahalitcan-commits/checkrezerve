@@ -41,8 +41,28 @@ export default async function IsletmePage({ params }: Props) {
   const typeLabel = BUSINESS_TYPE_LABELS[r.business_type as BusinessType] ?? 'İşletme'
   const typeIcon  = BUSINESS_TYPE_ICONS[r.business_type as BusinessType] ?? '🏪'
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: r.name,
+    description: r.description ?? undefined,
+    address: r.address ? { '@type': 'PostalAddress', streetAddress: r.address } : undefined,
+    telephone: r.phone ?? undefined,
+    image: r.cover_image ?? undefined,
+    url: `https://checkrezerve.com/tr/isletme/${r.slug}`,
+    makesOffer: {
+      '@type': 'Offer',
+      name: 'Online Rezervasyon',
+      url: `https://checkrezerve.com/tr/rezervasyon/${r.id}`,
+    },
+  }
+
   return (
     <main className="min-h-screen bg-zinc-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero */}
       <div className="relative h-52 bg-gradient-to-br from-[#2B1B17] to-[#E53935] flex items-end">
         {r.cover_image && (

@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
+import { useToast } from '@/components/ui/Toast'
 import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'motion/react'
 import {
@@ -63,6 +64,7 @@ export default function BookingForm({
   const t = useTranslations('bookingForm')
   const r = useTranslations('rezervasyon')
   const locale = useLocale()
+  const toast = useToast()
   const isRestaurant = businessType === 'restaurant' || businessType === 'other'
   const isServiceBased = !isRestaurant
 
@@ -210,13 +212,16 @@ export default function BookingForm({
 
     if (!res.ok) {
       const json = await res.json()
-      setError(json.error ?? r('hata.genel'))
+      const errMsg = json.error ?? r('hata.genel')
+      setError(errMsg)
+      toast.show(errMsg, 'error')
       return
     }
 
     const data = await res.json()
     setSuccessData({ id: data.id ?? generateReservationId() })
     setStep(allSteps.length - 1)
+    toast.show('Rezervasyonunuz başarıyla alındı!', 'success')
     import('canvas-confetti').then(m => {
       m.default({ particleCount: 140, spread: 90, origin: { y: 0.6 } })
     }).catch(() => {})

@@ -232,3 +232,15 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
   - **W-18**: `CookieBanner` locale layout'a eklendi (`app/[locale]/layout.tsx`)
   - **W-19**: `not-found.tsx` güncellendi → "Rezervasyon Yap" butonu eklendi
   - DEVAM NOKTASI: W-21
+
+- [x] **2026-06-24 — W-21..W-29: SEO, gerçek veri, auth, favoriler, toast**
+  - **W-21**: `isletme/[slug]/page.tsx` → JSON-LD LocalBusiness schema markup eklendi
+  - **W-22**: Rezervasyon listesi sayfası `getSupabaseAdmin` → `getSupabase` (anon client) geçiş
+  - **W-23**: Panel takvim gerçek veri zaten W-14'te yapılmıştı (WeeklyView + Supabase)
+  - **W-24**: Panel dashboard istatistik kartları W-15'te yapılmıştı
+  - **W-25**: Giriş sayfası zaten tam implement edilmişti (Google+Apple OAuth)
+  - **W-26**: Şifre sıfırlama sayfaları zaten implement edilmişti
+  - **W-27**: `favorilerim/page.tsx` → `business_type` + `cover_image` join, skeleton loading, boş durum Türkçe
+  - **W-28**: `FavoriteToggle.tsx` oluşturuldu (Supabase auth+DB bağlantılı), `BusinessDetailHero`'ya entegre, `restaurantId` prop eklendi
+  - **W-29**: `BookingForm.tsx` → `useToast()` entegre (başarı=yeşil, hata=kırmızı)
+  - DEVAM NOKTASI: W-31
