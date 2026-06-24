@@ -16,6 +16,7 @@ type Restaurant = {
   capacity?: number | null
   business_type?: string | null
   is_active?: boolean
+  is_verified?: boolean
   created_at?: string
 }
 
@@ -96,6 +97,7 @@ export default function RestaurantDetail({
   const toast = useToast()
 
   const [isActive, setIsActive] = useState(restaurant.is_active ?? true)
+  const [isVerified, setIsVerified] = useState(restaurant.is_verified ?? false)
   const [flags, setFlags] = useState<Record<string, boolean>>(
     Object.fromEntries(featureFlags.map(f => [f.feature, f.enabled]))
   )
@@ -111,6 +113,28 @@ export default function RestaurantDetail({
       toast.show(newVal ? 'İşletme aktif edildi' : 'İşletme pasif edildi', 'success')
     } catch {
       toast.show('Güncellenemedi', 'error')
+    }
+  }
+
+  // ─── Onayla / Reddet işlemleri ───
+  async function verifyRestaurant() {
+    try {
+      await apiCall('PATCH', '/api/admin/restaurant', { id: restaurant.id, is_verified: true, is_active: true })
+      setIsVerified(true)
+      setIsActive(true)
+      toast.show('İşletme onaylandı', 'success')
+    } catch {
+      toast.show('Onaylanamadı', 'error')
+    }
+  }
+
+  async function rejectRestaurant() {
+    try {
+      await apiCall('PATCH', '/api/admin/restaurant', { id: restaurant.id, is_active: false })
+      setIsActive(false)
+      toast.show('İşletme reddedildi', 'success')
+    } catch {
+      toast.show('İşlem başarısız', 'error')
     }
   }
 
@@ -226,7 +250,29 @@ export default function RestaurantDetail({
                 {isActive ? <><Check size={14} /> Aktif</> : <><X size={14} /> Pasif</>}
               </button>
             </div>
+            <div>
+              <span className="text-stone-500 text-xs">Doğrulama</span>
+              <p className={`text-sm font-medium ${isVerified ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {isVerified ? '✓ Onaylı' : 'Onay Bekliyor'}
+              </p>
+            </div>
           </div>
+          {!isVerified && (
+            <div className="flex gap-3 mt-5 pt-4 border-t border-stone-800">
+              <button
+                onClick={verifyRestaurant}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 text-sm font-semibold hover:bg-emerald-500/30 transition-colors"
+              >
+                <Check size={14} /> Onayla
+              </button>
+              <button
+                onClick={rejectRestaurant}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-500/15 text-red-400 text-sm font-semibold hover:bg-red-500/25 transition-colors"
+              >
+                <X size={14} /> Reddet
+              </button>
+            </div>
+          )}
         </section>
 
         {/* ═══ Bölüm 2 — Abonelik ═══ */}

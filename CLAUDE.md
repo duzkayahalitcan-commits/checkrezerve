@@ -269,3 +269,15 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
   - **W-49**: 7 dosyadan tüm console.log kaldırıldı; TypeScript any kaldı (Supabase typing workaroundları — as any/as unknown)
   - **W-50**: i18n routing.ts → /rezervasyonlarim, /favorilerim, /rezervasyon/[id]/onay eklendi (TS fix)
   - DEVAM NOKTASI: W-51
+
+- [x] **2026-06-25 — W-51..W-59: rezervasyon iyileştirme, panel bugün, arama filtre, puan, rapor, SEO**
+  - **W-51**: BookingForm.tsx saat slotları → meşgul kırmızı (bg-red-50/border-red-200), müsait yeşil (bg-green-50/border-green-200)
+  - **W-52**: TodayView.tsx → auto-refresh her 60 saniyede (setInterval + router.refresh, sadece bugün görünümünde)
+  - **W-53**: SearchableBusinessList.tsx → Filtreler butonu + drawer (şehir dropdown, adres bazlı filtreleme, aktif filtre badge)
+  - **W-54**: SearchableBusinessList.tsx → StarRating component, rezervasyon/page.tsx reviews tablosu sorgusu (silent fallback), "Henüz değerlendirme yok" gösterimi
+  - **W-55**: `app/panel/[slug]/raporlar/` oluşturuldu (bu ay/geçen ay karşılaştırma, recharts 7 günlük bar chart, top 5 müşteri, en popüler saat)
+  - **W-56**: next.config.ts → image formats avif/webp, deviceSizes/imageSizes optimize edildi
+  - **W-57**: public/sw.js zaten tam implement edilmişti; `profil/NotificationToggle.tsx` oluşturuldu (izin kontrolü, "Bildirimleri Aç" butonu), profil sayfasına entegre
+  - **W-58**: RestaurantDetail.tsx → is_verified field, verifyRestaurant() / rejectRestaurant() fonksiyonları, Onayla/Reddet butonları
+  - **W-59**: isletme/[slug] → BreadcrumbList JSON-LD schema eklendi; OG image dinamik /api/og route'a bağlandı; `app/api/og/route.tsx` oluşturuldu (next/og ImageResponse, edge runtime)
+  - DEVAM NOKTASI: W-61

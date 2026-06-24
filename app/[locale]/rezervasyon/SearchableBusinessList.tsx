@@ -6,7 +6,7 @@ import { Link }            from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import {
-  Search, X, MapPin,
+  Search, X, MapPin, SlidersHorizontal,
   LayoutGrid, UtensilsCrossed, Sparkles, HeartPulse, Dumbbell,
   Scissors, Wand2, Waves, Brain, Activity, PawPrint, Stethoscope,
   type LucideIcon,
@@ -24,6 +24,28 @@ type Biz = {
   description: string | null
   is_active: boolean
   cover_image: string | null
+  rating: number | null
+  reviewCount: number
+}
+
+function StarRating({ rating, count }: { rating: number | null; count: number }) {
+  if (rating === null || count === 0) {
+    return <span className="text-[10px] text-zinc-400">Henüz değerlendirme yok</span>
+  }
+  return (
+    <span className="flex items-center gap-1">
+      {Array.from({ length: 5 }, (_, i) => {
+        const filled = i < Math.floor(rating)
+        const half   = !filled && i < rating
+        return (
+          <span key={i} className={`text-[11px] ${filled ? 'text-amber-400' : half ? 'text-amber-300' : 'text-zinc-300'}`}>
+            ★
+          </span>
+        )
+      })}
+      <span className="text-[10px] text-zinc-400 ml-0.5">{rating.toFixed(1)} ({count})</span>
+    </span>
+  )
 }
 
 const CAT_ICON: Record<string, LucideIcon> = {
@@ -86,12 +108,27 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
   const params    = useSearchParams()
   const t         = useTranslations('rezervasyon')
   const activeKey = params.get('kategori') ?? ''
-  const [query, setQuery] = useState('')
+  const [query, setQuery]             = useState('')
+  const [sehir, setSehir]             = useState('')
+  const [filterOpen, setFilterOpen]   = useState(false)
 
   const rawSiralama = params.get('siralama') ?? 'yeni'
   const [siralama, setSiralama] = useState(rawSiralama)
 
-  useEffect(() => { setQuery('') }, [activeKey])
+  useEffect(() => { setQuery(''); setSehir('') }, [activeKey])
+
+  // Extract unique city names from addresses
+  const cities = useMemo(() => {
+    const set = new Set<string>()
+    for (const b of allBusinesses) {
+      if (!b.address) continue
+      const parts = b.address.split(/[,/]/).map(s => s.trim()).filter(Boolean)
+      if (parts.length > 0) set.add(parts[parts.length - 1])
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'tr'))
+  }, [allBusinesses])
+
+  const activeFilterCount = (sehir ? 1 : 0)
 
   const filtered = useMemo(() => {
     const activeTypes = getTypesForKey(activeKey)
@@ -107,15 +144,18 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
       )
     }
 
+    if (sehir) {
+      list = list.filter(b => b.address?.includes(sehir))
+    }
+
     if (siralama === 'yeni') {
       list = [...list].reverse()
     } else if (siralama === 'az') {
       list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'tr'))
     }
-    // 'yakin' would need geolocation — skipped for now, order as-is
 
     return list
-  }, [allBusinesses, activeKey, query, siralama])
+  }, [allBusinesses, activeKey, query, sehir, siralama])
 
   const activeParent = CATEGORIES.find(c =>
     c.key === activeKey || c.subCategories.some(s => s.key === activeKey)
@@ -237,7 +277,24 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
             : t('allBusinesses')}
           <span className="text-zinc-400 font-normal text-sm ml-2">({filtered.length})</span>
         </h2>
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 items-center">
+          {/* Filter button */}
+          <button
+            onClick={() => setFilterOpen(true)}
+            className={`relative flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-semibold border transition-all ${
+              activeFilterCount > 0
+                ? 'bg-red-600 text-white border-transparent'
+                : 'bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50'
+            }`}
+          >
+            <SlidersHorizontal size={12} />
+            Filtreler
+            {activeFilterCount > 0 && (
+              <span className="ml-0.5 inline-flex items-center justify-center w-4 h-4 bg-white text-red-600 rounded-full text-[10px] font-bold">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
           {(['yeni', 'az', 'yakin'] as const).map(s => (
             <button
               key={s}
@@ -251,9 +308,9 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
               {s === 'yeni' ? 'En Yeni' : s === 'az' ? 'A–Z' : 'Yakın'}
             </button>
           ))}
-          {(siralama !== 'yeni' || query || activeKey) && (
+          {(siralama !== 'yeni' || query || activeKey || sehir) && (
             <button
-              onClick={() => { setSiralama('yeni'); setQuery('') }}
+              onClick={() => { setSiralama('yeni'); setQuery(''); setSehir('') }}
               className="text-xs px-2.5 py-1.5 rounded-full text-zinc-400 hover:text-zinc-600 transition-colors"
               title="Filtreleri temizle"
             >
@@ -262,6 +319,56 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
           )}
         </div>
       </div>
+
+      {/* Filter Drawer */}
+      {filterOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+          onClick={() => setFilterOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-zinc-900">Filtreler</h3>
+              <button onClick={() => setFilterOpen(false)} className="text-zinc-400 hover:text-zinc-600 p-1">
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Şehir filter */}
+            <div className="mb-4">
+              <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">Şehir / İlçe</label>
+              <select
+                value={sehir}
+                onChange={e => setSehir(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-zinc-200 text-sm text-zinc-800 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
+              >
+                <option value="">Tümü</option>
+                {cities.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => { setSehir(''); setFilterOpen(false) }}
+                className="flex-1 py-2.5 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-600 hover:bg-zinc-50 transition-colors"
+              >
+                Temizle
+              </button>
+              <button
+                onClick={() => setFilterOpen(false)}
+                className="flex-1 py-2.5 rounded-xl bg-[#E53935] text-white text-sm font-semibold hover:bg-red-700 transition-colors"
+              >
+                Uygula ({filtered.length} sonuç)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Business grid */}
       {filtered.length === 0 ? (
@@ -335,8 +442,9 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                       >
                         {biz.typeLabel}
                       </span>
+                      <StarRating rating={biz.rating} count={biz.reviewCount} />
                       {biz.address && (
-                        <p className="flex items-center gap-1 text-xs text-zinc-400 truncate">
+                        <p className="flex items-center gap-1 text-xs text-zinc-400 truncate mt-0.5">
                           <MapPin size={10} className="flex-shrink-0 text-zinc-300" />
                           {biz.address}
                         </p>

@@ -411,7 +411,7 @@ export default function BookingForm({
             whileHover={occ ? {} : { scale: 1.05 }}
             whileTap={occ ? {} : { scale: 0.9 }}
             className={`py-2.5 rounded-xl border text-sm font-semibold transition-all
-              ${sel ? 'bg-[#E53935] border-[#E53935] text-white shadow-md shadow-red-200' : occ ? 'bg-zinc-100 border-zinc-200 text-zinc-400 line-through cursor-not-allowed' : 'bg-white border-zinc-200 text-zinc-700 hover:border-[#E53935] hover:text-[#E53935]'}`}
+              ${sel ? 'bg-[#E53935] border-[#E53935] text-white shadow-md shadow-red-200' : occ ? 'bg-red-50 border-red-200 text-red-400 line-through cursor-not-allowed' : 'bg-green-50 border-green-200 text-green-700 hover:border-green-400 hover:bg-green-100'}`}
           >
             {slot}
           </motion.button>

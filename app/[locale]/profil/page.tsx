@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import CustomerHeader from '@/components/CustomerHeader'
 import { Link } from '@/i18n/navigation'
 import NextLink from 'next/link'
+import NotificationToggle from './NotificationToggle'
 import type { User } from '@supabase/supabase-js'
 
 const KAT_ICON: Record<string, string> = {
@@ -130,6 +131,9 @@ export default function ProfilPage() {
             {t('signOut')}
           </button>
         </div>
+
+        {/* Notification toggle */}
+        <NotificationToggle />
 
         {/* Son Rezervasyonlar */}
         <h2 className="text-lg font-bold text-zinc-900 mb-5">📋 Son Rezervasyonlar</h2>

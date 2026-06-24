@@ -39,13 +39,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const r = await getRestaurant(slug)
   if (!r) return {}
+  const ogImageUrl = `https://checkrezerve.com/api/og?title=${encodeURIComponent(r.name)}&type=${encodeURIComponent(BUSINESS_TYPE_LABELS[r.business_type as BusinessType] ?? 'İşletme')}${r.address ? `&address=${encodeURIComponent(r.address)}` : ''}`
   return {
     title: `${r.name} — CheckRezerve`,
     description: r.description ?? `${r.name} için online rezervasyon yapın.`,
     openGraph: {
       title: r.name,
       description: r.description ?? `${r.name} için online rezervasyon yapın.`,
-      images: r.cover_image ? [r.cover_image] : [],
+      images: [r.cover_image ?? ogImageUrl],
     },
   }
 }
@@ -74,11 +75,25 @@ export default async function IsletmePage({ params }: Props) {
     },
   }
 
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Ana Sayfa', item: 'https://checkrezerve.com/tr' },
+      { '@type': 'ListItem', position: 2, name: 'Rezervasyon', item: 'https://checkrezerve.com/tr/rezervasyon' },
+      { '@type': 'ListItem', position: 3, name: r.name, item: `https://checkrezerve.com/tr/isletme/${r.slug}` },
+    ],
+  }
+
   return (
     <main className="min-h-screen bg-zinc-50">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
 
       {/* Hero */}

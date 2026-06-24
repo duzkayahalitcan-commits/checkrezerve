@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'motion/react'
 import { useRouter, usePathname } from 'next/navigation'
 import { ChevronLeft, ChevronRight, Clock, Users, Phone, List, LayoutGrid } from 'lucide-react'
@@ -91,6 +91,13 @@ export default function TodayView({
   }
 
   const isToday = date === new Date().toISOString().slice(0, 10)
+
+  // Auto-refresh every 60 seconds when viewing today
+  useEffect(() => {
+    if (!isToday) return
+    const id = setInterval(() => router.refresh(), 60_000)
+    return () => clearInterval(id)
+  }, [isToday, router])
 
   // Compute area assignments for tables
   const tableAreaMap = useMemo(() => {

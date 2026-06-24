@@ -42,10 +42,12 @@ export default async function RezervasyonPage({ params, searchParams }: Props) {
     id: string; name: string; slug: string | null; business_type: string
     address: string | null; description: string | null; is_active: boolean
     cover_image: string | null; typeLabel: string
+    rating: number | null; reviewCount: number
   }> = []
 
   try {
-    let q = getSupabase()
+    const db = getSupabase()
+    let q = db
       .from('restaurants')
       .select('id, name, slug, business_type, address, description, is_active, cover_image')
       .eq('is_active', true)
@@ -56,20 +58,45 @@ export default async function RezervasyonPage({ params, searchParams }: Props) {
 
     const { data: businesses } = await q.order('name')
 
-    list = (businesses ?? []).map(b => ({
-      id:            b.id as string,
-      name:          b.name as string,
-      slug:          b.slug as string | null,
-      business_type: b.business_type as string,
-      address:       b.address as string | null,
-      description:   b.description as string | null,
-      is_active:     b.is_active as boolean,
-      cover_image:   b.cover_image as string | null,
-      typeLabel:     tBiz(b.business_type as Parameters<typeof tBiz>[0]),
-    }))
+    // Fetch review aggregates with silent fallback (reviews table may not exist yet)
+    let ratingMap: Map<string, { avg: number; count: number }> = new Map()
+    try {
+      const { data: reviews } = await db
+        .from('reviews')
+        .select('restaurant_id, rating')
+        .not('rating', 'is', null)
+      if (reviews) {
+        const agg = new Map<string, { sum: number; count: number }>()
+        for (const rv of reviews) {
+          const id = rv.restaurant_id as string
+          if (!agg.has(id)) agg.set(id, { sum: 0, count: 0 })
+          agg.get(id)!.sum   += rv.rating as number
+          agg.get(id)!.count += 1
+        }
+        for (const [id, { sum, count }] of agg) {
+          ratingMap.set(id, { avg: sum / count, count })
+        }
+      }
+    } catch { /* reviews table may not exist yet */ }
+
+    list = (businesses ?? []).map(b => {
+      const rv = ratingMap.get(b.id as string)
+      return {
+        id:            b.id as string,
+        name:          b.name as string,
+        slug:          b.slug as string | null,
+        business_type: b.business_type as string,
+        address:       b.address as string | null,
+        description:   b.description as string | null,
+        is_active:     b.is_active as boolean,
+        cover_image:   b.cover_image as string | null,
+        typeLabel:     tBiz(b.business_type as Parameters<typeof tBiz>[0]),
+        rating:        rv ? rv.avg : null,
+        reviewCount:   rv ? rv.count : 0,
+      }
+    })
   } catch (e) {
     console.error('RezervasyonPage fetch error:', e)
-    // fallback: empty list, error boundary handles UI
   }
 
   return (
