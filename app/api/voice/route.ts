@@ -177,7 +177,6 @@ export async function POST(request: NextRequest) {
     const audioFile = findAudioFile(safeAnswer, businessType, audioVoice, lang)
 
     if (audioFile) {
-      console.log(`[voice] pre-generated: ${audioFile}`)
       const audioBuffer = fs.readFileSync(audioFile)
       return new NextResponse(audioBuffer, {
         headers: {
@@ -189,7 +188,6 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    console.log('[voice] ElevenLabs TTS kullanılıyor')
     const audioBuffer = await textToSpeech(safeAnswer)
 
     return new NextResponse(new Uint8Array(audioBuffer), {

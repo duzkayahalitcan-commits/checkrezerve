@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name:        'checkrezerve — Restoran Rezervasyon',
-    short_name:  'checkrezerve',
-    description: 'Restoranınız için akıllı rezervasyon yönetimi. WhatsApp & SMS bildirimli.',
+    name:        'CheckRezerve — Online Rezervasyon',
+    short_name:  'CheckRezerve',
+    description: 'Türkiye\'nin komisyonsuz multi-sektör rezervasyon platformu. Restoran, kuaför, spa ve daha fazlası.',
     start_url:   '/',
     scope:       '/',
     id:          'com.checkrezerve.app',
@@ -12,8 +12,8 @@ export default function manifest(): MetadataRoute.Manifest {
     display:             'standalone',
     display_override:    ['standalone', 'minimal-ui'],
     orientation:         'portrait',
-    background_color:    '#18181b',
-    theme_color:         '#f59e0b',   // amber — Safari status bar rengi
+    background_color:    '#2B1B17',
+    theme_color:         '#E53935',
     dir:                 'ltr',
     lang:                'tr',
     categories:          ['food', 'business', 'productivity'],

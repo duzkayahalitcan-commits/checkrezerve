@@ -256,3 +256,16 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
   - **W-38**: `app/[locale]/loading.tsx` oluşturuldu (spinner + "Yükleniyor..." metni)
   - **W-39**: `home/page.tsx` + `hakkimizda/page.tsx` → `loading="lazy"` → `loading="eager"` (Framer Motion opacity:0 bug önlemi)
   - DEVAM NOKTASI: W-41
+
+- [x] **2026-06-24 — W-41..W-49: rezervasyon API, onay sayfası, panel güncelleme, i18n, PWA**
+  - **W-41**: `POST /api/rezervasyon` zaten gerçek Supabase insert yapıyordu — doğrulandı, değişiklik yok
+  - **W-42**: `app/[locale]/rezervasyon/[id]/onay/page.tsx` oluşturuldu (Server Component, ?ref= query param ile rezervasyon detayı, ConfettiClient, Rezervasyonlarım + Ana Sayfa butonları)
+  - **W-43**: `/panel/[slug]/misafirler/page.tsx` zaten tam implement edilmişti (phone bazlı aggregation, arama destekli MisafirList) — değişiklik yok
+  - **W-44**: `/panel/[slug]/abonelik/page.tsx` zaten tam implement edilmişti (plan kartı, ödeme geçmişi) — değişiklik yok
+  - **W-45**: giris/profil için tüm dil dosyalarında keys mevcut — doğrulandı. favorilerim/rezervasyonlarim hardcoded TR kullanıyor (i18n entegrasyonu yok)
+  - **W-46**: `app/manifest.ts` → name/short_name 'CheckRezerve', theme_color #E53935, background_color #2B1B17
+  - **W-47**: `app/sitemap.ts` → /profil ve /favorilerim eklendi; robots.ts zaten panel/admin disallow yapıyordu
+  - **W-48**: `/panel/[slug]/ayarlar/page.tsx` + `SettingsForm.tsx` zaten tam implement edilmişti (çalışma saatleri, kapalı günler, ön ödeme, Supabase update) — değişiklik yok
+  - **W-49**: 7 dosyadan tüm console.log kaldırıldı; TypeScript any kaldı (Supabase typing workaroundları — as any/as unknown)
+  - **W-50**: i18n routing.ts → /rezervasyonlarim, /favorilerim, /rezervasyon/[id]/onay eklendi (TS fix)
+  - DEVAM NOKTASI: W-51

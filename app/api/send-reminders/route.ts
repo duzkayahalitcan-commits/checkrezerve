@@ -73,7 +73,5 @@ export async function POST(req: NextRequest) {
   const sent   = results.filter(r => r.status === 'fulfilled').length
   const failed = results.filter(r => r.status === 'rejected').length
 
-  console.log(`[send-reminders] ${today}: ${sent} gönderildi, ${failed} başarısız`)
-
   return NextResponse.json({ date: today, sent, failed })
 }

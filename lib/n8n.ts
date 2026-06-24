@@ -37,8 +37,6 @@ export async function triggerN8nReservation(
     if (!res.ok) {
       const text = await res.text()
       console.error(`[n8n] Webhook hatası ${res.status}: ${text}`)
-    } else {
-      console.log(`[n8n] Webhook tetiklendi: ${payload.reservation_id}`)
     }
   } catch (err) {
     // n8n erişilemese de rezervasyon kaydı iptal edilmez — sessizce geç

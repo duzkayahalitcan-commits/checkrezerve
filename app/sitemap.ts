@@ -35,6 +35,8 @@ const STATIC_PAGES: PageEntry[] = [
   { path: '/kvkk-basvuru',      priority: 0.3, freq: 'yearly'  },
   { path: '/sifre-sifirla',     priority: 0.2, freq: 'yearly'  },
   { path: '/rezervasyon',       priority: 0.7, freq: 'weekly'  },
+  { path: '/profil',            priority: 0.4, freq: 'monthly' },
+  { path: '/favorilerim',       priority: 0.4, freq: 'monthly' },
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

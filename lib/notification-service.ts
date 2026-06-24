@@ -147,8 +147,6 @@ class NetgsmProvider implements SmsProvider {
 class MockProvider implements SmsProvider {
   async send({ to, body }: SmsPayload): Promise<SmsResult> {
     const mockId = `mock_${Date.now()}`
-    console.log(`[MSG mock] to=${to}\n${body}`)
-
     try {
       const url = process.env.NEXT_PUBLIC_SUPABASE_URL
       const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -171,8 +169,7 @@ class MockProvider implements SmsProvider {
 
 // ── Disabled sağlayıcısı ──────────────────────────────────────────────────────
 class DisabledProvider implements SmsProvider {
-  async send({ to, body }: SmsPayload): Promise<SmsResult> {
-    console.log(`[MSG disabled] to=${to}\n${body}`)
+  async send(_: SmsPayload): Promise<SmsResult> {
     return { success: true, messageId: 'disabled' }
   }
 }
