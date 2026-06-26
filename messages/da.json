@@ -40,7 +40,7 @@
     "forgotPassword": "Glemt adgangskode",
     "noAccount": "Har du ikke en konto?",
     "hasAccount": "Har du allerede en konto?",
-    "loginTitle": "Log ind på din konto",
+    "loginTitle": "Velkommen tilbage 👋",
     "registerTitle": "Opret en konto",
     "googleWith": "Med Google",
     "orEmail": "eller med e-mail",
@@ -60,7 +60,12 @@
     "resetPasswordNewPassword": "Ny adgangskode",
     "resetPasswordButton": "Opdater adgangskode",
     "resetPasswordSuccess": "Adgangskode opdateret! Omdirigerer...",
-    "resetPasswordError": "Kunne ikke opdatere adgangskode. Linket er muligvis udløbet."
+    "resetPasswordError": "Kunne ikke opdatere adgangskode. Linket er muligvis udløbet.",
+    "loginDescription": "Log ind på din konto",
+    "registerDescription": "Bliv medlem på få sekunder",
+    "backToHome": "← Tilbage til forsiden",
+    "panelLink": "Gå til admin-panelet",
+    "businessOwner": "Er du virksomhedsejer?"
   },
   "reservation": {
     "title": "Foretag en reservation",
@@ -1381,5 +1386,48 @@
     "subtitle": "Der opstod en uventet fejl. Prøv venligst igen.",
     "retry": "Prøv igen",
     "home": "Forside"
+  },
+  "favorites": {
+    "title": "❤️ Mine Favoritter",
+    "count": "({count})",
+    "emptyTitle": "Ingen favoritter endnu",
+    "emptyDesc": "Udforsk virksomheder og tilføj dem til dine favoritter.",
+    "exploreCta": "Udforsk Virksomheder",
+    "removeTitle": "Fjern fra favoritter",
+    "bookNow": "Book Nu"
+  },
+  "myReservations": {
+    "title": "📋 Mine Reservationer",
+    "upcoming": "Kommende",
+    "past": "Tidligere",
+    "cancelled": "Annullerede",
+    "statusConfirmed": "Bekræftet",
+    "statusPending": "Afventer",
+    "statusCancelled": "Annulleret",
+    "statusCompleted": "Afsluttet",
+    "emptyUpcoming": "Ingen kommende reservationer",
+    "emptyPast": "Ingen tidligere reservationer",
+    "emptyCancelled": "Ingen annullerede reservationer",
+    "detailTitle": "Reservationsdetaljer",
+    "labelBusiness": "Virksomhed",
+    "labelDate": "Dato",
+    "labelTime": "Tid",
+    "labelGuests": "Gæster",
+    "labelStatus": "Status",
+    "cancelBtn": "Annuller",
+    "cancelling": "Annullerer...",
+    "cancelConfirm": "Annuller reservation",
+    "makeReservation": "Foretag en reservation",
+    "guests": "gæster"
+  },
+  "isletmeDetail": {
+    "services": "Tjenester",
+    "ourTeam": "Vores team",
+    "bookNow": "Book nu",
+    "allBusinesses": "← Alle virksomheder",
+    "duration": "min.",
+    "minutes": "min.",
+    "phone": "📞",
+    "location": "📍"
   }
 }

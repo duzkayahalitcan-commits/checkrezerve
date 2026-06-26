@@ -3,10 +3,13 @@ import { cookies }                  from 'next/headers'
 import { getSupabaseAdmin }         from '@/lib/supabase'
 import { resolveApiSession }        from '@/lib/panel-auth'
 import { initCheckoutForm, getPricingPlanRef } from '@/lib/iyzico'
+import { rateLimit } from '@/lib/rate-limit'
 
 // POST /api/subscriptions/checkout
 // Body: { plan, billing_period, customer: { email, name, surname, phone, city, address } }
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, { prefix: 'checkout', max: 5, windowMs: 60_000 })
+  if (limited) return limited
   const jar = await cookies()
   const session = await resolveApiSession(req, jar)
   if (!session) return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 })

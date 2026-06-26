@@ -51,6 +51,7 @@ export default function RezervasyonList({
   areas,
   filters,
   locale,
+  restaurantId,
 }: {
   reservations: Reservation[]
   calisanlar: Staff[]
@@ -58,6 +59,7 @@ export default function RezervasyonList({
   areas: Area[]
   filters: { durum?: string; tarih?: string; ara?: string }
   locale: string
+  restaurantId: string
 }) {
   const router = useRouter()
   const toast = useToast()
@@ -345,6 +347,14 @@ export default function RezervasyonList({
                 ))}
               </div>
 
+              {/* Müşteri Geçmişi */}
+              {selectedRes.guest_phone && (
+                <div className="mb-5">
+                  <h3 className="text-xs font-semibold text-stone-400 mb-2 uppercase tracking-wider">Geçmiş Rezervasyonlar</h3>
+                  <GuestHistoryTable guestPhone={selectedRes.guest_phone} restaurantId={restaurantId} currentId={selectedRes.id} />
+                </div>
+              )}
+
               {/* Actions */}
               <div className="flex gap-2 flex-wrap">
                 {selectedRes.status === 'pending' && (
@@ -384,6 +394,43 @@ export default function RezervasyonList({
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  )
+}
+
+// ─── Müşteri Geçmiş Rezervasyonları ─────────────────────────────────────────
+
+function GuestHistoryTable({ guestPhone, restaurantId, currentId }: { guestPhone: string; restaurantId: string; currentId: string }) {
+  const [history, setHistory] = useState<{ id: string; reserved_date: string; reserved_time: string; status: string }[]>([])
+
+  useState(() => {
+    fetch(`/api/panel-reservations?phone=${encodeURIComponent(guestPhone)}&restaurant_id=${restaurantId}&limit=5`)
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) setHistory(data.filter((r: { id: string }) => r.id !== currentId))
+      })
+      .catch(() => {})
+  })
+
+  if (history.length === 0) return <p className="text-xs text-stone-500 italic">Bu müşterinin geçmiş kaydı yok.</p>
+
+  return (
+    <div className="space-y-1.5 max-h-32 overflow-y-auto">
+      {history.map(r => (
+        <div key={r.id} className="flex items-center justify-between text-xs px-2 py-1.5 rounded-lg bg-stone-800 border border-stone-700">
+          <span className="text-stone-300">{new Date(r.reserved_date + 'T12:00').toLocaleDateString('tr-TR')} {r.reserved_time?.slice(0, 5)}</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+            r.status === 'completed' ? 'bg-green-500/15 text-green-400' :
+            r.status === 'cancelled' ? 'bg-red-500/15 text-red-400' :
+            r.status === 'confirmed' ? 'bg-emerald-500/15 text-emerald-400' :
+            'bg-amber-500/15 text-amber-400'
+          }`}>
+            {r.status === 'completed' ? 'Tamamlandı' :
+             r.status === 'cancelled' ? 'İptal' :
+             r.status === 'confirmed' ? 'Onaylı' : 'Bekliyor'}
+          </span>
+        </div>
+      ))}
     </div>
   )
 }

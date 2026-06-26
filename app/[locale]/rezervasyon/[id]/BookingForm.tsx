@@ -3,7 +3,6 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { useToast } from '@/components/ui/Toast'
-import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'motion/react'
 import {
   Check, ArrowLeft, ArrowRight,
@@ -11,13 +10,41 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import InteractiveFloorMap from '@/components/InteractiveFloorMap'
+import type { TableLayout } from '@/components/InteractiveFloorMap'
 
 type Hizmet     = { id: string; name: string; duration_minutes: number; price: number | null }
 type Calisan    = { id: string; name: string; title: string | null }
 type FloorTable = { id: string; label: string; capacity: number; area_id: string | null; x: number; y: number; width: number; height: number; shape: 'rect' | 'circle'; rotation: number }
 type SpecialArea = { id: string; name: string; color: string | null }
 
-const FloorPlanPicker = dynamic(() => import('./FloorPlanPicker'), { ssr: false })
+// Adaptör: FloorTable → TableLayout (InteractiveFloorMap'in beklediği format)
+// grid_x / grid_y'yi piksel koordinatlardan yaklaşık olarak hesaplar
+function toTableLayouts(tables: FloorTable[], zone: string): TableLayout[] {
+  if (!tables.length) {
+    // Veri yoksa varsayılan test masaları oluştur
+    return Array.from({ length: 8 }, (_, i) => ({
+      id:     `test-${i}`,
+      label:  `Masa ${i + 1}`,
+      shape:  i % 3 === 1 ? 'round' as const : 'square' as const,
+      x:      (i % 3) * 4 + 1,
+      y:      Math.floor(i / 3) * 3 + 1,
+      seats:  i % 2 === 0 ? 4 : 2,
+      zone:   zone,
+      status: (i === 4 || i === 7) ? 'occupied' as const : 'available' as const,
+    }))
+  }
+  return tables.map(t => ({
+    id:     t.id,
+    label:  t.label,
+    shape:  t.shape === 'circle' ? 'round' : 'square',
+    x:      Math.round(t.x / 40) || 1,   // piksel → izometrik grid (yaklaşık)
+    y:      Math.round(t.y / 40) || 1,
+    seats:  t.capacity,
+    zone:   zone,
+    status: 'available',                 // BookingForm occupied durumunu kendisi yönetir
+  }))
+}
 
 interface Props {
   businessId:       string
@@ -465,14 +492,13 @@ export default function BookingForm({
           </div>
         )}
 
-        {/* Floor plan canvas */}
-        <FloorPlanPicker
-          restaurantId={businessId}
-          tables={areaTables}
-          selectedDate={selectedDate}
-          selectedTime={selectedTime}
-          selectedTableId={selectedTable}
+        {/* Floor plan canvas — izometrik InteractiveFloorMap */}
+        <InteractiveFloorMap
+          tables={toTableLayouts(areaTables, selectedArea ?? 'salon')}
+          selectedId={selectedTable}
           onSelect={setSelectedTable}
+          businessType={businessType}
+          areas={specialAreas}
         />
 
         {/* Skip button */}

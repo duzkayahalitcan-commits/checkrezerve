@@ -6,7 +6,7 @@ export const runtime = 'edge'
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const title   = searchParams.get('title') ?? 'CheckRezerve'
-  const type    = searchParams.get('type') ?? 'İşletme'
+  const type    = searchParams.get('type') ?? 'Online Booking'
   const address = searchParams.get('address') ?? ''
 
   return new ImageResponse(

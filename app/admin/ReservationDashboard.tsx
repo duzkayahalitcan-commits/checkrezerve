@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { createClient } from '@supabase/supabase-js'
+
+const PAGE_SIZE = 20
 
 type Reservation = {
   id: string
@@ -28,6 +30,7 @@ export function ReservationDashboard({
 }) {
   const [reservations, setReservations] = useState<Reservation[]>(initialData)
   const [tab, setTab] = useState<Tab>('today')
+  const [page, setPage] = useState(1)
   const [updating, setUpdating] = useState<string | null>(null)
 
   // Real-time Supabase subscription
@@ -76,6 +79,12 @@ export function ReservationDashboard({
     return true
   })
 
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  if (safePage !== page) setPage(safePage)
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
   return (
     <div>
       {/* Tabs */}
@@ -83,7 +92,7 @@ export function ReservationDashboard({
         {(['today', 'upcoming', 'all'] as Tab[]).map((t) => (
           <button
             key={t}
-            onClick={() => setTab(t)}
+            onClick={() => { setTab(t); setPage(1) }}
             className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               tab === t
                 ? 'bg-amber-500 text-white shadow'
@@ -103,13 +112,13 @@ export function ReservationDashboard({
       </div>
 
       {/* Liste */}
-      {filtered.length === 0 ? (
+      {paginated.length === 0 ? (
         <div className="rounded-2xl border border-white/5 bg-white/3 p-10 text-center text-stone-500">
           {tab === 'today' ? 'Bugün rezervasyon yok.' : 'Rezervasyon bulunamadı.'}
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {filtered.map((r) => (
+          {paginated.map((r) => (
             <ReservationCard
               key={r.id}
               reservation={r}
@@ -117,6 +126,29 @@ export function ReservationDashboard({
               onStatusChange={updateStatus}
             />
           ))}
+        </div>
+      )}
+
+      {/* Sayfalama */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-4">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={safePage <= 1}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 text-stone-400 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            ← Önceki
+          </button>
+          <span className="text-xs text-stone-500 px-2">
+            {safePage} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={safePage >= totalPages}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 text-stone-400 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Sonraki →
+          </button>
         </div>
       )}
     </div>

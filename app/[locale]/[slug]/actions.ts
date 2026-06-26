@@ -1,9 +1,14 @@
 'use server'
 
+import { createHash, randomBytes } from 'crypto'
 import { supabase } from '@/lib/supabase'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { sendReservationConfirmation } from '@/lib/notification-service'
 import { triggerN8nReservation } from '@/lib/n8n'
+
+function generateCancellationToken(): string {
+  return createHash('sha256').update(randomBytes(32)).digest('hex').slice(0, 32)
+}
 
 export type ActionState = {
   success: boolean
@@ -18,13 +23,20 @@ export async function createReservation(
 ): Promise<ActionState> {
   const guestName    = (formData.get('guest_name')    as string)?.trim()
   const guestPhone   = (formData.get('guest_phone')   as string)?.trim()
+  const guestEmail   = (formData.get('guest_email')   as string)?.trim() || null
   const reservedDate = (formData.get('reserved_date') as string)?.trim()
   const reservedTime = (formData.get('reserved_time') as string)?.trim()
   const partySize    = parseInt(formData.get('party_size') as string, 10)
   const notes        = (formData.get('notes')         as string)?.trim() || null
+  const smsConsent   = formData.get('sms_consent') === 'on'
+  const kvkkConsent  = formData.get('kvkk_consent') === 'on'
 
   if (!guestName || !guestPhone || !reservedDate || !reservedTime) {
     return { success: false, error: 'Lütfen tüm zorunlu alanları doldurun.', guestName: null }
+  }
+
+  if (!kvkkConsent) {
+    return { success: false, error: 'KVKK aydınlatma metnini kabul etmelisiniz.', guestName: null }
   }
 
   const phoneDigits = guestPhone.replace(/\D/g, '')
@@ -63,10 +75,13 @@ export async function createReservation(
     restaurant_id:    restaurantId,
     guest_name:       guestName,
     guest_phone:      guestPhone,
+    guest_email:      guestEmail,
     reserved_date:    reservedDate,
     reserved_time:    reservedTime,
     party_size:       isNaN(partySize) ? 1 : partySize,
     special_requests: notes,
+    cancellation_token: generateCancellationToken(),
+    sms_consent:      smsConsent || kvkkConsent,
     status:           'confirmed',
     source:           'form',
   })

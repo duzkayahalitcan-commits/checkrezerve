@@ -7,6 +7,8 @@ import { AddRestaurantForm } from './restaurants/AddRestaurantForm'
 import { QRCodeButton } from './restaurants/QRCodeButton'
 import { SmsLog } from './SmsLog'
 import UserForm from './restaurants/UserForm'
+import FeatureFlagManager from './FeatureFlagManager'
+import { RestaurantList } from './RestaurantList'
 
 export const metadata: Metadata = {
   title: 'Admin — Rezervasyonlar',
@@ -28,6 +30,7 @@ export default async function AdminPage() {
     { count: todayCancelled },
     { data: smsLogs },
     { data: panelUsers },
+    { data: featureFlags },
   ] = await Promise.all([
     supabase.from('restaurants').select('id, name, slug, phone, address, capacity, created_at, business_type, timezone, booking_duration_minutes, currency, description, website, instagram, is_active, floor_plan_enabled').order('name'),
 
@@ -66,6 +69,11 @@ export default async function AdminPage() {
       .from('restaurant_users')
       .select('id, restaurant_id, username, role, is_active, created_at, restaurants(name)')
       .order('created_at', { ascending: false }),
+
+    supabase
+      .from('feature_flags')
+      .select('*')
+      .order('restaurant_id'),
   ])
 
   // Restoran bazlı bugünkü doluluk
@@ -172,49 +180,11 @@ export default async function AdminPage() {
             Restoranlar
           </h2>
           <AddRestaurantForm />
-          {restaurants && restaurants.length > 0 && (
-            <div className="flex flex-col gap-2">
-              {restaurants.map((r) => (
-                <div
-                  key={r.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/3 px-4 py-3"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
-                    <span className="text-sm text-stone-200 truncate">{r.name}</span>
-                    <span className="text-xs text-stone-600 shrink-0">/{r.slug}</span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <a
-                      href={`/${r.slug}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-stone-500 hover:text-amber-400 transition-colors"
-                    >
-                      Aç ↗
-                    </a>
-                    <Link
-                      href={`/admin/restaurants/${r.id}`}
-                      className="text-xs text-stone-500 hover:text-amber-400 transition-colors"
-                    >
-                      Yönet →
-                    </Link>
-                    <Link
-                      href={`/admin/floor-plan/${r.id}`}
-                      className="text-xs text-stone-500 hover:text-blue-400 transition-colors flex items-center gap-1"
-                      title="Masa krokisini düzenle"
-                    >
-                      🗺 Kroki
-                      {r.floor_plan_enabled && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
-                      )}
-                    </Link>
-                    <QRCodeButton slug={r.slug} name={r.name} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <RestaurantList restaurants={(restaurants ?? []).map(r => ({
+            id: r.id,
+            name: r.name,
+            slug: r.slug,
+          }))} />
         </section>
 
         {/* ── Restoran Kullanıcıları (RBAC) ────────────────────── */}
@@ -231,6 +201,19 @@ export default async function AdminPage() {
                 : ((u.restaurants as unknown as { name: string } | null)?.name ?? '—'),
             }))}
           />
+        </section>
+
+        {/* ── Feature Flags ────────────────────────────────────── */}
+        <section>
+          <h2 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">
+            Feature Flags
+          </h2>
+          <div className="rounded-2xl border border-white/5 bg-white/3 p-5">
+            <FeatureFlagManager
+              initialFlags={featureFlags ?? []}
+              restaurants={restaurants?.map(r => ({ id: r.id, name: r.name, slug: r.slug })) ?? []}
+            />
+          </div>
         </section>
 
         {/* ── Rezervasyon Dashboard ─────────────────────────────── */}

@@ -115,6 +115,7 @@ export default function MarketingHeader() {
             {user ? (
               <div className="relative hidden sm:block" ref={userMenuRef}>
                 <button
+                  aria-label="Kullanıcı menüsü"
                   onClick={() => setUserMenuOpen(v => !v)}
                   className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                 >
@@ -149,6 +150,7 @@ export default function MarketingHeader() {
                       <Heart size={15} className="shrink-0" /> Favorilerim
                     </Link>
                     <button
+                      aria-label="Çıkış yap"
                       onClick={handleSignOut}
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
                     >
@@ -239,6 +241,7 @@ export default function MarketingHeader() {
                       Yönetici Paneli
                     </a>
                     <button
+                      aria-label="Dil seçimi"
                       onClick={() => { setMobileOpen(false); handleSignOut() }}
                       className="w-full text-center rounded-full border border-red-500/50 text-red-400 py-3.5 text-base font-semibold hover:bg-red-500/10 transition-colors"
                     >

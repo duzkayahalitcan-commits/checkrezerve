@@ -3,19 +3,19 @@ import { createHmac } from 'crypto'
 import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
-// Mirror the proxy.ts admin auth check
-function isAdmin(token: string): boolean {
-  const pw     = process.env.ADMIN_PASSWORD
-  const secret = process.env.ADMIN_SECRET ?? 'checkrezerve-fallback-secret'
-  if (!pw) return true // dev mode: no password set
-  const expected = createHmac('sha256', secret).update(pw).digest('base64')
-  return token === expected
-}
-
 async function verifyRequest(): Promise<boolean> {
-  const jar   = await cookies()
-  const token = jar.get('cr_admin')?.value ?? ''
-  return isAdmin(token)
+  const secret = process.env.ADMIN_SECRET ?? ''
+  if (!secret) return false
+  const jar = await cookies()
+  const raw = jar.get('cr_admin')?.value ?? ''
+  if (!raw) return false
+  const colonIdx = raw.indexOf(':')
+  if (colonIdx < 1) return false
+  const userId = raw.slice(0, colonIdx)
+  const token  = raw.slice(colonIdx + 1)
+  if (!userId || !token) return false
+  const expected = createHmac('sha256', secret).update(userId).digest('base64')
+  return token === expected
 }
 
 // GET /api/admin/tables?restaurant_id=…

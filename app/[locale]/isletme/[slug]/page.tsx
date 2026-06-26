@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { Link } from '@/i18n/navigation'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { BUSINESS_TYPE_ICONS, BUSINESS_TYPE_LABELS, type BusinessType } from '@/types'
 import FavoriteToggle from '@/app/[locale]/rezervasyon/[id]/FavoriteToggle'
@@ -36,10 +37,14 @@ async function getRestaurant(slug: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params
+  const { slug, locale } = await params
+  setRequestLocale(locale)
   const r = await getRestaurant(slug)
   if (!r) return {}
-  const ogImageUrl = `https://checkrezerve.com/api/og?title=${encodeURIComponent(r.name)}&type=${encodeURIComponent(BUSINESS_TYPE_LABELS[r.business_type as BusinessType] ?? 'İşletme')}${r.address ? `&address=${encodeURIComponent(r.address)}` : ''}`
+
+  const typeLabel = BUSINESS_TYPE_LABELS[r.business_type as BusinessType] ?? ''
+  const ogImageUrl = `https://checkrezerve.com/api/og?title=${encodeURIComponent(r.name)}&type=${encodeURIComponent(typeLabel)}${r.address ? `&address=${encodeURIComponent(r.address)}` : ''}`
+
   return {
     title: `${r.name} — CheckRezerve`,
     description: r.description ?? `${r.name} için online rezervasyon yapın.`,
@@ -52,13 +57,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function IsletmePage({ params }: Props) {
-  const { slug } = await params
+  const { slug, locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('isletmeDetail')
+  const tBiz = await getTranslations('businessTypes')
+
   const r = await getRestaurant(slug)
   if (!r) notFound()
 
-  const typeLabel = BUSINESS_TYPE_LABELS[r.business_type as BusinessType] ?? 'İşletme'
-  const typeIcon  = BUSINESS_TYPE_ICONS[r.business_type as BusinessType] ?? '🏪'
+  const businessType = r.business_type as BusinessType
+  const typeLabel = tBiz(businessType)
+  const typeIcon  = BUSINESS_TYPE_ICONS[businessType] ?? '🏪'
 
+  const baseUrl = 'https://checkrezerve.com'
+  const localePrefix = `/${locale}`
+
+  // Locale-aware JSON-LD
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
@@ -67,11 +81,11 @@ export default async function IsletmePage({ params }: Props) {
     address: r.address ? { '@type': 'PostalAddress', streetAddress: r.address } : undefined,
     telephone: r.phone ?? undefined,
     image: r.cover_image ?? undefined,
-    url: `https://checkrezerve.com/tr/isletme/${r.slug}`,
+    url: `${baseUrl}${localePrefix}/isletme/${r.slug}`,
     makesOffer: {
       '@type': 'Offer',
-      name: 'Online Rezervasyon',
-      url: `https://checkrezerve.com/tr/rezervasyon/${r.id}`,
+      name: t('bookNow'),
+      url: `${baseUrl}${localePrefix}/rezervasyon/${r.id}`,
     },
   }
 
@@ -79,9 +93,9 @@ export default async function IsletmePage({ params }: Props) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Ana Sayfa', item: 'https://checkrezerve.com/tr' },
-      { '@type': 'ListItem', position: 2, name: 'Rezervasyon', item: 'https://checkrezerve.com/tr/rezervasyon' },
-      { '@type': 'ListItem', position: 3, name: r.name, item: `https://checkrezerve.com/tr/isletme/${r.slug}` },
+      { '@type': 'ListItem', position: 1, name: t('allBusinesses').replace('← ', ''), item: `${baseUrl}${localePrefix}` },
+      { '@type': 'ListItem', position: 2, name: t('bookNow'), item: `${baseUrl}${localePrefix}/rezervasyon` },
+      { '@type': 'ListItem', position: 3, name: r.name, item: `${baseUrl}${localePrefix}/isletme/${r.slug}` },
     ],
   }
 
@@ -128,13 +142,13 @@ export default async function IsletmePage({ params }: Props) {
           )}
           {r.address && (
             <div className="flex items-start gap-3">
-              <span className="text-base mt-0.5">📍</span>
+              <span className="text-base mt-0.5">{t('location')}</span>
               <p className="text-sm text-zinc-700">{r.address}</p>
             </div>
           )}
           {r.phone && (
             <div className="flex items-center gap-3">
-              <span className="text-base">📞</span>
+              <span className="text-base">{t('phone')}</span>
               <a href={`tel:${r.phone}`} className="text-sm text-[#E53935] font-semibold hover:underline">
                 {r.phone}
               </a>
@@ -145,14 +159,14 @@ export default async function IsletmePage({ params }: Props) {
         {/* Hizmetler */}
         {r.hizmetler.length > 0 && (
           <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
-            <h2 className="text-base font-bold text-zinc-900 mb-4">Hizmetler</h2>
+            <h2 className="text-base font-bold text-zinc-900 mb-4">{t('services')}</h2>
             <div className="space-y-3">
               {r.hizmetler.map((h: { id: string; ad: string; sure_dakika: number | null; fiyat: number | null }) => (
                 <div key={h.id} className="flex items-center justify-between py-2 border-b border-zinc-50 last:border-0">
                   <div>
                     <p className="text-sm font-semibold text-zinc-800">{h.ad}</p>
                     {h.sure_dakika && (
-                      <p className="text-xs text-zinc-400 mt-0.5">⏱ {h.sure_dakika} dk</p>
+                      <p className="text-xs text-zinc-400 mt-0.5">⏱ {h.sure_dakika} {t('minutes')}</p>
                     )}
                   </div>
                   {h.fiyat != null && (
@@ -167,7 +181,7 @@ export default async function IsletmePage({ params }: Props) {
         {/* Çalışanlar */}
         {r.calisanlar.length > 0 && (
           <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
-            <h2 className="text-base font-bold text-zinc-900 mb-4">Ekibimiz</h2>
+            <h2 className="text-base font-bold text-zinc-900 mb-4">{t('ourTeam')}</h2>
             <div className="flex flex-wrap gap-3">
               {r.calisanlar.map((c: { id: string; ad: string; pozisyon: string | null }) => (
                 <div key={c.id} className="flex items-center gap-2 bg-zinc-50 rounded-xl px-3 py-2">
@@ -189,14 +203,14 @@ export default async function IsletmePage({ params }: Props) {
           href={{ pathname: '/rezervasyon/[id]', params: { id: r.id } }}
           className="block w-full text-center bg-[#E53935] hover:bg-red-700 text-white font-bold py-4 rounded-2xl text-base transition-colors shadow-md shadow-red-200"
         >
-          Rezervasyon Yap
+          {t('bookNow')}
         </Link>
 
         <Link
           href="/rezervasyon"
           className="block w-full text-center text-sm text-zinc-400 hover:text-zinc-600 transition-colors"
         >
-          ← Tüm İşletmeler
+          {t('allBusinesses')}
         </Link>
       </div>
     </main>

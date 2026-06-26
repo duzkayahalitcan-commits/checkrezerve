@@ -23,12 +23,17 @@ export default async function RezervasyonlarPage({
 
   const { data: restaurant } = await db
     .from('restaurants')
-    .select('id, name')
+    .select('id, name, onboarding_completed')
     .eq('slug', slug)
     .eq('id', session.restaurantId)
     .single()
 
   if (!restaurant) redirect('/panel/login')
+
+  // Onboarding tamamlanmadiysa yonlendir
+  if (!restaurant.onboarding_completed) {
+    redirect(`/panel/${slug}/onboarding`)
+  }
 
   // Fetch all reservations (last 90 days)
   const ninetyDaysAgo = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10)
@@ -91,6 +96,7 @@ export default async function RezervasyonlarPage({
           areas={areas ?? []}
           filters={filters}
           locale={locale}
+          restaurantId={restaurant.id}
         />
       </main>
     </div>

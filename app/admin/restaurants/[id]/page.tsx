@@ -1,26 +1,14 @@
 import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
-import { createHmac } from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import RestaurantDetail from './RestaurantDetail'
 
 export const dynamic = 'force-dynamic'
-
-function checkAdmin(raw: string): boolean {
-  const adminPw = process.env.ADMIN_PASSWORD ?? ''
-  const secret = process.env.ADMIN_SECRET ?? ''
-  const expected = createHmac('sha256', secret).update(adminPw).digest('base64')
-  return raw === expected
-}
 
 export default async function RestaurantDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
-  const jar = await cookies()
-  const cookie = jar.get('cr_admin')?.value ?? ''
-  if (!checkAdmin(cookie)) redirect('/admin/login')
 
   const { id } = await params
   const db = getSupabaseAdmin()

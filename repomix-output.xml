@@ -1,0 +1,4038 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: app/[locale]/rezervasyon/**, app/[locale]/[slug]/ReservationForm.tsx, app/panel/[slug]/masalar/**, app/api/tables/**, app/api/panel-reservations/**, app/api/panel-tables/**
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/
+  [locale]/
+    [slug]/
+      ReservationForm.tsx
+    rezervasyon/
+      [id]/
+        BookingForm.tsx
+        BusinessDetailHero.tsx
+        FloorPlanPicker.tsx
+        page.tsx
+      categories.ts
+      CategoryTabs.tsx
+      page.tsx
+      SearchableBusinessList.tsx
+  api/
+    panel-reservations/
+      route.ts
+    panel-tables/
+      route.ts
+    tables/
+      [restaurantId]/
+        availability/
+          route.ts
+        floor-plan/
+          route.ts
+      bulk-update/
+        route.ts
+  panel/
+    [slug]/
+      masalar/
+        FloorPlanEditor.tsx
+        MasalarContent.tsx
+        page.tsx
+        TableManager.tsx
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/api/tables/[restaurantId]/floor-plan/route.ts">
+import { NextRequest, NextResponse } from 'next/server'
+import { getSupabaseAdmin } from '@/lib/supabase'
+
+// GET /api/tables/[restaurantId]/floor-plan?date=YYYY-MM-DD&time=HH:MM
+// Returns tables grouped by area, each with occupied status for the given slot
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ restaurantId: string }> }
+) {
+  const { restaurantId } = await params
+  const date = req.nextUrl.searchParams.get('date') ?? ''
+  const time = req.nextUrl.searchParams.get('time') ?? ''
+  const db = getSupabaseAdmin()
+
+  const [tablesRes, areasRes, occRes] = await Promise.all([
+    db.from('tables').select('*').eq('restaurant_id', restaurantId).eq('is_active', true).order('label'),
+    db.from('special_areas').select('*').eq('restaurant_id', restaurantId).order('name'),
+    date
+      ? db.from('reservations').select('table_id').not('table_id', 'is', null).neq('status', 'cancelled')
+          .filter('reserved_date', 'eq', date)
+      : Promise.resolve({ data: [] }),
+  ])
+
+  const tables = tablesRes.data ?? []
+  const areas  = areasRes.data ?? []
+  const occData = Array.isArray(occRes) ? [] : (occRes.data ?? [])
+
+  // Build occupied set per time slot
+  const occupied = new Set<string>()
+  if (date && time && occData.length > 0) {
+    const exact = occData.filter((r: Record<string, unknown>) => {
+      const rt = (r.reserved_time ?? r.time ?? '') as string
+      return rt === time
+    })
+    exact.forEach((r: Record<string, unknown>) => {
+      if (r.table_id) occupied.add(r.table_id as string)
+    })
+  } else if (date && occData.length > 0) {
+    occData.forEach((r: Record<string, unknown>) => {
+      if (r.table_id) occupied.add(r.table_id as string)
+    })
+  }
+
+  // Group by area
+  const ungrouped: { id: string; label: string } | null = areas.length === 0 ? null : null
+  const grouped: Array<{ area: typeof areas[number] | null; tables: typeof tables }> = []
+
+  if (areas.length === 0) {
+    grouped.push({ area: null, tables })
+  } else {
+    for (const area of areas) {
+      const areaTables = tables.filter(t => t.area_id === area.id)
+      if (areaTables.length > 0) grouped.push({ area, tables: areaTables })
+    }
+    const unassigned = tables.filter(t => !t.area_id)
+    if (unassigned.length > 0) grouped.push({ area: null, tables: unassigned })
+  }
+
+  return NextResponse.json({
+    groups: grouped.map(g => ({
+      area: g.area ? { id: g.area.id, name: g.area.name, color: g.area.color ?? null } : null,
+      tables: g.tables.map(t => ({
+        id: t.id,
+        label: t.label,
+        capacity: t.capacity,
+        x: Number(t.x),
+        y: Number(t.y),
+        width: Number(t.width),
+        height: Number(t.height),
+        shape: t.shape,
+        rotation: Number(t.rotation ?? 0),
+        is_occupied: occupied.has(t.id),
+      })),
+    })),
+    date: date || null,
+    time: time || null,
+  })
+}
+</file>
+
+<file path="app/api/tables/bulk-update/route.ts">
+import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { verifySession } from '@/lib/panel-auth'
+import { getSupabaseAdmin } from '@/lib/supabase'
+
+// POST /api/tables/bulk-update
+// Bulk update positions, labels, capacities for multiple tables at once
+// Body: { tables: [{ id, x?, y?, rotation?, width?, height?, label?, capacity?, shape?, is_active? }] }
+export async function POST(req: NextRequest) {
+  const session = verifySession((await cookies()).get('cr_panel')?.value ?? '')
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { tables: updates } = await req.json()
+  if (!Array.isArray(updates) || updates.length === 0) {
+    return NextResponse.json({ error: 'No tables to update' }, { status: 400 })
+  }
+
+  const db = getSupabaseAdmin()
+
+  // Verify all tables belong to this restaurant
+  const ids = updates.map(u => u.id).filter(Boolean)
+  const { data: existing } = await db
+    .from('tables')
+    .select('id, restaurant_id')
+    .in('id', ids)
+
+  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const restaurantIds = new Set(existing.map(t => t.restaurant_id))
+  if (restaurantIds.size !== 1 || !restaurantIds.has(session.restaurantId)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  // Update each table
+  const errors: string[] = []
+  for (const u of updates) {
+    if (!u.id) continue
+    const payload: Record<string, unknown> = {}
+    if (u.x !== undefined) payload.x = u.x
+    if (u.y !== undefined) payload.y = u.y
+    if (u.rotation !== undefined) payload.rotation = u.rotation
+    if (u.width !== undefined) payload.width = u.width
+    if (u.height !== undefined) payload.height = u.height
+    if (u.label !== undefined) payload.label = u.label
+    if (u.capacity !== undefined) payload.capacity = u.capacity
+    if (u.shape !== undefined) payload.shape = u.shape
+    if (u.is_active !== undefined) payload.is_active = u.is_active
+
+    if (Object.keys(payload).length === 0) continue
+
+    const { error } = await db.from('tables').update(payload).eq('id', u.id)
+    if (error) errors.push(`${u.id}: ${error.message}`)
+  }
+
+  return NextResponse.json({
+    ok: errors.length === 0,
+    updated: updates.length - errors.length,
+    errors: errors.length > 0 ? errors : undefined,
+  })
+}
+</file>
+
+<file path="app/panel/[slug]/masalar/FloorPlanEditor.tsx">
+'use client'
+
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
+import {
+  Grid3X3, Save, Trash2, X, Circle, Square, Maximize2,
+  ArrowLeft, ArrowRight, GripHorizontal, RefreshCw,
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useToast } from '@/components/ui/Toast'
+
+type Table = {
+  id: string
+  label: string
+  capacity: number
+  area_id: string | null
+  x: number
+  y: number
+  width: number
+  height: number
+  shape: 'rect' | 'circle'
+  rotation: number
+  is_active: boolean
+}
+
+type SpecialArea = {
+  id: string
+  name: string
+  capacity: number
+  color: string | null
+}
+
+interface Props {
+  tables: Table[]
+  areas: SpecialArea[]
+  restaurantId: string
+}
+
+const CANVAS_W = 800
+const CANVAS_H = 600
+const GRID = 20
+const SNAP = 10
+
+const AREA_COLORS: Record<string, string> = {
+  mavi: '#3B82F6',
+  yesil: '#22C55E',
+  turuncu: '#F97316',
+  gri: '#6B7280',
+}
+
+const AREA_COLOR_OPTIONS = [
+  { value: '#3B82F6', label: 'Mavi' },
+  { value: '#22C55E', label: 'Yeşil' },
+  { value: '#F97316', label: 'Turuncu' },
+  { value: '#6B7280', label: 'Gri' },
+  { value: '#8B5CF6', label: 'Mor' },
+  { value: '#EC4899', label: 'Pembe' },
+]
+
+function snap(v: number): number {
+  return Math.round(v / SNAP) * SNAP
+}
+
+function clamp(v: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, v))
+}
+
+export default function FloorPlanEditor({ tables, areas, restaurantId }: Props) {
+  const router = useRouter()
+  const toast = useToast()
+  const canvasRef = useRef<HTMLDivElement>(null)
+
+  // State
+  const [activeAreaId, setActiveAreaId] = useState<string | null>(
+    areas.length > 0 ? areas[0].id : null
+  )
+  const [tableList, setTableList] = useState<Table[]>(tables)
+  const [areaList, setAreaList] = useState<SpecialArea[]>(areas)
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null)
+  const [dragging, setDragging] = useState<string | null>(null)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [editForm, setEditForm] = useState({ label: '', capacity: 4, shape: 'rect' as 'rect' | 'circle', width: 80, height: 80, rotation: 0 })
+  const [isSaving, setIsSaving] = useState(false)
+  const [newTableShape, setNewTableShape] = useState<'rect' | 'circle'>('rect')
+  const [showPalette, setShowPalette] = useState(true)
+
+  // New area form
+  const [newAreaName, setNewAreaName] = useState('')
+  const [newAreaColor, setNewAreaColor] = useState('#3B82F6')
+  const [showNewArea, setShowNewArea] = useState(false)
+  const [editingAreaId, setEditingAreaId] = useState<string | null>(null)
+  const [editAreaName, setEditAreaName] = useState('')
+
+  // Filter tables by active area
+  const activeTables = tableList.filter(t =>
+    t.area_id === activeAreaId && t.is_active
+  )
+  const selectedTable = selectedTableId
+    ? tableList.find(t => t.id === selectedTableId) ?? null
+    : null
+
+  // When selecting a table, populate edit form
+  useEffect(() => {
+    if (selectedTable) {
+      setEditForm({
+        label: selectedTable.label,
+        capacity: selectedTable.capacity,
+        shape: selectedTable.shape,
+        width: selectedTable.width,
+        height: selectedTable.height,
+        rotation: selectedTable.rotation ?? 0,
+      })
+    }
+  }, [selectedTableId])
+
+  // ─── Drag handlers ───
+  const handleMouseDown = useCallback((e: React.MouseEvent, tableId: string) => {
+    e.preventDefault()
+    setSelectedTableId(tableId)
+    const table = tableList.find(t => t.id === tableId)
+    if (!table || !canvasRef.current) return
+
+    const rect = canvasRef.current.getBoundingClientRect()
+    setDragging(tableId)
+    setDragOffset({
+      x: e.clientX - rect.left - table.x,
+      y: e.clientY - rect.top - table.y,
+    })
+  }, [tableList])
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!dragging || !canvasRef.current) return
+    const rect = canvasRef.current.getBoundingClientRect()
+    let nx = snap(e.clientX - rect.left - dragOffset.x)
+    let ny = snap(e.clientY - rect.top - dragOffset.y)
+    nx = clamp(nx, 0, CANVAS_W - 40)
+    ny = clamp(ny, 0, CANVAS_H - 40)
+
+    setTableList(prev => prev.map(t =>
+      t.id === dragging ? { ...t, x: nx, y: ny } : t
+    ))
+  }, [dragging, dragOffset])
+
+  const handleMouseUp = useCallback(() => {
+    setDragging(null)
+  }, [])
+
+  // ─── Add table to canvas ───
+  async function addTable(shape: 'rect' | 'circle') {
+    const draft = {
+      table: 'tables',
+      payload: {
+        label: `M${(tableList.filter(t => t.area_id === activeAreaId).length + 1)}`,
+        capacity: shape === 'circle' ? 4 : 2,
+        shape,
+        width: shape === 'circle' ? 60 : shape === 'rect' ? 80 : 80,
+        height: 60,
+        x: 50 + Math.random() * 150,
+        y: 50 + Math.random() * 150,
+        rotation: 0,
+        area_id: activeAreaId,
+        is_active: true,
+      },
+    }
+
+    try {
+      const res = await fetch('/api/panel-tables', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(draft),
+      })
+      if (!res.ok) throw new Error()
+      const { data } = await res.json()
+      setTableList(prev => [...prev, { ...draft.payload, id: data.id } as unknown as Table])
+      toast.show('Masa eklendi', 'success')
+    } catch {
+      toast.show('Eklenemedi', 'error')
+    }
+  }
+
+  // ─── Delete table ───
+  async function deleteTable(id: string) {
+    try {
+      await fetch('/api/panel-tables', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ table: 'tables', id }),
+      })
+      setTableList(prev => prev.filter(t => t.id !== id))
+      setSelectedTableId(null)
+      toast.show('Silindi', 'success')
+    } catch {
+      toast.show('Silinemedi', 'error')
+    }
+  }
+
+  // ─── Save edit form changes ───
+  async function saveEdit() {
+    if (!selectedTable) return
+    try {
+      await fetch('/api/tables/bulk-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tables: [{
+            id: selectedTable.id,
+            label: editForm.label,
+            capacity: editForm.capacity,
+            shape: editForm.shape,
+            width: editForm.width,
+            height: editForm.height,
+            rotation: editForm.rotation,
+          }],
+        }),
+      })
+      setTableList(prev => prev.map(t =>
+        t.id === selectedTable.id ? { ...t, ...editForm } : t
+      ))
+      toast.show('Güncellendi', 'success')
+    } catch {
+      toast.show('Güncellenemedi', 'error')
+    }
+  }
+
+  // ─── Bulk save all positions ───
+  async function bulkSave() {
+    setIsSaving(true)
+    const updates = tableList
+      .filter(t => t.area_id === activeAreaId)
+      .map(t => ({
+        id: t.id,
+        x: t.x,
+        y: t.y,
+        rotation: t.rotation ?? 0,
+      }))
+
+    if (updates.length === 0) { setIsSaving(false); return }
+
+    try {
+      const res = await fetch('/api/tables/bulk-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tables: updates }),
+      })
+      if (!res.ok) throw new Error()
+      toast.show(`${updates.length} masa kaydedildi`, 'success')
+    } catch {
+      toast.show('Kayıt başarısız', 'error')
+    }
+    setIsSaving(false)
+  }
+
+  // ─── Add area ───
+  async function addArea() {
+    if (!newAreaName.trim()) return
+    try {
+      const res = await fetch('/api/panel-tables', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          table: 'special_areas',
+          payload: { name: newAreaName.trim(), capacity: 10, color: newAreaColor },
+        }),
+      })
+      if (!res.ok) throw new Error()
+      const { data } = await res.json()
+      const newArea = { id: data.id, name: newAreaName.trim(), capacity: 10, color: newAreaColor }
+      setAreaList(prev => [...prev, newArea])
+      setActiveAreaId(newArea.id)
+      setNewAreaName('')
+      setShowNewArea(false)
+      toast.show('Alan eklendi', 'success')
+    } catch {
+      toast.show('Eklenemedi', 'error')
+    }
+  }
+
+  // ─── Delete area ───
+  async function deleteArea(id: string) {
+    try {
+      await fetch('/api/panel-tables', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ table: 'special_areas', id }),
+      })
+      setAreaList(prev => {
+        const next = prev.filter(a => a.id !== id)
+        if (activeAreaId === id) setActiveAreaId(next[0]?.id ?? null)
+        return next
+      })
+      toast.show('Alan silindi', 'success')
+    } catch {
+      toast.show('Silinemedi', 'error')
+    }
+  }
+
+  // ─── Edit area name ───
+  async function saveAreaName(id: string) {
+    if (!editAreaName.trim()) return
+    try {
+      await fetch('/api/panel-tables', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ table: 'special_areas', id, payload: { name: editAreaName.trim() } }),
+      })
+      setAreaList(prev => prev.map(a => a.id === id ? { ...a, name: editAreaName.trim() } : a))
+      setEditingAreaId(null)
+      toast.show('Güncellendi', 'success')
+    } catch {
+      toast.show('Güncellenemedi', 'error')
+    }
+  }
+
+  const activeArea = areaList.find(a => a.id === activeAreaId)
+  const areaColor = activeArea?.color || '#6B7280'
+
+  return (
+    <div className="space-y-4">
+      {/* ═══ Area Tabs ═══ */}
+      <div className="flex flex-wrap items-center gap-2">
+        {areaList.map(a => (
+          <div key={a.id} className="relative group">
+            <button
+              onClick={() => { setActiveAreaId(a.id); setSelectedTableId(null) }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border ${
+                activeAreaId === a.id
+                  ? 'bg-stone-800 text-white border-stone-600 shadow-sm'
+                  : 'text-stone-400 border-stone-800 hover:text-white hover:border-stone-600'
+              }`}
+            >
+              <span
+                className="w-2.5 h-2.5 rounded-full inline-block"
+                style={{ backgroundColor: a.color || '#6B7280' }}
+              />
+              {a.name}
+              <span className="text-[11px] text-stone-500 ml-1">
+                {tableList.filter(t => t.area_id === a.id && t.is_active).length}
+              </span>
+            </button>
+            {editingAreaId === a.id ? (
+              <div className="absolute top-full left-0 mt-2 z-20 flex gap-2 bg-stone-900 border border-stone-700 rounded-xl p-2 shadow-xl">
+                <input
+                  value={editAreaName}
+                  onChange={e => setEditAreaName(e.target.value)}
+                  className="w-28 bg-stone-800 border border-stone-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-amber-500"
+                  autoFocus
+                  onKeyDown={e => e.key === 'Enter' && saveAreaName(a.id)}
+                />
+                <button onClick={() => saveAreaName(a.id)} className="p-1 rounded bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"><ArrowRight size={12} /></button>
+                <button onClick={() => setEditingAreaId(null)} className="p-1 rounded bg-stone-800 text-stone-400 hover:text-white"><X size={12} /></button>
+              </div>
+            ) : (
+              <div className="absolute top-0 right-0 -mr-1 -mt-1 hidden group-hover:flex gap-0.5">
+                <button
+                  onClick={() => { setEditingAreaId(a.id); setEditAreaName(a.name) }}
+                  className="w-4 h-4 rounded-full bg-stone-700 text-stone-300 hover:bg-stone-600 flex items-center justify-center"
+                  title="Adı düzenle"
+                >
+                  <span className="text-[8px]">✎</span>
+                </button>
+                <button
+                  onClick={() => deleteArea(a.id)}
+                  className="w-4 h-4 rounded-full bg-red-500/30 text-red-300 hover:bg-red-500/50 flex items-center justify-center"
+                  title="Alanı sil"
+                >
+                  <X size={8} />
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+        <button
+          onClick={() => setShowNewArea(!showNewArea)}
+          className="px-3 py-2 rounded-xl text-xs font-medium text-stone-400 border border-dashed border-stone-700 hover:text-white hover:border-stone-500 transition-colors"
+        >
+          + Alan Ekle
+        </button>
+      </div>
+
+      {/* New area form */}
+      <AnimatePresence>
+        {showNewArea && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="flex items-center gap-2 bg-stone-900 border border-stone-800 rounded-xl p-3"
+          >
+            <input
+              value={newAreaName}
+              onChange={e => setNewAreaName(e.target.value)}
+              placeholder="Alan adı"
+              className="flex-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white placeholder-stone-500 focus:outline-none focus:border-amber-500"
+              onKeyDown={e => e.key === 'Enter' && addArea()}
+            />
+            <select
+              value={newAreaColor}
+              onChange={e => setNewAreaColor(e.target.value)}
+              className="bg-stone-800 border border-stone-700 rounded-lg px-2 py-2 text-xs text-white"
+            >
+              {AREA_COLOR_OPTIONS.map(c => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+            </select>
+            <button onClick={addArea} disabled={!newAreaName.trim()} className="px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-black text-xs font-semibold">
+              Ekle
+            </button>
+            <button onClick={() => setShowNewArea(false)} className="p-2 rounded-lg text-stone-500 hover:text-white"><X size={14} /></button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ═══ Main Canvas + Sidebar ═══ */}
+      <div className="flex gap-4">
+        {/* Shape Palette */}
+        {showPalette && (
+          <div className="w-20 shrink-0 space-y-2">
+            <p className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold">Şekiller</p>
+            <button
+              onClick={() => addTable('rect')}
+              className="w-full flex flex-col items-center gap-1 p-2 rounded-xl border border-stone-700 bg-stone-900 hover:bg-stone-800 transition-colors group"
+              title="Kare masa (2 kişi)"
+            >
+              <Square size={22} className="text-stone-400 group-hover:text-white transition-colors" />
+              <span className="text-[9px] text-stone-500 group-hover:text-stone-300">2 kişi</span>
+            </button>
+            <button
+              onClick={() => addTable('rect')}
+              className="w-full flex flex-col items-center gap-1 p-2 rounded-xl border border-stone-700 bg-stone-900 hover:bg-stone-800 transition-colors group"
+              title="Dikdörtgen masa (4 kişi)"
+            >
+              <Maximize2 size={22} className="text-stone-400 group-hover:text-white transition-colors" />
+              <span className="text-[9px] text-stone-500 group-hover:text-stone-300">4 kişi</span>
+            </button>
+            <button
+              onClick={() => addTable('circle')}
+              className="w-full flex flex-col items-center gap-1 p-2 rounded-xl border border-stone-700 bg-stone-900 hover:bg-stone-800 transition-colors group"
+              title="Yuvarlak masa (4 kişi)"
+            >
+              <Circle size={22} className="text-stone-400 group-hover:text-white transition-colors" />
+              <span className="text-[9px] text-stone-500 group-hover:text-stone-300">4 kişi</span>
+            </button>
+            <button
+              onClick={() => setShowPalette(false)}
+              className="w-full p-2 rounded-xl border border-stone-800 text-stone-500 hover:text-white hover:bg-stone-800 transition-colors"
+              title="Paneli gizle"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
+        {!showPalette && (
+          <button
+            onClick={() => setShowPalette(true)}
+            className="w-8 h-8 shrink-0 flex items-center justify-center rounded-xl border border-stone-800 text-stone-500 hover:text-white hover:bg-stone-800 transition-colors"
+            title="Şekil panelini göster"
+          >
+            <GripHorizontal size={14} />
+          </button>
+        )}
+
+        {/* Canvas */}
+        <div className="flex-1 relative">
+          <div
+            ref={canvasRef}
+            className="relative overflow-hidden rounded-2xl border border-stone-700 bg-stone-900/50 cursor-crosshair"
+            style={{ width: CANVAS_W, height: CANVAS_H, backgroundImage: `
+              linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
+            `, backgroundSize: `${GRID}px ${GRID}px` }}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          >
+            {/* Room silhouette hint */}
+            <div className="absolute inset-4 border-2 border-dashed border-stone-800/50 rounded-xl pointer-events-none flex items-center justify-center">
+              <span className="text-stone-800 text-xs font-medium select-none">
+                {activeArea?.name ?? 'Alan'} — Masaları sürükleyip bırakın
+              </span>
+            </div>
+
+            {activeTables.map(t => {
+              const isSelected = selectedTableId === t.id
+              const isDragging = dragging === t.id
+              const rotation = t.rotation ?? 0
+              const radius = t.shape === 'circle' ? Math.min(t.width, t.height) / 2 : 8
+
+              return (
+                <div
+                  key={t.id}
+                  onMouseDown={e => handleMouseDown(e, t.id)}
+                  style={{
+                    position: 'absolute',
+                    left: t.x,
+                    top: t.y,
+                    width: t.width,
+                    height: t.height,
+                    transform: `rotate(${rotation}deg)`,
+                    borderRadius: radius,
+                    border: `2px solid ${isSelected ? '#E53935' : isDragging ? '#F97316' : '#E0E0E0'}`,
+                    backgroundColor: isSelected ? '#FFF5F5' : isDragging ? '#FFFBEB' : '#F5F5F5',
+                    cursor: 'grab',
+                    zIndex: isDragging ? 100 : isSelected ? 10 : 1,
+                    boxShadow: isSelected ? '0 0 0 3px rgba(229,57,53,0.2)' : isDragging ? '0 4px 12px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.15)',
+                    transition: isDragging ? 'none' : 'box-shadow 0.15s',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    userSelect: 'none',
+                  }}
+                >
+                  <span className="text-xs font-bold text-stone-800 leading-none" style={{ fontSize: t.width > 70 ? 11 : 9 }}>
+                    {t.label}
+                  </span>
+                  <span className="text-[9px] text-stone-500 leading-none mt-0.5">
+                    {t.capacity} kişi
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Toolbar below canvas */}
+          <div className="flex items-center justify-between mt-3">
+            <div className="flex items-center gap-2 text-xs text-stone-500">
+              <Grid3X3 size={12} />
+              {activeTables.length} masa aktif
+              {dragging && <span className="text-amber-400 ml-2">Sürükleniyor...</span>}
+            </div>
+            <button
+              onClick={bulkSave}
+              disabled={isSaving}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-black text-sm font-semibold transition-colors"
+            >
+              {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
+              {isSaving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
+            </button>
+          </div>
+        </div>
+
+        {/* ═══ Right Edit Sidebar ═══ */}
+        <AnimatePresence>
+          {selectedTable && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="w-56 shrink-0 bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-white">Masa Düzenle</h3>
+                <button onClick={() => setSelectedTableId(null)} className="text-stone-500 hover:text-white transition-colors">
+                  <X size={14} />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {/* Label */}
+                <div>
+                  <label className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold">Ad / Numara</label>
+                  <input
+                    value={editForm.label}
+                    onChange={e => setEditForm(f => ({ ...f, label: e.target.value }))}
+                    className="w-full mt-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Capacity */}
+                <div>
+                  <label className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold">Kapasite</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={editForm.capacity}
+                    onChange={e => setEditForm(f => ({ ...f, capacity: Math.min(20, Math.max(1, Number(e.target.value) || 1)) }))}
+                    className="w-full mt-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Shape */}
+                <div>
+                  <label className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold">Şekil</label>
+                  <select
+                    value={editForm.shape}
+                    onChange={e => setEditForm(f => ({ ...f, shape: e.target.value as 'rect' | 'circle' }))}
+                    className="w-full mt-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="rect">Kare/Dikdörtgen</option>
+                    <option value="circle">Yuvarlak</option>
+                  </select>
+                </div>
+
+                {/* Width */}
+                <div>
+                  <label className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold">Genişlik</label>
+                  <input
+                    type="number"
+                    min={40}
+                    max={200}
+                    value={editForm.width}
+                    onChange={e => setEditForm(f => ({ ...f, width: clamp(Number(e.target.value) || 40, 40, 200) }))}
+                    className="w-full mt-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Height */}
+                <div>
+                  <label className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold">Yükseklik</label>
+                  <input
+                    type="number"
+                    min={40}
+                    max={200}
+                    value={editForm.height}
+                    onChange={e => setEditForm(f => ({ ...f, height: clamp(Number(e.target.value) || 40, 40, 200) }))}
+                    className="w-full mt-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Rotation */}
+                <div>
+                  <label className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold">Dönüş</label>
+                  <div className="flex gap-1 mt-1">
+                    {[0, 90, 180, 270].map(deg => (
+                      <button
+                        key={deg}
+                        onClick={() => setEditForm(f => ({ ...f, rotation: deg }))}
+                        className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                          editForm.rotation === deg
+                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            : 'bg-stone-800 text-stone-400 border border-stone-700 hover:border-stone-500'
+                        }`}
+                      >
+                        {deg}°
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Save edit */}
+                <button
+                  onClick={saveEdit}
+                  className="w-full px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-sm font-semibold transition-colors"
+                >
+                  Uygula
+                </button>
+
+                {/* Delete */}
+                <button
+                  onClick={() => deleteTable(selectedTable.id)}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 text-sm font-medium transition-colors"
+                >
+                  <Trash2 size={13} /> Masayı Sil
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="app/panel/[slug]/masalar/MasalarContent.tsx">
+'use client'
+
+import { useState } from 'react'
+import { LayoutGrid, Map } from 'lucide-react'
+import TableManager from './TableManager'
+import FloorPlanEditor from './FloorPlanEditor'
+
+type Table = {
+  id: string
+  label: string
+  capacity: number
+  area_id: string | null
+  x: number
+  y: number
+  width: number
+  height: number
+  shape: 'rect' | 'circle'
+  rotation: number
+  is_active: boolean
+}
+
+type SpecialArea = {
+  id: string
+  name: string
+  capacity: number
+  color: string | null
+}
+
+export default function MasalarContentClient({
+  tables,
+  areas,
+  restaurantId,
+}: {
+  tables: Table[]
+  areas: SpecialArea[]
+  restaurantId: string
+}) {
+  const [view, setView] = useState<'kroki' | 'liste'>('kroki')
+
+  return (
+    <div className="space-y-4">
+      {/* View switcher */}
+      <div className="flex gap-1.5 bg-stone-950 border border-stone-800 rounded-xl p-1 w-fit">
+        <button
+          onClick={() => setView('kroki')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            view === 'kroki' ? 'bg-stone-800 text-white shadow-sm' : 'text-stone-500 hover:text-white'
+          }`}
+        >
+          <Map size={14} /> Kroki
+        </button>
+        <button
+          onClick={() => setView('liste')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            view === 'liste' ? 'bg-stone-800 text-white shadow-sm' : 'text-stone-500 hover:text-white'
+          }`}
+        >
+          <LayoutGrid size={14} /> Liste
+        </button>
+      </div>
+
+      {view === 'kroki' ? (
+        <FloorPlanEditor
+          tables={tables}
+          areas={areas}
+          restaurantId={restaurantId}
+        />
+      ) : (
+        <TableManager
+          tables={tables}
+          areas={areas}
+          restaurantId={restaurantId}
+        />
+      )}
+    </div>
+  )
+}
+</file>
+
+<file path="app/[locale]/rezervasyon/[id]/FloorPlanPicker.tsx">
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import { Stage, Layer, Group, Rect, Text } from 'react-konva'
+
+export type PickerTable = {
+  id: string
+  label: string
+  capacity: number
+  x: number
+  y: number
+  width: number
+  height: number
+  shape: 'rect' | 'circle'
+}
+
+interface Props {
+  restaurantId: string
+  tables: PickerTable[]
+  selectedDate: string
+  selectedTime: string
+  selectedTableId: string | null
+  onSelect: (tableId: string | null) => void
+}
+
+const STAGE_W = 800
+const STAGE_H = 480
+
+type TableStatus = 'available' | 'occupied' | 'selected'
+
+function tableColor(status: TableStatus, part: 'fill' | 'stroke' | 'text' | 'sub') {
+  if (status === 'occupied') {
+    return { fill: '#FEF2F2', stroke: '#EF4444', text: '#991B1B', sub: '#B91C1C' }[part]
+  }
+  if (status === 'selected') {
+    return { fill: '#DBEAFE', stroke: '#2563EB', text: '#1D4ED8', sub: '#3B82F6' }[part]
+  }
+  // available
+  return { fill: '#F0FDF4', stroke: '#16A34A', text: '#14532D', sub: '#15803D' }[part]
+}
+
+export default function FloorPlanPicker({
+  restaurantId,
+  tables,
+  selectedDate,
+  selectedTime,
+  selectedTableId,
+  onSelect,
+}: Props) {
+  const [occupied, setOccupied] = useState<Set<string>>(new Set())
+  const [loading,  setLoading]  = useState(false)
+
+  // Fetch availability when date/time changes
+  useEffect(() => {
+    if (!selectedDate || !selectedTime) {
+      setOccupied(new Set())
+      return
+    }
+    let cancelled = false
+    setLoading(true)
+    fetch(
+      `/api/tables/${restaurantId}/availability?date=${selectedDate}&time=${selectedTime}`
+    )
+      .then(r => r.json())
+      .then(data => {
+        if (!cancelled) setOccupied(new Set(data.occupied ?? []))
+      })
+      .catch(() => { /* silent — show all as available */ })
+      .finally(() => { if (!cancelled) setLoading(false) })
+
+    return () => { cancelled = true }
+  }, [restaurantId, selectedDate, selectedTime])
+
+  function handleClick(tableId: string) {
+    if (occupied.has(tableId)) return   // can't select an occupied table
+    onSelect(selectedTableId === tableId ? null : tableId)
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Legend */}
+      <div className="flex items-center gap-4 text-xs text-zinc-500">
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full border border-green-500 bg-green-50 inline-block" />
+          Boş
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full border border-red-400 bg-red-50 inline-block" />
+          Dolu
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full border border-blue-500 bg-blue-100 inline-block" />
+          Seçildi
+        </span>
+        {loading && (
+          <span className="ml-auto text-zinc-400 animate-pulse">Müsaitlik kontrol ediliyor…</span>
+        )}
+      </div>
+
+      {/* Canvas */}
+      <div className="rounded-2xl border border-zinc-200 overflow-x-auto bg-zinc-50">
+        <Stage width={STAGE_W} height={STAGE_H}>
+          <Layer>
+            {tables.map(t => {
+              const isOccupied = occupied.has(t.id)
+              const isSelected = selectedTableId === t.id
+              const status: TableStatus = isSelected ? 'selected' : isOccupied ? 'occupied' : 'available'
+              const radius = t.shape === 'circle'
+                ? Math.min(t.width, t.height) / 2
+                : 8
+
+              return (
+                <Group
+                  key={t.id}
+                  x={t.x}
+                  y={t.y}
+                  onClick={() => handleClick(t.id)}
+                  onTap={() => handleClick(t.id)}
+                  style={{ cursor: isOccupied ? 'not-allowed' : 'pointer' }}
+                >
+                  <Rect
+                    width={t.width}
+                    height={t.height}
+                    cornerRadius={radius}
+                    fill={tableColor(status, 'fill') as string}
+                    stroke={tableColor(status, 'stroke') as string}
+                    strokeWidth={isSelected ? 2.5 : 1.5}
+                    shadowBlur={isSelected ? 8 : 2}
+                    shadowColor={isSelected ? '#93C5FD' : '#00000010'}
+                    shadowEnabled
+                  />
+                  <Text
+                    width={t.width}
+                    y={t.height / 2 - 12}
+                    align="center"
+                    text={t.label}
+                    fontSize={12}
+                    fontStyle="bold"
+                    fill={tableColor(status, 'text') as string}
+                    listening={false}
+                  />
+                  <Text
+                    width={t.width}
+                    y={t.height / 2 + 2}
+                    align="center"
+                    text={isOccupied ? 'Dolu' : `${t.capacity} kişi`}
+                    fontSize={10}
+                    fill={tableColor(status, 'sub') as string}
+                    listening={false}
+                  />
+                </Group>
+              )
+            })}
+          </Layer>
+        </Stage>
+      </div>
+
+      {selectedTableId && !occupied.has(selectedTableId) && (() => {
+        const t = tables.find(x => x.id === selectedTableId)
+        return t ? (
+          <p className="text-sm text-green-700 font-medium">
+            ✓ <span className="font-bold">{t.label}</span> seçildi — max {t.capacity} kişilik
+          </p>
+        ) : null
+      })()}
+    </div>
+  )
+}
+</file>
+
+<file path="app/api/panel-reservations/route.ts">
+import { type NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { getSupabaseAdmin } from '@/lib/supabase'
+
+async function getSession() {
+  const jar = await cookies()
+  const raw = jar.get('cr_panel')?.value ?? ''
+  if (!raw) return null
+  const parts = raw.split(':')
+  if (parts.length < 2) return null
+  const [userId, restaurantId] = parts
+  if (!userId || !restaurantId) return null
+  return { userId, restaurantId }
+}
+
+export async function PATCH(req: NextRequest) {
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { id, status } = await req.json()
+  if (!id || !status) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+
+  const valid = ['pending', 'confirmed', 'cancelled', 'completed']
+  if (!valid.includes(status)) return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+
+  const db = getSupabaseAdmin()
+  const { error } = await db
+    .from('reservations')
+    .update({ status })
+    .eq('id', id)
+    .eq('restaurant_id', session.restaurantId)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
+}
+</file>
+
+<file path="app/api/tables/[restaurantId]/availability/route.ts">
+import { NextRequest, NextResponse } from 'next/server'
+import { getSupabaseAdmin } from '@/lib/supabase'
+
+// GET /api/tables/[restaurantId]/availability?date=YYYY-MM-DD&time=HH:MM
+// Returns array of table IDs that are occupied (non-cancelled reservations)
+// at the given date+time slot.
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ restaurantId: string }> }
+) {
+  const { restaurantId } = await params
+  const date = req.nextUrl.searchParams.get('date') ?? ''
+  const time = req.nextUrl.searchParams.get('time') ?? ''
+
+  if (!date) {
+    return NextResponse.json({ occupied: [] })
+  }
+
+  const supabase = getSupabaseAdmin()
+
+  // Fetch all non-cancelled reservations for this restaurant on this date
+  // that have a table_id. The DB has both `reserved_date` (original NOT NULL
+  // column) and `date` (added in v2 migration), so we check both.
+  const { data, error } = await supabase
+    .from('reservations')
+    .select('table_id, reserved_date, date, reserved_time, time')
+    .eq('restaurant_id', restaurantId)
+    .not('table_id', 'is', null)
+    .neq('status', 'cancelled')
+
+  if (error) {
+    console.error('[availability]', error)
+    return NextResponse.json({ occupied: [] })
+  }
+
+  const occupied = (data ?? [])
+    .filter(r => {
+      const matchDate = r.reserved_date === date || r.date === date
+      if (!time) return matchDate
+      const matchTime = !r.reserved_time && !r.time
+        ? false // no time stored — don't block the slot
+        : r.reserved_time === time || r.time === time
+      return matchDate && matchTime
+    })
+    .map(r => r.table_id as string)
+
+  return NextResponse.json({ occupied: [...new Set(occupied)] })
+}
+</file>
+
+<file path="app/panel/[slug]/masalar/page.tsx">
+import { redirect } from 'next/navigation'
+import { getPanelSession } from '@/app/panel/login/actions'
+import { getSupabaseAdmin } from '@/lib/supabase'
+import TableManager from './TableManager'
+import FloorPlanEditor from './FloorPlanEditor'
+
+export const dynamic = 'force-dynamic'
+
+export default async function MasalarPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const session = await getPanelSession()
+  if (!session) redirect('/panel/login')
+
+  const { slug } = await params
+  const db = getSupabaseAdmin()
+
+  const { data: restaurant } = await db
+    .from('restaurants')
+    .select('id, name')
+    .eq('slug', slug)
+    .eq('id', session.restaurantId)
+    .single()
+
+  if (!restaurant) redirect('/panel/login')
+
+  const [{ data: tables }, { data: areas }] = await Promise.all([
+    db.from('tables').select('*').eq('restaurant_id', restaurant.id).order('label'),
+    db.from('special_areas').select('*').eq('restaurant_id', restaurant.id).order('name'),
+  ])
+
+  return (
+    <div>
+      <div className="px-6 pt-6 pb-5 border-b border-white/5">
+        <h1 className="text-lg font-bold text-white mt-0.5">Masalar</h1>
+        <p className="text-xs text-stone-500 mt-0.5">{tables?.length ?? 0} masa, {areas?.length ?? 0} alan</p>
+      </div>
+      <main className="max-w-5xl mx-auto px-4 md:px-6 py-6">
+        <MasalarContent
+          tables={tables ?? []}
+          areas={areas ?? []}
+          restaurantId={restaurant.id}
+        />
+      </main>
+    </div>
+  )
+}
+
+// Client component for the tab switcher
+import MasalarContentClient from './MasalarContent'
+function MasalarContent({
+  tables,
+  areas,
+  restaurantId,
+}: {
+  tables: any[]
+  areas: any[]
+  restaurantId: string
+}) {
+  return (
+    <MasalarContentClient
+      tables={tables}
+      areas={areas}
+      restaurantId={restaurantId}
+    />
+  )
+}
+</file>
+
+<file path="app/[locale]/rezervasyon/[id]/BusinessDetailHero.tsx">
+'use client'
+import { motion } from 'motion/react'
+import { Link } from '@/i18n/navigation'
+
+interface Props {
+  name: string
+  icon: string
+  label: string
+  address: string | null
+  phone: string | null
+  description: string | null
+  backLabel: string
+  rating: number | null
+  coverImage: string | null
+}
+
+export default function BusinessDetailHero({ name, icon, label, address, phone, description, backLabel, rating, coverImage }: Props) {
+  return (
+    <div className="pt-24 pb-6 bg-zinc-900 text-white overflow-hidden relative">
+      {coverImage && (
+        <>
+          <img
+            src={coverImage}
+            alt={name}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/70 to-zinc-900/40" />
+        </>
+      )}
+      <div className="mx-auto max-w-3xl px-6 relative z-10">
+
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <Link href="/rezervasyon" className="text-zinc-400 hover:text-white text-sm transition-colors">
+            ← {backLabel}
+          </Link>
+        </motion.div>
+
+        <motion.div
+          className="flex items-center gap-4 mt-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
+        >
+          <motion.div
+            className="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center text-3xl shrink-0"
+            initial={{ scale: 0.5, rotate: -15 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.15 }}
+          >
+            {icon}
+          </motion.div>
+          <div>
+            <h1 className="text-2xl font-extrabold">
+              {name}
+              {rating !== null && (
+                <span className="ml-3 inline-flex items-center gap-1 text-amber-400 text-lg font-bold">⭐ {rating.toFixed(1)}</span>
+              )}
+            </h1>
+            <span className="inline-block bg-red-600/25 text-red-300 text-xs font-semibold px-2.5 py-0.5 rounded-full mt-1">
+              {label}
+            </span>
+          </div>
+        </motion.div>
+
+        {(address || phone) && (
+          <motion.div
+            className="flex flex-wrap gap-4 mt-4 text-sm text-zinc-400"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            {address && <span>📍 {address}</span>}
+            {phone && (
+              <a href={`tel:${phone}`} className="hover:text-white transition-colors">
+                📞 {phone}
+              </a>
+            )}
+          </motion.div>
+        )}
+
+        {description && (
+          <motion.p
+            className="mt-4 text-zinc-400 text-sm leading-relaxed max-w-xl"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            {description}
+          </motion.p>
+        )}
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="app/api/panel-tables/route.ts">
+import { type NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { getSupabaseAdmin } from '@/lib/supabase'
+
+async function getSession() {
+  const jar = await cookies()
+  const raw = jar.get('cr_panel')?.value ?? ''
+  if (!raw) return null
+  const parts = raw.split(':')
+  if (parts.length < 2) return null
+  const [userId, restaurantId] = parts
+  if (!userId || !restaurantId) return null
+  return { userId, restaurantId }
+}
+
+export async function POST(req: NextRequest) {
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const body = await req.json()
+  const db = getSupabaseAdmin()
+  const { data, error } = await db
+    .from(body.table)
+    .insert({ ...body.payload, restaurant_id: session.restaurantId })
+    .select()
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ data })
+}
+
+export async function PATCH(req: NextRequest) {
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { table, id, payload } = await req.json()
+  const db = getSupabaseAdmin()
+  const { data, error } = await db
+    .from(table)
+    .update(payload)
+    .eq('id', id)
+    .eq('restaurant_id', session.restaurantId)
+    .select()
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ data })
+}
+
+export async function DELETE(req: NextRequest) {
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { table, id } = await req.json()
+  const db = getSupabaseAdmin()
+  const { error } = await db
+    .from(table)
+    .delete()
+    .eq('id', id)
+    .eq('restaurant_id', session.restaurantId)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
+}
+</file>
+
+<file path="app/panel/[slug]/masalar/TableManager.tsx">
+'use client'
+
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
+import { Plus, Pencil, Trash2, X, Check, ToggleLeft, ToggleRight, LayoutGrid, Sofa } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useToast } from '@/components/ui/Toast'
+
+type Table = {
+  id: string
+  label: string
+  capacity: number
+  area_id: string | null
+  x: number
+  y: number
+  width: number
+  height: number
+  shape: 'rect' | 'circle'
+  is_active: boolean
+}
+
+type SpecialArea = {
+  id: string
+  name: string
+  capacity: number
+}
+
+async function apiCall(method: string, body: object) {
+  const res = await fetch('/api/panel-tables', {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error('İşlem başarısız')
+  return res.json()
+}
+
+export default function TableManager({
+  tables,
+  areas,
+  restaurantId,
+}: {
+  tables: Table[]
+  areas: SpecialArea[]
+  restaurantId: string
+}) {
+  const router = useRouter()
+  const toast = useToast()
+  const [tab, setTab] = useState<'tables' | 'areas'>('tables')
+  const [tableList, setTableList] = useState<Table[]>(tables)
+  const [areaList, setAreaList] = useState<SpecialArea[]>(areas)
+  const [editing, setEditing] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
+
+  // Table form
+  const [tableForm, setTableForm] = useState({ label: '', capacity: '4', shape: 'rect' as 'rect' | 'circle', area_id: '' })
+
+  // Area form
+  const [areaForm, setAreaForm] = useState({ name: '', capacity: '10' })
+
+  // ─── Table CRUD ───
+
+  async function saveTable(id?: string) {
+    if (!tableForm.label.trim()) return
+    const payload = {
+      label: tableForm.label.trim(),
+      capacity: Number(tableForm.capacity) || 4,
+      shape: tableForm.shape,
+      area_id: tableForm.area_id || null,
+    }
+
+    if (id) {
+      try {
+        await apiCall('PATCH', { table: 'tables', id, payload })
+        setTableList(prev => prev.map(t => t.id === id ? { ...t, ...payload } as Table : t))
+        toast.show('Güncellendi', 'success')
+      } catch { toast.show('Güncellenemedi', 'error'); return }
+    } else {
+      try {
+        const { data } = await apiCall('POST', { table: 'tables', payload })
+        setTableList(prev => [...prev, data as Table])
+        toast.show('Masa eklendi', 'success')
+      } catch { toast.show('Eklenemedi', 'error'); return }
+    }
+    setEditing(null)
+    setTableForm({ label: '', capacity: '4', shape: 'rect', area_id: '' })
+    router.refresh()
+  }
+
+  async function deleteTable(id: string) {
+    try {
+      await apiCall('DELETE', { table: 'tables', id })
+      setTableList(prev => prev.filter(t => t.id !== id))
+      setDeleting(null)
+      toast.show('Silindi', 'success')
+      router.refresh()
+    } catch { toast.show('Silinemedi', 'error') }
+  }
+
+  async function toggleTableActive(t: Table) {
+    const newVal = !t.is_active
+    try {
+      await apiCall('PATCH', { table: 'tables', id: t.id, payload: { is_active: newVal } })
+      setTableList(prev => prev.map(x => x.id === t.id ? { ...x, is_active: newVal } : x))
+      toast.show(newVal ? 'Aktif edildi' : 'Pasif edildi', 'success')
+    } catch { toast.show('Güncellenemedi', 'error') }
+  }
+
+  function startEditTable(t: Table) {
+    setEditing(t.id)
+    setTableForm({ label: t.label, capacity: String(t.capacity), shape: t.shape, area_id: t.area_id ?? '' })
+  }
+
+  // ─── Area CRUD ───
+
+  async function saveArea(id?: string) {
+    if (!areaForm.name.trim()) return
+    const payload = { name: areaForm.name.trim(), capacity: Number(areaForm.capacity) || 10 }
+
+    if (id) {
+      try {
+        await apiCall('PATCH', { table: 'special_areas', id, payload })
+        setAreaList(prev => prev.map(a => a.id === id ? { ...a, ...payload } : a))
+        toast.show('Güncellendi', 'success')
+      } catch { toast.show('Güncellenemedi', 'error'); return }
+    } else {
+      try {
+        const { data } = await apiCall('POST', { table: 'special_areas', payload })
+        setAreaList(prev => [...prev, data as SpecialArea])
+        toast.show('Alan eklendi', 'success')
+      } catch { toast.show('Eklenemedi', 'error'); return }
+    }
+    setEditing(null)
+    setAreaForm({ name: '', capacity: '10' })
+    router.refresh()
+  }
+
+  async function deleteArea(id: string) {
+    try {
+      await apiCall('DELETE', { table: 'special_areas', id })
+      setAreaList(prev => prev.filter(a => a.id !== id))
+      setDeleting(null)
+      toast.show('Silindi', 'success')
+      router.refresh()
+    } catch { toast.show('Silinemedi', 'error') }
+  }
+
+  function startEditArea(a: SpecialArea) {
+    setEditing(a.id)
+    setAreaForm({ name: a.name, capacity: String(a.capacity) })
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Tab switcher */}
+      <div className="flex gap-1.5 bg-stone-900 border border-stone-800 rounded-xl p-1 w-fit">
+        <button
+          onClick={() => { setTab('tables'); setEditing(null) }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            tab === 'tables' ? 'bg-stone-800 text-white shadow-sm' : 'text-stone-400 hover:text-white'
+          }`}
+        >
+          <LayoutGrid size={14} /> Masalar
+        </button>
+        <button
+          onClick={() => { setTab('areas'); setEditing(null) }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            tab === 'areas' ? 'bg-stone-800 text-white shadow-sm' : 'text-stone-400 hover:text-white'
+          }`}
+        >
+          <Sofa size={14} /> Alanlar
+        </button>
+      </div>
+
+      {tab === 'tables' ? (
+        /* ═══ TABLES ═══ */
+        <div className="space-y-4">
+          {/* Add table form */}
+          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                value={tableForm.label}
+                onChange={e => setTableForm(f => ({ ...f, label: e.target.value }))}
+                placeholder="Masa adı (örn. M1, M2, Bahçe 1)"
+                className="flex-1 bg-stone-800 border border-stone-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-stone-500 focus:outline-none focus:border-amber-500 transition-colors"
+              />
+              <input
+                type="number"
+                min={1}
+                value={tableForm.capacity}
+                onChange={e => setTableForm(f => ({ ...f, capacity: e.target.value }))}
+                placeholder="Kapasite"
+                className="w-24 bg-stone-800 border border-stone-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors"
+              />
+              <select
+                value={tableForm.shape}
+                onChange={e => setTableForm(f => ({ ...f, shape: e.target.value as 'rect' | 'circle' }))}
+                className="bg-stone-800 border border-stone-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
+              >
+                <option value="rect">Dikdörtgen</option>
+                <option value="circle">Yuvarlak</option>
+              </select>
+              <select
+                value={tableForm.area_id}
+                onChange={e => setTableForm(f => ({ ...f, area_id: e.target.value }))}
+                className="bg-stone-800 border border-stone-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
+              >
+                <option value="">Alan seç</option>
+                {areaList.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+              <button
+                onClick={() => saveTable()}
+                disabled={!tableForm.label.trim()}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-black text-sm font-semibold transition-colors whitespace-nowrap"
+              >
+                <Plus size={15} /> Ekle
+              </button>
+            </div>
+          </div>
+
+          {/* Table list */}
+          <AnimatePresence mode="popLayout">
+            <div className="space-y-2">
+              {tableList.map((t, i) => (
+                <motion.div
+                  key={t.id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  transition={{ delay: i * 0.03, duration: 0.2 }}
+                  className={`bg-stone-900 border border-stone-800 rounded-xl p-4 ${deleting === t.id ? 'opacity-40' : ''} ${!t.is_active ? 'opacity-60' : ''}`}
+                >
+                  {editing === t.id ? (
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <input value={tableForm.label} onChange={e => setTableForm(f => ({ ...f, label: e.target.value }))}
+                        className="flex-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" />
+                      <input type="number" value={tableForm.capacity} onChange={e => setTableForm(f => ({ ...f, capacity: e.target.value }))}
+                        className="w-20 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" />
+                      <select value={tableForm.shape} onChange={e => setTableForm(f => ({ ...f, shape: e.target.value as 'rect' | 'circle' }))}
+                        className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+                        <option value="rect">Dikdörtgen</option>
+                        <option value="circle">Yuvarlak</option>
+                      </select>
+                      <select value={tableForm.area_id} onChange={e => setTableForm(f => ({ ...f, area_id: e.target.value }))}
+                        className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+                        <option value="">Alan seç</option>
+                        {areaList.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                      </select>
+                      <div className="flex gap-2">
+                        <button onClick={() => saveTable(t.id)} className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors"><Check size={14} /></button>
+                        <button onClick={() => setEditing(null)} className="p-2 rounded-lg bg-stone-800 text-stone-400 hover:text-white transition-colors"><X size={14} /></button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {/* Shape icon */}
+                        <div className={`w-8 h-8 flex items-center justify-center flex-shrink-0 ${t.shape === 'circle' ? 'rounded-full' : 'rounded-lg'} bg-stone-800 border border-stone-700`}>
+                          <LayoutGrid size={13} className="text-stone-400" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-white text-sm">{t.label}</span>
+                            <span className="text-[11px] text-stone-500">{t.capacity} kişi</span>
+                            {t.area_id && areaList.find(a => a.id === t.area_id) && (
+                              <span className="text-[11px] text-stone-400 bg-stone-800 px-2 py-0.5 rounded-full">
+                                {areaList.find(a => a.id === t.area_id)?.name}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => toggleTableActive(t)}
+                          className={`p-2 rounded-lg transition-colors ${t.is_active ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-stone-500 hover:text-white hover:bg-stone-800'}`}
+                          title={t.is_active ? 'Pasif yap' : 'Aktif yap'}
+                        >
+                          {t.is_active ? <ToggleRight size={15} /> : <ToggleLeft size={15} />}
+                        </button>
+                        {!t.is_active && <span className="text-[10px] text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full">Pasif</span>}
+                        <button onClick={() => startEditTable(t)} className="p-2 rounded-lg text-stone-500 hover:text-amber-400 hover:bg-stone-800 transition-colors"><Pencil size={13} /></button>
+                        <button onClick={() => setDeleting(t.id)} className="p-2 rounded-lg text-stone-500 hover:text-red-400 hover:bg-stone-800 transition-colors"><Trash2 size={13} /></button>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+              {tableList.length === 0 && (
+                <div className="text-center py-12 bg-stone-900/50 border border-stone-800 rounded-2xl">
+                  <p className="text-stone-400 font-semibold">Henüz masa eklenmemiş</p>
+                  <p className="text-stone-600 text-sm mt-1">Yukarıdaki formu kullanarak masa ekleyebilirsiniz</p>
+                </div>
+              )}
+            </div>
+          </AnimatePresence>
+        </div>
+      ) : (
+        /* ═══ AREAS ═══ */
+        <div className="space-y-4">
+          {/* Add area form */}
+          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                value={areaForm.name}
+                onChange={e => setAreaForm(f => ({ ...f, name: e.target.value }))}
+                placeholder="Alan adı (örn. İç Mekan, Bahçe)"
+                className="flex-1 bg-stone-800 border border-stone-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-stone-500 focus:outline-none focus:border-amber-500 transition-colors"
+              />
+              <input
+                type="number"
+                min={1}
+                value={areaForm.capacity}
+                onChange={e => setAreaForm(f => ({ ...f, capacity: e.target.value }))}
+                placeholder="Kapasite"
+                className="w-28 bg-stone-800 border border-stone-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors"
+              />
+              <button
+                onClick={() => saveArea()}
+                disabled={!areaForm.name.trim()}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-black text-sm font-semibold transition-colors whitespace-nowrap"
+              >
+                <Plus size={15} /> Ekle
+              </button>
+            </div>
+          </div>
+
+          {/* Area list */}
+          <AnimatePresence mode="popLayout">
+            <div className="space-y-2">
+              {areaList.map((a, i) => (
+                <motion.div
+                  key={a.id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  transition={{ delay: i * 0.03, duration: 0.2 }}
+                  className={`bg-stone-900 border border-stone-800 rounded-xl p-4 ${deleting === a.id ? 'opacity-40' : ''}`}
+                >
+                  {editing === a.id ? (
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <input value={areaForm.name} onChange={e => setAreaForm(f => ({ ...f, name: e.target.value }))}
+                        className="flex-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" />
+                      <input type="number" value={areaForm.capacity} onChange={e => setAreaForm(f => ({ ...f, capacity: e.target.value }))}
+                        className="w-28 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" />
+                      <div className="flex gap-2">
+                        <button onClick={() => saveArea(a.id)} className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors"><Check size={14} /></button>
+                        <button onClick={() => setEditing(null)} className="p-2 rounded-lg bg-stone-800 text-stone-400 hover:text-white transition-colors"><X size={14} /></button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-stone-800 border border-stone-700 flex items-center justify-center">
+                          <Sofa size={13} className="text-stone-400" />
+                        </div>
+                        <div>
+                          <span className="font-semibold text-white text-sm">{a.name}</span>
+                          <span className="ml-2 text-[11px] text-stone-500">{a.capacity} kişi</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={() => startEditArea(a)} className="p-2 rounded-lg text-stone-500 hover:text-amber-400 hover:bg-stone-800 transition-colors"><Pencil size={13} /></button>
+                        <button onClick={() => setDeleting(a.id)} className="p-2 rounded-lg text-stone-500 hover:text-red-400 hover:bg-stone-800 transition-colors"><Trash2 size={13} /></button>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+              {areaList.length === 0 && (
+                <div className="text-center py-12 bg-stone-900/50 border border-stone-800 rounded-2xl">
+                  <p className="text-stone-400 font-semibold">Henüz alan eklenmemiş</p>
+                  <p className="text-stone-600 text-sm mt-1">Alanlar, masaları gruplamak için kullanılır (İç Mekan, Bahçe vb.)</p>
+                </div>
+              )}
+            </div>
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      <AnimatePresence>
+        {deleting && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+            onClick={() => setDeleting(null)}
+          >
+            <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 max-w-sm mx-4" onClick={e => e.stopPropagation()}>
+              <p className="text-white font-semibold mb-2">
+                {tab === 'tables' ? 'Masayı sil' : 'Alanı sil'}
+              </p>
+              <p className="text-stone-400 text-sm mb-5">
+                Bu işlem geri alınamaz.
+                {tab === 'tables'
+                  ? ` Silinecek: ${tableList.find(t => t.id === deleting)?.label}`
+                  : ` Silinecek: ${areaList.find(a => a.id === deleting)?.name}`
+                }
+              </p>
+              <div className="flex gap-3">
+                <button onClick={() => setDeleting(null)} className="flex-1 px-4 py-2 rounded-xl bg-stone-800 text-stone-300 text-sm font-medium hover:bg-stone-700 transition-colors">İptal</button>
+                <button
+                  onClick={() => tab === 'tables' ? deleteTable(deleting) : deleteArea(deleting)}
+                  className="flex-1 px-4 py-2 rounded-xl bg-red-500/20 text-red-400 text-sm font-semibold hover:bg-red-500/30 transition-colors"
+                >
+                  Sil
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+</file>
+
+<file path="app/[locale]/rezervasyon/categories.ts">
+export type SubCategory = {
+  key: string
+  icon: string
+  label: string
+  types: string[]
+}
+
+export type Category = {
+  key: string
+  labelKey: string
+  icon: string
+  types: string[]
+  heroOverlay: string
+  accentColor: string
+  subCategories: SubCategory[]
+}
+
+export const CATEGORIES: Category[] = [
+  {
+    key: 'yeme-icme',
+    labelKey: 'catFoodDrink',
+    icon: '🍽️',
+    types: ['restaurant'],
+    heroOverlay: 'linear-gradient(135deg,rgba(146,64,14,0.93) 0%,rgba(180,83,9,0.80) 50%,rgba(217,119,6,0.70) 100%)',
+    accentColor: '#D97706',
+    subCategories: [],
+  },
+  {
+    key: 'guzellik',
+    labelKey: 'catBeauty',
+    icon: '💆',
+    types: ['barber', 'hairdresser', 'beauty_salon', 'spa'],
+    heroOverlay: 'linear-gradient(135deg,rgba(157,23,77,0.93) 0%,rgba(190,24,93,0.80) 50%,rgba(219,39,119,0.70) 100%)',
+    accentColor: '#DB2777',
+    subCategories: [
+      { key: 'berber',    icon: '✂️', label: 'Berber',      types: ['barber'] },
+      { key: 'kuafor',    icon: '💇', label: 'Kuaför',      types: ['hairdresser', 'beauty_salon'] },
+      { key: 'spa-masaj', icon: '💆', label: 'Spa & Masaj', types: ['spa'] },
+    ],
+  },
+  {
+    key: 'saglik',
+    labelKey: 'catHealth',
+    icon: '🏥',
+    types: ['dentist', 'psychologist', 'veterinary', 'chiropractor'],
+    heroOverlay: 'linear-gradient(135deg,rgba(6,95,70,0.93) 0%,rgba(4,120,87,0.80) 50%,rgba(5,150,105,0.70) 100%)',
+    accentColor: '#059669',
+    subCategories: [
+      { key: 'psikoloji',    icon: '🧠', label: 'Psikoloji',    types: ['psychologist'] },
+      { key: 'fizyoterapi',  icon: '🦴', label: 'Kayropraktik', types: ['chiropractor'] },
+      { key: 'dis',          icon: '🦷', label: 'Diş Kliniği',  types: ['dentist'] },
+      { key: 'veteriner',    icon: '🐾', label: 'Veteriner',    types: ['veterinary'] },
+    ],
+  },
+  {
+    key: 'spor',
+    labelKey: 'catSports',
+    icon: '🏋️',
+    types: ['fitness', 'pilates'],
+    heroOverlay: 'linear-gradient(135deg,rgba(185,28,28,0.93) 0%,rgba(220,38,38,0.80) 50%,rgba(234,88,12,0.70) 100%)',
+    accentColor: '#EA580C',
+    subCategories: [
+      { key: 'pilates-yoga', icon: '🧘', label: 'Pilates & Yoga', types: ['pilates'] },
+    ],
+  },
+]
+
+/** Hem üst hem alt kategoriler için business_type'lara bak */
+export function getTypesForKey(key: string): string[] | null {
+  if (!key) return null
+  const parent = CATEGORIES.find(c => c.key === key)
+  if (parent) return parent.types
+  for (const cat of CATEGORIES) {
+    const sub = cat.subCategories.find(s => s.key === key)
+    if (sub) return sub.types
+  }
+  return null
+}
+
+export function getCategoryForKey(key: string): Category | null {
+  if (!key) return null
+  return CATEGORIES.find(c => c.key === key)
+    ?? CATEGORIES.find(c => c.subCategories.some(s => s.key === key))
+    ?? null
+}
+</file>
+
+<file path="app/[locale]/[slug]/ReservationForm.tsx">
+'use client'
+
+import { useActionState, useRef, useState } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
+import { createReservation, type ActionState } from './actions'
+import { type BusinessType } from '@/types'
+import { FloatingInput } from '@/components/ui/FloatingInput'
+
+const initialState: ActionState = {
+  success: false,
+  error: null,
+  guestName: null,
+}
+
+const PARTY_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8]
+const DAYS_KEYS = ['daySun', 'dayMon', 'dayTue', 'dayWed', 'dayThu', 'dayFri', 'daySat']
+
+function getDates(today: string, tomorrow: string, dayLabels: string[]) {
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() + i)
+    return {
+      label: i === 0 ? today : i === 1 ? tomorrow : dayLabels[d.getDay()],
+      day: d.getDate(),
+      value: d.toISOString().split('T')[0],
+    }
+  })
+}
+
+const TIME_SLOTS = Array.from({ length: 27 }, (_, i) => {
+  const totalMin = 9 * 60 + i * 30
+  const h = Math.floor(totalMin / 60).toString().padStart(2, '0')
+  const m = (totalMin % 60).toString().padStart(2, '0')
+  return `${h}:${m}`
+})
+
+type Service    = { id: string; name: string; duration_minutes: number; price: number | null; currency: string }
+type StaffMember = { id: string; name: string; title: string | null }
+type MasaTipi   = { id: string; ad: string; ad_en: string | null; ad_ar: string | null; ad_de: string | null; ad_da: string | null; ad_es: string | null; ad_ru: string | null; kapasite: number }
+
+function getMasaAd(m: MasaTipi, locale: string): string {
+  const key = `ad_${locale}` as keyof MasaTipi
+  return (m[key] as string | null) || m.ad
+}
+
+export function ReservationForm({
+  restaurantId,
+  restaurantName,
+  businessType = 'restaurant',
+  services = [],
+  staff = [],
+  masaTipleri = [],
+}: {
+  restaurantId:   string
+  restaurantName: string
+  businessType?:  BusinessType
+  services?:      Service[]
+  staff?:         StaffMember[]
+  masaTipleri?:   MasaTipi[]
+}) {
+  const t      = useTranslations('reservationForm')
+  const tTerms = useTranslations('bookingTerms')
+  const locale = useLocale()
+  const boundAction = createReservation.bind(null, restaurantId)
+  const [state, formAction, pending] = useActionState(boundAction, initialState)
+
+  const dayLabels = DAYS_KEYS.map(k => t(k as Parameters<typeof t>[0]))
+  const dates = getDates(t('today'), t('tomorrow'), dayLabels)
+  const [selectedDate, setSelectedDate]       = useState(dates[0].value)
+  const [selectedTime, setSelectedTime]       = useState('')
+  const [selectedParty, setSelectedParty]     = useState(2)
+  const [selectedService, setSelectedService] = useState<string>(services[0]?.id ?? '')
+  const [selectedStaff, setSelectedStaff]     = useState<string>('')
+  const [selectedMasa, setSelectedMasa]       = useState<string | null>(null)
+  const [showNotes, setShowNotes]             = useState(false)
+  const [guestName,  setGuestName]            = useState('')
+  const [guestPhone, setGuestPhone]           = useState('')
+  const formRef = useRef<HTMLFormElement>(null)
+
+  const term             = tTerms(businessType as Parameters<typeof tTerms>[0])
+  const isRestaurant     = businessType === 'restaurant'
+  const hasServices      = services.length > 0
+  const hasStaff         = staff.length > 0
+  const isAppointmentType = ['psychologist', 'chiropractor', 'dentist'].includes(businessType)
+  const showStaff        = hasStaff && !isRestaurant
+  const ROOM_TYPES       = new Set(['spa', 'pilates', 'fitness', 'chiropractor', 'psychologist', 'dentist'])
+  const showRooms        = masaTipleri.length > 0 && (isRestaurant || ROOM_TYPES.has(businessType))
+  const roomLabel        = isRestaurant ? t('tableType') : 'Oda / Kabin'
+
+  if (state.success) {
+    return (
+      <div className="flex flex-col items-center gap-5 py-6 text-center">
+        <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
+          <svg className="w-10 h-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-stone-900">{t('successTitle', { term: term })}</h2>
+          <p className="mt-1 text-sm text-stone-500">
+            {t('successGreeting', { name: state.guestName ?? '' })}<br />
+            {restaurantName} {t('successWaiting')}
+          </p>
+        </div>
+        <div className="w-full rounded-2xl bg-green-50 border border-green-100 p-4 text-sm text-green-800">
+          {t('successWhatsapp')}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            formRef.current?.reset()
+            setSelectedTime('')
+            setGuestName('')
+            setGuestPhone('')
+          }}
+          className="text-sm text-stone-400 underline underline-offset-2"
+        >
+          {t('newBooking', { term: term.toLowerCase() })}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <form ref={formRef} action={formAction} className="flex flex-col gap-6">
+      {/* Hidden inputs */}
+      <input type="hidden" name="reserved_date" value={selectedDate} />
+      <input type="hidden" name="reserved_time" value={selectedTime} />
+      <input type="hidden" name="party_size" value={isRestaurant ? selectedParty : 1} />
+      {selectedMasa && <input type="hidden" name="masa_tipi_id" value={selectedMasa} />}
+
+      {/* Hizmet Seçimi — restoran dışı sektörler için */}
+      {hasServices && (
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-stone-700">{t('selectService')}</label>
+          <div className="flex flex-col gap-2">
+            {services.map(s => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setSelectedService(s.id)}
+                className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm transition-all ${
+                  selectedService === s.id
+                    ? 'border-amber-400 bg-amber-50 text-amber-800 font-medium'
+                    : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'
+                }`}
+              >
+                <span>{s.name}</span>
+                <span className="text-xs text-stone-400 flex items-center gap-2">
+                  {s.duration_minutes} {t('min')}
+                  {s.price != null && (
+                    <span className={selectedService === s.id ? 'text-amber-600 font-semibold' : ''}>
+                      {s.price.toLocaleString('tr-TR')} {s.currency}
+                    </span>
+                  )}
+                </span>
+              </button>
+            ))}
+          </div>
+          <input type="hidden" name="service_id" value={selectedService} />
+        </div>
+      )}
+
+      {/* Personel Seçimi — restoranda gizli */}
+      {showStaff && (
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-stone-700">
+            {t('selectStaff')} <span className="text-stone-400 font-normal">({t('optional')})</span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedStaff('')}
+              className={`rounded-xl border px-3 py-2 text-sm transition-all ${
+                selectedStaff === ''
+                  ? 'border-amber-400 bg-amber-50 text-amber-800 font-medium'
+                  : 'border-stone-200 text-stone-500 hover:border-stone-300'
+              }`}
+            >
+              {t('noPreference')}
+            </button>
+            {staff.map(s => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setSelectedStaff(s.id)}
+                className={`rounded-xl border px-3 py-2 text-sm transition-all ${
+                  selectedStaff === s.id
+                    ? 'border-amber-400 bg-amber-50 text-amber-800 font-medium'
+                    : 'border-stone-200 text-stone-500 hover:border-stone-300'
+                }`}
+              >
+                <span>{s.name}</span>
+                {s.title && <span className="text-xs text-stone-400 ml-1">· {s.title}</span>}
+              </button>
+            ))}
+          </div>
+          <input type="hidden" name="staff_id" value={selectedStaff} />
+        </div>
+      )}
+
+      {/* Tarih Seçici */}
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold text-stone-700">{t('selectDate')}</label>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {dates.map(d => (
+            <button
+              key={d.value}
+              type="button"
+              onClick={() => setSelectedDate(d.value)}
+              className={`shrink-0 flex flex-col items-center px-4 py-3 rounded-xl border transition-colors ${
+                selectedDate === d.value
+                  ? 'bg-amber-500 border-amber-500 text-white'
+                  : 'bg-white border-stone-200 text-stone-700 hover:border-amber-300'
+              }`}
+            >
+              <span className="text-xs font-normal opacity-80">{d.label}</span>
+              <span className="text-lg font-extrabold">{d.day}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Saat Seçici */}
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold text-stone-700">{t('selectTime')}</label>
+        <div className="flex flex-wrap gap-2">
+          {TIME_SLOTS.map(slot => (
+            <button
+              key={slot}
+              type="button"
+              onClick={() => setSelectedTime(slot)}
+              className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${
+                selectedTime === slot
+                  ? 'bg-amber-500 border-amber-500 text-white'
+                  : 'bg-white border-stone-200 text-stone-700 hover:border-amber-300'
+              }`}
+            >
+              {slot}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Masa / Oda / Kabin — restoran, spa, pilates, klinik */}
+      {showRooms && (
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-stone-700">
+            {roomLabel} <span className="text-stone-400 font-normal">({t('optional')})</span>
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {masaTipleri.map(m => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setSelectedMasa(selectedMasa === m.id ? null : m.id)}
+                className={`p-3 rounded-xl border text-left transition-colors ${
+                  selectedMasa === m.id
+                    ? 'border-amber-400 bg-amber-50 text-amber-800'
+                    : 'border-stone-200 bg-white text-stone-700 hover:border-amber-300'
+                }`}
+              >
+                <p className="font-semibold text-sm">{getMasaAd(m, locale)}</p>
+                <p className="text-xs opacity-70 mt-0.5">{t('maxPeople', { count: m.kapasite })}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Ad Soyad */}
+      <FloatingInput
+        id="guest_name"
+        name="guest_name"
+        type="text"
+        required
+        autoComplete="name"
+        label={t('fullName')}
+        value={guestName}
+        onChange={e => setGuestName(e.target.value)}
+      />
+
+      {/* Telefon */}
+      <FloatingInput
+        id="guest_phone"
+        name="guest_phone"
+        type="tel"
+        required
+        autoComplete="tel"
+        inputMode="tel"
+        label={t('phone')}
+        value={guestPhone}
+        onChange={e => setGuestPhone(e.target.value)}
+      />
+
+      {/* Kişi Sayısı — sadece restoran için */}
+      {isRestaurant && (
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-stone-700">{t('partySize')}</label>
+          <div className="flex gap-2 flex-wrap">
+            {PARTY_OPTIONS.map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setSelectedParty(n)}
+                className={`w-11 h-11 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
+                  selectedParty === n
+                    ? 'bg-amber-500 text-white shadow-md shadow-amber-200'
+                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setSelectedParty(10)}
+              className={`px-3 h-11 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
+                selectedParty >= 9
+                  ? 'bg-amber-500 text-white shadow-md shadow-amber-200'
+                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+              }`}
+            >
+              9+
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Özel Not */}
+      <div className="flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={() => setShowNotes(!showNotes)}
+          className="flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-700 w-fit"
+        >
+          <svg
+            className={`w-4 h-4 transition-transform ${showNotes ? 'rotate-90' : ''}`}
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+          {showNotes ? t('removeNote') : t('addNote')}
+        </button>
+        {showNotes && (
+          <textarea
+            name="notes"
+            rows={3}
+            placeholder={
+              isRestaurant
+                ? t('notePlaceholderRestaurant')
+                : t('notePlaceholderGeneral')
+            }
+            className="rounded-xl border border-stone-200 bg-white px-4 py-3 text-base text-stone-900 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100 resize-none"
+          />
+        )}
+      </div>
+
+      {/* Hata */}
+      {state.error && (
+        <div className="flex items-start gap-2.5 rounded-xl bg-red-50 border border-red-100 px-4 py-3">
+          <svg className="w-4 h-4 text-red-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-sm text-red-700">{state.error}</p>
+        </div>
+      )}
+
+      {/* Submit */}
+      <button
+        type="submit"
+        disabled={pending || !selectedTime}
+        className="mt-1 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 text-base font-bold text-white shadow-lg shadow-amber-200 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed hover:from-amber-400 hover:to-orange-400"
+      >
+        {pending ? (
+          <span className="flex items-center justify-center gap-2">
+            <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            {t('submitting')}
+          </span>
+        ) : selectedTime ? (
+          isAppointmentType ? 'Randevu Al' : t('submit', { term: term })
+        ) : (
+          t('selectTimeFirst')
+        )}
+      </button>
+
+      <p className="text-center text-xs text-stone-400">
+        {t('confirmNote', { term: term })}
+      </p>
+    </form>
+  )
+}
+</file>
+
+<file path="app/[locale]/rezervasyon/CategoryTabs.tsx">
+'use client'
+import { motion, AnimatePresence } from 'motion/react'
+import { Link } from '@/i18n/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { CATEGORIES } from './categories'
+
+export default function CategoryTabs() {
+  const params    = useSearchParams()
+  const activeKey = params.get('kategori') ?? ''
+  const t         = useTranslations('rezervasyon')
+
+  // Find if the active key is a parent or sub-category
+  const activeParent = CATEGORIES.find(c =>
+    c.key === activeKey || c.subCategories.some(s => s.key === activeKey)
+  )
+
+  const tabs = [
+    { key: '', label: t('allBusinesses'), icon: '🏪', href: '/rezervasyon' as const },
+    ...CATEGORIES.map(cat => ({
+      key: cat.key,
+      label: t(cat.labelKey as Parameters<typeof t>[0]),
+      icon: cat.icon,
+      href: { pathname: '/rezervasyon' as const, query: { kategori: cat.key } },
+      accentColor: cat.accentColor,
+    })),
+  ]
+
+  return (
+    <div className="space-y-3">
+      {/* Parent tabs */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {tabs.map(tab => {
+          const isActive = activeKey === tab.key || (tab.key !== '' && activeParent?.key === tab.key)
+          return (
+            <motion.div
+              key={tab.key}
+              whileTap={{ scale: 0.93 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 28 }}
+            >
+              <Link
+                href={tab.href as never}
+                className={`relative shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200 ${
+                  isActive
+                    ? 'text-white shadow-md border-transparent'
+                    : 'bg-white border-zinc-200 text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50'
+                }`}
+                style={isActive && (tab as { accentColor?: string }).accentColor ? {
+                  background: (tab as { accentColor?: string }).accentColor,
+                  borderColor: (tab as { accentColor?: string }).accentColor,
+                  boxShadow: `0 4px 14px ${(tab as { accentColor?: string }).accentColor}55`,
+                } : isActive ? {
+                  background: '#18181B',
+                  borderColor: '#18181B',
+                } : {}}
+              >
+                <span>{tab.icon}</span>
+                {tab.label}
+              </Link>
+            </motion.div>
+          )
+        })}
+      </div>
+
+      {/* Sub-category chips — animate in when parent is selected */}
+      <AnimatePresence>
+        {activeParent && (
+          <motion.div
+            key={activeParent.key}
+            initial={{ opacity: 0, height: 0, y: -8 }}
+            animate={{ opacity: 1, height: 'auto', y: 0 }}
+            exit={{ opacity: 0, height: 0, y: -8 }}
+            transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide pl-1">
+              {activeParent.subCategories.map((sub, i) => {
+                const isSubActive = activeKey === sub.key
+                return (
+                  <motion.div
+                    key={sub.key}
+                    initial={{ opacity: 0, scale: 0.85, x: -8 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    transition={{ delay: i * 0.04, duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+                  >
+                    <Link
+                      href={{ pathname: '/rezervasyon' as const, query: { kategori: sub.key } } as never}
+                      className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
+                        isSubActive
+                          ? 'bg-zinc-900 border-zinc-900 text-white'
+                          : 'bg-white border-zinc-200 text-zinc-500 hover:border-zinc-400'
+                      }`}
+                    >
+                      <span>{sub.icon}</span>
+                      {sub.label}
+                    </Link>
+                  </motion.div>
+                )
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+</file>
+
+<file path="app/[locale]/rezervasyon/SearchableBusinessList.tsx">
+'use client'
+
+import { useState, useMemo, useEffect } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
+import { Link }            from '@/i18n/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import {
+  Search, X, MapPin,
+  LayoutGrid, UtensilsCrossed, Sparkles, HeartPulse, Dumbbell,
+  Scissors, Wand2, Waves, Brain, Activity, PawPrint, Stethoscope,
+  type LucideIcon,
+} from 'lucide-react'
+import { BUSINESS_TYPE_ICONS, type BusinessType } from '@/types'
+import { CATEGORIES, getTypesForKey } from './categories'
+
+type Biz = {
+  id: string
+  name: string
+  slug: string | null
+  business_type: string
+  typeLabel: string
+  address: string | null
+  description: string | null
+  is_active: boolean
+  cover_image: string | null
+}
+
+const CAT_ICON: Record<string, LucideIcon> = {
+  '':           LayoutGrid,
+  'yeme-icme':  UtensilsCrossed,
+  'guzellik':   Sparkles,
+  'saglik':     HeartPulse,
+  'spor':       Dumbbell,
+}
+
+const SUB_ICON: Record<string, LucideIcon> = {
+  'berber':       Scissors,
+  'kuafor':       Wand2,
+  'spa-masaj':    Waves,
+  'psikoloji':    Brain,
+  'fizyoterapi':  Activity,
+  'dis':          Stethoscope,
+  'veteriner':    PawPrint,
+  'pilates-yoga': Activity,
+}
+
+const TYPE_ACCENT: Record<string, string> = {
+  restaurant:   '#D97706',
+  barber:       '#7C3AED',
+  hairdresser:  '#DB2777',
+  beauty_salon: '#DB2777',
+  spa:          '#0D9488',
+  psychologist: '#059669',
+  chiropractor: '#059669',
+  dentist:      '#2563EB',
+  fitness:      '#EA580C',
+  pilates:      '#EA580C',
+  veterinary:   '#7C3AED',
+}
+const TYPE_BG: Record<string, string> = {
+  restaurant:   'bg-amber-50',
+  barber:       'bg-violet-50',
+  hairdresser:  'bg-fuchsia-50',
+  beauty_salon: 'bg-rose-50',
+  spa:          'bg-teal-50',
+  psychologist: 'bg-emerald-50',
+  chiropractor: 'bg-green-50',
+  dentist:      'bg-blue-50',
+  fitness:      'bg-orange-50',
+  pilates:      'bg-orange-50',
+  veterinary:   'bg-violet-50',
+}
+
+const TYPE_UNSPLASH: Record<string, string> = {
+  restaurant:   'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=200&q=80',
+  barber:       'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=200&q=80',
+  hairdresser:  'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=200&q=80',
+  beauty_salon: 'https://images.unsplash.com/photo-1487412912498-0447578fcca8?w=200&q=80',
+  spa:          'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=200&q=80',
+  fitness:      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=200&q=80',
+  pilates:      'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=200&q=80',
+}
+
+export default function SearchableBusinessList({ allBusinesses }: { allBusinesses: Biz[] }) {
+  const params    = useSearchParams()
+  const t         = useTranslations('rezervasyon')
+  const activeKey = params.get('kategori') ?? ''
+  const [query, setQuery] = useState('')
+
+  useEffect(() => { setQuery('') }, [activeKey])
+
+  const filtered = useMemo(() => {
+    const activeTypes = getTypesForKey(activeKey)
+    let list = activeTypes ? allBusinesses.filter(b => activeTypes.includes(b.business_type)) : allBusinesses
+
+    if (query.trim().length > 0) {
+      const q = query.trim().toLowerCase()
+      list = list.filter(b =>
+        b.name.toLowerCase().includes(q) ||
+        b.address?.toLowerCase().includes(q) ||
+        b.description?.toLowerCase().includes(q) ||
+        b.typeLabel.toLowerCase().includes(q)
+      )
+    }
+    return list
+  }, [allBusinesses, activeKey, query])
+
+  const activeParent = CATEGORIES.find(c =>
+    c.key === activeKey || c.subCategories.some(s => s.key === activeKey)
+  )
+
+  const tabs = [
+    { key: '', label: t('allBusinesses'), icon: '🏪', href: '/rezervasyon' as const },
+    ...CATEGORIES.map(cat => ({
+      key: cat.key,
+      label: t(cat.labelKey as Parameters<typeof t>[0]),
+      icon: cat.icon,
+      href: { pathname: '/rezervasyon' as const, query: { kategori: cat.key } },
+      accentColor: cat.accentColor,
+    })),
+  ]
+
+  return (
+    <div className="space-y-6">
+      {/* Search bar */}
+      <div className="relative transition-shadow duration-300 focus-within:shadow-[0_4px_24px_rgba(229,57,53,0.12)] rounded-2xl">
+        <Search
+          size={16}
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none z-10"
+        />
+        <input
+          type="text"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="İşletme, adres veya hizmet ara…"
+          className="w-full pl-10 pr-10 py-3 rounded-2xl border border-zinc-200 bg-white text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 transition-all duration-300"
+        />
+        {query && (
+          <button
+            onClick={() => setQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition"
+          >
+            <X size={15} />
+          </button>
+        )}
+      </div>
+
+      {/* Category tabs */}
+      <div className="space-y-3">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {tabs.map(tab => {
+            const isActive = activeKey === tab.key || (tab.key !== '' && activeParent?.key === tab.key)
+            const Icon = CAT_ICON[tab.key] ?? LayoutGrid
+            return (
+              <motion.div
+                key={tab.key}
+                whileTap={{ scale: 0.93 }}
+                transition={{ type: 'spring', stiffness: 600, damping: 28 }}
+              >
+                <Link
+                  href={tab.href as never}
+                  className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition-all duration-200 flex-1 min-w-fit ${
+                    isActive
+                      ? 'bg-red-600 text-white border-transparent shadow-md shadow-red-200'
+                      : 'bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:border-zinc-300'
+                  }`}
+                >
+                  <Icon size={16} className={isActive ? 'text-white' : 'text-zinc-400'} />
+                  {tab.label}
+                </Link>
+              </motion.div>
+            )
+          })}
+        </div>
+
+        {/* Sub-category chips */}
+        <AnimatePresence>
+          {activeParent && (
+            <motion.div
+              key={activeParent.key}
+              initial={false}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -8 }}
+              transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide pl-1">
+                {activeParent.subCategories.map((sub, i) => {
+                  const isSubActive = activeKey === sub.key
+                  const SubIcon = SUB_ICON[sub.key] ?? Scissors
+                  return (
+                    <motion.div
+                      key={sub.key}
+                      initial={false}
+                      animate={{ opacity: 1, scale: 1, x: 0 }}
+                      whileTap={{ scale: 0.93 }}
+                    >
+                      <Link
+                        href={{ pathname: '/rezervasyon' as const, query: { kategori: sub.key } } as never}
+                        className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold border transition-all duration-200 flex-1 min-w-fit ${
+                          isSubActive
+                            ? 'bg-red-600 border-transparent text-white shadow-md shadow-red-200'
+                            : 'bg-white border-zinc-200 text-zinc-500 hover:bg-zinc-50 hover:border-zinc-300'
+                        }`}
+                      >
+                        <SubIcon size={13} className={isSubActive ? 'text-white' : 'text-zinc-400'} />
+                        {sub.label}
+                      </Link>
+                    </motion.div>
+                  )
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Results header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-zinc-900">
+          {query
+            ? `"${query}" için sonuçlar`
+            : activeKey
+            ? (tabs.find(t => t.key === activeKey)?.label ?? t('allBusinesses'))
+            : t('allBusinesses')}
+        </h2>
+        <span className="text-sm text-zinc-400">{filtered.length} işletme</span>
+      </div>
+
+      {/* Business grid */}
+      {filtered.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.35 }}
+          className="text-center py-20 bg-zinc-50 rounded-2xl"
+        >
+          <div className="text-5xl mb-4">{query ? '🔍' : '📅'}</div>
+          <p className="font-semibold text-zinc-700 mb-1">
+            {query ? 'Eşleşen işletme bulunamadı' : t('emptyTitle')}
+          </p>
+          <p className="text-sm text-zinc-400">
+            {query ? 'Farklı bir arama deneyin' : t('emptySubtitle')}
+          </p>
+          {query && (
+            <button
+              onClick={() => setQuery('')}
+              className="mt-4 text-sm text-red-600 font-semibold hover:underline"
+            >
+              Aramayı temizle
+            </button>
+          )}
+        </motion.div>
+      ) : (
+        <AnimatePresence mode="popLayout">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filtered.map((biz, i) => {
+              const icon      = BUSINESS_TYPE_ICONS[biz.business_type as BusinessType] ?? '🏪'
+              const accent    = TYPE_ACCENT[biz.business_type] ?? '#E53935'
+              const bg        = TYPE_BG[biz.business_type] ?? 'bg-zinc-50'
+              const thumbSrc  = biz.cover_image ?? TYPE_UNSPLASH[biz.business_type] ?? null
+              return (
+                <motion.div
+                  key={biz.id}
+                  layout
+                  initial={false}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                  whileHover={{ y: -4, boxShadow: `0 16px 40px ${accent}33` }}
+                  whileTap={{ scale: 0.98 }}
+                  className="rounded-2xl border border-zinc-100 bg-white overflow-hidden group cursor-pointer"
+                  style={{ willChange: 'transform' }}
+                >
+                  <Link
+                    href={{ pathname: '/rezervasyon/[id]', params: { id: biz.id } }}
+                    className="flex flex-col h-full"
+                  >
+                    {/* Thumbnail */}
+                    <div
+                      className={`w-full h-36 overflow-hidden relative ${bg} flex items-center justify-center text-3xl`}
+                    >
+                      {thumbSrc ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={thumbSrc}
+                          alt=""
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                          loading="eager"
+                        />
+                      ) : (
+                        <span>{icon}</span>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 p-5 flex flex-col justify-center">
+                      <p className="font-bold text-zinc-900 group-hover:text-red-600 transition-colors truncate leading-snug">
+                        {biz.name}
+                      </p>
+                      <span
+                        className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full mt-1.5 mb-2"
+                        style={{ backgroundColor: `${accent}15`, color: accent }}
+                      >
+                        {biz.typeLabel}
+                      </span>
+                      {biz.address && (
+                        <p className="flex items-center gap-1 text-xs text-zinc-400 truncate">
+                          <MapPin size={10} className="flex-shrink-0 text-zinc-300" />
+                          {biz.address}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                </motion.div>
+              )
+            })}
+          </div>
+        </AnimatePresence>
+      )}
+    </div>
+  )
+}
+</file>
+
+<file path="app/[locale]/rezervasyon/page.tsx">
+export const dynamic = 'force-dynamic'
+
+import type { Metadata }     from 'next'
+import { Suspense }          from 'react'
+import MarketingHeader       from '@/components/MarketingHeader'
+import MarketingFooter       from '@/components/MarketingFooter'
+import CategoryHeroBanner    from '@/components/CategoryHeroBanner'
+import SearchableBusinessList from './SearchableBusinessList'
+import { getSupabaseAdmin }  from '@/lib/supabase'
+import { type Restaurant }   from '@/types'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getTypesForKey } from './categories'
+
+export const metadata: Metadata = {
+  title: 'Online Rezervasyon — CheckRezerve',
+  description: 'Restoran, kuaför, spa ve daha fazlası için online rezervasyon yapın. Hızlı, kolay ve ücretsiz.',
+  openGraph: {
+    title: 'Online Rezervasyon — CheckRezerve',
+    description: 'Restoran, kuaför, spa ve daha fazlası için online rezervasyon yapın.',
+    type: 'website',
+  },
+}
+
+type Props = {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<{ kategori?: string }>
+}
+
+export default async function RezervasyonPage({ params, searchParams }: Props) {
+  const { locale } = await params
+  const { kategori } = await searchParams
+  setRequestLocale(locale)
+  const t    = await getTranslations('rezervasyon')
+  const tBiz = await getTranslations('businessTypes')
+
+  // DiagonalSplit sends ?kategori=restoran → map to category key 'yeme-icme'
+  const KATEGORI_ALIAS: Record<string, string> = { 'restoran': 'yeme-icme' }
+  const resolvedKey = KATEGORI_ALIAS[kategori ?? ''] ?? kategori ?? ''
+  const activeTypes = getTypesForKey(resolvedKey)
+
+  let list: Array<{
+    id: string; name: string; slug: string | null; business_type: string
+    address: string | null; description: string | null; is_active: boolean
+    cover_image: string | null; typeLabel: string
+  }> = []
+
+  try {
+    let q = getSupabaseAdmin()
+      .from('restaurants')
+      .select('id, name, slug, business_type, address, description, is_active, cover_image')
+      .eq('is_active', true)
+
+    if (activeTypes && activeTypes.length > 0) {
+      q = q.in('business_type', activeTypes)
+    }
+
+    const { data: businesses } = await q.order('name')
+
+    list = (businesses ?? []).map(b => ({
+      id:            b.id as string,
+      name:          b.name as string,
+      slug:          b.slug as string | null,
+      business_type: b.business_type as string,
+      address:       b.address as string | null,
+      description:   b.description as string | null,
+      is_active:     b.is_active as boolean,
+      cover_image:   b.cover_image as string | null,
+      typeLabel:     tBiz(b.business_type as Parameters<typeof tBiz>[0]),
+    }))
+  } catch (e) {
+    console.error('RezervasyonPage fetch error:', e)
+    // fallback: empty list, error boundary handles UI
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+      <MarketingHeader />
+
+      {/* Animated hero — changes background per category */}
+      <Suspense fallback={
+        <section className="pt-28 pb-14 text-white text-center"
+          style={{ background: 'linear-gradient(135deg,rgba(13,18,26,0.92) 0%,rgba(13,110,110,0.70) 100%),url(\'/images/hero-premium.jpg\')', backgroundSize: 'cover' }}>
+          <div className="mx-auto max-w-2xl px-6">
+            <div className="h-6 w-32 bg-white/20 rounded-full mx-auto mb-6" />
+            <div className="h-12 w-64 bg-white/20 rounded-xl mx-auto mb-4" />
+          </div>
+        </section>
+      }>
+        <CategoryHeroBanner
+          badgeText={t('heroBadge')}
+          defaultTitle={t('heroTitle')}
+          defaultSubtitle={t('heroSubtitle')}
+        />
+      </Suspense>
+
+      {/* Search + Category + Business list */}
+      <section className="py-12">
+        <div className="mx-auto max-w-5xl px-6">
+          <Suspense fallback={<BusinessListSkeleton />}>
+            <SearchableBusinessList allBusinesses={list} />
+          </Suspense>
+        </div>
+      </section>
+
+      <MarketingFooter />
+    </div>
+  )
+}
+
+function BusinessListSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="h-12 bg-zinc-100 rounded-2xl animate-pulse" />
+      <div className="flex gap-2 overflow-hidden">
+        {[80, 110, 90, 120, 85].map((w, i) => (
+          <div key={i} className="h-9 bg-zinc-100 rounded-full animate-pulse flex-shrink-0" style={{ width: w }} />
+        ))}
+      </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="rounded-2xl border border-zinc-100 bg-zinc-50 h-28 animate-pulse" />
+        ))}
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="app/[locale]/rezervasyon/[id]/BookingForm.tsx">
+'use client'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
+import { useTranslations, useLocale } from 'next-intl'
+import dynamic from 'next/dynamic'
+import { motion, AnimatePresence } from 'motion/react'
+import {
+  Check, ArrowLeft, ArrowRight,
+  Building2, Calendar, Clock, Users, MapPin, User, Phone, Mail,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
+
+type Hizmet     = { id: string; name: string; duration_minutes: number; price: number | null }
+type Calisan    = { id: string; name: string; title: string | null }
+type FloorTable = { id: string; label: string; capacity: number; area_id: string | null; x: number; y: number; width: number; height: number; shape: 'rect' | 'circle'; rotation: number }
+type SpecialArea = { id: string; name: string; color: string | null }
+
+const FloorPlanPicker = dynamic(() => import('./FloorPlanPicker'), { ssr: false })
+
+interface Props {
+  businessId:       string
+  businessName:     string
+  businessType:     string
+  businessAddress:  string | null
+  hizmetler:        Hizmet[]
+  calisanlar:       Calisan[]
+  floorPlanEnabled: boolean
+  floorTables:      FloorTable[]
+  specialAreas:     SpecialArea[]
+}
+
+const TIME_SLOTS = Array.from({ length: 27 }, (_, i) => {
+  const totalMin = 9 * 60 + i * 30
+  const h = Math.floor(totalMin / 60).toString().padStart(2, '0')
+  const m = (totalMin % 60).toString().padStart(2, '0')
+  return `${h}:${m}`
+})
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+const TR_MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık']
+const TR_DAYS   = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi']
+
+function generateReservationId(): string {
+  const num = Math.floor(100000 + Math.random() * 900000)
+  return `RZV${num}`
+}
+
+function formatDateTR(iso: string): string {
+  if (!iso) return iso
+  const [y, m, d] = iso.split('-').map(Number)
+  const date = new Date(y, m - 1, d)
+  return `${d} ${TR_MONTHS[m - 1]} ${y}, ${TR_DAYS[date.getDay()]}`
+}
+
+export default function BookingForm({
+  businessId, businessName, businessType, businessAddress,
+  hizmetler, calisanlar,
+  floorPlanEnabled, floorTables, specialAreas,
+}: Props) {
+  const router = useRouter()
+  const t = useTranslations('bookingForm')
+  const r = useTranslations('rezervasyon')
+  const locale = useLocale()
+  const isRestaurant = businessType === 'restaurant' || businessType === 'other'
+  const isServiceBased = !isRestaurant
+
+  const allSteps = isRestaurant
+    ? floorPlanEnabled
+      ? ['kisi', 'tarih', 'saat', 'masa', 'bilgi', 'ozet', 'basari'] as const
+      : ['kisi', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
+    : ['hizmet', 'calisan', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
+  const [step, setStep] = useState(0)
+
+  // Form state
+  const [partySize, setPartySize] = useState(2)
+  const [selectedDate, setSelectedDate] = useState('')
+  const [selectedTime, setSelectedTime] = useState('')
+  const [selectedTable, setSelectedTable] = useState<string | null>(null)
+  const [selectedService, setSelectedService] = useState<string | null>(null)
+  const [selectedStaff, setSelectedStaff] = useState<string | null>(null)
+  const [selectedArea, setSelectedArea] = useState<string | null>(
+    specialAreas.length > 0 ? specialAreas[0].id : null
+  )
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
+  const [specialNotes, setSpecialNotes] = useState('')
+
+  // Booking state
+  const [occupiedSlots, setOccupiedSlots] = useState<Set<string>>(new Set())
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [successData, setSuccessData] = useState<{ id: string } | null>(null)
+  const [privacyAccepted, setPrivacyAccepted] = useState(false)
+  const [privacyModalOpen, setPrivacyModalOpen] = useState(false)
+  const [privacyError, setPrivacyError] = useState(false)
+
+  // Calendar state
+  const today = useMemo(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  }, [])
+  const [calMonth, setCalMonth] = useState(today.getMonth())
+  const [calYear, setCalYear] = useState(today.getFullYear())
+  const maxDate = useMemo(() => {
+    const d = new Date(today)
+    d.setDate(d.getDate() + 30)
+    return d
+  }, [today])
+
+  // Prefill from auth
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setEmail(session.user.email ?? '')
+        setName(session.user.user_metadata?.full_name ?? session.user.user_metadata?.name ?? '')
+      }
+    })
+  }, [])
+
+  // Fetch occupied slots
+  useEffect(() => {
+    if (!selectedDate || !businessId) return
+    fetch(`/api/rezervasyon/musait?business_id=${businessId}&date=${selectedDate}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(json => { if (json?.times) setOccupiedSlots(new Set(json.times)) })
+      .catch(() => {})
+  }, [selectedDate, businessId])
+
+  // Calendar helpers
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate()
+  const firstDayOfWeek = new Date(calYear, calMonth, 1).getDay()
+  const calDays: (Date | null)[] = []
+  for (let i = 0; i < firstDayOfWeek; i++) calDays.push(null)
+  for (let d = 1; d <= daysInMonth; d++) calDays.push(new Date(calYear, calMonth, d))
+
+  const isDateDisabled = useCallback((date: Date) => {
+    const time = date.getTime()
+    return time < today.getTime() || time > maxDate.getTime()
+  }, [today, maxDate])
+
+  const dateStr = (date: Date) => {
+    const y = date.getFullYear()
+    const m = (date.getMonth() + 1).toString().padStart(2, '0')
+    const d = date.getDate().toString().padStart(2, '0')
+    return `${y}-${m}-${d}`
+  }
+
+  const prevMonth = () => {
+    if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) }
+    else setCalMonth(m => m - 1)
+  }
+  const nextMonth = () => {
+    if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) }
+    else setCalMonth(m => m + 1)
+  }
+
+  const canGoPrevMonth = calYear > today.getFullYear() || (calYear === today.getFullYear() && calMonth > today.getMonth())
+
+  // Navigation
+  function goNext() {
+    if (step < allSteps.length - 1) setStep(s => s + 1)
+  }
+  function goBack() {
+    if (step === 0) router.push('/rezervasyon')
+    else setStep(s => s - 1)
+  }
+
+  const canProceed = (() => {
+    const s = allSteps[step]
+    if (s === 'kisi')    return partySize >= 1 && partySize <= 20
+    if (s === 'hizmet')  return selectedService !== null
+    if (s === 'calisan') return true
+    if (s === 'tarih')   return !!selectedDate
+    if (s === 'saat')    return !!selectedTime
+    if (s === 'masa')    return true
+    if (s === 'bilgi')   return !!(name.trim() && phone.trim())
+    return true
+  })()
+
+  // Submit — HATA 2: UUID validation
+  async function handleSubmit() {
+    if (!privacyAccepted) { setPrivacyError(true); return }
+    setError(null)
+    setLoading(true)
+
+    const safeTableId = selectedTable && UUID_RE.test(selectedTable) ? selectedTable : undefined
+
+    const res = await fetch('/api/rezervasyon', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        restaurant_id:    businessId,
+        customer_name:    name,
+        phone,
+        email:            email || undefined,
+        party_size:       partySize,
+        date:             selectedDate,
+        time:             selectedTime,
+        table_id:         safeTableId,
+        service_id:       selectedService ?? undefined,
+        staff_id:         selectedStaff ?? undefined,
+        special_requests: specialNotes || undefined,
+      }),
+    })
+    setLoading(false)
+
+    if (!res.ok) {
+      const json = await res.json()
+      setError(json.error ?? r('hata.genel'))
+      return
+    }
+
+    const data = await res.json()
+    setSuccessData({ id: data.id ?? generateReservationId() })
+    setStep(allSteps.length - 1)
+    import('canvas-confetti').then(m => {
+      m.default({ particleCount: 140, spread: 90, origin: { y: 0.6 } })
+    }).catch(() => {})
+  }
+
+  // ─── RENDER HELPERS ─────────────────────────────────────
+
+  const stepProgress = () => {
+    const displaySteps = allSteps.filter(s => s !== 'basari')
+    const currentStep = allSteps[step]
+    const displayIndex = displaySteps.indexOf(currentStep as (typeof displaySteps)[number])
+    return (
+      <div className="flex items-center mb-10">
+        {displaySteps.map((s, i) => {
+          const isActive = i === displayIndex
+          const isDone = i < displayIndex
+          const isLast = i === displaySteps.length - 1
+          return (
+            <div key={s} className="flex items-center flex-1 min-w-0">
+              <div className="flex flex-col items-center">
+                <div className={`flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold transition-all duration-300
+                  ${isDone ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-200'
+                    : isActive ? 'bg-[#E53935] text-white shadow-md shadow-red-200 ring-4 ring-red-100'
+                    : 'bg-zinc-100 text-zinc-400'}`}
+                >
+                  {isDone ? <Check size={16} strokeWidth={3} /> : i + 1}
+                </div>
+                <span className={`mt-1.5 text-[11px] font-semibold text-center leading-tight max-w-[72px] transition-colors duration-300
+                  ${isActive ? 'text-[#E53935]' : isDone ? 'text-emerald-600' : 'text-zinc-400'}`}
+                >
+                  {r(`adim.${s}.baslik` as Parameters<typeof r>[0])}
+                </span>
+              </div>
+              {!isLast && (
+                <div className={`flex-1 h-px mx-2 sm:mx-3 transition-colors duration-300
+                  ${isDone ? 'bg-emerald-300' : 'bg-zinc-200'}`}
+                />
+              )}
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  // HATA 1: showDevam parametresi kaldırıldı, navButtons sadece ozet dışı adımlarda çağrılır
+  const navButtons = () => (
+    <div className="flex items-center justify-between mt-8 pt-6 border-t border-zinc-100">
+      <button
+        onClick={goBack}
+        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 transition-all"
+      >
+        <ArrowLeft size={16} />
+        {r('step.geri')}
+      </button>
+      <button
+        onClick={goNext}
+        disabled={!canProceed}
+        className={`flex items-center gap-2 px-7 py-2.5 rounded-xl text-sm font-bold transition-all
+          ${canProceed
+            ? 'bg-[#E53935] hover:bg-[#C62828] text-white shadow-md shadow-red-200 hover:shadow-lg hover:-translate-y-0.5'
+            : 'bg-zinc-100 text-zinc-400 cursor-not-allowed'}`}
+      >
+        {r('step.devam')}
+        <ArrowRight size={16} />
+      </button>
+    </div>
+  )
+
+  // ─── STEPS ──────────────────────────────────────────────
+
+  const renderPartySize = () => (
+    <div className="flex flex-col items-center justify-center py-8">
+      <p className="text-sm font-semibold text-zinc-500 mb-6 uppercase tracking-wide">
+        {r('adim.kisi.baslik')}
+      </p>
+      <div className="flex items-center gap-8">
+        <motion.button
+          whileTap={{ scale: 0.85 }}
+          onClick={() => setPartySize(p => Math.max(1, p - 1))}
+          className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#E53935] text-white text-3xl font-bold flex items-center justify-center shadow-lg shadow-red-200 hover:bg-[#C62828] transition-colors"
+        >
+          −
+        </motion.button>
+        <div className="text-center">
+          <motion.span
+            key={partySize}
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="text-6xl sm:text-7xl font-extrabold text-zinc-900 tabular-nums"
+          >
+            {partySize}
+          </motion.span>
+          <p className="text-sm text-zinc-400 mt-1">{r('adim.kisi.kisi')}</p>
+        </div>
+        <motion.button
+          whileTap={{ scale: 0.85 }}
+          onClick={() => setPartySize(p => Math.min(20, p + 1))}
+          className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#E53935] text-white text-3xl font-bold flex items-center justify-center shadow-lg shadow-red-200 hover:bg-[#C62828] transition-colors"
+        >
+          +
+        </motion.button>
+      </div>
+      <div className="flex gap-1.5 mt-6">
+        {[1, 2, 3, 4, 5, 6, 8, 10, 15, 20].map(n => (
+          <button
+            key={n}
+            onClick={() => setPartySize(n)}
+            className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all
+              ${partySize === n ? 'bg-[#E53935] text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+
+  const renderCalendar = () => {
+    const monthLabel = locale === 'tr'
+      ? `${TR_MONTHS[calMonth]} ${calYear}`
+      : new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(calYear, calMonth))
+
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={prevMonth}
+            disabled={!canGoPrevMonth}
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-600 hover:bg-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            ←
+          </button>
+          <p className="font-bold text-zinc-900">{monthLabel}</p>
+          <button
+            onClick={nextMonth}
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-600 hover:bg-zinc-100 transition-colors"
+          >
+            →
+          </button>
+        </div>
+
+        <div className="grid grid-cols-7 gap-1">
+          {['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'].map(d => (
+            <div key={d} className="text-center text-xs font-semibold text-zinc-400 py-2">{d}</div>
+          ))}
+          {calDays.map((date, i) => {
+            if (!date) return <div key={`e-${i}`} />
+            const ds = dateStr(date)
+            const disabled = isDateDisabled(date)
+            const selected = ds === selectedDate
+            const isToday = ds === dateStr(today)
+            return (
+              <button
+                key={ds}
+                onClick={() => !disabled && setSelectedDate(ds)}
+                disabled={disabled}
+                className={`relative w-full aspect-square rounded-full text-sm font-semibold transition-all
+                  ${selected ? 'bg-[#E53935] text-white shadow-md shadow-red-200 scale-105' : disabled ? 'text-zinc-300 cursor-not-allowed' : isToday ? 'text-[#E53935] hover:bg-red-50' : 'text-zinc-700 hover:bg-zinc-100'}`}
+              >
+                {date.getDate()}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  const renderTimeSlots = () => (
+    <div className="grid grid-cols-4 gap-2">
+      {TIME_SLOTS.map((slot, i) => {
+        const occ = occupiedSlots.has(slot)
+        const sel = selectedTime === slot
+        return (
+          <motion.button
+            key={slot}
+            type="button"
+            disabled={occ}
+            onClick={() => !occ && setSelectedTime(slot)}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: i * 0.015 }}
+            whileHover={occ ? {} : { scale: 1.05 }}
+            whileTap={occ ? {} : { scale: 0.9 }}
+            className={`py-2.5 rounded-xl border text-sm font-semibold transition-all
+              ${sel ? 'bg-[#E53935] border-[#E53935] text-white shadow-md shadow-red-200' : occ ? 'bg-zinc-100 border-zinc-200 text-zinc-400 line-through cursor-not-allowed' : 'bg-white border-zinc-200 text-zinc-700 hover:border-[#E53935] hover:text-[#E53935]'}`}
+          >
+            {slot}
+          </motion.button>
+        )
+      })}
+    </div>
+  )
+
+  const renderMasaSelect = () => {
+    if (!floorTables.length) {
+      return (
+        <div className="text-center py-10 text-zinc-400">
+          <p className="text-sm">{r('adim.masa.masaTipiYok')}</p>
+        </div>
+      )
+    }
+
+    // Unique areas from tables + special_areas
+    const areas = specialAreas.length > 0 ? specialAreas : []
+    const areaTables = selectedArea
+      ? floorTables.filter(t => t.area_id === selectedArea)
+      : floorTables
+
+    return (
+      <div>
+        <p className="text-sm text-zinc-500 mb-4">{r('adim.masa.opsiyonel')}</p>
+
+        {/* Area tabs */}
+        {areas.length > 1 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {areas.map(a => {
+              const count = floorTables.filter(t => t.area_id === a.id).length
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => { setSelectedArea(a.id); setSelectedTable(null) }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+                    selectedArea === a.id
+                      ? 'bg-[#E53935] text-white border-[#E53935]'
+                      : 'bg-white text-zinc-600 border-zinc-200 hover:border-[#E53935] hover:text-[#E53935]'
+                  }`}
+                >
+                  {a.color && (
+                    <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: a.color }} />
+                  )}
+                  {a.name}
+                  <span className="text-[10px] opacity-70">({count})</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Floor plan canvas */}
+        <FloorPlanPicker
+          restaurantId={businessId}
+          tables={areaTables}
+          selectedDate={selectedDate}
+          selectedTime={selectedTime}
+          selectedTableId={selectedTable}
+          onSelect={setSelectedTable}
+        />
+
+        {/* Skip button */}
+        <div className="flex justify-center mt-4">
+          {!selectedTable && (
+            <button
+              onClick={() => goNext()}
+              className="text-xs text-zinc-400 hover:text-zinc-600 underline underline-offset-2 transition-colors"
+            >
+              {r('adim.masa.opsiyonel')} — {r('step.atla')}
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  const renderHizmetSelect = () => (
+    <div className="space-y-3">
+      {hizmetler.length === 0 ? (
+        <p className="text-center py-8 text-zinc-400 text-sm">{r('hata.genel')}</p>
+      ) : (
+        <div className="grid grid-cols-1 gap-3">
+          {hizmetler.map(h => {
+            const sel = selectedService === h.id
+            return (
+              <motion.button
+                key={h.id}
+                onClick={() => setSelectedService(sel ? null : h.id)}
+                whileHover={{ y: -2, scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+                className={`flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all
+                  ${sel
+                    ? 'border-[#E53935] bg-red-50 shadow-md shadow-red-100'
+                    : 'border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm'}`}
+              >
+                <div>
+                  <p className={`font-bold text-sm ${sel ? 'text-[#E53935]' : 'text-zinc-900'}`}>
+                    {h.name}
+                  </p>
+                  <div className="flex items-center gap-3 mt-1">
+                    {h.price != null && (
+                      <span className="text-xs font-semibold text-zinc-500">
+                        {r('adim.hizmet.fiyat')}: {h.price} ₺
+                      </span>
+                    )}
+                    <span className="text-xs text-zinc-400">
+                      {r('adim.hizmet.sure')}: {h.duration_minutes} {r('adim.hizmet.dk')}
+                    </span>
+                  </div>
+                </div>
+                {sel && (
+                  <div className="w-6 h-6 rounded-full bg-[#E53935] text-white flex items-center justify-center shrink-0">
+                    <Check size={14} strokeWidth={3} />
+                  </div>
+                )}
+              </motion.button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+
+  const renderCalisanSelect = () => (
+    <div className="space-y-3">
+      <button
+        onClick={() => setSelectedStaff(selectedStaff === null ? '__any__' : null)}
+        className={`w-full flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all ${
+          selectedStaff === '__any__'
+            ? 'border-[#E53935] bg-red-50 shadow-md shadow-red-100'
+            : 'border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm'
+        }`}
+      >
+        <div>
+          <p className={`font-bold text-sm ${selectedStaff === '__any__' ? 'text-[#E53935]' : 'text-zinc-900'}`}>
+            {r('adim.calisan.farkEtmez')}
+          </p>
+        </div>
+        {selectedStaff === '__any__' && (
+          <div className="w-6 h-6 rounded-full bg-[#E53935] text-white flex items-center justify-center shrink-0">
+            <Check size={14} strokeWidth={3} />
+          </div>
+        )}
+      </button>
+      {calisanlar.map(c => {
+        const sel = selectedStaff === c.id
+        return (
+          <motion.button
+            key={c.id}
+            onClick={() => setSelectedStaff(sel ? null : c.id)}
+            whileHover={{ y: -2, scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            className={`w-full flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all
+              ${sel
+                ? 'border-[#E53935] bg-red-50 shadow-md shadow-red-100'
+                : 'border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm'}`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-stone-700 flex items-center justify-center text-sm font-bold text-white shrink-0">
+                {c.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p className={`font-bold text-sm ${sel ? 'text-[#E53935]' : 'text-zinc-900'}`}>
+                  {c.name}
+                </p>
+                {c.title && (
+                  <span className="text-xs text-zinc-400">{c.title}</span>
+                )}
+              </div>
+            </div>
+            {sel && (
+              <div className="w-6 h-6 rounded-full bg-[#E53935] text-white flex items-center justify-center shrink-0">
+                <Check size={14} strokeWidth={3} />
+              </div>
+            )}
+          </motion.button>
+        )
+      })}
+    </div>
+  )
+
+  const renderInfoForm = () => (
+    <div className="space-y-5">
+      <div>
+        <label className="block text-sm font-semibold text-zinc-700 mb-1.5">{r('adim.bilgi.adSoyad')} *</label>
+        <input
+          type="text"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          placeholder={r('adim.bilgi.adSoyadPlaceholder')}
+          className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-[#E53935] focus:ring-2 focus:ring-red-100 transition-all"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold text-zinc-700 mb-1.5">{r('adim.bilgi.telefon')} *</label>
+        <input
+          type="tel"
+          value={phone}
+          onChange={e => setPhone(e.target.value)}
+          placeholder={r('adim.bilgi.telefonPlaceholder')}
+          className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-[#E53935] focus:ring-2 focus:ring-red-100 transition-all"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold text-zinc-700 mb-1.5">{r('adim.bilgi.eposta')}</label>
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder={r('adim.bilgi.epostaPlaceholder')}
+          className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-[#E53935] focus:ring-2 focus:ring-red-100 transition-all"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold text-zinc-700 mb-1.5">{r('adim.bilgi.ozelNot')}</label>
+        <textarea
+          value={specialNotes}
+          onChange={e => setSpecialNotes(e.target.value)}
+          rows={3}
+          placeholder={r('adim.bilgi.ozelNotPlaceholder')}
+          className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-[#E53935] focus:ring-2 focus:ring-red-100 transition-all resize-none"
+        />
+      </div>
+    </div>
+  )
+
+  const renderSummary = () => {
+    const masaLabel = selectedTable
+      ? floorTables.find(t => t.id === selectedTable)?.label ?? null
+      : null
+    const hizmetLabel = selectedService
+      ? hizmetler.find(h => h.id === selectedService)?.name ?? null
+      : null
+    const calisanLabel = selectedStaff && selectedStaff !== '__any__'
+      ? calisanlar.find(c => c.id === selectedStaff)?.name ?? null
+      : selectedStaff === '__any__' ? r('adim.calisan.farkEtmez') : null
+
+    return (
+      <div className="space-y-5">
+        <div className="bg-zinc-50 rounded-2xl p-5 border border-zinc-100 space-y-3">
+          <SummaryRow icon={Building2} label={r('adim.ozet.isletme')} value={businessName} />
+          {isServiceBased && hizmetLabel && (
+            <SummaryRow icon={Building2} label={r('adim.ozet.hizmet')} value={hizmetLabel} />
+          )}
+          {isServiceBased && calisanLabel && (
+            <SummaryRow icon={User} label={r('adim.ozet.calisan')} value={calisanLabel} />
+          )}
+          <SummaryRow icon={Calendar} label={r('adim.ozet.tarih')} value={selectedDate} />
+          <SummaryRow icon={Clock}    label={r('adim.ozet.saat')}  value={selectedTime} />
+          {isRestaurant && (
+            <SummaryRow icon={Users} label={r('adim.ozet.kisi')} value={`${partySize} ${r('adim.kisi.kisi')}`} />
+          )}
+          {isRestaurant && masaLabel && (
+            <SummaryRow icon={MapPin} label={r('adim.ozet.masa')} value={masaLabel} />
+          )}
+          <SummaryRow icon={User}  label={r('adim.bilgi.adSoyad')} value={name} />
+          <SummaryRow icon={Phone} label={r('adim.bilgi.telefon')} value={phone} />
+          {email && <SummaryRow icon={Mail} label={r('adim.bilgi.eposta')} value={email} />}
+        </div>
+
+        {specialNotes && (
+          <div className="text-sm text-zinc-500 bg-amber-50 rounded-xl p-4 border border-amber-100">
+            <span className="font-semibold text-amber-700">📝 {r('adim.bilgi.ozelNot')}:</span>
+            <p className="mt-1">{specialNotes}</p>
+          </div>
+        )}
+
+        {/* Privacy checkbox */}
+        <div className={`flex items-start gap-3 p-4 rounded-xl border transition-colors ${privacyError && !privacyAccepted ? 'border-red-400 bg-red-50' : 'border-zinc-200 bg-zinc-50'}`}>
+          <input
+            type="checkbox"
+            id="privacy"
+            checked={privacyAccepted}
+            onChange={e => { setPrivacyAccepted(e.target.checked); setPrivacyError(false) }}
+            className="mt-0.5 accent-[#E53935] w-4 h-4 shrink-0 cursor-pointer"
+          />
+          <label htmlFor="privacy" className="text-sm text-zinc-700 cursor-pointer leading-relaxed">
+            <button type="button" onClick={() => setPrivacyModalOpen(true)} className="text-[#E53935] font-semibold hover:underline">
+              {r('gizlilik.baslik')}
+            </button>
+            {"'nı "}{r('gizlilik.kabul')}
+          </label>
+        </div>
+        {privacyError && !privacyAccepted && (
+          <p className="text-sm text-red-600">{r('gizlilik.hata')}</p>
+        )}
+
+        {error && (
+          <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{error}</div>
+        )}
+
+        <p className="text-center text-xs text-zinc-400">{r('adim.ozet.iptalNotu')}</p>
+      </div>
+    )
+  }
+
+  // HATA 5: Tarih Türkçe formatlanıyor
+  const renderSuccess = () => {
+    const rezId = successData?.id ?? generateReservationId()
+    const mapsUrl = businessAddress
+      ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(businessAddress)}`
+      : null
+
+    return (
+      <div className="text-center py-8 px-4 rounded-2xl bg-gradient-to-b from-red-50 via-white to-white">
+        <motion.div
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.1 }}
+          className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5"
+        >
+          <motion.svg
+            viewBox="0 0 24 24"
+            className="w-10 h-10 stroke-green-600"
+            fill="none"
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
+          >
+            <motion.path d="M5 13l4 4L19 7" />
+          </motion.svg>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <h2 className="text-xl font-bold text-zinc-900 mb-1">{r('adim.basari.mesaj')}</h2>
+
+          <div className="inline-flex items-center gap-2 bg-zinc-900 text-white px-4 py-2 rounded-full text-sm font-bold mt-3 mb-6">
+            {r('adim.basari.idKart')}: <span className="tracking-wider">{rezId}</span>
+          </div>
+
+          <div className="bg-zinc-50 rounded-2xl p-5 border border-zinc-100 max-w-xs mx-auto mb-6 text-left space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-zinc-400">{r('adim.ozet.isletme')}</span>
+              <span className="font-semibold text-zinc-900">{businessName}</span>
+            </div>
+            {isServiceBased && selectedService && (
+              <div className="flex justify-between">
+                <span className="text-zinc-400">{r('adim.ozet.hizmet')}</span>
+                <span className="font-semibold text-zinc-900">{hizmetler.find(h => h.id === selectedService)?.name}</span>
+              </div>
+            )}
+            {isServiceBased && selectedStaff && (
+              <div className="flex justify-between">
+                <span className="text-zinc-400">{r('adim.ozet.calisan')}</span>
+                <span className="font-semibold text-zinc-900">{selectedStaff === '__any__' ? r('adim.calisan.farkEtmez') : (calisanlar.find(c => c.id === selectedStaff)?.name ?? '')}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span className="text-zinc-400">{r('adim.ozet.tarih')}</span>
+              <span className="font-semibold text-zinc-900">{formatDateTR(selectedDate)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-zinc-400">{r('adim.ozet.saat')}</span>
+              <span className="font-semibold text-zinc-900">{selectedTime}</span>
+            </div>
+            {isRestaurant && (
+              <div className="flex justify-between">
+                <span className="text-zinc-400">{r('adim.ozet.kisi')}</span>
+                <span className="font-semibold text-zinc-900">{partySize} {r('adim.kisi.kisi')}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => router.push('/rezervasyonlarim')}
+              className="rounded-full bg-zinc-900 text-white px-6 py-2.5 text-sm font-bold hover:bg-zinc-700 transition-colors"
+            >
+              {r('adim.basari.rezervasyonlarim')}
+            </button>
+            {mapsUrl && (
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-300 text-zinc-700 px-6 py-2.5 text-sm font-bold hover:bg-zinc-50 transition-colors"
+              >
+                <MapPin size={16} />
+                {r('adim.basari.yolTarifi')}
+              </a>
+            )}
+            <button
+              onClick={() => router.push('/')}
+              className="rounded-full text-zinc-400 px-6 py-2.5 text-sm font-semibold hover:text-zinc-700 transition-colors"
+            >
+              {r('adim.basari.anaSayfa')}
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
+  // ─── MAIN RENDER ────────────────────────────────────────
+
+  return (
+    <div>
+      {/* Step progress bar (hidden on success) */}
+      {allSteps[step] !== 'basari' && stepProgress()}
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+        >
+          {allSteps[step] === 'kisi'    && renderPartySize()}
+          {allSteps[step] === 'hizmet'  && renderHizmetSelect()}
+          {allSteps[step] === 'calisan' && renderCalisanSelect()}
+          {allSteps[step] === 'tarih'   && renderCalendar()}
+          {allSteps[step] === 'saat'    && renderTimeSlots()}
+          {allSteps[step] === 'masa'    && renderMasaSelect()}
+          {allSteps[step] === 'bilgi'   && renderInfoForm()}
+          {allSteps[step] === 'ozet'    && renderSummary()}
+          {allSteps[step] === 'basari'  && renderSuccess()}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* HATA 1: navButtons sadece ozet ve basari dışında gösterilir → çift Geri butonu yok */}
+      {allSteps[step] !== 'basari' && allSteps[step] !== 'ozet' && navButtons()}
+
+      {/* Özel: Özet adımında Geri + Rezervasyonu Tamamla */}
+      {allSteps[step] === 'ozet' && (
+        <div className="flex items-center justify-between mt-8 pt-6 border-t border-zinc-100">
+          <button
+            onClick={goBack}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 transition-all"
+          >
+            <ArrowLeft size={16} />
+            {r('step.geri')}
+          </button>
+          <motion.button
+            onClick={handleSubmit}
+            disabled={loading}
+            whileHover={{ scale: loading ? 1 : 1.02 }}
+            whileTap={{ scale: loading ? 1 : 0.97 }}
+            className="px-8 py-3 rounded-full bg-[#E53935] hover:bg-[#C62828] disabled:opacity-60 text-white text-sm font-bold transition-all shadow-lg shadow-red-200"
+          >
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <motion.span
+                  className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full inline-block"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                />
+                {t('submitting')}
+              </span>
+            ) : r('adim.ozet.tamamla')}
+          </motion.button>
+        </div>
+      )}
+
+      {/* Privacy Modal */}
+      {privacyModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setPrivacyModalOpen(false)}
+        >
+          <div
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="px-6 pt-6 pb-4 border-b border-zinc-100">
+              <h2 className="text-lg font-bold text-zinc-900">{r('gizlilik.modalBaslik')}</h2>
+              <button
+                type="button"
+                onClick={() => setPrivacyModalOpen(false)}
+                className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-700 text-xl font-bold"
+              >×</button>
+            </div>
+            <div className="overflow-y-auto px-6 py-5 space-y-5 text-sm text-zinc-600 leading-relaxed">
+              <section>
+                <h3 className="font-bold text-zinc-900 mb-2">1. Kişisel Verilerin İşlenmesi</h3>
+                <p>CheckRezerve olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) kapsamında kişisel verilerinizi toplar ve işleriz. Rezervasyon sürecinde sağladığınız ad, telefon ve e-posta bilgileriniz yalnızca hizmet sunumu amacıyla kullanılır. Verileriniz açık rızanız olmaksızın üçüncü taraflarla paylaşılmaz ve yurt dışına aktarılmaz.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-zinc-900 mb-2">2. Rezervasyon Koşulları</h3>
+                <p>Rezervasyonunuz, ilgili işletmenin onayı ile geçerlilik kazanır. Onay SMS veya e-posta yoluyla iletilir. İptal işlemleri, rezervasyon saatinden en az 2 saat önce yapılmalıdır. Belirtilen süre içinde iptal edilmeyen rezervasyonlar geçersiz sayılabilir.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-zinc-900 mb-2">3. No-Show Politikası</h3>
+                <p>Ön ödeme gerektiren rezervasyonlarda, belirlenen süre içinde iptal yapılmaması veya rezervasyona gelinmemesi (no-show) durumunda ödeme iadesi yapılmaz. İşletme tarafından belirlenen özel koşullar, rezervasyon onay mesajında ayrıca belirtilir.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-zinc-900 mb-2">4. İletişim</h3>
+                <p>Rezervasyon veya gizlilik konularında sorularınız için: <strong>destek@checkrezerve.com</strong></p>
+              </section>
+            </div>
+            <div className="px-6 pb-6 pt-4 border-t border-zinc-100">
+              <button
+                type="button"
+                onClick={() => { setPrivacyAccepted(true); setPrivacyModalOpen(false); setPrivacyError(false) }}
+                className="w-full rounded-xl bg-[#E53935] hover:bg-[#C62828] text-white font-bold py-3 text-sm transition-colors"
+              >
+                {r('gizlilik.onayla')} ✓
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// HATA 4: icon artık LucideIcon tipinde
+function SummaryRow({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-zinc-500 flex items-center gap-2">
+        <Icon size={15} className="text-zinc-400" strokeWidth={2} />
+        {label}
+      </span>
+      <span className="text-sm font-semibold text-zinc-900">{value}</span>
+    </div>
+  )
+}
+</file>
+
+<file path="app/[locale]/rezervasyon/[id]/page.tsx">
+export const dynamic = 'force-dynamic'
+
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import { Link } from '@/i18n/navigation'
+import MarketingHeader from '@/components/MarketingHeader'
+import MarketingFooter from '@/components/MarketingFooter'
+import { getSupabaseAdmin } from '@/lib/supabase'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { BUSINESS_TYPE_ICONS, type BusinessType, type Restaurant, type Service, type StaffMember } from '@/types'
+import BookingForm from './BookingForm'
+import BusinessDetailHero from './BusinessDetailHero'
+
+// Next.js 15+ — params is a Promise
+type Props = { params: Promise<{ id: string; locale: string }> }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params
+  const { data } = await getSupabaseAdmin()
+    .from('restaurants')
+    .select('name, description')
+    .eq('id', id)
+    .single()
+
+  if (!data) return { title: 'İşletme Bulunamadı' }
+  return {
+    title: `${data.name} — Online Rezervasyon`,
+    description: data.description ?? `${data.name} için online rezervasyon yapın.`,
+  }
+}
+
+export default async function BusinessDetailPage({ params }: Props) {
+  const { id, locale } = await params
+  setRequestLocale(locale)
+  const t    = await getTranslations('bizDetail')
+  const tBiz = await getTranslations('businessTypes')
+  const supabase = getSupabaseAdmin()
+
+  const [{ data: biz }, { data: rawServices }, { data: rawStaff }, { data: rawTables }, { data: featureFlags }, { data: rawAreas }] = await Promise.all([
+    supabase.from('restaurants').select('*').eq('id', id).single(),
+    supabase.from('hizmetler').select('*').eq('restaurant_id', id).eq('aktif', true).order('sira'),
+    supabase.from('calisanlar').select('*').eq('restaurant_id', id).eq('aktif', true).order('sira'),
+    supabase.from('tables').select('*').eq('restaurant_id', id).eq('is_active', true).order('created_at'),
+    supabase.from('feature_flags').select('feature, enabled').eq('restaurant_id', id),
+    supabase.from('special_areas').select('id, name, color').eq('restaurant_id', id).order('name'),
+  ])
+
+  if (!biz) notFound()
+
+  const business = biz as Restaurant
+  const icon  = BUSINESS_TYPE_ICONS[business.business_type as BusinessType] ?? '🏪'
+  const label = tBiz(business.business_type as Parameters<typeof tBiz>[0])
+
+  const localeKey = locale !== 'tr' ? `_${locale}` : ''
+
+  // Normalize hizmetler (mobil tablo adı farklı olabilir)
+  const hizmetler = (rawServices ?? []).map((h: Record<string, unknown>) => ({
+    id:               h.id as string,
+    name:             ((localeKey ? h[`ad${localeKey}`] : null) ?? h.name ?? h.ad) as string,
+    duration_minutes: (h.duration_minutes ?? h.sure_dakika ?? 30) as number,
+    price:            (h.price ?? h.fiyat ?? null) as number | null,
+  }))
+
+  // Normalize calisanlar
+  const calisanlar = (rawStaff ?? []).map((c: Record<string, unknown>) => ({
+    id:    c.id as string,
+    name:  (c.name ?? c.ad) as string,
+    title: (c.title ?? c.unvan ?? null) as string | null,
+  }))
+
+  const floorTables = (rawTables ?? []).map((t: Record<string, unknown>) => ({
+    id:       t.id as string,
+    label:    (t.label ?? 'Masa') as string,
+    capacity: (t.capacity ?? 4) as number,
+    area_id:  (t.area_id ?? null) as string | null,
+    x:        (t.x ?? 0) as number,
+    y:        (t.y ?? 0) as number,
+    width:    (t.width ?? 80) as number,
+    height:   (t.height ?? 80) as number,
+    shape:    (t.shape === 'circle' ? 'circle' : 'rect') as 'rect' | 'circle',
+    rotation: (t.rotation ?? 0) as number,
+  }))
+
+  const specialAreas = (rawAreas ?? []).map((a: Record<string, unknown>) => ({
+    id:    a.id as string,
+    name:  a.name as string,
+    color: (a.color ?? null) as string | null,
+  }))
+
+  const floorPlanEnabled = (featureFlags ?? []).some(f => f.feature === 'floor_plan' && f.enabled)
+    && floorTables.length > 0
+
+  const bookingTerm = ['restaurant', 'other'].includes(business.business_type)
+    ? t('termReservation')
+    : t('termAppointment')
+
+  return (
+    <div className="min-h-screen bg-white">
+      <MarketingHeader />
+
+      <BusinessDetailHero
+        name={business.name}
+        icon={icon}
+        label={label}
+        address={business.address ?? null}
+        phone={business.phone ?? null}
+        description={business.description ?? null}
+        backLabel={t('allBusinesses')}
+        rating={(business as Record<string, unknown>).rating as number | null ?? null}
+        coverImage={(business as Record<string, unknown>).cover_image as string | null ?? null}
+      />
+
+      <section className="py-10">
+        <div className="mx-auto max-w-3xl px-6">
+          <h2 className="text-xl font-bold text-zinc-900 mb-6">{t('makeBooking', { term: bookingTerm })}</h2>
+
+          <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6 sm:p-8">
+            <BookingForm
+              businessId={business.id}
+              businessName={business.name}
+              businessType={business.business_type}
+              hizmetler={hizmetler}
+              calisanlar={calisanlar}
+              floorPlanEnabled={floorPlanEnabled}
+              floorTables={floorTables}
+              specialAreas={specialAreas}
+              businessAddress={business.address ?? null}
+            />
+          </div>
+
+          {biz.special_notes && (
+            <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+              <div className="flex gap-3 text-sm">
+                <span className="text-amber-500 shrink-0 text-base">ℹ️</span>
+                <div>
+                  <span className="font-semibold text-amber-800 text-xs uppercase tracking-wide">
+                    {t('specialNotes')}
+                  </span>
+                  <p className="text-amber-700 mt-0.5 leading-snug">{biz.special_notes}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <MarketingFooter />
+    </div>
+  )
+}
+</file>
+
+</files>

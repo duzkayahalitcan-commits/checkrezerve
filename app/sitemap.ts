@@ -75,7 +75,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (restaurants) {
         for (const r of restaurants) {
           if (!r.slug) continue
-          const businessPath = `/${r.slug}`
+          const businessPath = `/isletme/${r.slug}`
           for (const locale of LOCALES) {
             entries.push({
               url: localeUrl(businessPath, locale),

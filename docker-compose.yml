@@ -1,20 +1,14 @@
-version: "3.9"
-
-# ─────────────────────────────────────────────────────────────────────────────
-# İzole ağ — tüm servisler bu ağda konuşur, dışa sadece nginx açıktır
-# n8n ayrı bir compose stack'te 5678 portunu kullanır — çakışma yok
-# ─────────────────────────────────────────────────────────────────────────────
 networks:
   app-net:
     driver: bridge
     name: app-net
 
 volumes:
-  certbot-www:   # ACME challenge dosyaları için paylaşılan volume
-  certbot-conf:  # Let's Encrypt sertifikaları için kalıcı volume
+  certbot-www:
+  certbot-conf:
 
 services:
-  app:
+  blue:
     build:
       context: .
       dockerfile: Dockerfile
@@ -22,10 +16,10 @@ services:
         NEXT_PUBLIC_SUPABASE_URL:      ${NEXT_PUBLIC_SUPABASE_URL}
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
     image: checkrezerve:latest
-    container_name: checkrezerve-app
+    container_name: checkrezerve-blue
     restart: unless-stopped
     expose:
-      - "3000"
+      - "3001"
     environment:
       NEXT_PUBLIC_SUPABASE_URL:      ${NEXT_PUBLIC_SUPABASE_URL}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
@@ -52,11 +46,59 @@ services:
       ADMIN_SECRET:                    ${ADMIN_SECRET}
       ADMIN_PASSWORD:                  ${ADMIN_PASSWORD:-}
       NODE_ENV:  production
-      PORT:      3000
+      PORT:      3001
     networks:
       - app-net
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/api/health || exit 1"]
+      interval: 30s
+      timeout:  10s
+      retries:  5
+      start_period: 60s
+
+  green:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL:      ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+    image: checkrezerve:latest
+    container_name: checkrezerve-green
+    restart: unless-stopped
+    expose:
+      - "3002"
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL:      ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY:     ${SUPABASE_SERVICE_ROLE_KEY}
+      ANTHROPIC_API_KEY:             ${ANTHROPIC_API_KEY}
+      OPENAI_API_KEY:                ${OPENAI_API_KEY:-}
+      ELEVENLABS_API_KEY:            ${ELEVENLABS_API_KEY:-}
+      ELEVENLABS_VOICE_ID:           ${ELEVENLABS_VOICE_ID:-}
+      WHISPER_SERVER_URL:            ${WHISPER_SERVER_URL:-http://checkrezerve-whisper:5001}
+      SMS_PROVIDER:                  ${SMS_PROVIDER:-disabled}
+      TWILIO_ACCOUNT_SID:            ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN:             ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_FROM_NUMBER:            ${TWILIO_FROM_NUMBER:-}
+      NETGSM_USERCODE:               ${NETGSM_USERCODE:-}
+      NETGSM_PASSWORD:               ${NETGSM_PASSWORD:-}
+      NETGSM_MSGHEADER:              ${NETGSM_MSGHEADER:-}
+      IYZICO_API_KEY:                  ${IYZICO_API_KEY:-}
+      IYZICO_SECRET_KEY:               ${IYZICO_SECRET_KEY:-}
+      IYZICO_BASE_URL:                 ${IYZICO_BASE_URL:-https://sandbox.iyzipay.com}
+      IYZICO_PLAN_STARTER_MONTHLY_REF: ${IYZICO_PLAN_STARTER_MONTHLY_REF:-}
+      IYZICO_PLAN_STARTER_YEARLY_REF:  ${IYZICO_PLAN_STARTER_YEARLY_REF:-}
+      IYZICO_PLAN_PRO_MONTHLY_REF:     ${IYZICO_PLAN_PRO_MONTHLY_REF:-}
+      IYZICO_PLAN_PRO_YEARLY_REF:      ${IYZICO_PLAN_PRO_YEARLY_REF:-}
+      ADMIN_SECRET:                    ${ADMIN_SECRET}
+      ADMIN_PASSWORD:                  ${ADMIN_PASSWORD:-}
+      NODE_ENV:  production
+      PORT:      3002
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3002/api/health || exit 1"]
       interval: 30s
       timeout:  10s
       retries:  5
@@ -75,9 +117,6 @@ services:
       - certbot-conf:/etc/letsencrypt:ro
     networks:
       - app-net
-    depends_on:
-      app:
-        condition: service_healthy
 
   whisper:
     image: onerahmet/openai-whisper-asr-webservice:latest
@@ -91,14 +130,12 @@ services:
     networks:
       - app-net
 
-  # ─── Certbot: ilk kurulumda manuel çalıştırılır, sonra otomatik yeniler ───
   certbot:
     image: certbot/certbot:latest
     container_name: checkrezerve-certbot
     volumes:
       - certbot-www:/var/www/certbot
       - certbot-conf:/etc/letsencrypt
-    # Sürekli çalışarak her 12 saatte bir yenileme dener
     entrypoint: >
       /bin/sh -c "trap exit TERM;
       while :; do

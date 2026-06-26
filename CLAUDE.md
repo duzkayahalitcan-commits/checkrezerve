@@ -231,8 +231,6 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
   - **W-17**: `app/[locale]/giris/page.tsx` → zaten tam implement edilmiş (Google+Apple OAuth, Türkçe hatalar) — değişiklik yok
   - **W-18**: `CookieBanner` locale layout'a eklendi (`app/[locale]/layout.tsx`)
   - **W-19**: `not-found.tsx` güncellendi → "Rezervasyon Yap" butonu eklendi
-  - DEVAM NOKTASI: W-21
-
 - [x] **2026-06-24 — W-21..W-29: SEO, gerçek veri, auth, favoriler, toast**
   - **W-21**: `isletme/[slug]/page.tsx` → JSON-LD LocalBusiness schema markup eklendi
   - **W-22**: Rezervasyon listesi sayfası `getSupabaseAdmin` → `getSupabase` (anon client) geçiş
@@ -243,8 +241,6 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
   - **W-27**: `favorilerim/page.tsx` → `business_type` + `cover_image` join, skeleton loading, boş durum Türkçe
   - **W-28**: `FavoriteToggle.tsx` oluşturuldu (Supabase auth+DB bağlantılı), `BusinessDetailHero`'ya entegre, `restaurantId` prop eklendi
   - **W-29**: `BookingForm.tsx` → `useToast()` entegre (başarı=yeşil, hata=kırmızı)
-  - DEVAM NOKTASI: W-31
-
 - [x] **2026-06-24 — W-31..W-39: işletme detay, filtre, panel CRUD, blog, performans**
   - **W-31**: `isletme/[slug]/page.tsx` → hizmetler + çalışanlar bölümleri eklendi (paralel sorgu), FavoriteToggle hero'ya entegre
   - **W-32**: `SearchableBusinessList.tsx` → sıralama chips (En Yeni / A–Z / Yakın) + temizle butonu eklendi
@@ -255,8 +251,6 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
   - **W-37**: Blog sayfaları zaten tam implement edilmişti (6 yazı, i18n, SEO) — değişiklik yok
   - **W-38**: `app/[locale]/loading.tsx` oluşturuldu (spinner + "Yükleniyor..." metni)
   - **W-39**: `home/page.tsx` + `hakkimizda/page.tsx` → `loading="lazy"` → `loading="eager"` (Framer Motion opacity:0 bug önlemi)
-  - DEVAM NOKTASI: W-41
-
 - [x] **2026-06-24 — W-41..W-49: rezervasyon API, onay sayfası, panel güncelleme, i18n, PWA**
   - **W-41**: `POST /api/rezervasyon` zaten gerçek Supabase insert yapıyordu — doğrulandı, değişiklik yok
   - **W-42**: `app/[locale]/rezervasyon/[id]/onay/page.tsx` oluşturuldu (Server Component, ?ref= query param ile rezervasyon detayı, ConfettiClient, Rezervasyonlarım + Ana Sayfa butonları)
@@ -268,8 +262,6 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
   - **W-48**: `/panel/[slug]/ayarlar/page.tsx` + `SettingsForm.tsx` zaten tam implement edilmişti (çalışma saatleri, kapalı günler, ön ödeme, Supabase update) — değişiklik yok
   - **W-49**: 7 dosyadan tüm console.log kaldırıldı; TypeScript any kaldı (Supabase typing workaroundları — as any/as unknown)
   - **W-50**: i18n routing.ts → /rezervasyonlarim, /favorilerim, /rezervasyon/[id]/onay eklendi (TS fix)
-  - DEVAM NOKTASI: W-51
-
 - [x] **2026-06-25 — W-51..W-59: rezervasyon iyileştirme, panel bugün, arama filtre, puan, rapor, SEO**
   - **W-51**: BookingForm.tsx saat slotları → meşgul kırmızı (bg-red-50/border-red-200), müsait yeşil (bg-green-50/border-green-200)
   - **W-52**: TodayView.tsx → auto-refresh her 60 saniyede (setInterval + router.refresh, sadece bugün görünümünde)
@@ -279,5 +271,83 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
   - **W-56**: next.config.ts → image formats avif/webp, deviceSizes/imageSizes optimize edildi
   - **W-57**: public/sw.js zaten tam implement edilmişti; `profil/NotificationToggle.tsx` oluşturuldu (izin kontrolü, "Bildirimleri Aç" butonu), profil sayfasına entegre
   - **W-58**: RestaurantDetail.tsx → is_verified field, verifyRestaurant() / rejectRestaurant() fonksiyonları, Onayla/Reddet butonları
-  - **W-59**: isletme/[slug] → BreadcrumbList JSON-LD schema eklendi; OG image dinamik /api/og route'a bağlandı; `app/api/og/route.tsx` oluşturuldu (next/og ImageResponse, edge runtime)
-  - DEVAM NOKTASI: W-61
+  - **W-59**: isletme/[slug] → BreadcrumbList JSON-LD schema eklendi; OG image dinamik /api/og route'a bağlandı; `app/api/og/route.tsx` oluşturuldu (next/og ImageResponse, edge runtime) (önceki oturumda yapıldı)
+
+- [x] **2026-06-25 — W-61..W-66: middleware, email fix, sitemap, i18n eksik sayfalar, isletme detail i18n, admin login**
+  - **W-61**: `middleware.ts` oluşturuldu — root `/` → locale redirect, `/panel` ve `/admin` auth guard
+  - **W-62**: `[slug]/actions.ts` → `guest_email` eklendi, email_logs trigger artık çalışıyor
+  - **W-63**: `app/sitemap.ts` → işletme URL'leri `/[slug]` → `/isletme/[slug]` düzeltildi
+  - **W-64**: i18n: `favorilerim`, `rezervasyonlarim`, `giris` sayfaları `useTranslations`'e geçirildi; 7 dilde `favorites`, `myReservations`, auth ek key'leri eklendi
+  - **W-65**: `isletme/[slug]/page.tsx` → hardcoded TR metinler `useTranslations('isletmeDetail')` ile değiştirildi; JSON-LD (`LocalBusiness` + `BreadcrumbList`) locale-aware yapıldı; 7 dilde `isletmeDetail` namespace'i eklendi
+  - **W-66**: `app/admin/login/` → `ADMIN_PASSWORD` sistemi kaldırıldı; Supabase Auth (`signInWithPassword`) + `profiles.role = 'super_admin'` kontrolü eklendi; 4 admin API route'u ve middleware güncellendi; token formatı `userId:HMAC(userId)`
+- [x] **2026-06-25 — W-67..W-69: iptal sayfası, push notification, admin pagination + arama**
+  - **W-67**: `app/[locale]/rezervasyon/iptal/[token]/page.tsx` + `CancelForm.tsx` oluşturuldu; token doğrulama, status→cancelled update, cancelUrl SMS entegrasyonu; `cancellation_token` migration SQL
+  - **W-68**: web-push kuruldu; VAPID key üretildi; `POST /api/push/subscribe` (abonelik kaydı) + `POST /api/push/send` (VAPID ile push gönderme, dinamik import) route'ları oluşturuldu; `push_subscriptions` migration SQL; public/sw.js push handler zaten mevcuttu
+  - **W-69**: `app/admin/RestaurantList.tsx` — 20'şer sayfalama + arama (isim/slug); `ReservationDashboard.tsx` — 20'şer sayfalama + tab değişince sayfa sıfırlama
+- [x] **2026-06-25 — W-70..W-72: rol tabanlı izinler, SEO ince ayar, n8n test + audit log**
+  - **W-70**: `lib/roles.ts` — 8 granüler yetki fonksiyonu eklendi: `canDeleteReservation`, `canManageStaff`, `canEditSettings`, `canViewReports`, `canManageTables`, `canManageServices`, `canViewSubscription`, `canViewGuests`; `roleWeight` hiyerarşisi (super_admin 100 → customer 10)
+  - **W-71**: `app/robots.ts` — doğrulanmamış işletme path'leri disallow, Googlebot için ayrı kural; `app/api/og/route.tsx` — varsayılan type `'İşletme'` → `'Online Booking'`
+  - **W-72**: n8n workflow dosyası doğrulandı (`n8n/checkrezerve-workflow.json` 233 satır); `app/api/admin/audit-logs/route.ts` (POST/GET) oluşturuldu; `admin_audit_logs` migration SQL; `RestaurantDetail.tsx`'te onay/red aksiyonlarına audit log eklendi (`restaurant_verified` / `restaurant_rejected`)
+- [x] **2026-06-26 — W-73: Restoran masa krokisi: 3 secilebilir model**
+  - **W-73**: `FloorPlanPicker.tsx` yeniden yazıldı — SVG tabanlı 3 model (Salon/Teras/Lounge) sekme sistemi; `businessType === 'restaurant'` kontrolü (diğer sektörlerde gösterilmez); masa durumları: boş (gri), dolu (kırmızı, tiklanamaz), seçili (marka kırmızı #E53935); marka renkleri (#E53935, #2B1B17, #D4A373); seçilen masa `table_id` olarak form payload'ına eklenir
+- [x] **2026-06-26 — W-74..W-76: email HTML template, kod kalite pass, performans optimizasyonu**
+  - **W-74**: `supabase/functions/send-emails/index.ts` — markalı HTML template eklendi (logo, #E53935/#2B1B17/#D4A373 renkler, responsive card); hem `html` hem `text` fallback ile Resend'e gönderim; trigger'dan gelen düz metin body HTML'e dönüştürülür
+  - **W-75**: `console.log` temizliği ✅ (web app'te 0 adet); kullanılmayan `MasalarContent` ara wrapper kaldırıldı, `any` tipi temizlendi; `npx tsc --noEmit` hatasız
+  - **W-76**: görsel `loading="eager"` kuralı korundu (Framer Motion bug); `next/font/google` font preload zaten root layout'ta aktif; metadata/kewywords genişletildi
+- [x] **2026-06-26 — W-77..W-78: InteractiveFloorMap (izometrik) + FloorMapEditor taslağı**
+  - **W-77**: `components/InteractiveFloorMap.tsx` (381 satır) — SVG izometrik masa krokisi; `TableLayout` tipi (id, label, shape, x, y, seats, zone, status); 3 zone sekmesi (Salon/Teras/Lounge); `toIso()` izometrik dönüşüm (diamond kareler + elips yuvarlaklar); Framer Motion animasyon (renk geçişi 300ms easeInOut, hover scale 1.05); drop-shadow filtresi; bos #C9A678 / dolu #C26B5C / secili #E53935 + #2B1B17 detay; `mapRestaurantTables()` mapping fonksiyonu; `businessType === 'restaurant'` kontrolü
+  - **W-78**: `components/FloorMapEditor.tsx` (117 satır) — sürükle-bırak masa düzenleyici iskeleti; grid referans çizgileri; MouseDown/Move/Up event handler placeholder; "Kaydet" butonu Supabase update imzalı
+  - **Entegrasyon dokümanı**: `~/Desktop/floormap-entegrasyon.md` (122 satır) — tablo yapısı, kolon açıklamaları, Supabase sorgusu, JSX kullanımı, component API dokümantasyonu
+- [x] **2026-06-26 — W-79: InteractiveFloorMap rezervasyon akışına bağlandı**
+  - **W-79**: `BookingForm.tsx` → eski `FloorPlanPicker` import'u kaldırıldı; `InteractiveFloorMap` import edildi; `FloorTable → TableLayout` adaptör fonksiyonu (`toTableLayouts()`) eklendi; `selectedArea` zone olarak geçirildi; `businessType` prop'u korundu; `dynamic` import temizlendi
+- [x] **2026-06-26 — W-BLUEGREEN: Zero-downtime blue-green deployment**
+  - `docker-compose.yml`: `app` servisi `blue` (port 3001) ve `green` (port 3002) olarak ikiye bölündü; ikisi de aynı image, farklı container isimleri
+  - `nginx.conf`: upstream `nextjs_upstream` deploy script'i tarafından `sed` ile güncellenir; `nginx -s reload` ile kesintisiz geçiş
+  - `deploy.sh`: rsync → active_slot oku → pasif slot build + health check (3×10sn) → nginx reload switch → active_slot güncelle → eski container durdur → "Kesinti: 0 saniye"
+  - İlk kurulum: `active_slot=blue`, blue:3001 aktif, green:3002 pasif bekliyor
+  - Deploy testi geçti ✅ kesinti olmadan green'e geçildi
+
+- [x] **2026-06-26 — W-79: InteractiveFloorMap baglantisi + fixler**
+  - `BookingForm.tsx`: `FloorPlanPicker` → `InteractiveFloorMap`; `toTableLayouts()` adaptörü; `specialAreas` dinamik zone'lar
+  - `InteractiveFloorMap.tsx`: `areas` prop'u ile dinamik zone sekmeleri; `TableLayout.zone` tipi `string` yapıldı
+  - Booking form'da masa verisi boşsa varsayılan 8 test masası oluşturulur
+  - `page.tsx`: `tables` → `masa_tipleri`, `is_active` → `aktif`, `restaurant_id` → `isletme_id`, `label` → `ad`, `capacity` → `kapasite`
+  - `floorPlanEnabled`: feature flag kontrolü kaldırıldı, sadece `floorTables.length > 0`
+  - W-74..W-76: email HTML template (markalı), kod kalite (console.log temiz, any azaltıldı), performans (font preload, metadata)
+- [x] **2026-06-26 — W-84..W-86: SEO son kontrol, performans, son deploy + sağlık kontrolü**
+  - **W-84**: canonical URL (root + locale layout + sitemap) ✅; hreflang 7 dil eksiksiz ✅; JSON-LD (Organization, WebSite, SoftwareApplication, LocalBusiness, BreadcrumbList, FAQPage) ✅
+  - **W-85**: `next build` 236 statik sayfa, 0 hata, 0 uyarı ✅; bundle uyarısı yok; `next/image` 19 kullanım, native `<img>` yok; TypeScript fix: `LanguageSelector`'da `l` → `loc`, `ScrollToTop`'ta çift aria-label temizlendi
+  - **W-86**: 🟢 Blue-green deploy başarılı (green aktif); Nginx `depends_on` fix; nginx reload sorunu çözüldü (`docker compose up -d nginx --no-deps`); tüm kritik route'lar 200 ✅; eski `checkrezerve-blue` ve `checkrezerve-app` temizlendi
+- [x] **2026-06-26 — deploy.sh basitlestirme: blue single-container deploy**
+  - `deploy.sh`: blue-green karmasıklığı kaldırıldı → single container modeli
+  - Artik: tsc → rsync → `docker compose build blue` → `docker compose up -d blue --no-deps` → 30sn bekle → health check (curl + docker exec fallback) → `nginx -s reload`
+  - KRITIK: nginx hic restart edilmez, sadece reload; `docker compose down` kullanilmaz; nginx.conf'a dokunulmaz
+  - Health check basarisizsa deploy iptal edilir, eski container calismaya devam eder
+  - Test: `checkrezerve-blue:3001` healthy, site 200 OK ✅
+- [x] **2026-06-26 — W-88: Izometrik kroki BookingForm baglantisi**
+  - `BookingForm.tsx`: `InteractiveFloorMap` zaten import edilmis ve masa secimi adiminda kullaniliyor
+  - `toTableLayouts()` adaptoru: `FloorTable` → `TableLayout` donusumu; x/y koordinati yoksa otomatik grid hesaplama (`Math.round(t.x / 40) || 1`)
+  - `table_id`: `safeTableId` olarak payload'a ekleniyor (UUID dogrulamali)
+  - `businessType === 'restaurant'` kontrolu: masa adimi sadece restoranlarda gosteriliyor
+
+- [x] **2026-06-26 — W-89: Samba POS webhook test**
+  - `POST /api/pos/samba/webhook` endpoint canliya cikti
+  - Test sonuclari: 404 dondu cunku endpoint deploy edilmemisti (W-87 onbording deploy'u bu endpointi icermiyordu)
+  - **Fix:** deploy.sh calistirildi, endpoint canliya cikti
+  - Test: 401 (`X-Webhook-Secret header required`) — dogru calisiyor ✅
+- [x] **2026-06-26 — Takvim Modülü (günlük/haftalık/aylık görünüm, slide-over edit, soft-delete undo, realtime)**
+  - Mevcut CalendarGrid + WeeklyView korundu, geliştirildi
+  - **Yeni**: `DailyView.tsx` — 08:00-23:00 saat slot grid, her slot tıklanabilir, +Ekle butonu
+  - **Yeni**: `CalendarSidebar.tsx` — sağdan slide-over panel, tarih/saat/personel/not düzenleme, soft-delete + 5sn "Geri Al" tostu
+  - **Yeni**: `actions.ts` — 3 server action (updateReservation, softDeleteReservation, undoDeleteReservation)
+  - **Yeni**: `TakvimClient.tsx` — client wrapper, realtime subscription (Supabase postgres_changes), 3 görünüm toggle (Günlük/Haftalık/Aylık)
+  - **Tip**: `CalendarTypes.ts` — TakvimReservation, ViewMode
+  - Renkler: onaylı=yeşil, beklemede=amber, iptal=kırmızı/soluk, gold accent (#D4A373), primary (#0d2e1c)
+  - Marka uyumu: mevcut panel renk şeması, Framer Motion animasyonları
+  - Responsive: tablet uyumlu, loading skeleton, empty state
+  - `npx tsc --noEmit` ✅
+  - `git commit -m "feat: takvim modulu - gunluk/haftalik/aylik, inline edit, undo"`
+
+- [x] **2026-06-26 — W-88..W-89: Izometrik kroki baglantisi + POS webhook test**
+  - W-88: `InteractiveFloorMap` zaten bagli; `toTableLayouts()` adaptor; `table_id` payload'a gidiyor ✅
+  - W-89: `POST /api/pos/samba/webhook` endpoint test edildi, calisiyor (401 dondu ✅)

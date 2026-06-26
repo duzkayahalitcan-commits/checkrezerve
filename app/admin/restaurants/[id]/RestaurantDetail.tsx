@@ -117,12 +117,21 @@ export default function RestaurantDetail({
   }
 
   // ─── Onayla / Reddet işlemleri ───
+  async function logAudit(action: string, targetId: string, metadata?: Record<string, unknown>) {
+    await fetch('/api/admin/audit-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, target_type: 'restaurant', target_id: targetId, metadata }),
+    }).catch(() => {})
+  }
+
   async function verifyRestaurant() {
     try {
       await apiCall('PATCH', '/api/admin/restaurant', { id: restaurant.id, is_verified: true, is_active: true })
       setIsVerified(true)
       setIsActive(true)
       toast.show('İşletme onaylandı', 'success')
+      logAudit('restaurant_verified', restaurant.id, { name: restaurant.name })
     } catch {
       toast.show('Onaylanamadı', 'error')
     }
@@ -133,6 +142,7 @@ export default function RestaurantDetail({
       await apiCall('PATCH', '/api/admin/restaurant', { id: restaurant.id, is_active: false })
       setIsActive(false)
       toast.show('İşletme reddedildi', 'success')
+      logAudit('restaurant_rejected', restaurant.id, { name: restaurant.name })
     } catch {
       toast.show('İşlem başarısız', 'error')
     }

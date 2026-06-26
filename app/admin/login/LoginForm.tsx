@@ -7,23 +7,38 @@ const initial: LoginState = { error: null }
 
 export function LoginForm({ redirectTo }: { redirectTo: string }) {
   const [state, formAction, pending] = useActionState(loginAction, initial)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="from" value={redirectTo} />
 
       <div className="flex flex-col gap-1.5">
+        <label htmlFor="email" className="text-sm font-medium text-stone-300">
+          E-posta
+        </label>
+        <input
+          ref={emailRef}
+          id="email"
+          name="email"
+          type="email"
+          required
+          autoFocus
+          autoComplete="email"
+          placeholder="admin@checkrezerve.com"
+          className="rounded-xl border border-white/10 bg-white/5 px-4 py-3.5 text-base text-white placeholder:text-stone-600 focus:border-amber-500/50 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
         <label htmlFor="password" className="text-sm font-medium text-stone-300">
           Şifre
         </label>
         <input
-          ref={inputRef}
           id="password"
           name="password"
           type="password"
           required
-          autoFocus
           autoComplete="current-password"
           placeholder="••••••••"
           className="rounded-xl border border-white/10 bg-white/5 px-4 py-3.5 text-base text-white placeholder:text-stone-600 focus:border-amber-500/50 focus:outline-none focus:ring-2 focus:ring-amber-500/20"

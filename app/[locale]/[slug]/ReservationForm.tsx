@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { createReservation, type ActionState } from './actions'
 import { type BusinessType } from '@/types'
 import { FloatingInput } from '@/components/ui/FloatingInput'
+import { useAvailability } from './useAvailability'
 
 const initialState: ActionState = {
   success: false,
@@ -76,6 +77,7 @@ export function ReservationForm({
   const [guestName,  setGuestName]            = useState('')
   const [guestPhone, setGuestPhone]           = useState('')
   const formRef = useRef<HTMLFormElement>(null)
+  const { busyTimes, loading: availabilityLoading, isBusy } = useAvailability(restaurantId, selectedDate)
 
   const term             = tTerms(businessType as Parameters<typeof tTerms>[0])
   const isRestaurant     = businessType === 'restaurant'
@@ -223,22 +225,45 @@ export function ReservationForm({
 
       {/* Saat Seçici */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-semibold text-stone-700">{t('selectTime')}</label>
+        <label className="text-sm font-semibold text-stone-700 flex items-center gap-2">
+          {t('selectTime')}
+          {availabilityLoading && (
+            <span className="inline-flex items-center gap-1 text-xs text-stone-400 font-normal">
+              <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Müsaitlik sorgulanıyor...
+            </span>
+          )}
+          {!availabilityLoading && busyTimes.length > 0 && (
+            <span className="text-xs text-stone-400 font-normal">
+              ({busyTimes.length} doldu)
+            </span>
+          )}
+        </label>
         <div className="flex flex-wrap gap-2">
-          {TIME_SLOTS.map(slot => (
-            <button
-              key={slot}
-              type="button"
-              onClick={() => setSelectedTime(slot)}
-              className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${
-                selectedTime === slot
-                  ? 'bg-amber-500 border-amber-500 text-white'
-                  : 'bg-white border-stone-200 text-stone-700 hover:border-amber-300'
-              }`}
-            >
-              {slot}
-            </button>
-          ))}
+          {TIME_SLOTS.map(slot => {
+            const busy = isBusy(slot)
+            return (
+              <button
+                key={slot}
+                type="button"
+                onClick={() => !busy && setSelectedTime(slot)}
+                disabled={busy}
+                title={busy ? 'Bu saat doludur' : undefined}
+                className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${
+                  selectedTime === slot
+                    ? 'bg-amber-500 border-amber-500 text-white'
+                    : busy
+                      ? 'bg-red-50 border-red-200 text-red-300 line-through cursor-not-allowed'
+                      : 'bg-white border-stone-200 text-stone-700 hover:border-amber-300'
+                }`}
+              >
+                {slot}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -354,6 +379,21 @@ export function ReservationForm({
             className="rounded-xl border border-stone-200 bg-white px-4 py-3 text-base text-stone-900 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100 resize-none"
           />
         )}
+      </div>
+
+      {/* KVKK Onayı */}
+      <div className="flex items-start gap-3">
+        <input
+          id="kvkk_consent"
+          name="kvkk_consent"
+          type="checkbox"
+          className="mt-0.5 w-4 h-4 rounded border-stone-300 text-amber-500 focus:ring-amber-400 focus:ring-2 shrink-0 cursor-pointer"
+        />
+        <label htmlFor="kvkk_consent" className="text-xs text-stone-500 leading-relaxed cursor-pointer select-none">
+          <a href="/kvkk" target="_blank" className="text-amber-600 underline underline-offset-2 hover:text-amber-700 font-medium">KVKK Aydınlatma Metni</a>{' '}
+          kapsamında, rezervasyon bilgilerimin ve iletişim verilerimin işlenmesine,
+          rezervasyon onayı ve hatırlatma amacıyla SMS/email gönderilmesine izin veriyorum.
+        </label>
       </div>
 
       {/* Hata */}

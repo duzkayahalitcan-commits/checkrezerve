@@ -189,6 +189,27 @@ export default function TodayView({
         </button>
       </div>
 
+      {/* ── Bulk Action: Tüm Bekleyenleri Onayla ── */}
+      {pendingCount > 0 && (
+        <div className="flex justify-end">
+          <button
+            onClick={async () => {
+              const pendingIds = reservations.filter(r => r.status === 'pending').map(r => r.id)
+              for (const id of pendingIds) {
+                await updateStatus(id, 'confirmed')
+              }
+              toast.show(`${pendingIds.length} rezervasyon onaylandı ✅`, 'success')
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/25 transition-all"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            Tüm Bekleyenleri Onayla ({pendingCount})
+          </button>
+        </div>
+      )}
+
       {/* ── Status Counters ── */}
       <div className="grid grid-cols-4 gap-3">
         {[

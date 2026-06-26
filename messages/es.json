@@ -40,8 +40,8 @@
     "forgotPassword": "Olvidé mi contraseña",
     "noAccount": "¿No tienes cuenta?",
     "hasAccount": "¿Ya tienes cuenta?",
-    "loginTitle": "Accede a tu cuenta",
-    "registerTitle": "Crea una cuenta",
+    "loginTitle": "Bienvenido de nuevo 👋",
+    "registerTitle": "Crear una cuenta",
     "googleWith": "Con Google",
     "orEmail": "o con correo electrónico",
     "passwordPlaceholder": "Mínimo 6 caracteres",
@@ -60,7 +60,12 @@
     "resetPasswordNewPassword": "Nueva contraseña",
     "resetPasswordButton": "Actualizar contraseña",
     "resetPasswordSuccess": "¡Contraseña actualizada! Redirigiendo...",
-    "resetPasswordError": "No se pudo actualizar la contraseña. El enlace puede haber expirado."
+    "resetPasswordError": "No se pudo actualizar la contraseña. El enlace puede haber expirado.",
+    "loginDescription": "Inicia sesión en tu cuenta",
+    "registerDescription": "Únete en segundos",
+    "backToHome": "← Volver al inicio",
+    "panelLink": "Ir al panel de administración",
+    "businessOwner": "¿Eres dueño de un negocio?"
   },
   "reservation": {
     "title": "Hacer una reserva",
@@ -1381,5 +1386,48 @@
     "subtitle": "Ocurrió un error inesperado. Inténtalo de nuevo.",
     "retry": "Reintentar",
     "home": "Inicio"
+  },
+  "favorites": {
+    "title": "❤️ Mis Favoritos",
+    "count": "({count})",
+    "emptyTitle": "Aún no tienes favoritos",
+    "emptyDesc": "Explora negocios y agrégalos a tus favoritos.",
+    "exploreCta": "Explorar Negocios",
+    "removeTitle": "Eliminar de favoritos",
+    "bookNow": "Reservar Ahora"
+  },
+  "myReservations": {
+    "title": "📋 Mis Reservas",
+    "upcoming": "Próximas",
+    "past": "Pasadas",
+    "cancelled": "Canceladas",
+    "statusConfirmed": "Confirmada",
+    "statusPending": "Pendiente",
+    "statusCancelled": "Cancelada",
+    "statusCompleted": "Completada",
+    "emptyUpcoming": "No hay reservas próximas",
+    "emptyPast": "No hay reservas pasadas",
+    "emptyCancelled": "No hay reservas canceladas",
+    "detailTitle": "Detalles de la Reserva",
+    "labelBusiness": "Negocio",
+    "labelDate": "Fecha",
+    "labelTime": "Hora",
+    "labelGuests": "Invitados",
+    "labelStatus": "Estado",
+    "cancelBtn": "Cancelar",
+    "cancelling": "Cancelando...",
+    "cancelConfirm": "Cancelar Reserva",
+    "makeReservation": "Hacer una Reserva",
+    "guests": "invitados"
+  },
+  "isletmeDetail": {
+    "services": "Servicios",
+    "ourTeam": "Nuestro equipo",
+    "bookNow": "Reservar ahora",
+    "allBusinesses": "← Todos los negocios",
+    "duration": "min",
+    "minutes": "min",
+    "phone": "📞",
+    "location": "📍"
   }
 }

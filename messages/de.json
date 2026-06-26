@@ -40,7 +40,7 @@
     "forgotPassword": "Passwort vergessen",
     "noAccount": "Noch kein Konto?",
     "hasAccount": "Haben Sie bereits ein Konto?",
-    "loginTitle": "In Ihr Konto einloggen",
+    "loginTitle": "Willkommen zurück 👋",
     "registerTitle": "Konto erstellen",
     "googleWith": "Mit Google fortfahren",
     "orEmail": "oder mit E-Mail",
@@ -60,7 +60,12 @@
     "resetPasswordNewPassword": "Neues Passwort",
     "resetPasswordButton": "Passwort aktualisieren",
     "resetPasswordSuccess": "Passwort erfolgreich aktualisiert! Weiterleitung...",
-    "resetPasswordError": "Passwort konnte nicht aktualisiert werden. Der Link ist möglicherweise abgelaufen."
+    "resetPasswordError": "Passwort konnte nicht aktualisiert werden. Der Link ist möglicherweise abgelaufen.",
+    "loginDescription": "Melden Sie sich bei Ihrem Konto an",
+    "registerDescription": "In Sekunden beitreten",
+    "backToHome": "← Zurück zur Startseite",
+    "panelLink": "Zum Admin-Panel",
+    "businessOwner": "Sind Sie Geschäftsinhaber?"
   },
   "reservation": {
     "title": "Reservierung machen",
@@ -1381,5 +1386,48 @@
     "subtitle": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.",
     "retry": "Erneut versuchen",
     "home": "Startseite"
+  },
+  "favorites": {
+    "title": "❤️ Meine Favoriten",
+    "count": "({count})",
+    "emptyTitle": "Noch keine Favoriten",
+    "emptyDesc": "Entdecken Sie Betriebe und fügen Sie sie zu Ihren Favoriten hinzu.",
+    "exploreCta": "Betriebe entdecken",
+    "removeTitle": "Aus Favoriten entfernen",
+    "bookNow": "Jetzt buchen"
+  },
+  "myReservations": {
+    "title": "📋 Meine Reservierungen",
+    "upcoming": "Bevorstehend",
+    "past": "Vergangen",
+    "cancelled": "Storniert",
+    "statusConfirmed": "Bestätigt",
+    "statusPending": "Ausstehend",
+    "statusCancelled": "Storniert",
+    "statusCompleted": "Abgeschlossen",
+    "emptyUpcoming": "Keine bevorstehenden Reservierungen",
+    "emptyPast": "Keine vergangenen Reservierungen",
+    "emptyCancelled": "Keine stornierten Reservierungen",
+    "detailTitle": "Reservierungsdetails",
+    "labelBusiness": "Betrieb",
+    "labelDate": "Datum",
+    "labelTime": "Uhrzeit",
+    "labelGuests": "Gäste",
+    "labelStatus": "Status",
+    "cancelBtn": "Stornieren",
+    "cancelling": "Wird storniert...",
+    "cancelConfirm": "Reservierung stornieren",
+    "makeReservation": "Reservierung vornehmen",
+    "guests": "Gäste"
+  },
+  "isletmeDetail": {
+    "services": "Leistungen",
+    "ourTeam": "Unser Team",
+    "bookNow": "Jetzt buchen",
+    "allBusinesses": "← Alle Betriebe",
+    "duration": "Min.",
+    "minutes": "Min.",
+    "phone": "📞",
+    "location": "📍"
   }
 }

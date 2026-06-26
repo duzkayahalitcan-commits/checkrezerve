@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { supabase } from '@/lib/supabase'
 import CustomerHeader from '@/components/CustomerHeader'
 import { Link } from '@/i18n/navigation'
@@ -16,6 +17,7 @@ interface FavBusiness {
 }
 
 export default function FavorilerimPage() {
+  const t = useTranslations('favorites')
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [favs, setFavs] = useState<FavBusiness[]>([])
@@ -69,29 +71,29 @@ export default function FavorilerimPage() {
       <CustomerHeader />
       <div className="pt-24 pb-16 px-6 mx-auto max-w-4xl">
         <h1 className="text-2xl font-bold text-zinc-900 mb-6">
-          ❤️ Favorilerim
-          <span className="text-zinc-400 font-normal text-sm ml-2">({favs.length})</span>
+          {t('title')}
+          <span className="text-zinc-400 font-normal text-sm ml-2">{t('count', { count: favs.length })}</span>
         </h1>
 
         {favs.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-zinc-200">
             <div className="text-5xl mb-4">🤍</div>
-            <h3 className="text-lg font-semibold text-zinc-700 mb-2">Henüz favori işletme eklemediniz</h3>
+            <h3 className="text-lg font-semibold text-zinc-700 mb-2">{t('emptyTitle')}</h3>
             <p className="text-zinc-400 mb-6 max-w-sm mx-auto">
-              İşletmeleri keşfedin ve favorilerinize ekleyin.
+              {t('emptyDesc')}
             </p>
             <Link
               href="/rezervasyon"
               className="inline-flex items-center gap-2 bg-[#E53935] text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors"
             >
-              İşletmeleri Keşfet
+              {t('exploreCta')}
             </Link>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {favs.map(b => {
               const icon  = BUSINESS_TYPE_ICONS[b.business_type as BusinessType] ?? '🏪'
-              const label = BUSINESS_TYPE_LABELS[b.business_type as BusinessType] ?? 'İşletme'
+              const label = BUSINESS_TYPE_LABELS[b.business_type as BusinessType] ?? ''
               return (
                 <div key={b.id} className="bg-white rounded-2xl border border-zinc-100 overflow-hidden hover:shadow-md hover:border-zinc-200 transition-all group">
                   <div className="relative h-28 bg-gradient-to-br from-[#2B1B17] to-[#E53935] flex items-center justify-center overflow-hidden">
@@ -108,7 +110,7 @@ export default function FavorilerimPage() {
                     )}
                     <button
                       onClick={() => removeFav(b.id)}
-                      title="Favorilerden çıkar"
+                      title={t('removeTitle')}
                       className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:bg-red-500/80 transition-all text-sm z-10"
                     >
                       ❤️
@@ -124,7 +126,7 @@ export default function FavorilerimPage() {
                       href={{ pathname: '/rezervasyon/[id]', params: { id: b.id } }}
                       className="mt-3 block w-full text-center bg-[#E53935] hover:bg-red-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
                     >
-                      Rezervasyon Yap
+                      {t('bookNow')}
                     </Link>
                   </div>
                 </div>

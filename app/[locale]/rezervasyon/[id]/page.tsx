@@ -40,7 +40,7 @@ export default async function BusinessDetailPage({ params }: Props) {
     supabase.from('restaurants').select('*').eq('id', id).single(),
     supabase.from('hizmetler').select('*').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
     supabase.from('calisanlar').select('*').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
-    supabase.from('tables').select('*').eq('restaurant_id', id).eq('is_active', true).order('created_at'),
+    supabase.from('masa_tipleri').select('*').eq('isletme_id', id).eq('aktif', true).order('created_at'),
     supabase.from('feature_flags').select('feature, enabled').eq('restaurant_id', id),
     supabase.from('special_areas').select('id, name, color').eq('restaurant_id', id).order('name'),
   ])
@@ -70,14 +70,14 @@ export default async function BusinessDetailPage({ params }: Props) {
 
   const floorTables = (rawTables ?? []).map((t: Record<string, unknown>) => ({
     id:       t.id as string,
-    label:    (t.label ?? 'Masa') as string,
-    capacity: (t.capacity ?? 4) as number,
+    label:    (t.ad ?? 'Masa') as string,
+    capacity: (t.kapasite ?? 4) as number,
     area_id:  (t.area_id ?? null) as string | null,
     x:        (t.x ?? 0) as number,
     y:        (t.y ?? 0) as number,
     width:    (t.width ?? 80) as number,
     height:   (t.height ?? 80) as number,
-    shape:    (t.shape === 'circle' ? 'circle' : 'rect') as 'rect' | 'circle',
+    shape:    (t.sekil === 'yuvarlak' ? 'circle' : 'rect') as 'rect' | 'circle',
     rotation: (t.rotation ?? 0) as number,
   }))
 
@@ -87,8 +87,7 @@ export default async function BusinessDetailPage({ params }: Props) {
     color: (a.color ?? null) as string | null,
   }))
 
-  const floorPlanEnabled = (featureFlags ?? []).some(f => f.feature === 'floor_plan' && f.enabled)
-    && floorTables.length > 0
+  const floorPlanEnabled = floorTables.length > 0
 
   const bookingTerm = ['restaurant', 'other'].includes(business.business_type)
     ? t('termReservation')

@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHash, randomBytes } from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { rateLimit } from '@/lib/rate-limit'
+
+function generateCancellationToken(): string {
+  return createHash('sha256').update(randomBytes(32)).digest('hex').slice(0, 32)
+}
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimit(request, { prefix: 'rezervasyon', max: 10, windowMs: 60_000 })
+  if (limited) return limited
+
   try {
     const body = await request.json()
     const {
@@ -50,6 +59,7 @@ export async function POST(request: NextRequest) {
         masa_tipi_id:     safeMasaTipiId  || null,
         table_id:         safeTableId     || null,
         special_requests: special_requests?.trim() || null,
+        cancellation_token: generateCancellationToken(),
         status: 'pending',
         source: 'form',
       })

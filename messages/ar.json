@@ -40,8 +40,8 @@
     "forgotPassword": "نسيت كلمة المرور",
     "noAccount": "ليس لديك حساب؟",
     "hasAccount": "لديك حساب بالفعل؟",
-    "loginTitle": "الدخول إلى حسابك",
-    "registerTitle": "إنشاء حساب جديد",
+    "loginTitle": "مرحبًا بعودتك 👋",
+    "registerTitle": "إنشاء حساب",
     "googleWith": "عبر Google",
     "orEmail": "أو عبر البريد الإلكتروني",
     "passwordPlaceholder": "٦ أحرف على الأقل",
@@ -60,7 +60,12 @@
     "resetPasswordNewPassword": "كلمة المرور الجديدة",
     "resetPasswordButton": "تحديث كلمة المرور",
     "resetPasswordSuccess": "تم تحديث كلمة المرور بنجاح! جارٍ إعادة التوجيه...",
-    "resetPasswordError": "تعذر تحديث كلمة المرور. ربما انتهت صلاحية الرابط."
+    "resetPasswordError": "تعذر تحديث كلمة المرور. ربما انتهت صلاحية الرابط.",
+    "loginDescription": "تسجيل الدخول إلى حسابك",
+    "registerDescription": "انضم في ثوانٍ",
+    "backToHome": "← العودة إلى الصفحة الرئيسية",
+    "panelLink": "الذهاب إلى لوحة الإدارة",
+    "businessOwner": "هل أنت صاحب عمل؟"
   },
   "reservation": {
     "title": "احجز الآن",
@@ -1381,5 +1386,48 @@
     "subtitle": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
     "retry": "حاول مرة أخرى",
     "home": "الصفحة الرئيسية"
+  },
+  "favorites": {
+    "title": "❤️ المفضلة",
+    "count": "({count})",
+    "emptyTitle": "لم تقم بإضافة أي مفضلة بعد",
+    "emptyDesc": "استكشف الأنشطة التجارية وأضفها إلى مفضلتك.",
+    "exploreCta": "استكشاف الأنشطة التجارية",
+    "removeTitle": "إزالة من المفضلة",
+    "bookNow": "احجز الآن"
+  },
+  "myReservations": {
+    "title": "📋 حجوزاتي",
+    "upcoming": "القادمة",
+    "past": "السابقة",
+    "cancelled": "ملغية",
+    "statusConfirmed": "مؤكد",
+    "statusPending": "قيد الانتظار",
+    "statusCancelled": "ملغية",
+    "statusCompleted": "مكتمل",
+    "emptyUpcoming": "لا توجد حجوزات قادمة",
+    "emptyPast": "لا توجد حجوزات سابقة",
+    "emptyCancelled": "لا توجد حجوزات ملغية",
+    "detailTitle": "تفاصيل الحجز",
+    "labelBusiness": "النشاط التجاري",
+    "labelDate": "التاريخ",
+    "labelTime": "الوقت",
+    "labelGuests": "الضيوف",
+    "labelStatus": "الحالة",
+    "cancelBtn": "إلغاء",
+    "cancelling": "جارٍ الإلغاء...",
+    "cancelConfirm": "إلغاء الحجز",
+    "makeReservation": "احجز الآن",
+    "guests": "ضيوف"
+  },
+  "isletmeDetail": {
+    "services": "الخدمات",
+    "ourTeam": "فريقنا",
+    "bookNow": "احجز الآن",
+    "allBusinesses": "← جميع الأنشطة التجارية",
+    "duration": "دقيقة",
+    "minutes": "دقيقة",
+    "phone": "📞",
+    "location": "📍"
   }
 }

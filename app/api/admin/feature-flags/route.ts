@@ -4,12 +4,29 @@ import { createHmac } from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
 async function checkAdmin() {
-  const adminPw = process.env.ADMIN_PASSWORD ?? ''
   const secret = process.env.ADMIN_SECRET ?? ''
-  const expected = createHmac('sha256', secret).update(adminPw).digest('base64')
+  if (!secret) return false
   const jar = await cookies()
   const raw = jar.get('cr_admin')?.value ?? ''
-  return raw === expected
+  if (!raw) return false
+  const colonIdx = raw.indexOf(':')
+  if (colonIdx < 1) return false
+  const userId = raw.slice(0, colonIdx)
+  const token  = raw.slice(colonIdx + 1)
+  if (!userId || !token) return false
+  const expected = createHmac('sha256', secret).update(userId).digest('base64')
+  return token === expected
+}
+
+export async function GET() {
+  if (!await checkAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const db = getSupabaseAdmin()
+  const { data, error } = await db
+    .from('feature_flags')
+    .select('*, restaurants(name, slug)')
+    .order('restaurant_id')
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data ?? [])
 }
 
 export async function POST(req: NextRequest) {

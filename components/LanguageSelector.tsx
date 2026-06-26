@@ -71,6 +71,7 @@ export default function LanguageSelector() {
         <div className="absolute right-0 mt-1.5 w-36 rounded-xl border border-zinc-100 bg-white py-1 shadow-lg z-50">
           {routing.locales.map((loc) => (
             <button
+              aria-label={`Dili değiştir: ${loc}`}
               key={loc}
               onClick={() => switchLocale(loc)}
               className={`flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-zinc-50 ${

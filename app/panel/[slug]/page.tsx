@@ -45,12 +45,17 @@ export default async function PanelDashboardPage({
 
   const { data: restaurant } = await db
     .from('restaurants')
-    .select('id, name, slug, address, capacity')
+    .select('id, name, slug, address, capacity, onboarding_completed')
     .eq('slug', slug)
     .eq('id', session.restaurantId)
     .single()
 
   if (!restaurant) redirect('/panel/login')
+
+  // Onboarding tamamlanmadiysa onboarding wizard'a yonlendir
+  if (!restaurant.onboarding_completed) {
+    redirect(`/panel/${slug}/onboarding`)
+  }
 
   const today = new Date().toISOString().slice(0, 10)
   const week  = currentWeekRange()

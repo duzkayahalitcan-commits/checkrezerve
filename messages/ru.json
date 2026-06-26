@@ -40,8 +40,8 @@
     "forgotPassword": "Забыл пароль",
     "noAccount": "Нет аккаунта?",
     "hasAccount": "Уже есть аккаунт?",
-    "loginTitle": "Войдите в аккаунт",
-    "registerTitle": "Создайте аккаунт",
+    "loginTitle": "С возвращением 👋",
+    "registerTitle": "Создать аккаунт",
     "googleWith": "Через Google",
     "orEmail": "или по электронной почте",
     "passwordPlaceholder": "Минимум 6 символов",
@@ -60,7 +60,12 @@
     "resetPasswordNewPassword": "Новый пароль",
     "resetPasswordButton": "Обновить пароль",
     "resetPasswordSuccess": "Пароль успешно обновлён! Перенаправление...",
-    "resetPasswordError": "Не удалось обновить пароль. Возможно, срок действия ссылки истёк."
+    "resetPasswordError": "Не удалось обновить пароль. Возможно, срок действия ссылки истёк.",
+    "loginDescription": "Войдите в свою учетную запись",
+    "registerDescription": "Присоединяйтесь за секунды",
+    "backToHome": "← На главную",
+    "panelLink": "Перейти в панель управления",
+    "businessOwner": "Вы владелец бизнеса?"
   },
   "reservation": {
     "title": "Забронировать",
@@ -1381,5 +1386,48 @@
     "subtitle": "Произошла непредвиденная ошибка. Попробуйте снова.",
     "retry": "Повторить",
     "home": "На главную"
+  },
+  "favorites": {
+    "title": "❤️ Избранное",
+    "count": "({count})",
+    "emptyTitle": "У вас пока нет избранного",
+    "emptyDesc": "Изучайте заведения и добавляйте их в избранное.",
+    "exploreCta": "Изучить заведения",
+    "removeTitle": "Удалить из избранного",
+    "bookNow": "Забронировать"
+  },
+  "myReservations": {
+    "title": "📋 Мои бронирования",
+    "upcoming": "Предстоящие",
+    "past": "Прошедшие",
+    "cancelled": "Отменённые",
+    "statusConfirmed": "Подтверждено",
+    "statusPending": "Ожидание",
+    "statusCancelled": "Отменено",
+    "statusCompleted": "Завершено",
+    "emptyUpcoming": "Нет предстоящих бронирований",
+    "emptyPast": "Нет прошедших бронирований",
+    "emptyCancelled": "Нет отменённых бронирований",
+    "detailTitle": "Детали бронирования",
+    "labelBusiness": "Заведение",
+    "labelDate": "Дата",
+    "labelTime": "Время",
+    "labelGuests": "Гости",
+    "labelStatus": "Статус",
+    "cancelBtn": "Отменить",
+    "cancelling": "Отмена...",
+    "cancelConfirm": "Отменить бронирование",
+    "makeReservation": "Забронировать",
+    "guests": "гостей"
+  },
+  "isletmeDetail": {
+    "services": "Услуги",
+    "ourTeam": "Наша команда",
+    "bookNow": "Забронировать",
+    "allBusinesses": "← Все заведения",
+    "duration": "мин.",
+    "minutes": "мин.",
+    "phone": "📞",
+    "location": "📍"
   }
 }

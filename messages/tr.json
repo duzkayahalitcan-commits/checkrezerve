@@ -40,7 +40,7 @@
     "forgotPassword": "Şifremi Unuttum",
     "noAccount": "Hesabın yok mu?",
     "hasAccount": "Zaten hesabın var mı?",
-    "loginTitle": "Hesabınıza girin",
+    "loginTitle": "Hoş geldiniz 👋",
     "registerTitle": "Hesap oluşturun",
     "googleWith": "Google ile",
     "orEmail": "veya e-posta ile",
@@ -60,7 +60,12 @@
     "resetPasswordNewPassword": "Yeni şifreniz",
     "resetPasswordButton": "Şifreyi Güncelle",
     "resetPasswordSuccess": "Şifreniz başarıyla güncellendi! Yönlendiriliyorsunuz...",
-    "resetPasswordError": "Şifre güncellenemedi. Bağlantının süresi dolmuş olabilir, lütfen tekrar deneyin."
+    "resetPasswordError": "Şifre güncellenemedi. Bağlantının süresi dolmuş olabilir, lütfen tekrar deneyin.",
+    "loginDescription": "Hesabınıza giriş yapın",
+    "registerDescription": "Birkaç saniyede üye olun",
+    "backToHome": "← Ana Sayfaya Dön",
+    "panelLink": "Yönetici Paneli'ne giriş yapın",
+    "businessOwner": "İşletme sahibi misiniz?"
   },
   "reservation": {
     "title": "Rezervasyon Yap",
@@ -1381,5 +1386,48 @@
     "subtitle": "Beklenmedik bir sorun oluştu. Lütfen tekrar deneyin.",
     "retry": "Tekrar Dene",
     "home": "Ana Sayfa"
+  },
+  "favorites": {
+    "title": "❤️ Favorilerim",
+    "count": "({count})",
+    "emptyTitle": "Henüz favori işletme eklemediniz",
+    "emptyDesc": "İşletmeleri keşfedin ve favorilerinize ekleyin.",
+    "exploreCta": "İşletmeleri Keşfet",
+    "removeTitle": "Favorilerden çıkar",
+    "bookNow": "Rezervasyon Yap"
+  },
+  "myReservations": {
+    "title": "📋 Rezervasyonlarım",
+    "upcoming": "Yaklaşan",
+    "past": "Geçmiş",
+    "cancelled": "İptal",
+    "statusConfirmed": "Onaylandı",
+    "statusPending": "Beklemede",
+    "statusCancelled": "İptal Edildi",
+    "statusCompleted": "Tamamlandı",
+    "emptyUpcoming": "Yaklaşan rezervasyonunuz yok",
+    "emptyPast": "Geçmiş rezervasyon bulunamadı",
+    "emptyCancelled": "İptal edilen rezervasyon yok",
+    "detailTitle": "Rezervasyon Detayı",
+    "labelBusiness": "İşletme",
+    "labelDate": "Tarih",
+    "labelTime": "Saat",
+    "labelGuests": "Kişi",
+    "labelStatus": "Durum",
+    "cancelBtn": "İptal Et",
+    "cancelling": "İptal ediliyor...",
+    "cancelConfirm": "Rezervasyonu İptal Et",
+    "makeReservation": "Rezervasyon Yap",
+    "guests": "kişi"
+  },
+  "isletmeDetail": {
+    "services": "Hizmetler",
+    "ourTeam": "Ekibimiz",
+    "bookNow": "Rezervasyon Yap",
+    "allBusinesses": "← Tüm İşletmeler",
+    "duration": "dk",
+    "minutes": "dk",
+    "phone": "📞",
+    "location": "📍"
   }
 }

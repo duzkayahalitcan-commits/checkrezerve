@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
       time,
       party_size,
       restaurant_id,
+      cancellation_token,
       restaurants ( name, address )
     `)
     .eq('date', today)
@@ -54,6 +55,14 @@ export async function POST(req: NextRequest) {
       const restaurantRaw = r.restaurants as { name: string; address: string | null }[] | { name: string; address: string | null } | null
       const restaurant = Array.isArray(restaurantRaw) ? restaurantRaw[0] ?? null : restaurantRaw
 
+      const cancelToken = r.cancellation_token
+        ? r.cancellation_token
+        : null
+
+      const cancelUrl = cancelToken
+        ? `https://checkrezerve.com/tr/rezervasyon/iptal/${cancelToken}`
+        : undefined
+
       await sendReservationReminder({
         to:                 r.phone,
         customerName:       r.customer_name,
@@ -62,8 +71,7 @@ export async function POST(req: NextRequest) {
         date:               r.date,
         time:               r.time ?? '',
         partySize:          r.party_size,
-        // İptal linki — ileride /cancel/[token] sayfası eklenebilir
-        cancelUrl: undefined,
+        cancelUrl,
       })
 
       return r.id

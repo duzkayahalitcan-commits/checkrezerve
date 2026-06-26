@@ -40,8 +40,8 @@
     "forgotPassword": "Forgot Password",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
-    "loginTitle": "Sign in to your account",
-    "registerTitle": "Create an account",
+    "loginTitle": "Welcome Back 👋",
+    "registerTitle": "Create an Account",
     "googleWith": "Continue with Google",
     "orEmail": "or with email",
     "passwordPlaceholder": "Minimum 6 characters",
@@ -60,7 +60,12 @@
     "resetPasswordNewPassword": "New password",
     "resetPasswordButton": "Update Password",
     "resetPasswordSuccess": "Password updated successfully! Redirecting...",
-    "resetPasswordError": "Failed to update password. The link may have expired, please try again."
+    "resetPasswordError": "Failed to update password. The link may have expired, please try again.",
+    "loginDescription": "Sign in to your account",
+    "registerDescription": "Join in seconds",
+    "backToHome": "← Back to Home",
+    "panelLink": "Go to Admin Panel",
+    "businessOwner": "Are you a business owner?"
   },
   "reservation": {
     "title": "Make a Reservation",
@@ -1381,5 +1386,48 @@
     "subtitle": "An unexpected error occurred. Please try again.",
     "retry": "Try Again",
     "home": "Home"
+  },
+  "favorites": {
+    "title": "❤️ My Favorites",
+    "count": "({count})",
+    "emptyTitle": "No favorites yet",
+    "emptyDesc": "Explore businesses and add them to your favorites.",
+    "exploreCta": "Explore Businesses",
+    "removeTitle": "Remove from favorites",
+    "bookNow": "Book Now"
+  },
+  "myReservations": {
+    "title": "📋 My Reservations",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "cancelled": "Cancelled",
+    "statusConfirmed": "Confirmed",
+    "statusPending": "Pending",
+    "statusCancelled": "Cancelled",
+    "statusCompleted": "Completed",
+    "emptyUpcoming": "No upcoming reservations",
+    "emptyPast": "No past reservations",
+    "emptyCancelled": "No cancelled reservations",
+    "detailTitle": "Reservation Details",
+    "labelBusiness": "Business",
+    "labelDate": "Date",
+    "labelTime": "Time",
+    "labelGuests": "Guests",
+    "labelStatus": "Status",
+    "cancelBtn": "Cancel",
+    "cancelling": "Cancelling...",
+    "cancelConfirm": "Cancel Reservation",
+    "makeReservation": "Make a Reservation",
+    "guests": "guests"
+  },
+  "isletmeDetail": {
+    "services": "Services",
+    "ourTeam": "Our Team",
+    "bookNow": "Book Now",
+    "allBusinesses": "← All Businesses",
+    "duration": "min",
+    "minutes": "min",
+    "phone": "📞",
+    "location": "📍"
   }
 }
