@@ -1,180 +1,164 @@
 import { redirect } from 'next/navigation'
 import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import ReservationChart from './ReservationChart'
+import RaporlarClient from './RaporlarClient'
 
 export const dynamic = 'force-dynamic'
 
+type SP = Promise<{ period?: string; bas?: string; son?: string }>
+
 export default async function RaporlarPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>
+  searchParams: SP
 }) {
   const session = await getPanelSession()
   if (!session) redirect('/panel/login')
-
   const { slug } = await params
+  const { period, bas, son } = await searchParams
   const db = getSupabaseAdmin()
 
   const { data: restaurant } = await db
     .from('restaurants')
-    .select('id, name')
+    .select('id, name, slug, onboarding_completed')
     .eq('slug', slug)
     .eq('id', session.restaurantId)
     .single()
 
   if (!restaurant) redirect('/panel/login')
+  if (!restaurant.onboarding_completed) redirect(`/panel/${slug}/onboarding`)
 
-  const now   = new Date()
+  const now = new Date()
   const today = now.toISOString().slice(0, 10)
 
-  // This month / last month bounds
-  const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-  const lastMonthDate  = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-  const lastMonthStart = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}-01`
+  // Dönem hesapla
+  let dateFrom: string, dateTo: string, prevFrom: string, prevTo: string
+  const periodType = period ?? 'month'
 
-  // Last 7 days for chart
-  const sevenDaysAgo = new Date(now)
-  sevenDaysAgo.setDate(now.getDate() - 6)
-  const sevenDaysStr = sevenDaysAgo.toISOString().slice(0, 10)
+  if (periodType === 'day') {
+    dateFrom = today; dateTo = today
+    const y = new Date(now); y.setDate(now.getDate() - 1)
+    prevFrom = y.toISOString().slice(0, 10); prevTo = prevFrom
+  } else if (periodType === 'week') {
+    const day = now.getDay() === 0 ? 7 : now.getDay()
+    const mon = new Date(now); mon.setDate(now.getDate() - day + 1)
+    dateFrom = mon.toISOString().slice(0, 10); dateTo = today
+    const pmon = new Date(mon); pmon.setDate(mon.getDate() - 7)
+    const psun = new Date(dateTo + 'T12:00'); psun.setDate(psun.getDate() - 7)
+    prevFrom = pmon.toISOString().slice(0, 10); prevTo = psun.toISOString().slice(0, 10)
+  } else if (periodType === 'custom' && bas && son) {
+    dateFrom = bas; dateTo = son
+    const range = (new Date(son).getTime() - new Date(bas).getTime()) / 86400000
+    const pEnd = new Date(bas); pEnd.setDate(pEnd.getDate() - 1)
+    const pStart = new Date(pEnd); pStart.setDate(pStart.getDate() - Math.round(range))
+    prevFrom = pStart.toISOString().slice(0, 10); prevTo = pEnd.toISOString().slice(0, 10)
+  } else {
+    dateFrom = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+    dateTo = today
+    const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    prevFrom = `${lm.getFullYear()}-${String(lm.getMonth() + 1).padStart(2, '0')}-01`
+    const lmEnd = new Date(now.getFullYear(), now.getMonth(), 0)
+    prevTo = lmEnd.toISOString().slice(0, 10)
+  }
 
-  const [
-    { data: thisMonthRes },
-    { data: lastMonthRes },
-    { data: weeklyRes },
-  ] = await Promise.all([
-    db.from('reservations')
-      .select('id, status')
-      .eq('restaurant_id', restaurant.id)
-      .gte('reserved_date', thisMonthStart)
-      .lte('reserved_date', today),
-    db.from('reservations')
-      .select('id, status')
-      .eq('restaurant_id', restaurant.id)
-      .gte('reserved_date', lastMonthStart)
-      .lt('reserved_date', thisMonthStart),
-    db.from('reservations')
-      .select('id, reserved_date, guest_name, guest_email, guest_phone, party_size')
-      .eq('restaurant_id', restaurant.id)
-      .gte('reserved_date', sevenDaysStr)
-      .lte('reserved_date', today)
-      .neq('status', 'cancelled'),
+  // Ana veri
+  const [{ data: currentRes }, { data: prevRes }, { data: allCurrent }, { data: hizmetler }, { data: calisanlar }, { data: dailyData }, { data: hourlyData }, { data: serviceData }] = await Promise.all([
+    db.from('reservations').select('id, status').eq('restaurant_id', restaurant.id).gte('reserved_date', dateFrom).lte('reserved_date', dateTo),
+    db.from('reservations').select('id, status').eq('restaurant_id', restaurant.id).gte('reserved_date', prevFrom).lte('reserved_date', prevTo),
+    db.from('reservations').select('id, guest_name, guest_phone, reserved_date, reserved_time, party_size, status, notes, hizmet_id, calisan_id, created_at').eq('restaurant_id', restaurant.id).gte('reserved_date', dateFrom).lte('reserved_date', dateTo).order('reserved_date', { ascending: false }).order('reserved_time', { ascending: false }),
+    db.from('hizmetler').select('id, ad, fiyat').eq('restaurant_id', restaurant.id).eq('aktif', true),
+    db.from('calisanlar').select('id, ad').eq('restaurant_id', restaurant.id).eq('aktif', true),
+    // Günlük rezervasyon sayısı
+    db.from('reservations').select('reserved_date, id').eq('restaurant_id', restaurant.id).neq('status', 'cancelled').gte('reserved_date', dateFrom).lte('reserved_date', dateTo),
+    // Saatlik dağılım
+    db.from('reservations').select('reserved_time').eq('restaurant_id', restaurant.id).neq('status', 'cancelled').gte('reserved_date', dateFrom).lte('reserved_date', dateTo),
+    // Hizmet bazlı
+    db.from('reservations').select('hizmet_id').eq('restaurant_id', restaurant.id).neq('status', 'cancelled').not('hizmet_id', 'is', null).gte('reserved_date', dateFrom).lte('reserved_date', dateTo),
   ])
 
-  // Build 7-day chart data
+  const total = currentRes?.length ?? 0
+  const prevTotal = prevRes?.length ?? 0
+  const diff = total - prevTotal
+  const diffPct = prevTotal > 0 ? Math.round((diff / prevTotal) * 100) : total > 0 ? 100 : 0
+
+  const cancelled = currentRes?.filter(r => r.status === 'cancelled').length ?? 0
+  const cancelPct = total > 0 ? Math.round((cancelled / total) * 100) : 0
+  const prevCancel = prevRes?.filter(r => r.status === 'cancelled').length ?? 0
+  const prevCancelPct = prevTotal > 0 ? Math.round((prevCancel / prevTotal) * 100) : 0
+
+  // Gelir: hizmet_fiyati * rezervasyon sayısı (basit)
+  const servicePriceMap = new Map((hizmetler ?? []).map(h => [h.id, h.fiyat]))
+  let revenue = 0
+  for (const r of allCurrent ?? []) {
+    if (r.status !== 'cancelled' && r.hizmet_id && servicePriceMap.has(r.hizmet_id)) {
+      revenue += servicePriceMap.get(r.hizmet_id)!
+    }
+  }
+  const prevRevenue = 0 // basit tutuldu
+
+  // Günlük bar chart
   const dayMap = new Map<string, number>()
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(now)
-    d.setDate(now.getDate() - i)
-    dayMap.set(d.toISOString().slice(0, 10), 0)
+  for (const r of dailyData ?? []) {
+    const d = r.reserved_date as string
+    dayMap.set(d, (dayMap.get(d) ?? 0) + 1)
   }
-  for (const r of weeklyRes ?? []) {
-    const key = r.reserved_date as string
-    if (dayMap.has(key)) dayMap.set(key, (dayMap.get(key) ?? 0) + 1)
-  }
-  const chartData = Array.from(dayMap.entries()).map(([date, count]) => ({
-    label: new Date(date + 'T12:00').toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric' }),
+  const barData = Array.from(dayMap.entries()).map(([date, count]) => ({
+    label: new Date(date + 'T12:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }),
     count,
   }))
 
-  // Top 5 customers
-  const customerMap = new Map<string, { name: string; count: number }>()
-  for (const r of weeklyRes ?? []) {
-    const key = (r.guest_email as string | null) ?? (r.guest_phone as string | null) ?? (r.guest_name as string)
-    if (!customerMap.has(key)) customerMap.set(key, { name: r.guest_name as string, count: 0 })
-    customerMap.get(key)!.count++
+  // Saatlik heatmap
+  const hourMap = new Map<string, number>()
+  for (const r of hourlyData ?? []) {
+    const h = (r.reserved_time as string)?.slice(0, 5)
+    if (h) hourMap.set(h, (hourMap.get(h) ?? 0) + 1)
   }
-  const topCustomers = Array.from(customerMap.values())
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5)
+  const heatmapData = Array.from({ length: 16 }, (_, i) => {
+    const h = `${String(i + 8).padStart(2, '0')}:00`
+    return { hour: h, count: hourMap.get(h) ?? 0 }
+  })
 
-  // Popular time slot (from all reservations this month)
-  const { data: timeData } = await db
-    .from('reservations')
-    .select('reserved_time')
-    .eq('restaurant_id', restaurant.id)
-    .gte('reserved_date', thisMonthStart)
-    .neq('status', 'cancelled')
-
-  const timeSlotMap = new Map<string, number>()
-  for (const r of timeData ?? []) {
-    const slot = (r.reserved_time as string)?.slice(0, 5)
-    if (slot) timeSlotMap.set(slot, (timeSlotMap.get(slot) ?? 0) + 1)
+  // Hizmet dağılımı
+  const hizmetCount = new Map<string, number>()
+  for (const r of serviceData ?? []) {
+    const hid = r.hizmet_id as string
+    hizmetCount.set(hid, (hizmetCount.get(hid) ?? 0) + 1)
   }
-  const popularSlot = [...timeSlotMap.entries()].sort((a, b) => b[1] - a[1])[0]
+  const hServiceMap = new Map((hizmetler ?? []).map(h => [h.id, h.ad]))
+  const pieData = Array.from(hizmetCount.entries()).map(([id, count]) => ({
+    name: hServiceMap.get(id) ?? 'Bilinmeyen',
+    value: count,
+  }))
 
-  const thisTotal = (thisMonthRes ?? []).length
-  const lastTotal = (lastMonthRes ?? []).length
-  const diff      = thisTotal - lastTotal
-  const diffPct   = lastTotal > 0 ? Math.round(Math.abs(diff) / lastTotal * 100) : null
+  // Personel performansı
+  const { data: staffRes } = await db
+    .from('reservations').select('calisan_id').eq('restaurant_id', restaurant.id).neq('status', 'cancelled').not('calisan_id', 'is', null).gte('reserved_date', dateFrom).lte('reserved_date', dateTo)
+  const staffCount = new Map<string, number>()
+  for (const r of staffRes ?? []) {
+    const cid = r.calisan_id as string
+    staffCount.set(cid, (staffCount.get(cid) ?? 0) + 1)
+  }
+  const staffNameMap = new Map((calisanlar ?? []).map(c => [c.id, c.ad]))
+  const staffBarData = Array.from(staffCount.entries()).map(([id, count]) => ({
+    name: staffNameMap.get(id) ?? 'Bilinmeyen',
+    count,
+  })).sort((a, b) => b.count - a.count)
 
   return (
-    <div>
-      <div className="px-6 pt-6 pb-5 border-b border-white/5">
-        <h1 className="text-lg font-bold text-white mt-0.5">Raporlar</h1>
-        <p className="text-xs text-stone-500 mt-0.5">Rezervasyon analizi ve istatistikler</p>
-      </div>
-      <main className="max-w-4xl mx-auto px-4 md:px-6 py-6 space-y-6">
-
-        {/* Month comparison */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
-            <p className="text-[11px] text-stone-500 uppercase tracking-wider mb-1">Bu Ay</p>
-            <p className="text-3xl font-bold text-white">{thisTotal}</p>
-            {diffPct !== null && (
-              <p className={`text-xs mt-1 font-semibold ${diff >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                {diff >= 0 ? '▲' : '▼'} {diffPct}% geçen aya göre
-              </p>
-            )}
-          </div>
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
-            <p className="text-[11px] text-stone-500 uppercase tracking-wider mb-1">Geçen Ay</p>
-            <p className="text-3xl font-bold text-white">{lastTotal}</p>
-            <p className="text-xs text-stone-600 mt-1">Karşılaştırma dönemi</p>
-          </div>
-        </div>
-
-        {/* 7-day bar chart */}
-        <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
-          <h2 className="text-sm font-semibold text-stone-200 mb-4">Son 7 Gün</h2>
-          <ReservationChart data={chartData} />
-        </div>
-
-        {/* Top customers + popular slot */}
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
-            <h2 className="text-sm font-semibold text-stone-200 mb-4">En Çok Rezervasyon — Top 5</h2>
-            {topCustomers.length === 0 ? (
-              <p className="text-stone-500 text-sm">Bu hafta veri yok</p>
-            ) : (
-              <div className="space-y-2">
-                {topCustomers.map((c, i) => (
-                  <div key={i} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-full bg-stone-800 text-stone-400 text-[10px] font-bold flex items-center justify-center">{i + 1}</span>
-                      <span className="text-sm text-stone-300 font-medium">{c.name}</span>
-                    </div>
-                    <span className="text-xs text-stone-500">{c.count} rez.</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
-            <h2 className="text-sm font-semibold text-stone-200 mb-4">En Popüler Saat</h2>
-            {popularSlot ? (
-              <div className="text-center py-4">
-                <p className="text-4xl font-black text-white">{popularSlot[0]}</p>
-                <p className="text-sm text-stone-500 mt-2">{popularSlot[1]} rezervasyon bu saatte</p>
-              </div>
-            ) : (
-              <p className="text-stone-500 text-sm">Bu ay veri yok</p>
-            )}
-          </div>
-        </div>
-
-      </main>
-    </div>
+    <RaporlarClient
+      slug={slug}
+      total={total} diff={diff} diffPct={diffPct}
+      cancelPct={cancelPct} prevCancelPct={prevCancelPct}
+      revenue={revenue} prevRevenue={prevRevenue}
+      barData={barData}
+      heatmapData={heatmapData}
+      pieData={pieData}
+      staffBarData={staffBarData}
+      reservations={allCurrent ?? []}
+      dateFrom={dateFrom} dateTo={dateTo}
+      period={periodType}
+    />
   )
 }

@@ -38,6 +38,13 @@ export default async function MasalarPage({ params }: { params: Promise<{ slug: 
       .order('reserved_time'),
   ])
 
+  // Supabase returns joined tables as arrays; unwrap for component types
+  const unwrapped = (todayReservations ?? []).map(r => ({
+    ...r,
+    calisanlar: (r.calisanlar as { ad: string }[] | null)?.[0] ?? null,
+    hizmetler:  (r.hizmetler as { ad: string }[] | null)?.[0] ?? null,
+  }))
+
   return (
     <div>
       <div className="px-6 pt-6 pb-5 border-b border-white/5">
@@ -48,7 +55,7 @@ export default async function MasalarPage({ params }: { params: Promise<{ slug: 
         <MasalarContent
           tables={tables ?? []}
           areas={areas ?? []}
-          todayReservations={todayReservations ?? []}
+          todayReservations={unwrapped}
           slug={slug}
           restaurantId={restaurant.id}
         />

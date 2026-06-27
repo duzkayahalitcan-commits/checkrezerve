@@ -139,9 +139,10 @@ export default function DailyView({
                         key={r.id}
                         layoutId={`card-${r.id}`}
                         draggable
-                        onDragStart={e => {
+                        onDragStart={(e: unknown) => {
+                          const ev = e as React.DragEvent
                           dragRef.current = { id: r.id, origTime: r.reserved_time ?? '' }
-                          e.dataTransfer.setData('text/plain', r.id)
+                          ev.dataTransfer.setData('text/plain', r.id)
                           setDragging(r.id)
                         }}
                         onDragEnd={() => { setDragging(null); setDragOverHour(null) }}
