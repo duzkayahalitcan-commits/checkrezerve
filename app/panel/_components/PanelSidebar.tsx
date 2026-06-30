@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, CalendarDays, List, Calendar,
   Users, UserCog, Scissors, Settings, CreditCard,
-  LayoutGrid, ChevronRight, LogOut, Menu, X,
+  LayoutGrid, PanelRightOpen, ChevronRight, LogOut, Menu, X,
 } from 'lucide-react'
 import PanelLangSelector from './PanelLangSelector'
 import NotificationBell from './NotificationBell'
@@ -43,6 +43,7 @@ export default function PanelSidebar({
     { href: `${base}/rezervasyonlar`,label: 'Rezervasyonlar',icon: List            },
     { href: `${base}/takvim`,        label: 'Takvim',        icon: Calendar        },
     { href: `${base}/masalar`,       label: 'Masalar',       icon: LayoutGrid      },
+    { href: `${base}/kroki`,         label: 'Salon Krokisi', icon: PanelRightOpen  },
     { href: `${base}/misafirler`,    label: 'Misafirler',    icon: Users           },
     { href: `${base}/calisanlar`,    label: 'Çalışanlar',    icon: UserCog         },
     { href: `${base}/hizmetler`,     label: 'Hizmetler',     icon: Scissors        },

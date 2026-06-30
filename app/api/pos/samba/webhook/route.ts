@@ -49,7 +49,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
   }
 
-  if (!restaurant.webhook_secret || restaurant.webhook_secret !== headerSecret) {
+  // Supabase bytea tipini hex string'e çevir (\x prefix varsa kırp)
+  const dbSecret = restaurant.webhook_secret?.startsWith('\\x')
+    ? restaurant.webhook_secret.slice(2)
+    : restaurant.webhook_secret
+
+  if (!dbSecret || dbSecret !== headerSecret) {
     return NextResponse.json({ error: 'Invalid webhook secret' }, { status: 401 })
   }
 
