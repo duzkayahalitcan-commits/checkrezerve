@@ -8,10 +8,20 @@ import { rateLimit } from '@/lib/rate-limit'
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY
-const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL'
 
-async function textToSpeech(text: string): Promise<ArrayBuffer> {
-  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}`, {
+// Dört Türkçe ses için ElevenLabs voice ID mapping
+const VOICE_IDS: Record<string, string> = {
+  yunus: '5nr6ATQepuidiLb6OT3B',
+  mert:  '01p4omegjS2n3rSDCM5u',
+  lisa:  'q5GI4RAWrMYEY5xaGcma',
+  gulsu: 'jbJMQWv1eS4YjQ6PCcn6',
+}
+
+const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || VOICE_IDS.yunus
+
+async function textToSpeech(text: string, voiceId?: string): Promise<ArrayBuffer> {
+  const vid = voiceId || ELEVENLABS_VOICE_ID;
+  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${vid}`, {
     method: 'POST',
     headers: {
       'xi-api-key': ELEVENLABS_API_KEY!,
@@ -135,7 +145,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Metin boş olamaz' }, { status: 400 })
     }
 
-    const isMultilang = ['ar', 'da', 'es', 'ru'].includes(lang)
+    const isMultilang = ['ar', 'da', 'en', 'de', 'es', 'ru'].includes(lang)
 
     // Kademe 0-1: Selamlama + FAQ — sadece Türkçe için
     let answer: string | null = null
@@ -188,7 +198,8 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const audioBuffer = await textToSpeech(safeAnswer)
+    const vid = VOICE_IDS[voice] || ELEVENLABS_VOICE_ID
+    const audioBuffer = await textToSpeech(safeAnswer, vid)
 
     return new NextResponse(new Uint8Array(audioBuffer), {
       headers: {
