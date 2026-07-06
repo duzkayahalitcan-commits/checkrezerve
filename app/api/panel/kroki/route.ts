@@ -13,7 +13,9 @@ export async function GET(req: NextRequest) {
   if (!restaurantId) return NextResponse.json({ error: 'restaurant_id required' }, { status: 400 })
 
   const db = getSupabaseAdmin()
-  const { data, error } = await db
+
+  // Masaları çek
+  const { data: tables, error } = await db
     .from('masa_tipleri')
     .select('*')
     .eq('isletme_id', restaurantId)
@@ -22,24 +24,78 @@ export async function GET(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // KrokiEditor'ın beklediği Floor[] formatına geri çevir (tek kat varsayımıyla)
-  const tables = (data ?? []).map((r: any) => ({
-    id: r.id,
-    typeId: r.masa_tipi_kodu ?? 'rect4',
-    x: r.x,
-    y: r.y,
-    label: r.ad,
-    rotation: r.rotation ?? 0,
-  }))
+  // Alanları çek (floor label için)
+  const { data: areas } = await db
+    .from('special_areas')
+    .select('id, name')
+    .eq('restaurant_id', restaurantId)
 
-  const floors = [{
-    id: 'f1',
-    label: 'Zemin Kat',
-    theme: 'indoor',
-    canvasW: 1200,
-    canvasH: 800,
-    tables,
-  }]
+  const areaMap = new Map((areas ?? []).map((a: any) => [a.id, a.name]))
+
+  // area_id'ye göre grupla
+  const floorMap = new Map<string, any[]>()
+  const noAreaTables: any[] = []
+
+  for (const t of (tables ?? [])) {
+    if (t.area_id) {
+      if (!floorMap.has(t.area_id)) floorMap.set(t.area_id, [])
+      floorMap.get(t.area_id)!.push(t)
+    } else {
+      noAreaTables.push(t)
+    }
+  }
+
+  const floors: any[] = []
+
+  // Her alan için bir floor
+  floorMap.forEach((areaTables, areaId) => {
+    floors.push({
+      id: areaId,
+      label: areaMap.get(areaId) ?? 'Alan',
+      theme: 'indoor',
+      canvasW: 1200,
+      canvasH: 800,
+      tables: areaTables.map((t: any) => ({
+        id: t.id,
+        typeId: t.masa_tipi_kodu ?? 'rect4',
+        x: t.x,
+        y: t.y,
+        label: t.ad,
+        rotation: t.rotation ?? 0,
+      })),
+    })
+  })
+
+  // Alan atanmamış masalar için varsayılan floor
+  if (noAreaTables.length > 0) {
+    floors.push({
+      id: 'f-default',
+      label: 'Genel',
+      theme: 'indoor',
+      canvasW: 1200,
+      canvasH: 800,
+      tables: noAreaTables.map((t: any) => ({
+        id: t.id,
+        typeId: t.masa_tipi_kodu ?? 'rect4',
+        x: t.x,
+        y: t.y,
+        label: t.ad,
+        rotation: t.rotation ?? 0,
+      })),
+    })
+  }
+
+  // Hiç masa yoksa boş tek floor döndür
+  if (floors.length === 0) {
+    floors.push({
+      id: 'f1',
+      label: 'Zemin Kat',
+      theme: 'indoor',
+      canvasW: 1200,
+      canvasH: 800,
+      tables: [],
+    })
+  }
 
   return NextResponse.json(floors)
 }
@@ -59,9 +115,11 @@ export async function POST(req: NextRequest) {
   const db = getSupabaseAdmin()
   const floors = Array.isArray(floor_data) ? floor_data : []
 
-  // Tüm katlardaki tüm masaları düzleştir
   const allTables = floors.flatMap((f: any) =>
-    Array.isArray(f.tables) ? f.tables : []
+    (Array.isArray(f.tables) ? f.tables : []).map((t: any) => ({
+      ...t,
+      area_id: f.id === 'f-default' || f.id === 'f1' ? null : f.id,
+    }))
   )
 
   const incomingIds = allTables.map((t: any) => t.id).filter(Boolean)
@@ -74,10 +132,7 @@ export async function POST(req: NextRequest) {
   if (incomingIds.length > 0) {
     deactivateQuery = deactivateQuery.not('id', 'in', `(${incomingIds.join(',')})`)
   }
-  const { error: deactivateError } = await deactivateQuery
-  if (deactivateError) {
-    console.error('[Kroki POST] deactivate error:', deactivateError.message)
-  }
+  await deactivateQuery
 
   if (allTables.length > 0) {
     const rows = allTables.map((t: any) => {
@@ -88,6 +143,7 @@ export async function POST(req: NextRequest) {
         ad: t.label ?? 'Masa',
         kapasite: info.seats ?? 4,
         masa_tipi_kodu: t.typeId ?? null,
+        area_id: t.area_id ?? null,
         x: t.x ?? 0,
         y: t.y ?? 0,
         width: info.w ?? 80,
@@ -103,7 +159,6 @@ export async function POST(req: NextRequest) {
       .upsert(rows, { onConflict: 'id' })
 
     if (upsertError) {
-      console.error('[Kroki POST] upsert error:', upsertError.message)
       return NextResponse.json({ error: upsertError.message }, { status: 500 })
     }
   }
