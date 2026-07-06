@@ -36,13 +36,20 @@ export default async function BusinessDetailPage({ params }: Props) {
   const tBiz = await getTranslations('businessTypes')
   const supabase = getSupabaseAdmin()
 
-  const [{ data: biz }, { data: rawServices }, { data: rawStaff }, { data: rawTables }, { data: featureFlags }, { data: rawAreas }] = await Promise.all([
+  const todayStr = new Date().toISOString().split('T')[0]
+  const [{ data: biz }, { data: rawServices }, { data: rawStaff }, { data: rawTables }, { data: featureFlags }, { data: rawAreas }, { data: rawOccupiedZones }] = await Promise.all([
     supabase.from('restaurants').select('*').eq('id', id).single(),
     supabase.from('hizmetler').select('*').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
     supabase.from('calisanlar').select('*').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
     supabase.from('masa_tipleri').select('*').eq('isletme_id', id).eq('aktif', true).order('created_at'),
     supabase.from('feature_flags').select('feature, enabled').eq('restaurant_id', id),
     supabase.from('special_areas').select('id, name, color').eq('restaurant_id', id).order('name'),
+    supabase.from('reservations')
+      .select('zone_id, zone_name, party_size, reserved_date, reserved_time')
+      .eq('restaurant_id', id)
+      .neq('status', 'cancelled')
+      .gte('reserved_date', todayStr)
+      .order('reserved_date'),
   ])
 
   if (!biz) notFound()
@@ -87,7 +94,40 @@ export default async function BusinessDetailPage({ params }: Props) {
     color: (a.color ?? null) as string | null,
   }))
 
-  const floorPlanEnabled = floorTables.length > 0
+  // W-100: kroki_mode/kroki_zones/working_hours biz'den (tek sorgu) gelir
+  const krokiMode = (biz as Record<string, unknown> | null)?.kroki_mode as string | undefined
+  const krokiZones = (biz as Record<string, unknown> | null)?.kroki_zones as unknown[] ?? []
+  const workingHours = (biz as Record<string, unknown> | null)?.working_hours as Record<string, Record<string, unknown>> | null
+
+  // W-100: dolu bölge ID'lerini kapasite bazlı hesapla (tarih+saate göre gruplanmış)
+  // BookingForm'da seçilen tarih/saat için detaylı kontrol yapılır.
+  // Burada istatistiksel bir ön-filtre uyguluyoruz: tüm gelecek kayıtlarda
+  // toplam kişi sayısı kapasiteyi aşan bölgeleri "dolu" işaretle.
+  const occupiedZoneIds = new Set<string>()
+  if (Array.isArray(krokiZones)) {
+    const zoneCapacities = new Map<string, number>()
+    const zoneUsage = new Map<string, number>()
+    for (const z of krokiZones as Array<Record<string, unknown>>) {
+      const zid = z.id as string
+      zoneCapacities.set(zid, (z.capacity as number) ?? 0)
+      zoneUsage.set(zid, 0)
+    }
+    for (const r of (rawOccupiedZones ?? [])) {
+      const zid = r.zone_id as string
+      if (zid && zoneCapacities.has(zid)) {
+        zoneUsage.set(zid, (zoneUsage.get(zid) ?? 0) + ((r.party_size as number) ?? 0))
+      }
+    }
+    for (const [zid, used] of zoneUsage) {
+      const cap = zoneCapacities.get(zid) ?? 0
+      if (cap > 0 && used >= cap) {
+        occupiedZoneIds.add(zid)
+      }
+    }
+  }
+  const zoneMode = krokiMode === 'zones' && Array.isArray(krokiZones) && krokiZones.length > 0
+
+  const floorPlanEnabled = zoneMode ? true : floorTables.length > 0
 
   const bookingTerm = ['restaurant', 'other'].includes(business.business_type)
     ? t('termReservation')
@@ -125,6 +165,10 @@ export default async function BusinessDetailPage({ params }: Props) {
               floorTables={floorTables}
               specialAreas={specialAreas}
               businessAddress={business.address ?? null}
+              krokiMode={krokiMode ?? 'tables'}
+              krokiZones={krokiZones as Record<string, unknown>[] ?? []}
+              workingHours={workingHours ?? null}
+              occupiedZoneIds={Array.from(occupiedZoneIds)}
             />
           </div>
 

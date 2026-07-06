@@ -15,7 +15,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const {
       restaurant_id, customer_name, phone, email, party_size,
-      date, time, table_id, service_id, staff_id, masa_tipi_id, special_requests,
+      date, time, table_id, service_id, staff_id, masa_tipi_id,
+      zone_id, special_requests,
     } = body
 
     if (!restaurant_id || !customer_name || !phone || !date || !time) {
@@ -25,6 +26,7 @@ export async function POST(request: NextRequest) {
     const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     const safeMasaTipiId = masa_tipi_id && UUID_RE.test(masa_tipi_id) ? masa_tipi_id : null
     const safeTableId = table_id && UUID_RE.test(table_id) ? table_id : null
+    const safeZoneId = zone_id && UUID_RE.test(zone_id) ? zone_id : null
 
     const { data: phoneConflict } = await getSupabaseAdmin()
       .from('reservations')
@@ -44,25 +46,54 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // ── Zone kapasite kontrolü (race condition'a karşı sunucu tarafında) ──
+    if (safeZoneId) {
+      const [{ data: zone }, { count: existingCount }] = await Promise.all([
+        getSupabaseAdmin()
+          .from('special_areas')
+          .select('capacity')
+          .eq('id', safeZoneId)
+          .maybeSingle(),
+        getSupabaseAdmin()
+          .from('reservations')
+          .select('*', { count: 'exact', head: true })
+          .eq('restaurant_id', restaurant_id)
+          .eq('zone_id', safeZoneId)
+          .eq('reserved_date', date)
+          .eq('reserved_time', time)
+          .neq('status', 'cancelled'),
+      ])
+
+      if (zone && zone.capacity != null && (existingCount ?? 0) >= zone.capacity) {
+        return NextResponse.json(
+          { error: 'Bu bölge dolu, lütfen farklı bir bölge veya saat seçin.' },
+          { status: 409 }
+        )
+      }
+    }
+
+    const insertPayload: Record<string, unknown> = {
+      restaurant_id,
+      guest_name:       customer_name.trim(),
+      guest_phone:      phone.trim(),
+      guest_email:      email?.trim() || null,
+      party_size:       parseInt(party_size, 10) || 1,
+      reserved_date:    date,
+      reserved_time:    time,
+      service_id:       service_id      || null,
+      calisan_id:       staff_id        || null,
+      masa_tipi_id:     safeMasaTipiId  || null,
+      table_id:         safeTableId     || null,
+      zone_id:          safeZoneId      || null,
+      special_requests: special_requests?.trim() || null,
+      cancellation_token: generateCancellationToken(),
+      status: 'pending',
+      source: 'form',
+    }
+
     const { data, error } = await getSupabaseAdmin()
       .from('reservations')
-      .insert({
-        restaurant_id,
-        guest_name:       customer_name.trim(),
-        guest_phone:      phone.trim(),
-        guest_email:      email?.trim() || null,
-        party_size:       parseInt(party_size, 10) || 1,
-        reserved_date:    date,
-        reserved_time:    time,
-        service_id:       service_id      || null,
-        calisan_id:       staff_id        || null,
-        masa_tipi_id:     safeMasaTipiId  || null,
-        table_id:         safeTableId     || null,
-        special_requests: special_requests?.trim() || null,
-        cancellation_token: generateCancellationToken(),
-        status: 'pending',
-        source: 'form',
-      })
+      .insert(insertPayload)
       .select('id')
       .single()
 

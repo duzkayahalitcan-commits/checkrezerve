@@ -39,6 +39,8 @@ export interface KrokiZone {
   // rectangle olarak saklansa da polygon olarak tutulur: 4 köşe
   // polygon[0]=sol-üst, [1]=sağ-üst, [2]=sağ-alt, [3]=sol-alt
   polygon:    ZonePoint[]
+  // W-100: custom photo URL — null veya boş string = tema görseli kullan
+  customPhoto?: string | null
 }
 
 // Sıfır zona yardımcı constructor
@@ -51,6 +53,7 @@ export function emptyZone(overrides?: Partial<KrokiZone>): KrokiZone {
     tableCount: 0,
     theme:      'ic_mekan',
     polygon:    [],
+    customPhoto: null,
     ...overrides,
   }
 }

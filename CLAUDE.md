@@ -2,7 +2,25 @@
 
 Platform: Türkiye'nin komisyonsuz multi-sektör rezervasyon sistemi.
 Builder: Halitcan (solo)
-Stack: Next.js (web) + Expo (mobile) + Supabase + Hetzner VPS
+
+## Stack
+- Web: Next.js (App Router), TypeScript, Supabase-JS
+- Mobile: Expo / React Native
+- Database: Supabase (PostgreSQL)
+- Deploy: VPS'te Docker (docker-compose), nginx reverse proxy
+- Auth: Supabase JWKS
+- Panel yazma işlemleri: getSupabaseAdmin() (RLS bypass), API route üzerinden
+
+## Veritabanı Tabloları
+- restaurants, reservations, calisanlar, hizmetler
+- user_favorites, profiles, masa_tipleri
+- subscriptions, subscription_payments, iyzico_webhook_logs
+- paketler, musteri_paketleri, musteri_notlari, kroki_zones
+
+## Erişim
+- VPS: 178.105.51.245 (Hetzner), SSH: `ssh -i ~/.ssh/checkrezerve_vps root@178.105.51.245`
+- Supabase: posarvagedpqtsrcrwfe.supabase.co
+- tmux session: `web` (tmux attach -t web)
 
 ---
 
@@ -183,6 +201,7 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
 4. **Roller:** business_manager = sahibi gibi hissetmeli. Staff gibi gösterme.
 5. **Dil:** UI her zaman Türkçe.
 6. **Token:** Minimal. Keşfetmeden önce sor. Gereksiz dosya okuma yapma.
+7. **Kritik Docker rule:** `docker rm -f` ile isim bazlı silme bazen çalışmaz çünkü yarım kalmış docker-compose recreate denemeleri container'ları `<hash>_isim` formatında yeniden adlandırır. `ContainerConfig KeyError` alınırsa önce `docker ps -a --format '{{.Names}}' | grep -iE "checkrezerve|nginx|whisper|certbot"` ile gerçek isimleri kontrol et, hash önekli olanları da sil, sonra `docker-compose up -d --build`.
 
 ---
 
@@ -351,3 +370,112 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
 - [x] **2026-06-26 — W-88..W-89: Izometrik kroki baglantisi + POS webhook test**
   - W-88: `InteractiveFloorMap` zaten bagli; `toTableLayouts()` adaptor; `table_id` payload'a gidiyor ✅
   - W-89: `POST /api/pos/samba/webhook` endpoint test edildi, calisiyor (401 dondu ✅)
+
+- [x] **2026-07-02 — W-90: Onboarding calisma saatleri bug fix (day_* → working_hours JSONB)**
+  - **SORUN**: Onboarding formu `restaurants` tablosunda olmayan `day_mon_open`, `day_mon_close` gibi kolonlara yazmaya calisiyordu → "Could not find the 'day_fri_close' column" hatasi
+  - **COZUM**: `actions.ts` → FormData'dan `day_*` kolonlari yerine `working_hours` JSONB objesi olusturup restaurants.update'a gonderiyor
+  - **FORMAT**: `{ monday: { open: true, start: "09:00", end: "18:00" }, tuesday: {...}, ... }` (mevcut WorkingDayHours tipiyle uyumlu)
+  - **YUKLEME**: `Step1BusinessInfo.tsx` → `getHour(idx, 'start'|'end')` ve `isClosed(idx)` fonksiyonlariyla `restaurant.working_hours` JSONB'den formu dolduruyor (edit senaryosu)
+  - **VALIDASYON**: `open < close` kontroli (kapali gunlerde saat kontrolu yok); her gun icin lokalde hata mesaji
+  - **API**: `getSupabaseAdmin()` kullaniliyor (RLS bypass), onboardinge ozel server action
+  - **ETKILENEN**: sadece `app/panel/[slug]/onboarding/actions.ts` + `Step1BusinessInfo.tsx`
+  - **DIGER TARAFLAR**: Mevcut SettingsForm, bugun/page.tsx, panel-settings API route'u zaten `working_hours` kullaniyordu — degisiklik gerekmedi
+  - **TS**: `npx tsc --noEmit` hatasiz ✅
+
+- [x] **2026-07-02 — W-91 + W-92: Switch toggle + form validasyonu**
+  - **W-91**: Checkbox (`Kapalı` yazılı, kafa karıştırıcı) → **Switch toggle** (yeşil=Açık, gri=Kapalı)
+    - Switch AÇIK → saat inputları aktif, KAPALI → inputlar disabled + opacity %40
+    - Mapping tek yerde yorumlu: `day_N_open` value `'on'`/`'off'` ↔ `working_hours.day.open = true/false`
+    - Varsayılan: yeni onboarding'te **tüm günler AÇIK, 09:00-18:00**
+  - **W-92**: Client + server validasyon:
+    - Telefon: TR format regex (`/^(0\d{10}|\+90\d{10})$/`), harf girişi keydown'da engellenir
+    - Web sitesi: opsiyonel, doluysa `new URL()` ile URL validasyonu
+    - İşletme adı min 2, adres min 5 karakter
+    - Çalışma saatleri açık günlerde start < end zorunlu
+    - Hata mesajları alan altında **kırmızı text**, submit'te ilk hatalı alana **scroll+focus**
+    - Server-side (`actions.ts`) aynı validasyonları tekrar eder
+  - **TS**: `npx tsc --noEmit` hatasiz ✅
+
+- [x] **2026-07-03 — W-94: Hizmetler kolon hatası + restoran/kafe için onboarding hizmet adımını atlama**
+  - **SORUN 1**: `addService` DB'de olmayan `duration_minutes` ve `price` kolonlarına insert yapıyordu, gerçek kolonlar `sure_dakika` ve `fiyat`
+  - **FİX 1**: `actions.ts`'de insert kolonları `sure_dakika` / `fiyat` olarak düzeltildi; `Step2Services.tsx` tip ve input name'leri de güncellendi
+  - **SORUN 2 (ÜRÜN)**: Restoran/kafe işletmelerinde süre+fiyat bazlı hizmet tanımlamak anlamsız — masa düzeni yeterli
+  - **FİX 2**: `page.tsx` → `business_type` kontrolü: `restaurant` veya `cafe` ise hizmet adımı tamamen atlanır, onboarding 4 adıma düşer
+  - **FİX 3**: `Step2Services.tsx` → restoran/kafe için bilgilendirme kartı + opsiyonel details form gösterilir, "Devam Et" butonunda hizmet zorunluluğu yok
+  - **FİX 4**: `StepIndicator.tsx` → `isNoService` prop'u ile 4 adımlı (Bilgiler/Çalışanlar/Masa/Tamam) veya 5 adımlı gösterim
+  - **FİX 5**: `/onboarding/{2,3,4,5}/page.tsx` → her biri `totalSteps` ve `isNoService` prop'larını StepIndicator'a geçirir; adım 3 (çalışanlar) restoran için adım 2 olarak görünür
+  - **TS**: `npx tsc --noEmit` hatasiz ✅
+
+- [x] **2026-07-03 — W-95: Onboarding "Ünvan" placeholder'ı işletme tipine göre dinamik**
+  - **SORUN**: `Step3Staff.tsx`'te ünvan placeholder'ı sabit "Örn: Berber Ustası" idi
+  - **COZUM**: `src/constants/roleSuggestions.ts` oluşturuldu — `getRolePlaceholder(businessType)` fonksiyonu
+  - **HARITA**: restoran→"Örn: Garson", kuaför→"Örn: Kuaför", spa→"Örn: Masör", pilates→"Örn: Pilates Eğitmeni", berber→"Örn: Berber Ustası", fitness→"Örn: Antrenör", klinik→"Örn: Fizyoterapist", vb.
+  - **İLETİM**: `3/page.tsx` → `businessType` prop'u ile Step3Staff'e aktarılır
+  - **ETKİLENEN**: `Step3Staff.tsx` (prop + placeholder), `3/page.tsx` (prop geçişi)
+  - **TS**: `npx tsc --noEmit` hatasiz ✅
+
+- [x] **2026-07-03 — W-96: Salon Krokisi login'e yönlendirme hatası (auth bug)**
+  - **SORUN**: `/panel/[slug]/kroki` sayfası, kullanıcı giriş yapmış olmasına rağmen `/panel/login`'e yönlendiriyordu
+  - **NEDEN**: `page.tsx`'teki `SELECT` sorgusu Supabase'de **olmayan** `kroki_data` ve `kroki_enabled` kolonlarını içeriyordu → Supabase hata döndü → `restaurant` null oldu → `redirect('/panel/login')` çalıştı
+  - **TESPİT**: Supabase OpenAPI şemasından doğrulandı — `kroki_zones` var ✅ ama `kroki_data` ve `kroki_enabled` migration'ları (`20260630000001_kroki_editör.sql`) Supabase'e çalıştırılmamış ❌
+  - **FİX**: `SELECT`'ten `kroki_data` ve `kroki_enabled` kaldırıldı; `initialData` sabit `[]` olarak geçirildi
+  - **ETKİLENEN**: `app/panel/[slug]/kroki/page.tsx`
+  - **TS**: `npx tsc --noEmit` hatasiz ✅
+
+- [x] **2026-07-03 — W-97: Salon Krokisi canvas boyutlandırma + SetupModal kapatma**
+  - **SORUN 1**: Canvas alanı container'a göre sığmıyordu — SVG varsayılan 300×150 koordinat sistemi kullandığı için 12m×10m (720×600px) canvas'ın sadece 1/6'sı görünüyordu
+  - **ÇÖZÜM**: SVG'ye `viewBox="0 0 {canvasW} {canvasH}"` eklendi + `preserveAspectRatio="xMidYMid meet"` → canvas container genişliğine otomatik ölçeklenir
+  - **SORUN 2**: "Kat Ekle" → "Salon Kurulumu" modalının **kapatma mekanizması yoktu** — X butonu eksik, ESC dinlenmiyor, backdrop tıklama çalışmıyordu
+  - **ÇÖZÜM**: `SetupModal.tsx`'e `onCancel` prop'u eklendi; ✕ butonu (sağ üst), `Escape` keydown handler, backdrop `onClick={e => e.target === e.currentTarget ? onCancel() : null}` eklendi
+  - **ETKİLENEN**: `src/components/kroki/SetupModal.tsx`, `src/components/kroki/KrokiEditor.tsx`
+  - **TS**: `npx tsc --noEmit` hatasiz ✅
+
+- [x] **2026-07-03 — W-98: Kroki canvas aşırı küçük + masa tipi yerleşmiyor**
+  - **SORUN 1**: Canvas minik bir kareye sıkışmıştı — W-97'deki `viewBox="0 0 720 600"` sabit
+    değeri container boyutunu dikkate almıyor, canvas içerikten küçük kalıyordu
+  - **ÇÖZÜM**: `transform translate+scale` tamamen kaldırıldı, zoom/pan viewBox üzerinden
+    yapılıyor. `viewBox` dinamik: `${-panX/zoom} ${-panY/zoom} ${containerW/zoom} ${containerH/zoom}`.
+    **Fit-to-container**: ilk yüklemede `fitZoom = min(containerW/canvasW, containerH/canvasH) * 0.85`
+    ile canvas container'a tam sığar. Kullanıcı zoom yapınca `hasUserZoomed` flag'i set edilir,
+    manuel zoom'a geçilir. `ResizeObserver` ile container boyutu canlı izlenir.
+  - **SORUN 2**: Masa tipi seçip canvas'a tıklayınca masa yerleşmiyordu — nedeni: SVG içindeki
+    `<g>` elemanı grid/image/rect gibi alt elemanlar tıklamayı yutuyor, `onClick` SVG'e
+    ulaşamıyordu
+  - **ÇÖZÜM**: `<g>` wrapper'a `style={{ pointerEvents: 'none' }}` eklendi (tıklama SVG'e
+    geçsin diye), masa node'larına `pointerEvents: 'auto'` eklendi (taşınabilir kalsın diye)
+  - **ETKİLENEN**: `src/components/kroki/KrokiEditor.tsx`
+  - **TS**: `npx tsc --noEmit` hatasiz ✅
+
+- [x] **2026-07-03 — W-99: Salon Krokisi "Kaydedilemedi" hatası**
+  - **SORUN**: Masa yerleştirip Kaydet'e basınca "Kaydedilemedi" hatası çıkıyordu
+  - **ROOT CAUSE**: `POST /api/panel/kroki` route'u `restaurants.update({ kroki_data, kroki_enabled })` yapıyordu → **bu kolonlar Supabase'de yok** (W-96'da da tespit edilmişti). Supabase hata döndü, client ise `!res.ok` kontrol edip gerçek hatayı gizleyip "Kaydedilemedi" basıyordu.
+  - **FİX 1** (`app/api/panel/kroki/route.ts`): `kroki_data` ve `kroki_enabled` referansları kaldırıldı. Artık **`kroki_zones`** kolonuna yazılıyor (Supabase'de var olan tek JSONB kolon). GET endpoint'i de `kroki_zones` okuyor.
+  - **FİX 2** (`KrokiEditorPage.tsx`): Client tarafında payload key `kroki_data` → `floor_data` olarak değiştirildi. Hata durumunda response body'den gerçek error mesajı (`errBody.error`) okunup toast'ta gösteriliyor. `catch (e)` ile hata tipi kontrolü eklendi.
+  - **FİX 3**: `console.error('[Kroki POST]', error.message)` ile sunucu tarafına log eklendi.
+  - **TEST**: Supabase REST API ile doğrudan `PATCH kroki_zones` testi yapıldı → başarılı ✅. Test verisi sonra `[]`'a resetlendi.
+  - **TS**: `npx tsc --noEmit` hatasiz ✅
+
+- [x] **2026-07-03 — W-100: Kroki kayıt sonrası 404/error boundary hatası**
+  - **SORUN**: Masa ekleyip kaydettikten sonra sayfa yenilenince "Bir Şeyler Ters Gitti" (error boundary) açılıyordu
+  - **TESPİT**: VPS log'unda `TypeError: Cannot read properties of undefined (reading 'length')` → `KrokiTabsPage` içinde `.map()` çağrısı `undefined` iterate ediyor
+  - **ROOT CAUSE**: W-99'da `POST /api/panel/kroki` floor verisini `kroki_zones` kolonuna yazmaya başladı. Sayfa yenilenince `page.tsx` `kroki_zones`'u `KrokiZone[]` cast'i ile `initialZones`'a geçirdi, ama içerik floor objeleri (tables/canvasW property'leri, polygon yok) içeriyordu → `ZoneEditor`'da tip uyuşmazlığı → `.map()` undefined
+  - **FİX**: `page.tsx`'te `kroki_zones` verisi ikiye filtreleniyor:
+    - `polygonalZones`: `polygon` property'si olan → `initialZones` (Zone Editor)
+    - `floorData`: `tables`'ı olan veya polygon'suz düz objeler → `initialData` (Kroki Editor)
+  - **ETKİLENEN**: `app/panel/[slug]/kroki/page.tsx`
+  - **TS**: `npx tsc --noEmit` hatasiz ✅
+
+- [x] **2026-07-05 — W-100: Bölge Sistemi Redesign + ZoneViewer bağlantısı**
+  - **BÖLÜM A — Bölge Sistemi (canvas'sız kart modeli)**
+    - **A1**: `kroki_mode` kolonu migration SQL (`supabase/migrations/20260705_kroki_redesign.sql`) — ALTER TABLE restaurants ADD kroki_mode TEXT CHECK('tables','zones') DEFAULT 'zones'. Mod seçici UI: `ModeSelector.tsx` (iki kart: Detaylı Masa Krokisi / Bölge Kartları)
+    - **A2**: `NewZoneEditorPage` — canvas tamamen kaldırıldı, yerine kart grid'i + sağ panelde düzenleme (ad, tema, renk, kapasite, masa sayısı, sil)
+    - **A3**: Özel fotoğraf yükleme — `POST /api/panel/zone-photo` → Supabase Storage `kroki/zone-photos/{restaurantId}/{zoneId}.webp`, max 5MB. `NewZoneEditorPage`'de "Fotoğraf Seç" + "Varsayılana Dön" butonu
+    - **A4**: Migration SQL'i manuel çalıştırıldı (kroki_mode kolonu eklendi, eski zonelara theme atandı)
+    - **A5**: `ZoneViewer` müşteri tarafı — SVG/canvas tamamen kaldırıldı, yerine kart listesi (görsel + ad + kapasite + theme). `BookingForm.tsx`'e `krokiMode`+`krokiZones` prop'ları eklendi; `renderMasaSelect()` içinde `krokiMode === 'zones'` ise `ZoneViewer`, `'tables'` ise `InteractiveFloorMap`
+  - **BÖLÜM B — Masa Editörü canvas bug'ları**
+    - **B1**: Fit-to-container iyileştirme — `requestAnimationFrame` ile ilk render'da container 0 dönerse tekrar ölç, padding %85→%90
+    - **B2**: Boş kat viewBox fallback — `DEFAULT_VIEWBOX = '0 0 720 600'`
+  - **ETKİLENEN**: `src/components/kroki/KrokiEditor.tsx`, `src/components/kroki/SetupModal.tsx`, `src/components/kroki/ModeSelector.tsx` (yeni), `src/components/kroki/ZoneViewer.tsx`, `src/types/kroki-zone.ts`, `app/panel/[slug]/kroki/page.tsx`, `app/panel/[slug]/kroki/KrokiTabsPage.tsx`, `app/panel/[slug]/kroki/NewZoneEditorPage.tsx` (yeni), `app/api/panel/kroki-mode/route.ts` (yeni), `app/api/panel/zone-photo/route.ts` (yeni), `app/[locale]/rezervasyon/[id]/page.tsx`, `app/[locale]/rezervasyon/[id]/BookingForm.tsx`, `supabase/migrations/20260705_kroki_redesign.sql` (yeni)
+  - **TS**: `npx tsc --noEmit` hatasiz ✅
+
+<!-- DEVAM NOKTASI: W-93 -->

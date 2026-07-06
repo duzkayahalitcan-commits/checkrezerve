@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { THEMES, TABLE_TYPES, BG_IMAGES, TABLE_IMAGES, PX_PER_METER, GRID_SIZE } from '../../lib/kroki-config'
 import SetupModal from './SetupModal'
 import TableNode from './TableNode'
@@ -68,6 +68,8 @@ export default function KrokiEditor({
   const isPanning = useRef(false)
   const panStart = useRef({ x: 0, y: 0 })
   const panOrigin = useRef({ x: 0, y: 0 })
+  const [containerSize, setContainerSize] = useState({ w: 1200, h: 800 })
+  const canvasRef = useRef<HTMLDivElement>(null)
 
   const floor = floors.find((f: Floor) => f.id === activeFloor)
   const selTbl = floor?.tables.find((t: Table) => t.id === selTable)
@@ -79,13 +81,22 @@ export default function KrokiEditor({
     free ? Math.round(v) : Math.round(v / grid) * grid
 
   const zoomAt = useCallback((delta: number, cx: number, cy: number) => {
+    setHasUserZoomed(true)
     setZoom(z => {
       const nz = clamp(+(z + delta).toFixed(2))
-      const sc = nz / z
-      setPan(p => ({ x: cx - sc * (cx - p.x), y: cy - sc * (cy - p.y) }))
+      // viewBox-based zoom: keep the point under cursor stable
+      const r = svgRef.current?.getBoundingClientRect()
+      if (r) {
+        const mx = cx - r.left
+        const my = cy - r.top
+        setPan(p => ({
+          x: p.x + mx * (containerSize.w / z - containerSize.w / nz) / (containerSize.w / z),
+          y: p.y + my * (containerSize.h / z - containerSize.h / nz) / (containerSize.h / z),
+        }))
+      }
       return nz
     })
-  }, [])
+  }, [containerSize])
 
   // ─── Wheel zoom ──────────────────────────────────────────────────────────
   const onWheel = useCallback(
@@ -152,7 +163,12 @@ export default function KrokiEditor({
 
   const svgXY = (cx: number, cy: number) => {
     const r = svgRef.current!.getBoundingClientRect()
-    return { x: (cx - r.left - pan.x) / zoom, y: (cy - r.top - pan.y) / zoom }
+    // viewBox-based coordinate: mouse offset relative to SVG, scaled by (viewBoxSize / containerSize)
+    const vb = viewBox.split(' ').map(Number)
+    return {
+      x: vb[0] + (cx - r.left) * (vb[2] / r.width),
+      y: vb[1] + (cy - r.top) * (vb[3] / r.height),
+    }
   }
 
   // ─── Canvas click — masa yerleştir ──────────────────────────────────────
@@ -162,7 +178,7 @@ export default function KrokiEditor({
     if (!type) return
     const { x, y } = svgXY(e.clientX, e.clientY)
     const t: Table = {
-      id: `t${Date.now()}`,
+      id: crypto.randomUUID(),
       typeId: type.id,
       x: snap(x, GRID, freeMove),
       y: snap(y, GRID, freeMove),
@@ -288,12 +304,59 @@ export default function KrokiEditor({
     setSelTable(null)
   }
 
+  // W-100 B1: ResizeObserver ile container boyutunu izle
+  // requestAnimationFrame ile ilk render'da container ölçüsü 0 dönerse tekrar dene
+  useEffect(() => {
+    const el = canvasRef.current
+    if (!el) return
+    const tryMeasure = () => {
+      const rect = el.getBoundingClientRect()
+      if (rect.width > 0 && rect.height > 0) {
+        setContainerSize({ w: rect.width, h: rect.height })
+      } else {
+        requestAnimationFrame(tryMeasure)
+      }
+    }
+    requestAnimationFrame(tryMeasure)
+    const obs = new ResizeObserver(([entry]) => {
+      setContainerSize({ w: entry.contentRect.width, h: entry.contentRect.height })
+    })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  // Auto-fit zoom: container'a ilk yüklendiğinde floor canvas sığacak zoom'u hesapla
+  const fitZoom = useMemo(() => {
+    if (!floor || !containerSize.w || !containerSize.h) return 0.75
+    const scaleX = containerSize.w / floor.canvasW
+    const scaleY = containerSize.h / floor.canvasH
+    return Math.min(scaleX, scaleY) * 0.9 // W-100: %90 padding — canvas container'ı doldursun
+  }, [floor?.canvasW, floor?.canvasH, containerSize])
+
+  // İlk yükleme: fitZoom kullan, sonra kullanıcı zoom yapınca manuele geç
+  const [hasUserZoomed, setHasUserZoomed] = useState(false)
+  const effectiveZoom = hasUserZoomed ? zoom : fitZoom
+
+  // W-100 B2: Boş kat için varsayılan viewBox — 12m×10m = 720×600px (PX=60)
+  const DEFAULT_VIEWBOX = '0 0 720 600'
+  const viewBox = floor
+    ? `${-pan.x / effectiveZoom} ${-pan.y / effectiveZoom} ${containerSize.w / effectiveZoom} ${containerSize.h / effectiveZoom}`
+    : DEFAULT_VIEWBOX
+
   const cursor = dragging ? 'grabbing' : selType ? 'crosshair' : 'default'
   const theme = THEMES.find(t => t.id === floor?.theme) || THEMES[0]
   const BG = BG_IMAGES as Record<string, string>
   const TBL_IMG = TABLE_IMAGES as Record<string, string>
 
-  if (showSetup) return <SetupModal onConfirm={handleSetup} />
+  if (showSetup) return <SetupModal onConfirm={handleSetup} onCancel={() => {
+    setShowSetup(false)
+    if (floors.length === 0) {
+      // If no floors exist, create a default one so the editor doesn't re-show setup
+      const id = `f${Date.now()}`
+      setFloors([{ id, label: 'Zemin Kat', theme: 'indoor', canvasW: 12 * PX, canvasH: 10 * PX, tables: [] }])
+      setActiveFloor(id)
+    }
+  }} />
 
   return (
     <div
@@ -591,10 +654,12 @@ export default function KrokiEditor({
         </div>
 
         {/* ── Canvas ────────────────────────────────────────────── */}
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#0D0704' }}>
+        <div ref={canvasRef} style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#0D0704' }}>
           <svg
             ref={svgRef}
             style={{ width: '100%', height: '100%', display: 'block', cursor }}
+            viewBox={viewBox}
+            preserveAspectRatio="xMidYMid meet"
             onMouseDown={onSvgMD}
             onMouseMove={onSvgMM}
             onMouseUp={onSvgMU}
@@ -610,7 +675,7 @@ export default function KrokiEditor({
                 <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor="#E53935" floodOpacity="0.7" />
               </filter>
             </defs>
-            <g transform={`translate(${pan.x},${pan.y}) scale(${zoom})`}>
+            <g style={{ pointerEvents: 'none' }}>
               {floor && (
                 <image
                   href={BG[floor.theme] ?? BG['indoor']}
@@ -671,7 +736,7 @@ export default function KrokiEditor({
                     transform={`translate(${t.x},${t.y}) rotate(${t.rotation || 0})`}
                     filter={isSel ? 'url(#selG)' : undefined}
                     onMouseDown={e => onTableMD(e, t.id)}
-                    style={{ cursor: dragging?.id === t.id ? 'grabbing' : 'grab' }}
+                    style={{ cursor: dragging?.id === t.id ? 'grabbing' : 'grab', pointerEvents: 'auto' }}
                   >
                     <TableNode
                       type={type}

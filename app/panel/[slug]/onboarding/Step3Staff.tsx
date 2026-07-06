@@ -4,10 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/Toast'
 import { addStaff, deleteStaff } from './actions'
+import { getRolePlaceholder } from '@/src/constants/roleSuggestions'
 
 type Staff = { id: string; ad: string; unvan: string | null }
 
-export default function Step3Staff({ staff, slug }: { staff: Staff[]; slug: string }) {
+export default function Step3Staff({ staff, slug, businessType }: { staff: Staff[]; slug: string; businessType?: string }) {
   const router = useRouter()
   const toast = useToast()
   const [loading, setLoading] = useState(false)
@@ -37,7 +38,7 @@ export default function Step3Staff({ staff, slug }: { staff: Staff[]; slug: stri
     }
   }
 
-  const isRestaurant = true // will be passed from parent
+  const rolePlaceholder = getRolePlaceholder(businessType)
 
   return (
     <div className="space-y-6">
@@ -81,7 +82,7 @@ export default function Step3Staff({ staff, slug }: { staff: Staff[]; slug: stri
           <label className="text-xs text-stone-400 font-medium mb-1.5 block">Ünvan</label>
           <input name="title"
             className="w-full bg-stone-900 border border-stone-700 rounded-xl px-4 py-3 text-sm text-white placeholder-stone-500 focus:border-[#D4A373] outline-none"
-            placeholder="Örn: Berber Ustası"
+            placeholder={rolePlaceholder}
           />
         </div>
 

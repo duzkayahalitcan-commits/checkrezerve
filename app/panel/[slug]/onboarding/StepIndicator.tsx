@@ -2,7 +2,8 @@
 
 import { motion } from 'motion/react'
 
-const STEPS = [
+// W-94: business type'a göre dinamik adım listesi
+const STEPS_SERVICE = [
   { num: 1, label: 'İşletme Bilgileri' },
   { num: 2, label: 'Hizmetler' },
   { num: 3, label: 'Çalışanlar' },
@@ -10,11 +11,29 @@ const STEPS = [
   { num: 5, label: 'Tamamlandı' },
 ]
 
-export function StepIndicator({ currentStep }: { currentStep: number; slug?: string }) {
+const STEPS_NO_SERVICE = [
+  { num: 1, label: 'İşletme Bilgileri' },
+  { num: 2, label: 'Çalışanlar' },
+  { num: 3, label: 'Masa Düzeni' },
+  { num: 4, label: 'Tamamlandı' },
+]
+
+export function StepIndicator({
+  currentStep,
+  totalSteps = 5,
+  isNoService = false,
+}: {
+  currentStep: number
+  totalSteps?: number
+  isNoService?: boolean
+  slug?: string
+}) {
+  const steps = isNoService ? STEPS_NO_SERVICE : STEPS_SERVICE
+
   return (
     <div className="w-full">
       <div className="flex items-center justify-between">
-        {STEPS.map((s, i) => {
+        {steps.map((s, i) => {
           const isCompleted = currentStep > s.num
           const isCurrent   = currentStep === s.num
           const isFuture    = currentStep < s.num
@@ -48,7 +67,7 @@ export function StepIndicator({ currentStep }: { currentStep: number; slug?: str
               </div>
 
               {/* Progress line */}
-              {i < STEPS.length - 1 && (
+              {i < steps.length - 1 && (
                 <div className="flex-1 h-0.5 mx-2 mt-[-1.5rem]">
                   <div className={`h-full rounded-full transition-all duration-500 ${
                     isCompleted ? 'bg-[#E53935]' : 'bg-stone-700'

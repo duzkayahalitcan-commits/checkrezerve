@@ -12,13 +12,20 @@ interface SetupResult {
 
 export default function SetupModal({
   onConfirm,
+  onCancel,
 }: {
   onConfirm: (r: SetupResult) => void
+  onCancel?: () => void
 }) {
   const [name, setName] = useState('Zemin Kat')
   const [width, setWidth] = useState(12)
   const [depth, setDepth] = useState(10)
   const [theme, setTheme] = useState('indoor')
+
+  // ESC tuşuyla kapat
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') onCancel?.()
+  }
 
   const inp: React.CSSProperties = {
     background: C.espressoL,
@@ -54,6 +61,9 @@ export default function SetupModal({
         justifyContent: 'center',
         zIndex: 100,
       }}
+      onClick={(e) => { if (e.target === e.currentTarget) onCancel?.() }}
+      onKeyDown={handleKeyDown}
+      tabIndex={-1}
     >
       <div
         style={{
@@ -66,8 +76,30 @@ export default function SetupModal({
           flexDirection: 'column',
           gap: 20,
           boxShadow: '0 24px 80px #00000090',
+          position: 'relative',
         }}
       >
+        {/* X close button */}
+        <button
+          onClick={() => onCancel?.()}
+          style={{
+            position: 'absolute',
+            top: 14,
+            right: 16,
+            background: 'none',
+            border: 'none',
+            color: C.textMuted,
+            fontSize: 18,
+            cursor: 'pointer',
+            padding: '4px 8px',
+            borderRadius: 6,
+            lineHeight: 1,
+          }}
+          aria-label="Kapat"
+        >
+          ✕
+        </button>
+
         <div>
           <div style={{ fontSize: 20, fontWeight: 800, color: C.gold, marginBottom: 6 }}>
             Salon Kurulumu

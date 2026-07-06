@@ -12,6 +12,8 @@ import type { LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import InteractiveFloorMap from '@/components/InteractiveFloorMap'
 import type { TableLayout } from '@/components/InteractiveFloorMap'
+import ZoneViewer from '@/src/components/kroki/ZoneViewer'
+import type { ZoneTheme, ZonePoint } from '@/src/types/kroki-zone'
 
 type Hizmet     = { id: string; name: string; duration_minutes: number; price: number | null }
 type Calisan    = { id: string; name: string; title: string | null }
@@ -56,14 +58,22 @@ interface Props {
   floorPlanEnabled: boolean
   floorTables:      FloorTable[]
   specialAreas:     SpecialArea[]
+  krokiMode:        string
+  krokiZones:       Record<string, unknown>[]
+  // DB format: { monday: { start: string; end: string; open: boolean }, ... }
+  workingHours:     Record<string, Record<string, unknown>> | null
+  occupiedZoneIds:  string[]
 }
 
-const TIME_SLOTS = Array.from({ length: 27 }, (_, i) => {
-  const totalMin = 9 * 60 + i * 30
-  const h = Math.floor(totalMin / 60).toString().padStart(2, '0')
-  const m = (totalMin % 60).toString().padStart(2, '0')
-  return `${h}:${m}`
-})
+// Fallback slot listesi (working_hours yoksa 09:00-22:00)
+function makeDefaultSlots(): string[] {
+  const slots: string[] = []
+  for (let m = 9 * 60; m < 22 * 60; m += 30) {
+    slots.push(`${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`)
+  }
+  return slots
+}
+const DEFAULT_SLOTS = makeDefaultSlots()
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -86,6 +96,7 @@ export default function BookingForm({
   businessId, businessName, businessType, businessAddress,
   hizmetler, calisanlar,
   floorPlanEnabled, floorTables, specialAreas,
+  krokiMode, krokiZones, workingHours, occupiedZoneIds,
 }: Props) {
   const router = useRouter()
   const t = useTranslations('bookingForm')
@@ -106,6 +117,49 @@ export default function BookingForm({
   const [partySize, setPartySize] = useState(2)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
+  // W-100: working_hours'dan slot üretimi (seçilen güne göre)
+  // DB formatı: { monday: { start: "HH:MM", end: "HH:MM", open: boolean }, ... }
+  // JS getDay(): 0=Pazar, 1=Pazartesi, ..., 6=Cumartesi
+  const DAY_KEY_MAP: Record<number, string> = {
+    0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday',
+    4: 'thursday', 5: 'friday', 6: 'saturday',
+  }
+  const TIME_SLOTS = useMemo<string[]>(() => {
+    if (!workingHours || !selectedDate) return DEFAULT_SLOTS
+    const dow = new Date(selectedDate + 'T12:00:00').getDay()
+    const dayKey = DAY_KEY_MAP[dow]
+    const wh = workingHours[dayKey]
+    // Sadece açıkça open===false ise kapalı say; wh yoksa (tanımlanmamış gün) fallback kullan
+    if (wh && wh.open === false) return []  // kapalı gün → boş array, UI mesaj gösterir
+    // Alan adları: DB'de start/end olarak, eski formatta open/close olabilir
+    const rec = wh as Record<string, unknown>
+    const startStr = typeof rec.start === 'string' ? rec.start : typeof wh.open === 'string' ? wh.open : null
+    const endStr = typeof rec.end === 'string' ? rec.end : typeof wh.close === 'string' ? wh.close : null
+    if (!startStr || !endStr) return DEFAULT_SLOTS
+    const [openH, openM] = startStr.split(':').map(Number)
+    const [closeH, closeM] = endStr.split(':').map(Number)
+    const openTotal = openH * 60 + (openM ?? 0)
+    let closeTotal = closeH * 60 + (closeM ?? 0)
+    // Gece yarısı: 00:00 = 24:00 (ertesi güne sarkan kapanış)
+    if (closeTotal === 0) closeTotal = 24 * 60
+    // Diğer gece yarısı geçişleri (ör: 02:00 → ertesi gün)
+    if (closeTotal > 0 && closeTotal <= openTotal) closeTotal += 24 * 60
+    if (closeTotal <= openTotal) return DEFAULT_SLOTS
+    // Buffer mantığı: restoran/kafe (masa rezervasyonu) kapanış saatini dahil eder
+    // Restoran/kafe (masa rezervasyonu): kapanış saatinin son dakikasına kadar slot üret
+    // Randevu bazlı işletmeler (kuaför, berber, pilates, spa, klinik): kapanıştan 30 dk önce kes
+    const bufferMinutes = isRestaurant ? 0 : 30
+    const slots: string[] = []
+    for (let m = openTotal; m <= closeTotal - bufferMinutes; m += 30) {
+      const h = Math.floor(m / 60) % 24
+      const mm = m % 60
+      // 00:00 (gece yarısı) slotu atla — son slot 23:30
+      if (h === 0 && mm === 0) continue
+      slots.push(`${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`)
+    }
+    return slots
+  }, [workingHours, selectedDate, businessType])
+
   const [selectedTable, setSelectedTable] = useState<string | null>(null)
   const [selectedService, setSelectedService] = useState<string | null>(null)
   const [selectedStaff, setSelectedStaff] = useState<string | null>(null)
@@ -204,7 +258,7 @@ export default function BookingForm({
     if (s === 'hizmet')  return selectedService !== null
     if (s === 'calisan') return true
     if (s === 'tarih')   return !!selectedDate
-    if (s === 'saat')    return !!selectedTime
+    if (s === 'saat')    return TIME_SLOTS.length > 0 && !!selectedTime
     if (s === 'masa')    return true
     if (s === 'bilgi')   return !!(name.trim() && phone.trim())
     return true
@@ -217,6 +271,10 @@ export default function BookingForm({
     setLoading(true)
 
     const safeTableId = selectedTable && UUID_RE.test(selectedTable) ? selectedTable : undefined
+    // Zone bilgisi (kroki_mode='zones')
+    const selectedZoneName = krokiMode === 'zones' && selectedArea
+      ? krokiZones.find((z: Record<string, unknown>) => z.id === selectedArea)?.name as string ?? null
+      : null
 
     const res = await fetch('/api/rezervasyon', {
       method: 'POST',
@@ -233,6 +291,8 @@ export default function BookingForm({
         service_id:       selectedService ?? undefined,
         staff_id:         selectedStaff ?? undefined,
         special_requests: specialNotes || undefined,
+        zone_id:          krokiMode === 'zones' ? (selectedArea ?? undefined) : undefined,
+        zone_name:        selectedZoneName,
       }),
     })
     setLoading(false)
@@ -421,33 +481,80 @@ export default function BookingForm({
     )
   }
 
-  const renderTimeSlots = () => (
-    <div className="grid grid-cols-4 gap-2">
-      {TIME_SLOTS.map((slot, i) => {
-        const occ = occupiedSlots.has(slot)
-        const sel = selectedTime === slot
-        return (
-          <motion.button
-            key={slot}
-            type="button"
-            disabled={occ}
-            onClick={() => !occ && setSelectedTime(slot)}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2, delay: i * 0.015 }}
-            whileHover={occ ? {} : { scale: 1.05 }}
-            whileTap={occ ? {} : { scale: 0.9 }}
-            className={`py-2.5 rounded-xl border text-sm font-semibold transition-all
-              ${sel ? 'bg-[#E53935] border-[#E53935] text-white shadow-md shadow-red-200' : occ ? 'bg-red-50 border-red-200 text-red-400 line-through cursor-not-allowed' : 'bg-green-50 border-green-200 text-green-700 hover:border-green-400 hover:bg-green-100'}`}
-          >
-            {slot}
-          </motion.button>
-        )
-      })}
-    </div>
-  )
+  const renderTimeSlots = () => {
+    const isClosed = TIME_SLOTS.length === 0
+    return (
+      <div>
+        {isClosed ? (
+          <div className="text-center py-10">
+            <div className="text-3xl mb-3">🔒</div>
+            <p className="text-zinc-800 font-semibold text-base mb-1">Bu gün için rezervasyon alınmamaktadır</p>
+            <p className="text-zinc-400 text-sm">Lütfen başka bir tarih seçiniz.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-4 gap-2">
+            {TIME_SLOTS.map((slot, i) => {
+              const occ = occupiedSlots.has(slot)
+              const sel = selectedTime === slot
+              return (
+                <motion.button
+                  key={slot}
+                  type="button"
+                  disabled={occ}
+                  onClick={() => !occ && setSelectedTime(slot)}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: i * 0.015 }}
+                  whileHover={occ ? {} : { scale: 1.05 }}
+                  whileTap={occ ? {} : { scale: 0.9 }}
+                  className={`py-2.5 rounded-xl border text-sm font-semibold transition-all
+                    ${sel ? 'bg-[#E53935] border-[#E53935] text-white shadow-md shadow-red-200' : occ ? 'bg-red-50 border-red-200 text-red-400 line-through cursor-not-allowed' : 'bg-green-50 border-green-200 text-green-700 hover:border-green-400 hover:bg-green-100'}`}
+                >
+                  {slot}
+                </motion.button>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   const renderMasaSelect = () => {
+    // W-100: kroki_mode === 'zones' ise ZoneViewer (kart listesi), 'tables' ise InteractiveFloorMap
+    const isZoneMode = krokiMode === 'zones' && Array.isArray(krokiZones) && krokiZones.length > 0
+
+    if (isZoneMode) {
+      const zones = krokiZones as Array<{
+        id: string; name: string; color: string; capacity: number;
+        tableCount: number; theme: ZoneTheme; polygon: ZonePoint[]; customPhoto?: string | null
+      }>
+      return (
+        <div className="w-full">
+          <ZoneViewer
+            zones={zones}
+            fullZoneIds={occupiedZoneIds}
+            selectedZoneId={selectedArea}
+            onSelect={(zoneId, zoneName) => {
+              setSelectedArea(zoneId)
+              if (!zoneId) setSelectedTable(null)
+            }}
+          />
+          <div className="flex justify-center mt-4">
+            {!selectedArea && (
+              <button
+                onClick={() => goNext()}
+                className="text-xs text-zinc-400 hover:text-zinc-600 underline underline-offset-2 transition-colors"
+              >
+                {r('adim.masa.opsiyonel')} — {r('step.atla')}
+              </button>
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    // ─── 'tables' modu (mevcut InteractiveFloorMap) ────────────────────────
     if (!floorTables.length) {
       return (
         <div className="text-center py-10 text-zinc-400">

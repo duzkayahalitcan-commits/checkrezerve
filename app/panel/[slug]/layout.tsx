@@ -16,7 +16,7 @@ export default async function SlugLayout({
   const { slug } = await params
   const { data: restaurant } = await getSupabaseAdmin()
     .from('restaurants')
-    .select('id, name')
+    .select('id, name, business_type')
     .eq('slug', slug)
     .eq('id', session.restaurantId)
     .single()
@@ -25,7 +25,7 @@ export default async function SlugLayout({
 
   return (
     <div className="flex bg-stone-950 text-white min-h-screen">
-      <PanelSidebar slug={slug} restaurantName={restaurant.name} role={session.role} restaurantId={restaurant.id} />
+      <PanelSidebar slug={slug} restaurantName={restaurant.name} role={session.role} restaurantId={restaurant.id} businessType={restaurant.business_type} />
       {/* Mobile: pt for top bar, pb for bottom nav */}
       <div className="flex-1 min-w-0 pt-14 pb-16 md:pt-0 md:pb-0">
         {children}

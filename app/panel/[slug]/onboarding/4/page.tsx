@@ -4,6 +4,8 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { StepIndicator } from '../StepIndicator'
 import Step4Tables from '../Step4Tables'
 
+const NO_SERVICE_TYPES = ['restaurant', 'cafe']
+
 export default async function OnboardingStep4({ params }: { params: Promise<{ slug: string }> }) {
   const session = await getPanelSession()
   if (!session) redirect('/panel/login')
@@ -24,8 +26,12 @@ export default async function OnboardingStep4({ params }: { params: Promise<{ sl
     redirect(`/panel/${slug}/onboarding/1`)
   }
 
-  // Restaurant degilse direkt 5'e git
-  if (restaurant.business_type !== 'restaurant') {
+  const businessType = restaurant.business_type ?? 'restaurant'
+  const isNoService = NO_SERVICE_TYPES.includes(businessType)
+  const totalSteps = isNoService ? 4 : 5
+
+  // Restaurant/kafe degilse direkt 5'e git
+  if (businessType !== 'restaurant' && businessType !== 'cafe') {
     redirect(`/panel/${slug}/onboarding/5`)
   }
 
@@ -39,12 +45,12 @@ export default async function OnboardingStep4({ params }: { params: Promise<{ sl
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#2B1B17] to-stone-900 flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 max-w-2xl mx-auto w-full">
-        <StepIndicator currentStep={4} slug={slug} />
+        <StepIndicator currentStep={isNoService ? 3 : 4} totalSteps={totalSteps} isNoService={isNoService} slug={slug} />
         <div className="w-full mt-8">
           <Step4Tables
             tables={tables ?? []}
             slug={slug}
-            isRestaurant={restaurant.business_type === 'restaurant'}
+            isRestaurant={true}
           />
         </div>
       </div>

@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, CalendarDays, List, Calendar,
   Users, UserCog, Scissors, Settings, CreditCard,
-  LayoutGrid, PanelRightOpen, ChevronRight, LogOut, Menu, X,
+  LayoutGrid, PanelRightOpen, ChevronRight, LogOut, Menu, X, UtensilsCrossed,
 } from 'lucide-react'
 import PanelLangSelector from './PanelLangSelector'
 import NotificationBell from './NotificationBell'
@@ -27,15 +27,22 @@ export default function PanelSidebar({
   restaurantName,
   role,
   restaurantId,
+  businessType,
 }: {
   slug: string
   restaurantName: string
   role: string
   restaurantId: string
+  businessType?: string
 }) {
   const pathname = usePathname()
   const base = `/panel/${slug}`
   const [drawerOpen, setDrawerOpen] = useState(false)
+
+  // İşletme tipine göre "Hizmetler" ikonu — W-100
+  const hizmetIcon = businessType === 'restaurant' || businessType === 'cafe'
+    ? UtensilsCrossed
+    : Scissors
 
   const NAV = [
     { href: base,                    label: 'Genel Bakış',   icon: LayoutDashboard },
@@ -46,7 +53,7 @@ export default function PanelSidebar({
     { href: `${base}/kroki`,         label: 'Salon Krokisi', icon: PanelRightOpen  },
     { href: `${base}/misafirler`,    label: 'Misafirler',    icon: Users           },
     { href: `${base}/calisanlar`,    label: 'Çalışanlar',    icon: UserCog         },
-    { href: `${base}/hizmetler`,     label: 'Hizmetler',     icon: Scissors        },
+    { href: `${base}/hizmetler`,     label: 'Hizmetler',     icon: hizmetIcon      },
     { href: `${base}/ayarlar`,       label: 'Ayarlar',       icon: Settings        },
     { href: `${base}/abonelik`,      label: 'Abonelik',      icon: CreditCard      },
   ]

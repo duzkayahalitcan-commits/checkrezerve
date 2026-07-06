@@ -4,6 +4,8 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { StepIndicator } from '../StepIndicator'
 import Step3Staff from '../Step3Staff'
 
+const NO_SERVICE_TYPES = ['restaurant', 'cafe']
+
 export default async function OnboardingStep3({ params }: { params: Promise<{ slug: string }> }) {
   const session = await getPanelSession()
   if (!session) redirect('/panel/login')
@@ -24,6 +26,10 @@ export default async function OnboardingStep3({ params }: { params: Promise<{ sl
     redirect(`/panel/${slug}/onboarding/1`)
   }
 
+  const businessType = restaurant.business_type ?? 'restaurant'
+  const isNoService = NO_SERVICE_TYPES.includes(businessType)
+  const totalSteps = isNoService ? 4 : 5
+
   const { data: staff } = await db
     .from('calisanlar')
     .select('id, ad, unvan')
@@ -34,9 +40,9 @@ export default async function OnboardingStep3({ params }: { params: Promise<{ sl
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#2B1B17] to-stone-900 flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 max-w-2xl mx-auto w-full">
-        <StepIndicator currentStep={3} slug={slug} />
+        <StepIndicator currentStep={isNoService ? 2 : 3} totalSteps={totalSteps} isNoService={isNoService} slug={slug} />
         <div className="w-full mt-8">
-          <Step3Staff staff={staff ?? []} slug={slug} />
+          <Step3Staff staff={staff ?? []} slug={slug} businessType={businessType} />
         </div>
       </div>
     </div>

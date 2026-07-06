@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import KrokiEditorPage from './KrokiEditorPage'
-import ZoneEditorPage from './ZoneEditorPage'
+import NewZoneEditorPage from './NewZoneEditorPage'
+import ModeSelector from '@/src/components/kroki/ModeSelector'
 import type { KrokiZone } from '@/src/types/kroki-zone'
 
 const C = {
@@ -14,94 +16,55 @@ const C = {
   textMuted: '#A08060',
 } as const
 
-type Tab = 'masa' | 'bolge'
+export type Mode = 'tables' | 'zones'
 
 export default function KrokiTabsPage({
   restaurantId,
   slug,
   initialData,
   initialZones,
+  initialMode,
 }: {
   restaurantId: string
   slug: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData: any[]
   initialZones: KrokiZone[]
+  initialMode?: Mode
 }) {
-  const [tab, setTab] = useState<Tab>('masa')
+  const router = useRouter()
+  const [mode, setMode] = useState<Mode>(initialMode ?? 'zones')
+
+  // W-100: Mod değişince DB'ye kaydet
+  useEffect(() => {
+    if (mode && mode !== initialMode) {
+      fetch('/api/panel/kroki-mode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ restaurant_id: restaurantId, kroki_mode: mode }),
+      }).catch(() => {})
+    }
+  }, [mode])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      {/* Tab bar */}
-      <div style={{
-        display:      'flex',
-        alignItems:   'center',
-        gap:          6,
-        padding:      '8px 14px',
-        background:   C.panel,
-        borderBottom: `1px solid ${C.border}`,
-        flexShrink:   0,
-      }}>
-        <TabBtn
-          active={tab === 'masa'}
-          color={C.red}
-          onClick={() => setTab('masa')}
-        >
-          Masa Editörü
-        </TabBtn>
-        <TabBtn
-          active={tab === 'bolge'}
-          color={C.gold}
-          onClick={() => setTab('bolge')}
-        >
-          Bölge Sistemi ✦
-        </TabBtn>
-      </div>
+      {/* Mode selector */}
+      <ModeSelector currentMode={mode} onChange={setMode} />
 
-      {/* Editors — toggle visibility to preserve state */}
-      <div style={{ display: tab === 'masa' ? 'block' : 'none' }}>
+      {/* Editors */}
+      {mode === 'tables' ? (
         <KrokiEditorPage
           restaurantId={restaurantId}
           slug={slug}
           initialData={initialData}
         />
-      </div>
-      <div style={{ display: tab === 'bolge' ? 'block' : 'none' }}>
-        <ZoneEditorPage
+      ) : (
+        <NewZoneEditorPage
           restaurantId={restaurantId}
           slug={slug}
           initialZones={initialZones}
         />
-      </div>
+      )}
     </div>
-  )
-}
-
-function TabBtn({
-  active, color, onClick, children,
-}: {
-  active:   boolean
-  color:    string
-  onClick:  () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        background:   active ? `${color}22` : 'transparent',
-        color:        active ? color : C.textMuted,
-        border:       `1px solid ${active ? color : C.border}`,
-        borderRadius: 7,
-        padding:      '5px 16px',
-        fontSize:     13,
-        fontWeight:   active ? 600 : 400,
-        cursor:       'pointer',
-        fontFamily:   'DM Sans,sans-serif',
-        transition:   'all 0.15s',
-      }}
-    >
-      {children}
-    </button>
   )
 }

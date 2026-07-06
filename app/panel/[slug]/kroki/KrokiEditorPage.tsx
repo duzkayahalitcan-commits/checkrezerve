@@ -26,13 +26,16 @@ export default function KrokiEditorPage({
       const res = await fetch('/api/panel/kroki', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ restaurant_id: restaurantId, kroki_data: data }),
+        body: JSON.stringify({ restaurant_id: restaurantId, floor_data: data }),
       })
-      if (!res.ok) throw new Error('Kaydedilemedi')
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}))
+        throw new Error(errBody.error ?? 'Kaydedilemedi')
+      }
       toast.show('Kroki kaydedildi ✅', 'success')
       router.refresh()
-    } catch {
-      toast.show('Kaydedilemedi', 'error')
+    } catch (e) {
+      toast.show(e instanceof Error ? e.message : 'Kaydedilemedi', 'error')
     }
     setSaving(false)
   }
