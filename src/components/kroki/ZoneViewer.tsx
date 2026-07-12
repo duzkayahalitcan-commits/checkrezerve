@@ -1,19 +1,23 @@
 'use client'
 
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { useState, useEffect } from 'react'
 import type { KrokiZone } from '@/src/types/kroki-zone'
 import { ZONE_THEME_LABELS, ZONE_THEME_BG } from '@/src/types/kroki-zone'
 
 const C = {
   red:       '#E53935',
   gold:      '#C8963E',
+  espresso:  '#1A1008',
   espressoM: '#2A1A12',
   espressoL: '#3A2518',
   border:    '#4A2E20',
   text:      '#F5ECD7',
   textMuted: '#A08060',
+  textFaint: '#5A3828',
 }
+
+const MOBILE_BREAKPOINT = 768
+const ASPECT_RATIO = 16 / 10
 
 interface Props {
   zones:           KrokiZone[]
@@ -23,126 +27,242 @@ interface Props {
 }
 
 export default function ZoneViewer({ zones, fullZoneIds = [], selectedZoneId, onSelect }: Props) {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  const isSelAny = zones.some(z => z.id === selectedZoneId)
+  const selectedZone = selectedZoneId ? zones.find(z => z.id === selectedZoneId) : null
+
+  const zoneList = zones.map(zone => {
+    const isFull = fullZoneIds.includes(zone.id)
+    const isSel  = zone.id === selectedZoneId
+    const bgImg  = zone.customPhoto ?? ZONE_THEME_BG[zone.theme] ?? ZONE_THEME_BG.ic_mekan
+
+    const thumbSize = isMobile ? 56 : 80
+    const cardMinH  = isMobile ? 64 : 72
+
+    return (
+      <button
+        key={zone.id}
+        onClick={() => {
+          if (isFull) return
+          onSelect(isSel ? null : zone.id, isSel ? null : zone.name)
+        }}
+        disabled={isFull}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          width: '100%', minHeight: cardMinH, padding: 0,
+          borderRadius: 10,
+          border: `2px solid ${isSel ? C.red : C.border}`,
+          background: isSel ? `${C.red}14` : C.espressoM,
+          cursor: isFull ? 'not-allowed' : 'pointer',
+          opacity: isFull ? 0.5 : 1,
+          overflow: 'hidden',
+          textAlign: 'left', fontFamily: 'inherit',
+          transition: 'all 0.15s',
+        }}
+      >
+        <div style={{
+          width: thumbSize, height: thumbSize, flexShrink: 0,
+          background: `url(${bgImg}) center/cover`,
+          borderRight: `1px solid ${isSel ? C.red : C.border}`,
+        }} />
+
+        <div style={{ flex: 1, padding: '10px 12px 10px 0', minWidth: 0 }}>
+          <div style={{
+            fontSize: 13, fontWeight: 700,
+            color: isSel ? C.red : C.text,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>
+            {zone.name}
+          </div>
+          <div style={{
+            fontSize: 11, color: isSel ? C.red : C.textMuted,
+            marginTop: 3, display: 'flex', gap: 6, flexWrap: 'wrap',
+          }}>
+            <span>{ZONE_THEME_LABELS[zone.theme]}</span>
+            <span>·</span>
+            <span>{zone.capacity} kişi</span>
+          </div>
+        </div>
+
+        <div style={{ paddingRight: 10 }}>
+          {isFull ? (
+            <span style={{
+              fontSize: 9, fontWeight: 800, color: C.red,
+              background: `${C.red}20`, padding: '2px 7px',
+              borderRadius: 4, letterSpacing: '0.04em',
+            }}>
+              DOLU
+            </span>
+          ) : isSel ? (
+            <span style={{ fontSize: 15, color: C.red, fontWeight: 700 }}>✓</span>
+          ) : null}
+        </div>
+      </button>
+    )
+  })
+
+  const bgImg = selectedZone
+    ? (selectedZone.customPhoto ?? ZONE_THEME_BG[selectedZone.theme] ?? ZONE_THEME_BG.ic_mekan)
+    : ''
+  const isFull = selectedZone ? fullZoneIds.includes(selectedZone.id) : false
+
   return (
     <div style={{ fontFamily: "'DM Sans','Inter',sans-serif", color: C.text }}>
-      {/* Başlık */}
-      <div style={{ padding: '0 0 14px', display: 'flex', alignItems: 'baseline', gap: 8 }}>
-        <span style={{ fontFamily: 'Playfair Display,serif', fontSize: 18, color: C.gold }}>
-          Bölge Seçin
-        </span>
-        <span style={{ fontSize: 12, color: C.textMuted }}>(isteğe bağlı)</span>
-      </div>
+      {/* ── Flex container: desktop=satır, mobile=sütun (önce preview) ── */}
+      <div style={{
+        display: 'flex',
+        gap: 14,
+        alignItems: 'stretch',
+        flexDirection: isMobile ? 'column' : 'row',
+      }}>
 
-      {/* Kart grid'i */}
-      {zones.length > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {zones.map(zone => {
-            const isFull = fullZoneIds.includes(zone.id)
-            const isSel  = zone.id === selectedZoneId
-            const bgImg  = zone.customPhoto ?? ZONE_THEME_BG[zone.theme] ?? ZONE_THEME_BG.ic_mekan
+        {/* ══════ LEFT PANEL — Scrollable zone list ══════ */}
+        <div style={{
+          width: isMobile ? '100%' : '35%',
+          minWidth: isMobile ? 0 : 200,
+          display: 'flex', flexDirection: 'column',
+          order: isMobile ? 2 : 0,
+        }}>
+          <div style={{ marginBottom: 10, display: 'flex', alignItems: 'baseline', gap: 6 }}>
+            <span style={{ fontFamily: 'Playfair Display,serif', fontSize: 18, color: C.gold }}>
+              Bölge Seçin
+            </span>
+            <span style={{ fontSize: 11, color: C.textMuted }}>(isteğe bağlı)</span>
+          </div>
 
-            return (
-              <motion.button
-                key={zone.id}
-                onClick={() => {
-                  if (isFull) return
-                  onSelect(isSel ? null : zone.id, isSel ? null : zone.name)
-                }}
-                whileTap={{ scale: 0.98 }}
-                disabled={isFull}
-                style={{
-                  display:        'flex',
-                  alignItems:     'center',
-                  gap:            14,
-                  width:          '100%',
-                  minHeight:      68,
-                  padding:        0,
-                  borderRadius:    12,
-                  border:         `2px solid ${isSel ? C.red : C.border}`,
-                  background:     isSel ? `${C.red}12` : C.espressoM,
-                  cursor:         isFull ? 'not-allowed' : 'pointer',
-                  opacity:        isFull ? 0.55 : 1,
-                  overflow:       'hidden',
-                  textAlign:      'left',
-                  fontFamily:     'inherit',
-                  transition:     'all 0.2s',
-                }}
-              >
-                {/* Görsel */}
-                <div
-                  style={{
-                    width:          80,
-                    height:         68,
-                    flexShrink:     0,
-                    background:     `url(${bgImg}) center/cover`,
-                    borderRight:    `1px solid ${C.border}`,
-                  }}
-                />
+          {zones.length > 0 ? (
+            <div style={{
+              display: 'flex', flexDirection: 'column', gap: 10,
+              overflowY: 'auto', maxHeight: isMobile ? 260 : 480, paddingRight: 6,
+            }}>
+              {zoneList}
+            </div>
+          ) : (
+            <div style={{ padding: '32px 0', textAlign: 'center', color: C.textMuted, fontSize: 13 }}>
+              Bu işletme için bölge tanımlanmamış.
+            </div>
+          )}
+        </div>
 
-                {/* Bilgi */}
-                <div style={{ flex: 1, padding: '8px 12px 8px 0' }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: isSel ? C.red : C.text }}>
-                    {zone.name}
+        {/* ══════ RIGHT PANEL — Large preview ══════ */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          borderRadius: 12,
+          overflow: 'hidden',
+          border: `1px solid ${C.border}`,
+          background: C.espresso,
+          minHeight: isMobile ? 240 : 400,
+          height: '100%',
+          order: isMobile ? 1 : 0,
+        }}>
+          {selectedZone ? (
+            <>
+              {/* Image container with 16/10 aspect ratio */}
+              <div style={{
+                position: 'relative',
+                width: '100%',
+                aspectRatio: `${ASPECT_RATIO}`,
+                flexShrink: 0,
+                background: `url(${bgImg}) center/cover`,
+              }}>
+                {/* DOLU overlay */}
+                {isFull && (
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    background: 'rgba(0,0,0,0.55)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    zIndex: 5,
+                  }}>
+                    <span style={{
+                      fontSize: 28, fontWeight: 900, color: C.red,
+                      letterSpacing: '0.1em',
+                      textShadow: '0 2px 12px rgba(0,0,0,0.6)',
+                      background: `${C.red}25`, padding: '8px 24px',
+                      borderRadius: 8, border: `2px solid ${C.red}60`,
+                    }}>
+                      DOLU
+                    </span>
                   </div>
-                  <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2, display: 'flex', gap: 8 }}>
-                    <span>{ZONE_THEME_LABELS[zone.theme]}</span>
+                )}
+
+                {/* Info overlay on image */}
+                <div style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 2,
+                  background: 'linear-gradient(transparent, rgba(0,0,0,0.92))',
+                  padding: '50px 24px 24px',
+                }}>
+                  <div style={{
+                    fontSize: 24, fontWeight: 800, color: '#fff',
+                    marginBottom: 4, textShadow: '0 1px 6px rgba(0,0,0,0.4)',
+                  }}>
+                    {selectedZone.name}
+                  </div>
+                  <div style={{
+                    display: 'flex', gap: 14,
+                    fontSize: 13, color: 'rgba(255,255,255,0.75)', fontWeight: 500,
+                  }}>
+                    <span>{ZONE_THEME_LABELS[selectedZone.theme]}</span>
                     <span>·</span>
-                    <span>{zone.capacity} kişi</span>
-                    {zone.tableCount > 0 && (
+                    <span>{selectedZone.capacity} kişi</span>
+                    {selectedZone.tableCount > 0 && (
                       <>
                         <span>·</span>
-                        <span>{zone.tableCount} masa</span>
+                        <span>{selectedZone.tableCount} masa</span>
                       </>
                     )}
                   </div>
                 </div>
-
-                {/* Dolu / seçili badge */}
-                <div style={{ paddingRight: 14 }}>
-                  {isFull ? (
-                    <span style={{ fontSize: 10, color: C.red, fontWeight: 700, background: `${C.red}20`, padding: '3px 8px', borderRadius: 4 }}>
-                      DOLU
-                    </span>
-                  ) : isSel ? (
-                    <span style={{ fontSize: 16 }}>✓</span>
-                  ) : null}
+              </div>
+            </>
+          ) : (
+            <div style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              minHeight: isMobile ? 240 : 400,
+            }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 32, marginBottom: 8, opacity: 0.3 }}>🗺️</div>
+                <div style={{ fontSize: 14, color: C.textMuted, fontWeight: 500 }}>
+                  Bir bölge seçin
                 </div>
-              </motion.button>
-            )
-          })}
+                <div style={{ fontSize: 11, color: C.textFaint, marginTop: 4 }}>
+                  Sol listeden bir bölgeye tıklayarak önizleyin
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      ) : (
-        <div style={{ padding: '40px 0', textAlign: 'center', color: C.textMuted, fontSize: 13 }}>
-          Bu işletme için bölge tanımlanmamış.
-        </div>
-      )}
+      </div>
 
-      {/* "Fark Etmez" butonu */}
-      <AnimatePresence>
-        <motion.button
-          key="fark-etmez"
+      {/* ── "Fark etmez" — full width below both panels ── */}
+      <div style={{ marginTop: 14 }}>
+        <button
           onClick={() => onSelect(null, null)}
-          whileTap={{ scale: 0.97 }}
           style={{
-            marginTop:    12,
-            width:        '100%',
-            minHeight:    44,
-            background:   selectedZoneId === null ? `${C.gold}22` : C.espressoM,
-            color:        selectedZoneId === null ? C.gold : C.textMuted,
-            border:       `1.5px solid ${selectedZoneId === null ? C.gold : C.border}`,
-            borderRadius: 12,
-            fontSize:     14,
-            fontWeight:   selectedZoneId === null ? 600 : 400,
-            cursor:       'pointer',
-            fontFamily:   'inherit',
-            transition:   'all 0.2s',
+            width: '100%', minHeight: 46,
+            background: !isSelAny ? `${C.gold}22` : C.espressoM,
+            color: !isSelAny ? C.gold : C.textMuted,
+            border: `1.5px solid ${!isSelAny ? C.gold : C.border}`,
+            borderRadius: 12, fontSize: 14,
+            fontWeight: !isSelAny ? 600 : 400,
+            cursor: 'pointer', fontFamily: 'inherit',
+            transition: 'all 0.2s',
           }}
         >
-          {selectedZoneId === null
+          {!isSelAny
             ? '✓ Fark etmez — herhangi bir bölge'
             : '↩ Fark etmez (bölge seçimini kaldır)'}
-        </motion.button>
-      </AnimatePresence>
+        </button>
+      </div>
     </div>
   )
 }

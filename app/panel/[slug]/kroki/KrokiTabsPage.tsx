@@ -47,12 +47,13 @@ export default function KrokiTabsPage({
   }, [mode])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 60px)' }}>
       {/* Mode selector */}
       <ModeSelector currentMode={mode} onChange={setMode} />
 
-      {/* Editors */}
-      {mode === 'tables' ? (
+      {/* Editors — fill remaining space */}
+      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+        {mode === 'tables' ? (
         <KrokiEditorPage
           restaurantId={restaurantId}
           slug={slug}
@@ -65,6 +66,7 @@ export default function KrokiTabsPage({
           initialZones={initialZones}
         />
       )}
+      </div>
     </div>
   )
 }

@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { ReservationForm } from './ReservationForm'
+import AIChatbot from '@/components/AIChatbot'
 import { BUSINESS_TYPE_ICONS, type BusinessType } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -63,8 +64,8 @@ export default async function BusinessPage({
 
   const localeKey = locale !== 'tr' ? `_${locale}` : ''
 
-  // Hizmetler, personel ve masa tipleri (paralel)
-  const [{ data: rawServices }, { data: staff }, { data: rawMasaTipleri }] = await Promise.all([
+  // Hizmetler, personel, masa tipleri ve AI feature flags (paralel)
+  const [{ data: rawServices }, { data: staff }, { data: rawMasaTipleri }, { data: featureFlags }] = await Promise.all([
     supabase
       .from('services')
       .select('id, name, name_en, name_ar, name_de, name_da, name_es, name_ru, duration_minutes, price, currency')
@@ -82,6 +83,10 @@ export default async function BusinessPage({
       .select('id, ad, ad_en, ad_ar, ad_de, ad_da, ad_es, ad_ru, kapasite')
       .eq('restaurant_id', restaurant.id)
       .order('sort_order'),
+    supabase
+      .from('feature_flags')
+      .select('feature, enabled')
+      .eq('restaurant_id', restaurant.id),
   ])
 
   const services = (rawServices ?? []).map((s: Record<string, unknown>) => ({
@@ -103,6 +108,12 @@ export default async function BusinessPage({
     ad_ru:    (m.ad_ru ?? null) as string | null,
     kapasite: m.kapasite as number,
   }))
+
+  // AI feature flags
+  const flagMap = new Map((featureFlags ?? []).map((f: { feature: string; enabled: boolean }) => [f.feature, f.enabled]))
+  const hasChatbot     = flagMap.get('ai_chatbot') === true
+  const hasReservation  = flagMap.get('ai_reservation') === true
+  const hasVoiceSearch  = flagMap.get('ai_voice_search') === true
 
   const today = new Date().toISOString().split('T')[0]
   const { count } = await supabase
@@ -218,6 +229,14 @@ export default async function BusinessPage({
           </p>
         </div>
       </div>
+
+      {/* AI Chatbot */}
+      {hasChatbot && (
+        <AIChatbot
+          restaurantId={restaurant.id}
+          hasVoice={hasVoiceSearch}
+        />
+      )}
     </div>
   )
 }

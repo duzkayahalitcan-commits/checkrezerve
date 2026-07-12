@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { useToast } from '@/components/ui/Toast'
@@ -12,7 +12,7 @@ import type { LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import InteractiveFloorMap from '@/components/InteractiveFloorMap'
 import type { TableLayout } from '@/components/InteractiveFloorMap'
-import ZoneViewer from '@/src/components/kroki/ZoneViewer'
+import { ZONE_THEME_LABELS } from '@/src/types/kroki-zone'
 import type { ZoneTheme, ZonePoint } from '@/src/types/kroki-zone'
 
 type Hizmet     = { id: string; name: string; duration_minutes: number; price: number | null }
@@ -166,6 +166,10 @@ export default function BookingForm({
   const [selectedArea, setSelectedArea] = useState<string | null>(
     specialAreas.length > 0 ? specialAreas[0].id : null
   )
+  const [selectedZone, setSelectedZone] = useState<{
+    id: string; name: string; color: string; capacity: number;
+    tableCount: number; theme: ZoneTheme; polygon: ZonePoint[]; customPhoto?: string | null
+  } | null>(null)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
@@ -212,6 +216,17 @@ export default function BookingForm({
       .then(json => { if (json?.times) setOccupiedSlots(new Set(json.times)) })
       .catch(() => {})
   }, [selectedDate, businessId])
+
+  // W-101: Zone modunda ilk bölgeyi varsayılan seç
+  const autoZoneRef = useRef(false)
+  useEffect(() => {
+    if (!autoZoneRef.current && krokiMode === 'zones' && Array.isArray(krokiZones) && krokiZones.length > 0) {
+      const first = krokiZones[0] as { id: string; name: string; color: string; capacity: number; tableCount: number; theme: ZoneTheme; polygon: ZonePoint[]; customPhoto?: string | null }
+      setSelectedZone(first)
+      setSelectedArea(first.id)
+      autoZoneRef.current = true
+    }
+  }, [krokiMode, krokiZones])
 
   // Calendar helpers
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate()
@@ -529,28 +544,111 @@ export default function BookingForm({
         id: string; name: string; color: string; capacity: number;
         tableCount: number; theme: ZoneTheme; polygon: ZonePoint[]; customPhoto?: string | null
       }>
+
+      const handleZoneSelect = (zone: typeof zones[number] | null) => {
+        setSelectedArea(zone?.id ?? null)
+        if (!zone) setSelectedTable(null)
+      }
+
       return (
-        <div className="w-full">
-          <ZoneViewer
-            zones={zones}
-            fullZoneIds={occupiedZoneIds}
-            selectedZoneId={selectedArea}
-            onSelect={(zoneId, zoneName) => {
-              setSelectedArea(zoneId)
-              if (!zoneId) setSelectedTable(null)
-            }}
-          />
-          <div className="flex justify-center mt-4">
-            {!selectedArea && (
-              <button
-                onClick={() => goNext()}
-                className="text-xs text-zinc-400 hover:text-zinc-600 underline underline-offset-2 transition-colors"
-              >
-                {r('adim.masa.opsiyonel')} — {r('step.atla')}
-              </button>
-            )}
+        /* ZONE SEÇİM BLOĞU — W-101 */
+        <div className="flex flex-col gap-3">
+
+          {/* Başlık */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-[#8B6914]">Bölge Seçin</span>
+            <span className="text-xs text-gray-400">(isteğe bağlı)</span>
           </div>
+
+          {/* Pill Tab Bar — üstte yatay scroll */}
+          <div
+            className="flex gap-2 overflow-x-auto pb-1"
+            style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
+          >
+            {zones.map((zone) => (
+              <button
+                key={zone.id}
+                onClick={() => setSelectedZone(zone)}
+                className={`flex-none px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap border ${
+                  selectedZone?.id === zone.id
+                    ? 'bg-[#E53935] text-white border-[#E53935] shadow-md'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-[#E53935] hover:text-[#E53935]'
+                }`}
+              >
+                {zone.name}
+              </button>
+            ))}
+          </div>
+
+          {/* Görsel Alan */}
+          {selectedZone ? (
+            <div className="relative w-full overflow-hidden rounded-2xl shadow-md">
+              <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                {selectedZone.customPhoto ? (
+                  <img
+                    src={selectedZone.customPhoto}
+                    alt={selectedZone.name}
+                    loading="eager"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-stone-700 via-stone-800 to-stone-900 flex items-center justify-center">
+                    <div className="text-center text-stone-400">
+                      <svg className="w-12 h-12 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                      </svg>
+                      <p className="text-sm opacity-60">{selectedZone.name}</p>
+                    </div>
+                  </div>
+                )}
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                {/* Overlay bilgi + seç butonu */}
+                <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
+                  <div>
+                    <h3 className="text-white text-lg font-bold leading-tight">{selectedZone.name}</h3>
+                    <p className="text-white/75 text-sm mt-0.5">
+                      {selectedZone.theme ? `${ZONE_THEME_LABELS[selectedZone.theme]} · ` : ''}{selectedZone.capacity} kişi
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleZoneSelect(selectedZone)}
+                    className="flex items-center gap-1.5 bg-[#E53935] text-white px-4 py-2 rounded-xl font-semibold text-sm hover:bg-[#C62828] transition-all active:scale-95 shadow-lg"
+                  >
+                    Seç
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Seçilmemiş state — temiz placeholder */
+            <div
+              className="w-full rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center"
+              style={{ aspectRatio: '16/9' }}
+            >
+              <div className="text-center text-gray-400 p-6">
+                <svg className="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p className="text-sm font-medium">Yukarıdan bir bölge seçin</p>
+                <p className="text-xs mt-1 opacity-70">Fotoğraf ve detayları göreceksiniz</p>
+              </div>
+            </div>
+          )}
+
+          {/* Fark etmez butonu */}
+          <button
+            onClick={() => { handleZoneSelect(null); setSelectedZone(null) }}
+            className="w-full py-3 rounded-xl text-sm text-gray-400 hover:text-gray-600 hover:bg-gray-50 border border-gray-200 transition-all font-medium"
+          >
+            ↩ Fark etmez — herhangi bir bölge
+          </button>
+
         </div>
+        /* ZONE SEÇİM BLOĞU SONU */
       )
     }
 
@@ -563,8 +661,12 @@ export default function BookingForm({
       )
     }
 
-    // Unique areas from tables + special_areas
-    const areas = specialAreas.length > 0 ? specialAreas : []
+    // tables modunda: area'ları floorTables'daki unique area_id'lerden türet
+    // zones modunda: specialAreas kullan (ZoneViewer zaten ayrı branch'te)
+    const uniqueAreaIds = Array.from(new Set(floorTables.map(t => t.area_id).filter(Boolean)))
+    const areas = uniqueAreaIds.length > 0
+      ? uniqueAreaIds.map(aid => ({ id: aid!, name: aid!, color: null }))
+      : []
     const areaTables = selectedArea
       ? floorTables.filter(t => t.area_id === selectedArea)
       : floorTables

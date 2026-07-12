@@ -1,52 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
 import { checkGreeting, searchFaq } from '@/lib/faq-search'
 import { rateLimit } from '@/lib/rate-limit'
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+async function callDeepSeek(systemPrompt: string, messages: {role: string, content: string}[]) {
+  const res = await fetch('https://api.deepseek.com/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'deepseek-chat', max_tokens: 512, messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-6)] }),
+  })
+  if (!res.ok) throw new Error(`DeepSeek error: ${res.status}`)
+  return (await res.json()).choices[0].message.content
+}
 
 export async function POST(request: NextRequest) {
-  const limited = rateLimit(request, { prefix: 'chat', max: 30, windowMs: 60_000 });
-  if (limited) return limited;
-
+  const limited = rateLimit(request, { prefix: 'chat', max: 30, windowMs: 60_000 })
+  if (limited) return limited
   try {
     const { messages, businessName, businessType, availableSlots } = await request.json()
-
-    // Son kullanıcı mesajını bul
-    const lastUserMsg = [...(messages ?? [])].reverse().find(
-      (m: { role: string; content: string }) => m.role === 'user'
-    )
+    const lastUserMsg = [...(messages ?? [])].reverse().find((m: {role: string, content: string}) => m.role === 'user')
     if (lastUserMsg) {
-      // Kademe 0: Selamlama ($0)
       const greeting = checkGreeting(lastUserMsg.content)
       if (greeting) return NextResponse.json({ message: greeting })
-
-      // Kademe 1-2: FAQ arama
       const faqAnswer = await searchFaq(lastUserMsg.content)
       if (faqAnswer) return NextResponse.json({ message: faqAnswer })
     }
-
     const isGeneral = !businessName || businessType === 'platform'
     const systemPrompt = isGeneral
-      ? `Sen CheckRezerve'in yapay zeka asistanısın. CheckRezerve, restoran, kuaför, spa, psikolog, klinik ve daha pek çok işletme için online rezervasyon platformudur. Kullanıcılara Türkçe olarak yardım ediyorsun. Görevlerin: hangi tür işletmelerin olduğunu açıklamak, /rezervasyon sayfasından işletme aratmak için yönlendirmek, platform hakkında soruları cevaplamak. Kısa, samimi ve net cevaplar ver.`
-      : `Sen ${businessName} adlı ${businessType} işletmesinin yapay zeka asistanısın. Müşterilere Türkçe olarak yardım ediyorsun. Görevlerin: randevu ayarlamak, sorulara cevap vermek, işletme hakkında bilgi vermek. Müsait randevu slotları: ${JSON.stringify(availableSlots || [])}. Kısa ve net cevaplar ver. Randevu için mutlaka isim, tarih ve saat bilgisi al.`
+      ? `Sen CheckRezerve'in yapay zeka asistanısın. Kullanıcılara Türkçe olarak yardım ediyorsun. Kısa, samimi ve net cevaplar ver.
 
+KESİN KURAL 1: SADECE CheckRezerve platformundaki gerçek işletmeleri öner. Hiçbir zaman platformda olmayan bir işletme adı uydurma, hayal etme veya önerme. Emin değilsen "Bunu platformumuzda arayarak bulabilirsiniz" de.
+
+KESİN KURAL 2: Asla rezervasyon oluşturduğunu, kaydettiğini veya onayladığını söyleme. "Rezervasyonunuz onaylandı", "rezervasyon oluşturuldu", "kaydettim" gibi ifadeleri ASLA kullanma. Rezervasyon işlemleri sayfadaki form üzerinden yapılır. Kullanıcıya "Sayfadaki formu doldurarak rezervasyon yapabilirsiniz" diye yönlendir.`
+      : `Sen ${businessName} adlı ${businessType} işletmesinin yapay zeka asistanısın. Müsait slotlar: ${JSON.stringify(availableSlots || [])}.
+
+KESİN KURAL: Sen sadece bilgi toplar ve yönlendirirsin, asla rezervasyon oluşturmazsın. Gerçek rezervasyon kullanıcı tarafından sayfadaki form aracılığıyla yapılır. ASLA "rezervasyonunuz onaylandı", "rezervasyon oluşturuldu", "kaydettim", "tamamlandı" deme. Bunun yerine bilgileri topla ve şöyle yönlendir: "Bilgilerinizi aldım! Şimdi sayfadaki rezervasyon formunu doldurarak rezervasyonunuzu tamamlayabilirsiniz."`
     try {
-      const response = await anthropic.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 512,
-        system: systemPrompt,
-        messages: messages.slice(-6),
-      })
-
-      return NextResponse.json({
-        message: response.content[0].type === 'text' ? response.content[0].text : '',
-      })
+      const message = await callDeepSeek(systemPrompt, messages)
+      return NextResponse.json({ message })
     } catch (aiError) {
       console.error('[chat/ai]', aiError)
-      return NextResponse.json({
-        message: 'Şu an yapay zeka asistanına ulaşılamıyor. Rezervasyon için lütfen bizi doğrudan arayın veya formu kullanarak rezervasyon yapın.',
-      })
+      return NextResponse.json({ message: 'Şu an yapay zeka asistanına ulaşılamıyor. Lütfen bizi doğrudan arayın.' })
     }
   } catch (error) {
     console.error('[chat]', error)

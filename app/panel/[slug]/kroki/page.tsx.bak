@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import KrokiTabsPage from './KrokiTabsPage'
 import type { Mode } from './KrokiTabsPage'
 import type { KrokiZone } from '@/src/types/kroki-zone'
+import { TABLE_TYPES } from '@/src/lib/kroki-config'
 
 export const dynamic = 'force-dynamic'
 

@@ -364,7 +364,8 @@ export default function KrokiEditor({
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
-        height: '100vh',
+        height: '100%',
+        minHeight: 0,
         background: C.surface,
         color: C.text,
         fontFamily: "'DM Sans','Inter',sans-serif",
@@ -654,7 +655,7 @@ export default function KrokiEditor({
         </div>
 
         {/* ── Canvas ────────────────────────────────────────────── */}
-        <div ref={canvasRef} style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#0D0704' }}>
+        <div ref={canvasRef} style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#0D0704', backgroundImage: BG[floor?.theme ?? 'indoor'] ? 'url('+BG[floor?.theme ?? 'indoor']+')' : undefined, backgroundSize: 'cover', backgroundPosition: 'center' }}>
           <svg
             ref={svgRef}
             style={{ width: '100%', height: '100%', display: 'block', cursor }}
@@ -784,7 +785,7 @@ export default function KrokiEditor({
                 {THEMES.map(t => (
                   <div
                     key={t.id}
-                    onClick={() => setFloorTheme(t.id)}
+                    onClick={() => { setFloors(f => f.map(fl => fl.id === activeFloor ? { ...fl, theme: t.id } : fl)); setShowThemes(false) }}
                     style={{
                       width: 120,
                       borderRadius: 8,
@@ -794,14 +795,7 @@ export default function KrokiEditor({
                       transition: 'all 0.15s',
                     }}
                   >
-                    <div
-                      style={{
-                        height: 64,
-                        backgroundImage: `url(${BG[t.id]})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                      }}
-                    />
+
                     <div
                       style={{
                         padding: '6px 8px',
