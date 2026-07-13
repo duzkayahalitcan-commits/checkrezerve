@@ -1,0 +1,3380 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: app/**/super-admin/**, app/**/admin/**, components/admin/**, components/super**, lib/supabase*, types/**
+- Files matching these patterns are excluded: node_modules, .next, .git
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/
+  admin/
+    floor-plan/
+      [id]/
+        FloorPlanEditor.tsx
+        FloorPlanEditorWrapper.tsx
+        page.tsx
+    login/
+      actions.ts
+      LoginForm.tsx
+      page.tsx
+    logout/
+      route.ts
+    restaurants/
+      [id]/
+        page.tsx
+        RestaurantDetail.tsx
+      actions.ts
+      AddRestaurantForm.tsx
+      QRCodeButton.tsx
+      UserForm.tsx
+    FeatureFlagManager.tsx
+    page.tsx
+    ReservationDashboard.tsx
+    RestaurantList.tsx
+    SmsLog.tsx
+  api/
+    admin/
+      audit-logs/
+        route.ts
+      feature-flags/
+        route.ts
+      restaurant/
+        route.ts
+      restaurant-users/
+        route.ts
+      tables/
+        route.ts
+lib/
+  supabase.ts
+types/
+  index.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/admin/floor-plan/[id]/FloorPlanEditor.tsx">
+'use client'
+
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Stage, Layer, Group, Rect, Text, Transformer } from 'react-konva'
+import type Konva from 'konva'
+
+export type ElementType = 'table' | 'tree' | 'window' | 'door'
+
+export type EditorTable = {
+  id: string
+  label: string
+  capacity: number
+  x: number
+  y: number
+  width: number
+  height: number
+  shape: 'rect' | 'circle'
+  element_type?: ElementType
+}
+
+interface Props {
+  restaurantId: string
+  initialTables: EditorTable[]
+  floorPlanEnabled: boolean
+}
+
+const STAGE_W  = 880
+const STAGE_H  = 560
+const MIN_SIZE = 30
+const GRID     = 20
+
+function makeId() {
+  return typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `t-${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
+function isTable(t: EditorTable) {
+  return !t.element_type || t.element_type === 'table'
+}
+
+function elementColors(t: EditorTable, sel: boolean) {
+  if (t.element_type === 'tree') {
+    return {
+      fill:   sel ? '#BBF7D0' : '#86EFAC',
+      stroke: sel ? '#16A34A' : '#15803D',
+      text:   sel ? '#14532D' : '#166534',
+    }
+  }
+  if (t.element_type === 'window') {
+    return {
+      fill:   sel ? '#BFDBFE' : '#DBEAFE',
+      stroke: sel ? '#2563EB' : '#60A5FA',
+      text:   sel ? '#1E40AF' : '#1D4ED8',
+    }
+  }
+  if (t.element_type === 'door') {
+    return {
+      fill:   sel ? '#FDE68A' : '#FEF3C7',
+      stroke: sel ? '#B45309' : '#D97706',
+      text:   sel ? '#78350F' : '#92400E',
+    }
+  }
+  // default: table
+  return {
+    fill:   sel ? '#DBEAFE' : '#FEF3C7',
+    stroke: sel ? '#2563EB' : '#D97706',
+    text:   sel ? '#1D4ED8' : '#92400E',
+  }
+}
+
+export default function FloorPlanEditor({
+  restaurantId,
+  initialTables,
+  floorPlanEnabled: initEnabled,
+}: Props) {
+  const [tables,     setTables]     = useState<EditorTable[]>(initialTables)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [editingId,  setEditingId]  = useState<string | null>(null)
+  const [editLabel,  setEditLabel]  = useState('')
+  const [editCap,    setEditCap]    = useState(4)
+  const [enabled,    setEnabled]    = useState(initEnabled)
+  const [saving,     setSaving]     = useState(false)
+  const [savedMsg,   setSavedMsg]   = useState(false)
+
+  // Konva refs
+  const groupRefs = useRef<Map<string, Konva.Group>>(new Map())
+  const trRef     = useRef<Konva.Transformer>(null)
+
+  // Fix 1: Transformer ayrı layer'da — group re-render tetiklemiyor
+  useEffect(() => {
+    const tr = trRef.current
+    if (!tr) return
+    const node = selectedId ? groupRefs.current.get(selectedId) : undefined
+    tr.nodes(node ? [node] : [])
+    tr.getLayer()?.batchDraw()
+  }, [selectedId])
+
+  const registerRef = useCallback(
+    (id: string) => (node: Konva.Group | null) => {
+      if (node) groupRefs.current.set(id, node)
+      else      groupRefs.current.delete(id)
+    },
+    []
+  )
+
+  const update = useCallback((id: string, patch: Partial<EditorTable>) => {
+    setTables(prev => prev.map(t => (t.id === id ? { ...t, ...patch } : t)))
+  }, [])
+
+  // ── Actions ────────────────────────────────────────────────────────────────
+
+  function addTable(shape: 'rect' | 'circle') {
+    const count = tables.length
+    setTables(prev => [
+      ...prev,
+      {
+        id:           makeId(),
+        label:        `M${count + 1}`,
+        capacity:     4,
+        x:            60 + (count % 5) * 150,
+        y:            60 + Math.floor(count / 5) * 150,
+        width:        shape === 'circle' ? 84 : 96,
+        height:       shape === 'circle' ? 84 : 72,
+        shape,
+        element_type: 'table',
+      },
+    ])
+  }
+
+  // Fix 4: Dekoratif eleman ekleme (is_table=false)
+  function addElement(element_type: 'tree' | 'window' | 'door') {
+    const count = tables.length
+    const defaults: Record<string, { w: number; h: number; shape: 'rect' | 'circle'; label: string }> = {
+      tree:   { w: 52, h: 52, shape: 'circle', label: 'Ağaç' },
+      window: { w: 100, h: 20, shape: 'rect',  label: 'Cam'  },
+      door:   { w: 80,  h: 20, shape: 'rect',  label: 'Kapı' },
+    }
+    const d = defaults[element_type]
+    setTables(prev => [
+      ...prev,
+      {
+        id:           makeId(),
+        label:        d.label,
+        capacity:     0,
+        x:            60 + (count % 5) * 140,
+        y:            60 + Math.floor(count / 5) * 120,
+        width:        d.w,
+        height:       d.h,
+        shape:        d.shape,
+        element_type,
+      },
+    ])
+  }
+
+  function deleteSelected() {
+    if (!selectedId) return
+    setTables(prev => prev.filter(t => t.id !== selectedId))
+    setSelectedId(null)
+  }
+
+  function openEdit(t: EditorTable) {
+    setEditingId(t.id)
+    setEditLabel(t.label)
+    setEditCap(t.capacity)
+  }
+
+  function confirmEdit() {
+    if (!editingId) return
+    const t = tables.find(x => x.id === editingId)
+    update(editingId, {
+      label:    editLabel.trim() || (t ? t.label : 'Masa'),
+      ...(t && isTable(t) ? { capacity: Math.max(1, editCap) } : {}),
+    })
+    setEditingId(null)
+  }
+
+  async function save() {
+    setSaving(true)
+    try {
+      // Dekoratif elemanlar is_table=false olarak işaretleniyor
+      const payload = tables.map(t => ({
+        ...t,
+        is_table: isTable(t),
+      }))
+      const res = await fetch('/api/admin/tables', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ restaurant_id: restaurantId, tables: payload, floor_plan_enabled: enabled }),
+      })
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        throw new Error(json.error ?? 'Sunucu hatası')
+      }
+      setSavedMsg(true)
+      setTimeout(() => setSavedMsg(false), 2500)
+    } catch (err) {
+      alert((err as Error).message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+
+  return (
+    <div className="flex flex-col gap-4">
+
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => addTable('rect')}
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200
+                     text-amber-800 text-sm font-semibold hover:bg-amber-100 transition-colors"
+        >
+          <span className="text-base">⬛</span> Kare Masa Ekle
+        </button>
+        <button
+          onClick={() => addTable('circle')}
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200
+                     text-amber-800 text-sm font-semibold hover:bg-amber-100 transition-colors"
+        >
+          <span className="text-base">⬤</span> Yuvarlak Masa Ekle
+        </button>
+
+        {/* Fix 4: Yeni eleman butonları */}
+        <button
+          onClick={() => addElement('tree')}
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-green-50 border border-green-200
+                     text-green-800 text-sm font-semibold hover:bg-green-100 transition-colors"
+        >
+          🌳 Ağaç
+        </button>
+        <button
+          onClick={() => addElement('window')}
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200
+                     text-blue-800 text-sm font-semibold hover:bg-blue-100 transition-colors"
+        >
+          🪟 Cam
+        </button>
+        <button
+          onClick={() => addElement('door')}
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-orange-50 border border-orange-200
+                     text-orange-800 text-sm font-semibold hover:bg-orange-100 transition-colors"
+        >
+          🚪 Kapı
+        </button>
+
+        <button
+          onClick={deleteSelected}
+          disabled={!selectedId}
+          className="px-4 py-2.5 rounded-xl border border-red-200 text-red-700 text-sm font-semibold
+                     hover:bg-red-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          🗑 Sil
+        </button>
+
+        <div className="ml-auto flex items-center gap-3">
+          <label className="flex items-center gap-2 text-sm font-medium text-zinc-700 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={enabled}
+              onChange={e => setEnabled(e.target.checked)}
+              className="w-4 h-4 rounded"
+            />
+            Kroki aktif
+          </label>
+          <button
+            onClick={save}
+            disabled={saving}
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-colors disabled:opacity-60
+              ${savedMsg
+                ? 'bg-green-600 text-white'
+                : 'bg-red-600 hover:bg-red-700 text-white'}`}
+          >
+            {saving ? 'Kaydediliyor…' : savedMsg ? '✓ Kaydedildi' : 'Kaydet'}
+          </button>
+        </div>
+      </div>
+
+      {/* Hint */}
+      <p className="text-xs text-zinc-400">
+        Tıklayarak seçin · Sürükleyerek konumlandırın · Kenarlıktan çekerek boyutlandırın · Çift tıklayarak adı düzenleyin
+      </p>
+
+      {/* Canvas */}
+      <div
+        className="rounded-2xl border border-zinc-200 overflow-hidden bg-zinc-50"
+        style={{ width: STAGE_W, maxWidth: '100%' }}
+      >
+        <Stage
+          width={STAGE_W}
+          height={STAGE_H}
+          onMouseDown={e => {
+            if (e.target === e.target.getStage()) setSelectedId(null)
+          }}
+        >
+          {/* Fix 3: Grid ayrı layer — hiç event dinlemiyor, table layer'ını yavaşlatmıyor */}
+          <Layer listening={false}>
+            {Array.from({ length: Math.floor(STAGE_W / GRID) + 1 }, (_, i) => (
+              <Rect key={`v${i}`} x={i * GRID} y={0} width={1} height={STAGE_H}
+                fill="#E5E7EB" perfectDrawEnabled={false} />
+            ))}
+            {Array.from({ length: Math.floor(STAGE_H / GRID) + 1 }, (_, i) => (
+              <Rect key={`h${i}`} x={0} y={i * GRID} width={STAGE_W} height={1}
+                fill="#E5E7EB" perfectDrawEnabled={false} />
+            ))}
+          </Layer>
+
+          {/* Tables layer */}
+          <Layer>
+            {tables.map(t => {
+              const sel    = selectedId === t.id
+              const radius = t.shape === 'circle'
+                ? Math.min(t.width, t.height) / 2
+                : 8
+              const colors = elementColors(t, sel)
+              const isThin = (t.element_type === 'window' || t.element_type === 'door')
+
+              return (
+                // Fix 1: perfectDrawEnabled={false} — Konva'nın çift render pass'ini devre dışı bırakır
+                <Group
+                  key={t.id}
+                  ref={registerRef(t.id)}
+                  x={t.x}
+                  y={t.y}
+                  draggable
+                  perfectDrawEnabled={false}
+                  onClick={() => setSelectedId(t.id)}
+                  onDblClick={() => openEdit(t)}
+                  // Fix 3: onDragEnd ile kaydet (onDragMove'da her frame state update olmamalı)
+                  onDragEnd={e =>
+                    update(t.id, { x: e.target.x(), y: e.target.y() })
+                  }
+                  onTransformEnd={e => {
+                    const node = e.target as Konva.Group
+                    const sx   = node.scaleX()
+                    const sy   = node.scaleY()
+                    node.scaleX(1)
+                    node.scaleY(1)
+                    update(t.id, {
+                      x:      node.x(),
+                      y:      node.y(),
+                      width:  Math.max(MIN_SIZE, t.width  * sx),
+                      height: Math.max(MIN_SIZE, t.height * sy),
+                    })
+                  }}
+                >
+                  <Rect
+                    width={t.width}
+                    height={t.height}
+                    cornerRadius={radius}
+                    fill={colors.fill}
+                    stroke={colors.stroke}
+                    strokeWidth={sel ? 2.5 : 1.5}
+                    shadowBlur={sel ? 10 : 4}
+                    shadowColor={sel ? '#93C5FD' : '#00000018'}
+                    shadowEnabled
+                    perfectDrawEnabled={false}
+                  />
+                  {/* Fix 1: sadece bir Text — label ortada, ince elemanlarda üstte */}
+                  <Text
+                    width={t.width}
+                    y={isThin ? (t.height / 2 - 6) : (t.height / 2 - 12)}
+                    align="center"
+                    text={t.label}
+                    fontSize={isThin ? 9 : 13}
+                    fontStyle="bold"
+                    fill={colors.text}
+                    listening={false}
+                    perfectDrawEnabled={false}
+                  />
+                  {/* Kapasite sadece masa tiplerinde gösterilir */}
+                  {isTable(t) && (
+                    <Text
+                      width={t.width}
+                      y={t.height / 2 + 2}
+                      align="center"
+                      text={`${t.capacity} kişi`}
+                      fontSize={10}
+                      fill={colors.text}
+                      listening={false}
+                      perfectDrawEnabled={false}
+                    />
+                  )}
+                </Group>
+              )
+            })}
+          </Layer>
+
+          {/* Fix 1: Transformer ayrı layer'da — table layer'ını kirletmiyor */}
+          <Layer>
+            <Transformer
+              ref={trRef}
+              rotateEnabled={false}
+              keepRatio={false}
+              boundBoxFunc={(old, box) =>
+                box.width < MIN_SIZE || box.height < MIN_SIZE ? old : box
+              }
+            />
+          </Layer>
+        </Stage>
+      </div>
+
+      {tables.length === 0 && (
+        <p className="text-center text-sm text-zinc-400 py-4">
+          Yukarıdaki butonlarla masa ekleyerek başlayın.
+        </p>
+      )}
+
+      {/* Edit modal */}
+      {editingId && (() => {
+        const t = tables.find(x => x.id === editingId)
+        if (!t) return null
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 w-80">
+              <h3 className="font-bold text-zinc-900 mb-4">
+                {isTable(t) ? 'Masa Düzenle' : 'Eleman Düzenle'}
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">
+                    {isTable(t) ? 'Masa Adı / No' : 'Etiket'}
+                  </label>
+                  {/* Fix 2: text rengi explicit — background ile aynı renge düşmesin */}
+                  <input
+                    autoFocus
+                    type="text"
+                    value={editLabel}
+                    onChange={e => setEditLabel(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && confirmEdit()}
+                    className="w-full border border-zinc-200 rounded-xl px-3 py-2.5 text-sm
+                               focus:outline-none focus:border-red-400 transition-colors"
+                    style={{ color: '#1a1a1a', backgroundColor: '#ffffff' }}
+                  />
+                </div>
+                {isTable(t) && (
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">
+                      Kapasite (kişi)
+                    </label>
+                    {/* Fix 2: text rengi explicit */}
+                    <input
+                      type="number"
+                      min={1}
+                      max={30}
+                      value={editCap}
+                      onChange={e => setEditCap(parseInt(e.target.value, 10) || 1)}
+                      className="w-full border border-zinc-200 rounded-xl px-3 py-2.5 text-sm
+                                 focus:outline-none focus:border-red-400 transition-colors"
+                      style={{ color: '#1a1a1a', backgroundColor: '#ffffff' }}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2 mt-5">
+                <button
+                  onClick={() => setEditingId(null)}
+                  className="flex-1 py-2.5 rounded-xl border border-zinc-200 text-sm
+                             text-zinc-600 hover:bg-zinc-50 transition-colors"
+                >
+                  İptal
+                </button>
+                <button
+                  onClick={confirmEdit}
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700
+                             text-white text-sm font-bold transition-colors"
+                >
+                  Kaydet
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+    </div>
+  )
+}
+</file>
+
+<file path="app/admin/floor-plan/[id]/FloorPlanEditorWrapper.tsx">
+'use client'
+
+// Client boundary needed so `next/dynamic` with ssr:false is valid here.
+import dynamic from 'next/dynamic'
+import type { EditorTable } from './FloorPlanEditor'
+
+const FloorPlanEditor = dynamic(() => import('./FloorPlanEditor'), { ssr: false })
+
+interface Props {
+  restaurantId:     string
+  initialTables:    EditorTable[]
+  floorPlanEnabled: boolean
+}
+
+export default function FloorPlanEditorWrapper(props: Props) {
+  return <FloorPlanEditor {...props} />
+}
+</file>
+
+<file path="app/admin/floor-plan/[id]/page.tsx">
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { getSupabaseAdmin } from '@/lib/supabase'
+import type { FloorTable } from '@/types'
+import FloorPlanEditorWrapper from './FloorPlanEditorWrapper'
+
+type Props = { params: Promise<{ id: string }> }
+
+export default async function FloorPlanPage({ params }: Props) {
+  const { id } = await params
+  const supabase = getSupabaseAdmin()
+
+  const [{ data: restaurant }, { data: rawTables }] = await Promise.all([
+    supabase
+      .from('restaurants')
+      .select('id, name, floor_plan_enabled')
+      .eq('id', id)
+      .single(),
+    supabase
+      .from('tables')
+      .select('*')
+      .eq('restaurant_id', id)
+      .eq('is_active', true)
+      .order('created_at'),
+  ])
+
+  if (!restaurant) notFound()
+
+  const tables = (rawTables ?? []) as FloorTable[]
+
+  return (
+    <div className="min-h-screen bg-stone-950 text-white">
+      {/* Header */}
+      <div className="border-b border-white/5 px-4 py-3 sm:px-6">
+        <div className="mx-auto max-w-6xl flex items-center gap-4">
+          <Link
+            href="/admin"
+            className="text-stone-500 hover:text-white text-xs transition-colors shrink-0"
+          >
+            ← Admin
+          </Link>
+          <div>
+            <h1 className="text-sm font-bold text-white leading-tight">
+              {restaurant.name}
+            </h1>
+            <p className="text-xs text-stone-500">Masa Krokisi Düzenleyici</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+        <div className="bg-white rounded-2xl p-5 sm:p-6 overflow-x-auto">
+          <FloorPlanEditorWrapper
+            restaurantId={restaurant.id}
+            initialTables={tables}
+            floorPlanEnabled={restaurant.floor_plan_enabled ?? false}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="app/admin/login/page.tsx">
+import type { Metadata } from 'next'
+import { LoginForm } from './LoginForm'
+
+export const metadata: Metadata = {
+  title: 'Admin Girişi',
+  robots: { index: false, follow: false },
+}
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string }>
+}) {
+  const { from } = await searchParams
+  const redirectTo = from ?? '/admin'
+
+  return (
+    <div className="min-h-screen bg-stone-950 flex items-center justify-center px-4">
+      <div className="w-full max-w-sm">
+        {/* Logo */}
+        <div className="flex flex-col items-center gap-3 mb-8">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-xl shadow-amber-900/40">
+            <span className="text-2xl font-black text-white">C</span>
+          </div>
+          <div className="text-center">
+            <h1 className="text-xl font-bold text-white">checkrezerve</h1>
+            <p className="text-xs text-stone-500 mt-0.5">Admin Paneli</p>
+          </div>
+        </div>
+
+        {/* Kart */}
+        <div className="bg-white/5 border border-white/8 rounded-3xl p-6">
+          <LoginForm redirectTo={redirectTo} />
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="app/admin/logout/route.ts">
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+
+export async function POST() {
+  const jar = await cookies()
+  jar.delete('cr_admin')
+  redirect('/admin/login')
+}
+</file>
+
+<file path="app/admin/restaurants/AddRestaurantForm.tsx">
+'use client'
+
+import { useActionState, useState } from 'react'
+import { createRestaurant, type RestaurantState } from './actions'
+import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS, type BusinessType } from '@/types'
+
+const initial: RestaurantState = { error: null, success: false }
+
+const BUSINESS_TYPES = Object.entries(BUSINESS_TYPE_LABELS) as [BusinessType, string][]
+
+export function AddRestaurantForm() {
+  const [open, setOpen]                   = useState(false)
+  const [state, formAction, pending]      = useActionState(createRestaurant, initial)
+  const [businessType, setBusinessType]   = useState<BusinessType>('restaurant')
+
+  if (state.success && open) setOpen(false)
+
+  return (
+    <div className="mb-6">
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-2 rounded-xl border border-dashed border-white/15 bg-white/3 px-4 py-2.5 text-sm text-stone-400 hover:border-amber-500/40 hover:text-amber-400 transition-colors"
+        >
+          <span className="text-lg leading-none">+</span> İşletme Ekle
+        </button>
+      ) : (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-white">Yeni İşletme</h2>
+            <button onClick={() => setOpen(false)} className="text-stone-500 hover:text-stone-300 text-xs">
+              İptal
+            </button>
+          </div>
+
+          <form action={formAction} className="flex flex-col gap-3">
+
+            {/* Sektör Seçimi */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-stone-400">Sektör *</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {BUSINESS_TYPES.filter(([k]) => k !== 'other').map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setBusinessType(key)}
+                    className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs transition-all ${
+                      businessType === key
+                        ? 'border-amber-500/60 bg-amber-500/10 text-amber-400 font-medium'
+                        : 'border-white/10 text-stone-400 hover:border-white/20'
+                    }`}
+                  >
+                    <span>{BUSINESS_TYPE_ICONS[key]}</span>
+                    <span className="truncate">{label}</span>
+                  </button>
+                ))}
+              </div>
+              <input type="hidden" name="business_type" value={businessType} />
+            </div>
+
+            {/* İsim + Telefon */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-stone-400">İşletme Adı *</label>
+                <input
+                  name="name"
+                  required
+                  placeholder="Elit Kuaför Salonu"
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-stone-600 focus:border-amber-500/50 focus:outline-none"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-stone-400">Telefon</label>
+                <input
+                  name="phone"
+                  type="tel"
+                  placeholder="+905321234567"
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-stone-600 focus:border-amber-500/50 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Adres + Kapasite */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-stone-400">Adres</label>
+                <input
+                  name="address"
+                  placeholder="Nişantaşı, İstanbul"
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-stone-600 focus:border-amber-500/50 focus:outline-none"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-stone-400">
+                  {businessType === 'restaurant' ? 'Kapasite (kişi)' : 'Günlük Maks. Randevu'}
+                </label>
+                <input
+                  name="capacity"
+                  type="number"
+                  min={1}
+                  defaultValue={businessType === 'restaurant' ? 50 : 20}
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white focus:border-amber-500/50 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Randevu Süresi + Instagram */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-stone-400">Varsayılan Randevu Süresi (dk)</label>
+                <input
+                  name="booking_duration_minutes"
+                  type="number"
+                  min={15}
+                  step={15}
+                  defaultValue={businessType === 'restaurant' ? 120 : 60}
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white focus:border-amber-500/50 focus:outline-none"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-stone-400">Instagram (opsiyonel)</label>
+                <input
+                  name="instagram"
+                  placeholder="@isletmeniz"
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-stone-600 focus:border-amber-500/50 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {state.error && (
+              <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">
+                {state.error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={pending}
+              className="mt-1 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-2.5 text-sm font-bold text-white disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {pending ? 'Kaydediliyor…' : 'Kaydet'}
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  )
+}
+</file>
+
+<file path="app/admin/restaurants/QRCodeButton.tsx">
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import QRCode from 'qrcode'
+
+// Rezervasyon sayfası base URL — admin path'den bağımsız
+function getBaseUrl(): string {
+  // 1. Açıkça tanımlanmış uygulama URL'si (önerilen)
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')
+  // 2. Tarayıcıdan origin al (her zaman admin path'i içermez)
+  if (typeof window !== 'undefined') return window.location.origin
+  // 3. Railway fallback
+  return 'https://checkrezerve-app-production.up.railway.app'
+}
+
+export function QRCodeButton({ slug, name }: { slug: string; name: string }) {
+  const [open, setOpen] = useState(false)
+  const canvasRef       = useRef<HTMLCanvasElement>(null)
+
+  // Her zaman halka açık rezervasyon sayfası: <base>/<slug>
+  const reservationUrl  = `${getBaseUrl()}/${slug}`
+
+  useEffect(() => {
+    if (!open || !canvasRef.current) return
+    QRCode.toCanvas(canvasRef.current, reservationUrl, {
+      width:  256,
+      margin: 2,
+      color:  { dark: '#18181b', light: '#ffffff' },
+    })
+  }, [open, reservationUrl])
+
+  function download() {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const link    = document.createElement('a')
+    link.download = `qr-${slug}.png`
+    link.href     = canvas.toDataURL('image/png')
+    link.click()
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        title="QR Kod Oluştur"
+        className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-stone-400 hover:border-amber-500/30 hover:text-amber-400 transition-colors"
+      >
+        QR
+      </button>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          onClick={() => setOpen(false)}
+        >
+          <div
+            className="bg-stone-900 border border-white/10 rounded-2xl p-6 flex flex-col items-center gap-4 max-w-xs w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Başlık */}
+            <div className="text-center">
+              <p className="text-sm font-semibold text-white">{name}</p>
+              <p className="text-xs text-stone-500 mt-0.5">Rezervasyon Sayfası</p>
+            </div>
+
+            {/* QR Kod */}
+            <div className="rounded-xl overflow-hidden bg-white p-3">
+              <canvas ref={canvasRef} />
+            </div>
+
+            {/* URL */}
+            <p className="text-xs text-stone-500 text-center break-all font-mono">
+              {reservationUrl}
+            </p>
+
+            {/* Alt ibare */}
+            <p className="text-xs text-amber-400/80 text-center font-medium">
+              Müşterileriniz için masaya koymaya hazır
+            </p>
+
+            {/* Butonlar */}
+            <div className="flex gap-2 w-full">
+              <button
+                onClick={download}
+                className="flex-1 rounded-xl bg-amber-500 py-2.5 text-sm font-bold text-white hover:bg-amber-400 transition-colors"
+              >
+                PNG İndir
+              </button>
+              <button
+                onClick={() => setOpen(false)}
+                className="rounded-xl border border-white/10 px-4 py-2.5 text-sm text-stone-400 hover:text-white transition-colors"
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+</file>
+
+<file path="app/admin/restaurants/UserForm.tsx">
+'use client'
+
+import { useActionState } from 'react'
+import { createRestaurantUser } from './actions'
+import { getRoleLabel } from '@/lib/roles'
+import type { Restaurant, RestaurantUser } from '@/types'
+
+interface Props {
+  restaurants: Restaurant[]
+  users:       (RestaurantUser & { restaurant_name: string })[]
+}
+
+export default function UserForm({ restaurants, users }: Props) {
+  const [state, action, pending] = useActionState(createRestaurantUser, { error: null, success: false })
+
+  return (
+    <div className="space-y-4">
+      {/* ─── Yeni kullanıcı formu ─── */}
+      <div className="bg-stone-900 border border-stone-800 rounded-xl p-4">
+        <h3 className="text-sm font-semibold text-stone-200 mb-3">Yeni Panel Kullanıcısı</h3>
+        <form action={action} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-stone-500 text-xs mb-1">Restoran</label>
+            <select
+              name="restaurant_id"
+              required
+              className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2
+                         text-white text-sm focus:outline-none focus:border-amber-500"
+            >
+              <option value="">Seçin…</option>
+              {restaurants.map(r => (
+                <option key={r.id} value={r.id}>{r.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-stone-500 text-xs mb-1">Rol</label>
+            <select
+              name="role"
+              className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2
+                         text-white text-sm focus:outline-none focus:border-amber-500"
+            >
+              <option value="business_owner">Sahip</option>
+              <option value="business_manager">Yönetici</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-stone-500 text-xs mb-1">Kullanıcı Adı</label>
+            <input
+              name="username"
+              type="text"
+              required
+              placeholder="nusret_yonetici"
+              className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2
+                         text-white text-sm placeholder-stone-600 focus:outline-none focus:border-amber-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-stone-500 text-xs mb-1">Şifre</label>
+            <input
+              name="password"
+              type="password"
+              required
+              placeholder="En az 8 karakter"
+              minLength={8}
+              className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2
+                         text-white text-sm placeholder-stone-600 focus:outline-none focus:border-amber-500"
+            />
+          </div>
+
+          {state.error && (
+            <p className="col-span-2 text-red-400 text-xs bg-red-950/40 border border-red-900/50
+                          rounded-lg px-3 py-2">
+              {state.error}
+            </p>
+          )}
+          {state.success && (
+            <p className="col-span-2 text-emerald-400 text-xs bg-emerald-950/40 border border-emerald-900/50
+                          rounded-lg px-3 py-2">
+              Kullanıcı oluşturuldu.
+            </p>
+          )}
+
+          <div className="col-span-2">
+            <button
+              type="submit"
+              disabled={pending}
+              className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50
+                         text-black font-semibold rounded-lg px-4 py-2 text-sm transition"
+            >
+              {pending ? 'Oluşturuluyor…' : 'Kullanıcı Oluştur'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* ─── Mevcut kullanıcı listesi ─── */}
+      {users.length > 0 && (
+        <div className="bg-stone-900 border border-stone-800 rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-stone-800">
+                <th className="text-left text-xs text-stone-500 font-medium px-4 py-2.5">Kullanıcı</th>
+                <th className="text-left text-xs text-stone-500 font-medium px-4 py-2.5 hidden sm:table-cell">Restoran</th>
+                <th className="text-left text-xs text-stone-500 font-medium px-4 py-2.5">Rol</th>
+                <th className="text-left text-xs text-stone-500 font-medium px-4 py-2.5 hidden sm:table-cell">Durum</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-stone-800/60">
+              {users.map(u => (
+                <tr key={u.id}>
+                  <td className="px-4 py-2.5 text-stone-200 font-mono text-xs">{u.username}</td>
+                  <td className="px-4 py-2.5 text-stone-400 text-xs hidden sm:table-cell">{u.restaurant_name}</td>
+                  <td className="px-4 py-2.5">
+                    <RoleBadge role={u.role} />
+                  </td>
+                  <td className="px-4 py-2.5 hidden sm:table-cell">
+                    <span className={`text-xs ${u.is_active ? 'text-green-400' : 'text-stone-600'}`}>
+                      {u.is_active ? 'Aktif' : 'Pasif'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function RoleBadge({ role }: { role: string }) {
+  const label = getRoleLabel(role)
+  const styles: Record<string, string> = {
+    business_owner:   'bg-amber-500/15 text-amber-400 border-amber-500/20',
+    business_manager: 'bg-blue-500/15  text-blue-400  border-blue-500/20',
+    super_admin:      'bg-red-500/15   text-red-400   border-red-500/20',
+    customer:         'bg-stone-700/50 text-stone-400 border-stone-600/30',
+  }
+  const cls = styles[role] ?? 'bg-stone-700/50 text-stone-400 border-stone-600/30'
+  return (
+    <span className={`inline-block border rounded-md px-2 py-0.5 text-xs font-medium ${cls}`}>
+      {label}
+    </span>
+  )
+}
+</file>
+
+<file path="app/admin/SmsLog.tsx">
+'use client'
+
+import { useState } from 'react'
+
+type SmsLog = {
+  id: string
+  to_number: string
+  body: string
+  provider: string
+  status: string
+  created_at: string
+}
+
+export function SmsLog({ logs }: { logs: SmsLog[] }) {
+  const [open, setOpen] = useState(false)
+
+  if (logs.length === 0) return null
+
+  return (
+    <div className="mt-8">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 text-sm text-stone-500 hover:text-stone-300 transition-colors"
+      >
+        <span className="w-2 h-2 rounded-full bg-yellow-500/60" />
+        Mock SMS Logu ({logs.length})
+        <span className="text-xs">{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open && (
+        <div className="mt-3 flex flex-col gap-2">
+          {logs.map((log) => (
+            <div
+              key={log.id}
+              className="rounded-xl border border-yellow-500/15 bg-yellow-500/5 p-3"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-mono text-yellow-400">{log.to_number}</span>
+                <span className="text-xs text-stone-600">
+                  {new Date(log.created_at).toLocaleString('tr-TR')}
+                </span>
+              </div>
+              <p className="text-xs text-stone-400 whitespace-pre-wrap">{log.body}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+</file>
+
+<file path="lib/supabase.ts">
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+
+// Lazy singleton — build-time'da env yoksa patlamaz
+let _client: SupabaseClient | null = null
+
+export function getSupabase(): SupabaseClient {
+  if (_client) return _client
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !key) throw new Error('Supabase env vars are missing')
+  _client = createClient(url, key)
+  return _client
+}
+
+// RLS'yi bypass eden admin client — yalnızca sunucu tarafında kullan
+let _adminClient: SupabaseClient | null = null
+
+export function getSupabaseAdmin(): SupabaseClient {
+  if (_adminClient) return _adminClient
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) throw new Error('SUPABASE_SERVICE_ROLE_KEY eksik')
+  _adminClient = createClient(url, key, {
+    auth: { persistSession: false },
+  })
+  return _adminClient
+}
+
+// Convenience shorthand
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_, prop) {
+    return (getSupabase() as never)[prop]
+  },
+})
+
+// Re-export types from central types file
+export type { Restaurant, Reservation } from '@/types'
+</file>
+
+<file path="app/admin/login/LoginForm.tsx">
+'use client'
+
+import { useActionState, useRef } from 'react'
+import { loginAction, type LoginState } from './actions'
+
+const initial: LoginState = { error: null }
+
+export function LoginForm({ redirectTo }: { redirectTo: string }) {
+  const [state, formAction, pending] = useActionState(loginAction, initial)
+  const emailRef = useRef<HTMLInputElement>(null)
+
+  return (
+    <form action={formAction} className="flex flex-col gap-4">
+      <input type="hidden" name="from" value={redirectTo} />
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="email" className="text-sm font-medium text-stone-300">
+          E-posta
+        </label>
+        <input
+          ref={emailRef}
+          id="email"
+          name="email"
+          type="email"
+          required
+          autoFocus
+          autoComplete="email"
+          placeholder="admin@checkrezerve.com"
+          className="rounded-xl border border-white/10 bg-white/5 px-4 py-3.5 text-base text-white placeholder:text-stone-600 focus:border-amber-500/50 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="password" className="text-sm font-medium text-stone-300">
+          Şifre
+        </label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          required
+          autoComplete="current-password"
+          placeholder="••••••••"
+          className="rounded-xl border border-white/10 bg-white/5 px-4 py-3.5 text-base text-white placeholder:text-stone-600 focus:border-amber-500/50 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+        />
+      </div>
+
+      {state.error && (
+        <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3">
+          <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-sm text-red-400">{state.error}</p>
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={pending}
+        className="mt-1 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-amber-900/30 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {pending ? 'Giriş yapılıyor…' : 'Giriş Yap'}
+      </button>
+    </form>
+  )
+}
+</file>
+
+<file path="app/admin/restaurants/actions.ts">
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { createHmac }    from 'crypto'
+import { getSupabaseAdmin } from '@/lib/supabase'
+
+export type RestaurantState = { error: string | null; success: boolean }
+
+function hashPassword(password: string): string {
+  const secret = process.env.ADMIN_SECRET ?? 'dev-secret-change-me'
+  return createHmac('sha256', secret).update(password).digest('hex')
+}
+
+function toSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
+    .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
+export async function createRestaurant(
+  _prev: RestaurantState,
+  formData: FormData
+): Promise<RestaurantState> {
+  const name          = (formData.get('name')          as string)?.trim()
+  const phone         = (formData.get('phone')         as string)?.trim() || null
+  const address       = (formData.get('address')       as string)?.trim() || null
+  const capacity      = parseInt(formData.get('capacity') as string, 10) || 50
+  const business_type = (formData.get('business_type') as string) || 'restaurant'
+  const instagram     = (formData.get('instagram')     as string)?.trim() || null
+  const website       = (formData.get('website')       as string)?.trim() || null
+  const booking_duration_minutes = parseInt(formData.get('booking_duration_minutes') as string, 10) || 60
+
+  if (!name) return { error: 'İşletme adı zorunludur.', success: false }
+
+  const slug = toSlug(name)
+
+  const BUSINESS_TYPE_TO_KATEGORI: Record<string, string> = {
+    restaurant:    'restoran',
+    barber:        'berber',
+    hairdresser:   'kuafor',
+    spa:           'spa',
+    beauty_salon:  'guzellik_salonu',
+    fitness:       'fitness',
+    pilates:       'pilates',
+    chiropractor:  'diger',
+    psychologist:  'diger',
+    veterinary:    'diger',
+    dentist:       'diger',
+    other:         'diger',
+  }
+  const kategori = BUSINESS_TYPE_TO_KATEGORI[business_type] ?? 'restoran'
+
+  const { error } = await getSupabaseAdmin()
+    .from('restaurants')
+    .insert({ name, slug, phone, address, capacity, business_type, instagram, website, booking_duration_minutes, kategori })
+
+  if (error) {
+    if (error.code === '23505') {
+      return { error: 'Bu isimde bir işletme zaten var.', success: false }
+    }
+    return { error: 'Kayıt sırasında hata oluştu.', success: false }
+  }
+
+  revalidatePath('/admin')
+  return { success: true, error: null }
+}
+
+export async function createRestaurantUser(
+  _prev: RestaurantState,
+  formData: FormData,
+): Promise<RestaurantState> {
+  const restaurant_id = (formData.get('restaurant_id') as string)?.trim()
+  const username      = (formData.get('username')      as string)?.trim()
+  const password      = (formData.get('password')      as string)?.trim()
+  const role          = (formData.get('role')          as string) || 'business_manager'
+
+  if (!restaurant_id) return { error: 'Restoran seçiniz.',          success: false }
+  if (!username)      return { error: 'Kullanıcı adı zorunludur.',  success: false }
+  if (!password || password.length < 8)
+                      return { error: 'Şifre en az 8 karakter olmalıdır.', success: false }
+
+  const { error } = await getSupabaseAdmin()
+    .from('restaurant_users')
+    .insert({ restaurant_id, username, password_hash: hashPassword(password), role })
+
+  if (error) {
+    if (error.code === '23505') return { error: 'Bu kullanıcı adı zaten alınmış.', success: false }
+    return { error: 'Kayıt sırasında hata oluştu.', success: false }
+  }
+
+  revalidatePath('/admin')
+  return { success: true, error: null }
+}
+</file>
+
+<file path="app/admin/FeatureFlagManager.tsx">
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+
+type Flag = {
+  id: string
+  restaurant_id: string
+  feature: string
+  enabled: boolean
+  created_at: string
+  updated_at: string
+  restaurants: { name: string; slug: string } | null
+}
+
+type Restaurant = {
+  id: string
+  name: string
+  slug: string
+}
+
+const FEATURES = [
+  { key: 'waitlist',        label: 'Bekleme Listesi' },
+  { key: 'deposit_required', label: 'Depozito Zorunlu' },
+  { key: 'voice_assistant',  label: 'Sesli Asistan' },
+  { key: 'auto_confirm',     label: 'Otomatik Onay' },
+  { key: 'reminder_sms',     label: 'Hatırlatma SMS' },
+  { key: 'review_request',   label: 'Değerlendirme İsteği' },
+] as const
+
+export default function FeatureFlagManager({
+  initialFlags,
+  restaurants,
+}: {
+  initialFlags: Flag[]
+  restaurants: Restaurant[]
+}) {
+  const [flags, setFlags] = useState<Flag[]>(initialFlags)
+  const [toggling, setToggling] = useState<Set<string>>(new Set())
+  const [error, setError] = useState<string | null>(null)
+
+  const upsert = useCallback(async (restaurantId: string, feature: string, enabled: boolean) => {
+    const key = `${restaurantId}:${feature}`
+    setToggling(prev => new Set(prev).add(key))
+    setError(null)
+    try {
+      const res = await fetch('/api/admin/feature-flags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ restaurant_id: restaurantId, feature, enabled }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error ?? 'İşlem başarısız')
+      }
+      setFlags(prev => {
+        const existing = prev.findIndex(f => f.restaurant_id === restaurantId && f.feature === feature)
+        if (existing >= 0) {
+          const updated = [...prev]
+          updated[existing] = { ...updated[existing], enabled }
+          return updated
+        }
+        return [...prev, {
+          id: '', restaurant_id: restaurantId, feature, enabled,
+          created_at: '', updated_at: '',
+          restaurants: restaurants.find(r => r.id === restaurantId) ?? { id: restaurantId, name: '?', slug: '?' },
+        } as Flag]
+      })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Bir hata oluştu')
+    } finally {
+      setToggling(prev => { const n = new Set(prev); n.delete(key); return n })
+    }
+  }, [restaurants])
+
+  const getFlag = (restaurantId: string, feature: string) =>
+    flags.find(f => f.restaurant_id === restaurantId && f.feature === feature)
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="font-semibold text-sm text-zinc-800">Feature Flags</h2>
+        <span className="text-xs text-zinc-400">{flags.length} flag ayarlanmış</span>
+      </div>
+
+      {error && (
+        <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-zinc-100">
+              <th className="text-left py-2 pr-4 text-zinc-500 font-medium text-xs uppercase tracking-wider">İşletme</th>
+              {FEATURES.map(f => (
+                <th key={f.key} className="text-center py-2 px-2 text-zinc-500 font-medium text-xs uppercase tracking-wider min-w-[100px]">
+                  {f.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {restaurants.map(r => (
+              <tr key={r.id} className="border-b border-zinc-50 hover:bg-zinc-50/50 transition-colors">
+                <td className="py-3 pr-4">
+                  <div className="font-medium text-zinc-800 text-sm">{r.name}</div>
+                  <div className="text-[11px] text-zinc-400">/{r.slug}</div>
+                </td>
+                {FEATURES.map(f => {
+                  const flag = getFlag(r.id, f.key)
+                  const isOn = flag?.enabled ?? false
+                  const loading = toggling.has(`${r.id}:${f.key}`)
+                  return (
+                    <td key={f.key} className="text-center py-3 px-2">
+                      <button
+                        onClick={() => upsert(r.id, f.key, !isOn)}
+                        disabled={loading}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                          isOn
+                            ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                            : 'bg-zinc-100 text-zinc-400 hover:bg-zinc-200'
+                        } disabled:opacity-50`}
+                      >
+                        {loading ? (
+                          <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                        ) : (
+                          <span className={`w-2 h-2 rounded-full ${isOn ? 'bg-emerald-500' : 'bg-zinc-300'}`} />
+                        )}
+                        {isOn ? 'Açık' : 'Kapalı'}
+                      </button>
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {restaurants.length === 0 && (
+        <div className="text-center py-8 text-sm text-zinc-400">
+          Henüz işletme bulunmuyor.
+        </div>
+      )}
+    </div>
+  )
+}
+</file>
+
+<file path="app/admin/ReservationDashboard.tsx">
+'use client'
+
+import { useEffect, useState, useMemo } from 'react'
+import { createClient } from '@supabase/supabase-js'
+
+const PAGE_SIZE = 20
+
+type Reservation = {
+  id: string
+  guest_name: string
+  guest_phone: string
+  reserved_date: string
+  reserved_time: string
+  party_size: number
+  special_requests: string | null
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
+  source: string
+  created_at: string
+  restaurants?: { name: string; slug: string } | null
+}
+
+type Tab = 'today' | 'upcoming' | 'all'
+
+export function ReservationDashboard({
+  initialData,
+  today,
+}: {
+  initialData: Reservation[]
+  today: string
+}) {
+  const [reservations, setReservations] = useState<Reservation[]>(initialData)
+  const [tab, setTab] = useState<Tab>('today')
+  const [page, setPage] = useState(1)
+  const [updating, setUpdating] = useState<string | null>(null)
+
+  // Real-time Supabase subscription
+  useEffect(() => {
+    const url  = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key  = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (!url || !key) return
+
+    const client = createClient(url, key)
+
+    const channel = client
+      .channel('reservations-admin')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'reservations' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setReservations((prev) => [payload.new as Reservation, ...prev])
+          } else if (payload.eventType === 'UPDATE') {
+            setReservations((prev) =>
+              prev.map((r) => (r.id === payload.new.id ? (payload.new as Reservation) : r))
+            )
+          } else if (payload.eventType === 'DELETE') {
+            setReservations((prev) => prev.filter((r) => r.id !== payload.old.id))
+          }
+        }
+      )
+      .subscribe()
+
+    return () => { client.removeChannel(channel) }
+  }, [])
+
+  // Durum güncelle (server action yerine doğrudan API çağrısı)
+  async function updateStatus(id: string, status: Reservation['status']) {
+    setUpdating(id)
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    const client = createClient(url, key)
+    await client.from('reservations').update({ status }).eq('id', id)
+    setUpdating(null)
+  }
+
+  const filtered = reservations.filter((r) => {
+    if (tab === 'today')    return r.reserved_date === today
+    if (tab === 'upcoming') return r.reserved_date > today
+    return true
+  })
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  if (safePage !== page) setPage(safePage)
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
+  return (
+    <div>
+      {/* Tabs */}
+      <div className="flex gap-1 p-1 bg-white/5 rounded-xl w-full sm:w-fit mb-5">
+        {(['today', 'upcoming', 'all'] as Tab[]).map((t) => (
+          <button
+            key={t}
+            onClick={() => { setTab(t); setPage(1) }}
+            className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              tab === t
+                ? 'bg-amber-500 text-white shadow'
+                : 'text-stone-400 hover:text-white'
+            }`}
+          >
+            {t === 'today' ? 'Bugün' : t === 'upcoming' ? 'Yaklaşan' : 'Tümü'}
+            <span className={`ml-1.5 text-xs ${tab === t ? 'text-white/80' : 'text-stone-600'}`}>
+              {t === 'today'
+                ? reservations.filter((r) => r.reserved_date === today).length
+                : t === 'upcoming'
+                ? reservations.filter((r) => r.reserved_date > today).length
+                : reservations.length}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Liste */}
+      {paginated.length === 0 ? (
+        <div className="rounded-2xl border border-white/5 bg-white/3 p-10 text-center text-stone-500">
+          {tab === 'today' ? 'Bugün rezervasyon yok.' : 'Rezervasyon bulunamadı.'}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {paginated.map((r) => (
+            <ReservationCard
+              key={r.id}
+              reservation={r}
+              updating={updating === r.id}
+              onStatusChange={updateStatus}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Sayfalama */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-4">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={safePage <= 1}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 text-stone-400 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            ← Önceki
+          </button>
+          <span className="text-xs text-stone-500 px-2">
+            {safePage} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={safePage >= totalPages}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 text-stone-400 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Sonraki →
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ReservationCard({
+  reservation: r,
+  updating,
+  onStatusChange,
+}: {
+  reservation: Reservation
+  updating: boolean
+  onStatusChange: (id: string, status: Reservation['status']) => void
+}) {
+  const statusConfig = {
+    pending:   { label: 'Beklemede',  cls: 'bg-amber-500/15 text-amber-400 border-amber-500/20' },
+    confirmed: { label: 'Onaylı',     cls: 'bg-green-500/15 text-green-400 border-green-500/20' },
+    cancelled: { label: 'İptal',      cls: 'bg-red-500/15 text-red-400 border-red-500/20' },
+    completed: { label: 'Tamamlandı', cls: 'bg-blue-500/15 text-blue-400 border-blue-500/20' },
+  }
+  const { label, cls } = statusConfig[r.status] ?? statusConfig.pending
+
+  const dateStr = new Date(r.reserved_date + 'T00:00:00').toLocaleDateString('tr-TR', {
+    weekday: 'short', day: 'numeric', month: 'short',
+  })
+
+  return (
+    <div className={`rounded-2xl border bg-white/3 p-4 transition-opacity ${updating ? 'opacity-50' : ''} ${
+      r.status === 'cancelled' ? 'border-white/5 opacity-60' : 'border-white/8'
+    }`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-white truncate">{r.guest_name}</span>
+            <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${cls}`}>
+              {label}
+            </span>
+            {r.source === 'ai' && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 border border-purple-500/20">
+                AI
+              </span>
+            )}
+          </div>
+          <div className="mt-1 flex items-center gap-3 text-sm text-stone-400 flex-wrap">
+            <span className="flex items-center gap-1">
+              <span>📅</span> {dateStr}
+            </span>
+            <span className="flex items-center gap-1">
+              <span>🕐</span> {r.reserved_time}
+            </span>
+            <span className="flex items-center gap-1">
+              <span>👥</span> {r.party_size} kişi
+            </span>
+          </div>
+          <div className="mt-1 flex items-center gap-3 text-sm text-stone-500 flex-wrap">
+            <a
+              href={`tel:${r.guest_phone}`}
+              className="flex items-center gap-1 hover:text-amber-400 transition-colors"
+            >
+              <span>📞</span> {r.guest_phone}
+            </a>
+            {r.restaurants?.name && (
+              <span className="text-stone-600">{r.restaurants.name}</span>
+            )}
+          </div>
+          {r.special_requests && (
+            <p className="mt-2 text-xs text-stone-500 italic">
+              &ldquo;{r.special_requests}&rdquo;
+            </p>
+          )}
+        </div>
+
+        {/* Aksiyon butonları */}
+        <div className="flex sm:flex-col flex-row gap-1.5 shrink-0">
+          {r.status === 'pending' && (
+            <>
+              <button
+                onClick={() => onStatusChange(r.id, 'confirmed')}
+                disabled={updating}
+                className="px-3 py-2 sm:py-1.5 rounded-lg bg-green-500/20 text-green-400 text-xs font-medium hover:bg-green-500/35 transition-colors disabled:opacity-50 touch-manipulation"
+              >
+                ✓ Onayla
+              </button>
+              <button
+                onClick={() => onStatusChange(r.id, 'cancelled')}
+                disabled={updating}
+                className="px-3 py-2 sm:py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-medium hover:bg-red-500/25 transition-colors disabled:opacity-50 touch-manipulation"
+              >
+                ✕ Reddet
+              </button>
+            </>
+          )}
+          {r.status === 'confirmed' && (
+            <>
+              <button
+                onClick={() => onStatusChange(r.id, 'completed')}
+                disabled={updating}
+                className="px-3 py-2 sm:py-1.5 rounded-lg bg-blue-500/15 text-blue-400 text-xs font-medium hover:bg-blue-500/25 transition-colors disabled:opacity-50 touch-manipulation"
+              >
+                ✓ Tamamla
+              </button>
+              <button
+                onClick={() => onStatusChange(r.id, 'cancelled')}
+                disabled={updating}
+                className="px-3 py-2 sm:py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-medium hover:bg-red-500/25 transition-colors disabled:opacity-50 touch-manipulation"
+              >
+                ✕ İptal
+              </button>
+            </>
+          )}
+          {r.status === 'cancelled' && (
+            <button
+              onClick={() => onStatusChange(r.id, 'pending')}
+              disabled={updating}
+              className="px-3 py-2 sm:py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-xs font-medium hover:bg-amber-500/25 transition-colors disabled:opacity-50 touch-manipulation"
+            >
+              ↩ Geri Al
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="app/admin/RestaurantList.tsx">
+'use client'
+
+import { useState, useMemo } from 'react'
+import Link from 'next/link'
+import type { Restaurant } from '@/types'
+import { QRCodeButton } from './restaurants/QRCodeButton'
+
+const PAGE_SIZE = 20
+
+type Props = {
+  restaurants: Pick<Restaurant, 'id' | 'name' | 'slug'>[]
+}
+
+export function RestaurantList({ restaurants }: Props) {
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return restaurants
+    const q = search.toLowerCase().trim()
+    return restaurants.filter(
+      (r) => r.name.toLowerCase().includes(q) || r.slug.toLowerCase().includes(q)
+    )
+  }, [restaurants, search])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const start = (safePage - 1) * PAGE_SIZE
+  const paginated = filtered.slice(start, start + PAGE_SIZE)
+
+  // Sayfa değişince geçerli sayfaya sıçra
+  if (safePage !== page) setPage(safePage)
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Arama */}
+      <div className="relative">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+          placeholder="Restoran ara (isim veya slug)..."
+          className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 pl-10 text-sm text-white placeholder:text-stone-600 focus:border-amber-500/50 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+        />
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+
+      {/* Sayfa bilgisi */}
+      <div className="flex items-center justify-between text-xs text-stone-500">
+        <span>
+          {filtered.length} restoran
+          {search && ` (${search} için)`}
+        </span>
+        {totalPages > 1 && (
+          <span>
+            Sayfa {safePage} / {totalPages}
+          </span>
+        )}
+      </div>
+
+      {/* Liste */}
+      {paginated.length === 0 ? (
+        <div className="rounded-xl border border-white/5 bg-white/3 px-4 py-8 text-center text-sm text-stone-500">
+          {search ? 'Aramanızla eşleşen restoran bulunamadı.' : 'Henüz restoran eklenmemiş.'}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {paginated.map((r) => (
+            <div
+              key={r.id}
+              className="flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/3 px-4 py-3"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
+                <span className="text-sm text-stone-200 truncate">{r.name}</span>
+                <span className="text-xs text-stone-600 shrink-0">/{r.slug}</span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <a
+                  href={`/${r.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-stone-500 hover:text-amber-400 transition-colors"
+                >
+                  Aç ↗
+                </a>
+                <Link
+                  href={`/admin/restaurants/${r.id}`}
+                  className="text-xs text-stone-500 hover:text-amber-400 transition-colors"
+                >
+                  Yönet →
+                </Link>
+                <Link
+                  href={`/admin/floor-plan/${r.id}`}
+                  className="text-xs text-stone-500 hover:text-blue-400 transition-colors"
+                  title="Masa krokisini düzenle"
+                >
+                  🗺 Kroki
+                </Link>
+                <QRCodeButton slug={r.slug} name={r.name} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Sayfalama butonları */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={safePage <= 1}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 text-stone-400 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            ← Önceki
+          </button>
+          <span className="text-xs text-stone-500 px-2">
+            {safePage} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={safePage >= totalPages}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 text-stone-400 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Sonraki →
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+</file>
+
+<file path="app/api/admin/audit-logs/route.ts">
+import { type NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { createHmac } from 'crypto'
+import { getSupabaseAdmin } from '@/lib/supabase'
+
+async function checkAdmin() {
+  const secret = process.env.ADMIN_SECRET ?? ''
+  if (!secret) return null
+  const jar = await cookies()
+  const raw = jar.get('cr_admin')?.value ?? ''
+  if (!raw) return null
+  const colonIdx = raw.indexOf(':')
+  if (colonIdx < 1) return null
+  const userId = raw.slice(0, colonIdx)
+  const token  = raw.slice(colonIdx + 1)
+  if (!userId || !token) return null
+  const expected = createHmac('sha256', secret).update(userId).digest('base64')
+  return token === expected ? userId : null
+}
+
+// POST /api/admin/audit-logs — yeni log kaydı oluştur
+export async function POST(req: NextRequest) {
+  const adminId = await checkAdmin()
+  if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { action, target_type, target_id, metadata } = await req.json()
+  if (!action || !target_type) {
+    return NextResponse.json({ error: 'action ve target_type gerekli' }, { status: 400 })
+  }
+
+  const db = getSupabaseAdmin()
+  const { error } = await db.from('admin_audit_logs').insert({
+    admin_id: adminId,
+    action,
+    target_type,
+    target_id: target_id ?? null,
+    metadata: metadata ?? {},
+  })
+
+  if (error) {
+    console.error('[audit-logs]', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true })
+}
+
+// GET /api/admin/audit-logs — logları listele
+export async function GET(req: NextRequest) {
+  const adminId = await checkAdmin()
+  if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { searchParams } = req.nextUrl
+  const limit  = Math.min(parseInt(searchParams.get('limit') ?? '50', 10), 200)
+  const offset = Math.max(parseInt(searchParams.get('offset') ?? '0', 10), 0)
+  const action = searchParams.get('action')
+
+  const db = getSupabaseAdmin()
+  let query = db
+    .from('admin_audit_logs')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
+
+  if (action) query = query.eq('action', action)
+
+  const { data, error } = await query
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({ logs: data ?? [] })
+}
+</file>
+
+<file path="app/api/admin/tables/route.ts">
+import { NextRequest, NextResponse } from 'next/server'
+import { createHmac } from 'crypto'
+import { cookies } from 'next/headers'
+import { getSupabaseAdmin } from '@/lib/supabase'
+
+async function verifyRequest(): Promise<boolean> {
+  const secret = process.env.ADMIN_SECRET ?? ''
+  if (!secret) return false
+  const jar = await cookies()
+  const raw = jar.get('cr_admin')?.value ?? ''
+  if (!raw) return false
+  const colonIdx = raw.indexOf(':')
+  if (colonIdx < 1) return false
+  const userId = raw.slice(0, colonIdx)
+  const token  = raw.slice(colonIdx + 1)
+  if (!userId || !token) return false
+  const expected = createHmac('sha256', secret).update(userId).digest('base64')
+  return token === expected
+}
+
+// GET /api/admin/tables?restaurant_id=…
+export async function GET(req: NextRequest) {
+  if (!await verifyRequest()) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const restaurantId = req.nextUrl.searchParams.get('restaurant_id')
+  if (!restaurantId) {
+    return NextResponse.json({ error: 'restaurant_id gerekli' }, { status: 400 })
+  }
+
+  const { data, error } = await getSupabaseAdmin()
+    .from('tables')
+    .select('*')
+    .eq('restaurant_id', restaurantId)
+    .eq('is_active', true)
+    .order('created_at')
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ tables: data ?? [] })
+}
+
+// POST /api/admin/tables
+// Body: { restaurant_id, tables: FloorTable[], floor_plan_enabled: boolean }
+// Replaces all tables for the restaurant (delete + insert).
+export async function POST(req: NextRequest) {
+  if (!await verifyRequest()) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const body = await req.json()
+  const { restaurant_id, tables, floor_plan_enabled } = body
+
+  if (!restaurant_id) {
+    return NextResponse.json({ error: 'restaurant_id gerekli' }, { status: 400 })
+  }
+
+  const supabase = getSupabaseAdmin()
+
+  // Update floor_plan_enabled flag
+  const { error: flagErr } = await supabase
+    .from('restaurants')
+    .update({ floor_plan_enabled: Boolean(floor_plan_enabled) })
+    .eq('id', restaurant_id)
+
+  if (flagErr) return NextResponse.json({ error: flagErr.message }, { status: 500 })
+
+  // Soft-delete all existing tables, then insert the new set
+  const { error: delErr } = await supabase
+    .from('tables')
+    .update({ is_active: false })
+    .eq('restaurant_id', restaurant_id)
+
+  if (delErr) return NextResponse.json({ error: delErr.message }, { status: 500 })
+
+  if (Array.isArray(tables) && tables.length > 0) {
+    const rows = tables.map((t: {
+      id?: string; label: string; capacity: number
+      x: number; y: number; width: number; height: number; shape: string
+    }) => ({
+      id:            t.id && t.id.includes('-') ? t.id : undefined, // keep uuid, drop temp ids
+      restaurant_id,
+      label:         t.label,
+      capacity:      Number(t.capacity) || 4,
+      x:             Number(t.x)        || 0,
+      y:             Number(t.y)        || 0,
+      width:         Number(t.width)    || 80,
+      height:        Number(t.height)   || 80,
+      shape:         t.shape === 'circle' ? 'circle' : 'rect',
+      is_active:     true,
+    }))
+
+    const { error: insErr } = await supabase.from('tables').upsert(rows, {
+      onConflict: 'id',
+      ignoreDuplicates: false,
+    })
+
+    if (insErr) return NextResponse.json({ error: insErr.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true })
+}
+</file>
+
+<file path="app/admin/login/actions.ts">
+'use server'
+
+import { createClient } from '@supabase/supabase-js'
+import { createHmac } from 'crypto'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+
+export type LoginState = { error: string | null }
+
+export async function loginAction(
+  _prev: LoginState,
+  formData: FormData
+): Promise<LoginState> {
+  const email    = (formData.get('email') as string)?.trim()
+  const password = (formData.get('password') as string)?.trim()
+  const from     = (formData.get('from') as string) || '/admin'
+
+  if (!email || !password) {
+    return { error: 'E-posta ve şifre gerekli.' }
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !supabaseKey || !serviceKey) {
+    return { error: 'Supabase yapılandırması eksik.' }
+  }
+
+  // 1. Supabase Auth ile giriş yap
+  const anonClient = createClient(supabaseUrl, supabaseKey, {
+    auth: { persistSession: false },
+  })
+
+  const { data: authData, error: authError } = await anonClient.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (authError || !authData.user) {
+    await new Promise(r => setTimeout(r, 400)) // brute-force gecikmesi
+    return { error: 'E-posta veya şifre hatalı.' }
+  }
+
+  // 2. Profil tablosundan rol kontrolü — sadece super_admin
+  const adminClient = createClient(supabaseUrl, serviceKey, {
+    auth: { persistSession: false },
+  })
+
+  const { data: profile, error: profileError } = await adminClient
+    .from('profiles')
+    .select('role')
+    .eq('id', authData.user.id)
+    .single()
+
+  if (profileError || !profile || profile.role !== 'super_admin') {
+    return {
+      error: 'Bu panele erişim yetkiniz yok. (super_admin rolü gerekli)',
+    }
+  }
+
+  // 3. Session token oluştur — "userId:HMAC(userId)"
+  // Middleware aynı HMAC'i hesaplayarak doğrulayabilir (email gerekmez)
+  const adminSecret = process.env.ADMIN_SECRET ?? 'checkrezerve-fallback-secret'
+  const token = createHmac('sha256', adminSecret)
+    .update(authData.user.id)
+    .digest('base64')
+
+  const cookiePayload = `${authData.user.id}:${token}`
+
+  const jar = await cookies()
+  jar.set('cr_admin', cookiePayload, {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge:   60 * 60 * 24 * 7,  // 7 gün
+    path:     '/',
+  })
+
+  redirect(from)
+}
+</file>
+
+<file path="app/admin/restaurants/[id]/page.tsx">
+import { redirect } from 'next/navigation'
+import { getSupabaseAdmin } from '@/lib/supabase'
+import RestaurantDetail from './RestaurantDetail'
+
+export const dynamic = 'force-dynamic'
+
+export default async function RestaurantDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+
+  const { id } = await params
+  const db = getSupabaseAdmin()
+
+  const [
+    { data: restaurant },
+    { data: featureFlags },
+    { data: restaurantUsers },
+    { data: subscriptions },
+    { data: recentReservations },
+  ] = await Promise.all([
+    db.from('restaurants').select('*').eq('id', id).single(),
+    db.from('feature_flags').select('*').eq('restaurant_id', id),
+    db.from('restaurant_users').select('id, username, role, is_active, created_at').eq('restaurant_id', id).order('created_at', { ascending: false }),
+    db.from('subscriptions').select('*').eq('restaurant_id', id).maybeSingle(),
+    db.from('reservations').select('*').eq('restaurant_id', id).order('created_at', { ascending: false }).limit(10),
+  ])
+
+  if (!restaurant) redirect('/admin')
+
+  const { count: calisanlarCount } = await db.from('calisanlar').select('*', { count: 'exact', head: true }).eq('restaurant_id', id)
+  const { count: hizmetlerCount } = await db.from('hizmetler').select('*', { count: 'exact', head: true }).eq('restaurant_id', id)
+  const { count: totalReservations } = await db.from('reservations').select('*', { count: 'exact', head: true }).eq('restaurant_id', id)
+
+  return (
+    <RestaurantDetail
+      restaurant={restaurant}
+      featureFlags={featureFlags ?? []}
+      users={restaurantUsers ?? []}
+      subscription={subscriptions}
+      recentReservations={recentReservations ?? []}
+      stats={{ calisanlarCount: calisanlarCount ?? 0, hizmetlerCount: hizmetlerCount ?? 0, totalReservations: totalReservations ?? 0 }}
+    />
+  )
+}
+</file>
+
+<file path="app/admin/page.tsx">
+import type { Metadata } from 'next'
+import Link from 'next/link'
+import { getSupabaseAdmin } from '@/lib/supabase'
+import { getRoleLabel } from '@/lib/roles'
+import { ReservationDashboard } from './ReservationDashboard'
+import { AddRestaurantForm } from './restaurants/AddRestaurantForm'
+import { QRCodeButton } from './restaurants/QRCodeButton'
+import { SmsLog } from './SmsLog'
+import UserForm from './restaurants/UserForm'
+import FeatureFlagManager from './FeatureFlagManager'
+import { RestaurantList } from './RestaurantList'
+
+export const metadata: Metadata = {
+  title: 'Admin — Rezervasyonlar',
+  robots: { index: false, follow: false },
+}
+
+export const dynamic = 'force-dynamic'
+
+export default async function AdminPage() {
+  const supabase = getSupabaseAdmin()
+  const today    = new Date().toISOString().split('T')[0]
+
+  // Paralel veri çekimi
+  const [
+    { data: restaurants },
+    { data: reservations },
+    { count: todayTotal },
+    { count: todayConfirmed },
+    { count: todayCancelled },
+    { data: smsLogs },
+    { data: panelUsers },
+    { data: featureFlags },
+  ] = await Promise.all([
+    supabase.from('restaurants').select('id, name, slug, phone, address, capacity, created_at, business_type, timezone, booking_duration_minutes, currency, description, website, instagram, is_active, floor_plan_enabled').order('name'),
+
+    supabase
+      .from('reservations')
+      .select('*, restaurants(name, slug)')
+      .gte('reserved_date', today)
+      .order('reserved_date', { ascending: true })
+      .order('reserved_time', { ascending: true })
+      .limit(200),
+
+    supabase
+      .from('reservations')
+      .select('*', { count: 'exact', head: true })
+      .eq('reserved_date', today),
+
+    supabase
+      .from('reservations')
+      .select('*', { count: 'exact', head: true })
+      .eq('reserved_date', today)
+      .eq('status', 'confirmed'),
+
+    supabase
+      .from('reservations')
+      .select('*', { count: 'exact', head: true })
+      .eq('reserved_date', today)
+      .eq('status', 'cancelled'),
+
+    supabase
+      .from('sms_logs')
+      .select('id, to_number, body, provider, status, created_at')
+      .order('created_at', { ascending: false })
+      .limit(20),
+
+    supabase
+      .from('restaurant_users')
+      .select('id, restaurant_id, username, role, is_active, created_at, restaurants(name)')
+      .order('created_at', { ascending: false }),
+
+    supabase
+      .from('feature_flags')
+      .select('*')
+      .order('restaurant_id'),
+  ])
+
+  // Restoran bazlı bugünkü doluluk
+  const capacityStats = (restaurants ?? []).map((r) => {
+    const todayCount = (reservations ?? []).filter(
+      (res) => res.restaurant_id === r.id &&
+               res.reserved_date === today &&
+               res.status !== 'cancelled'
+    ).length
+    const pct = r.capacity ? Math.round((todayCount / r.capacity) * 100) : null
+    return { ...r, todayCount, pct }
+  })
+
+  return (
+    <div className="min-h-screen bg-stone-950 text-white">
+      {/* Header */}
+      <div className="border-b border-white/5 px-4 py-3 sm:px-6">
+        <div className="mx-auto max-w-5xl flex items-center justify-between">
+          <div>
+            <h1 className="text-base font-bold text-white">checkrezerve</h1>
+            <p className="text-xs text-stone-500">
+              Admin Paneli
+              <span className="ml-2 bg-red-500/15 text-red-400 border border-red-500/20 rounded-md px-1.5 py-0.5 text-[10px] font-medium">
+                {getRoleLabel('super_admin')}
+              </span>
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-xs text-stone-400 hidden sm:block">Canlı</span>
+            </div>
+            <form action="/admin/logout" method="POST">
+              <button
+                type="submit"
+                className="text-xs text-stone-500 hover:text-stone-300 transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5"
+              >
+                Çıkış
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-5xl px-4 py-5 sm:px-6 space-y-6">
+
+        {/* ── Stat Kartları ─────────────────────────────────────── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatCard label="Bugün Toplam"  value={todayTotal     ?? 0} icon="📋" />
+          <StatCard label="Onaylı"        value={todayConfirmed ?? 0} icon="✅" color="green" />
+          <StatCard label="İptal"         value={todayCancelled ?? 0} icon="✕"  color="red" />
+          <StatCard
+            label="Tarih"
+            value={new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+            icon="📅"
+          />
+        </div>
+
+        {/* ── Kapasite Durumu ───────────────────────────────────── */}
+        {capacityStats.length > 0 && (
+          <section>
+            <h2 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">
+              Bugün Kapasite
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {capacityStats.map((r) => (
+                <div key={r.id} className="rounded-2xl border border-white/5 bg-white/3 p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-white truncate">{r.name}</span>
+                    <span className="text-xs text-stone-500 shrink-0 ml-2">
+                      {r.todayCount} / {r.capacity ?? '—'}
+                    </span>
+                  </div>
+                  {r.pct !== null && (
+                    <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          r.pct >= 90 ? 'bg-red-500' :
+                          r.pct >= 70 ? 'bg-amber-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${Math.min(r.pct, 100)}%` }}
+                      />
+                    </div>
+                  )}
+                  {r.pct !== null && (
+                    <p className={`text-xs mt-1.5 ${
+                      r.pct >= 90 ? 'text-red-400' :
+                      r.pct >= 70 ? 'text-amber-400' : 'text-stone-500'
+                    }`}>
+                      {r.pct >= 100 ? 'Kapasite doldu' :
+                       r.pct >= 90  ? `%${r.pct} dolu — kritik` :
+                       r.pct >= 70  ? `%${r.pct} dolu` : `%${r.pct} dolu`}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── Restoranlar ───────────────────────────────────────── */}
+        <section>
+          <h2 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">
+            Restoranlar
+          </h2>
+          <AddRestaurantForm />
+          <RestaurantList restaurants={(restaurants ?? []).map(r => ({
+            id: r.id,
+            name: r.name,
+            slug: r.slug,
+          }))} />
+        </section>
+
+        {/* ── Restoran Kullanıcıları (RBAC) ────────────────────── */}
+        <section>
+          <h2 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">
+            Restoran Panel Kullanıcıları
+          </h2>
+          <UserForm
+            restaurants={restaurants ?? []}
+            users={(panelUsers ?? []).map(u => ({
+              ...u,
+              restaurant_name: (u.restaurants as unknown as { name: string } | { name: string }[] | null) instanceof Array
+                ? ((u.restaurants as unknown as { name: string }[])[0]?.name ?? '—')
+                : ((u.restaurants as unknown as { name: string } | null)?.name ?? '—'),
+            }))}
+          />
+        </section>
+
+        {/* ── Feature Flags ────────────────────────────────────── */}
+        <section>
+          <h2 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">
+            Feature Flags
+          </h2>
+          <div className="rounded-2xl border border-white/5 bg-white/3 p-5">
+            <FeatureFlagManager
+              initialFlags={featureFlags ?? []}
+              restaurants={restaurants?.map(r => ({ id: r.id, name: r.name, slug: r.slug })) ?? []}
+            />
+          </div>
+        </section>
+
+        {/* ── Rezervasyon Dashboard ─────────────────────────────── */}
+        <section>
+          <h2 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">
+            Rezervasyonlar
+          </h2>
+          <ReservationDashboard initialData={reservations ?? []} today={today} />
+        </section>
+
+        {/* ── Mock SMS Logu ─────────────────────────────────────── */}
+        <SmsLog logs={smsLogs ?? []} />
+
+      </div>
+    </div>
+  )
+}
+
+function StatCard({
+  label, value, icon, color,
+}: {
+  label: string
+  value: number | string
+  icon: string
+  color?: 'green' | 'red'
+}) {
+  return (
+    <div className="rounded-2xl bg-white/5 border border-white/5 p-4">
+      <div className="text-xl">{icon}</div>
+      <div className={`text-2xl font-bold mt-1 ${
+        color === 'green' ? 'text-green-400' :
+        color === 'red'   ? 'text-red-400' : 'text-white'
+      }`}>
+        {value}
+      </div>
+      <div className="text-xs text-stone-500 mt-0.5">{label}</div>
+    </div>
+  )
+}
+</file>
+
+<file path="app/api/admin/feature-flags/route.ts">
+import { type NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { createHmac } from 'crypto'
+import { getSupabaseAdmin } from '@/lib/supabase'
+
+async function checkAdmin() {
+  const secret = process.env.ADMIN_SECRET ?? ''
+  if (!secret) return false
+  const jar = await cookies()
+  const raw = jar.get('cr_admin')?.value ?? ''
+  if (!raw) return false
+  const colonIdx = raw.indexOf(':')
+  if (colonIdx < 1) return false
+  const userId = raw.slice(0, colonIdx)
+  const token  = raw.slice(colonIdx + 1)
+  if (!userId || !token) return false
+  const expected = createHmac('sha256', secret).update(userId).digest('base64')
+  return token === expected
+}
+
+export async function GET() {
+  if (!await checkAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const db = getSupabaseAdmin()
+  const { data, error } = await db
+    .from('feature_flags')
+    .select('*, restaurants(name, slug)')
+    .order('restaurant_id')
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data ?? [])
+}
+
+export async function POST(req: NextRequest) {
+  if (!await checkAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { restaurant_id, feature, enabled } = await req.json()
+  if (!restaurant_id || !feature || enabled === undefined) {
+    return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+  }
+
+  const db = getSupabaseAdmin()
+  const { error } = await db
+    .from('feature_flags')
+    .upsert({ restaurant_id, feature, enabled }, { onConflict: 'restaurant_id,feature' })
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
+}
+</file>
+
+<file path="app/api/admin/restaurant/route.ts">
+import { type NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { createHmac } from 'crypto'
+import { getSupabaseAdmin } from '@/lib/supabase'
+
+async function checkAdmin() {
+  const secret = process.env.ADMIN_SECRET ?? ''
+  if (!secret) return false
+  const jar = await cookies()
+  const raw = jar.get('cr_admin')?.value ?? ''
+  if (!raw) return false
+  const colonIdx = raw.indexOf(':')
+  if (colonIdx < 1) return false
+  const userId = raw.slice(0, colonIdx)
+  const token  = raw.slice(colonIdx + 1)
+  if (!userId || !token) return false
+  const expected = createHmac('sha256', secret).update(userId).digest('base64')
+  return token === expected
+}
+
+export async function PATCH(req: NextRequest) {
+  if (!await checkAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { id, is_active, plan } = await req.json()
+  if (!id) return NextResponse.json({ error: 'Missing restaurant id' }, { status: 400 })
+
+  const db = getSupabaseAdmin()
+
+  if (is_active !== undefined) {
+    const { error } = await db
+      .from('restaurants')
+      .update({ is_active })
+      .eq('id', id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  if (plan) {
+    const validPlans = ['starter', 'pro', 'enterprise']
+    if (!validPlans.includes(plan.toLowerCase())) {
+      return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
+    }
+    const { data: existing } = await db
+      .from('subscriptions')
+      .select('id')
+      .eq('restaurant_id', id)
+      .maybeSingle()
+
+    let error
+    if (existing) {
+      ({ error } = await db
+        .from('subscriptions')
+        .update({ plan: plan.toLowerCase(), updated_at: new Date().toISOString() })
+        .eq('id', existing.id))
+    } else {
+      ({ error } = await db
+        .from('subscriptions')
+        .insert({ restaurant_id: id, plan: plan.toLowerCase(), status: 'active', billing_period: 'monthly', price_per_period: 0, currency: 'TRY', updated_at: new Date().toISOString() }))
+    }
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ ok: true })
+}
+</file>
+
+<file path="app/api/admin/restaurant-users/route.ts">
+import { type NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { createHmac } from 'crypto'
+import { getSupabaseAdmin } from '@/lib/supabase'
+
+async function checkAdmin() {
+  const secret = process.env.ADMIN_SECRET ?? ''
+  if (!secret) return false
+  const jar = await cookies()
+  const raw = jar.get('cr_admin')?.value ?? ''
+  if (!raw) return false
+  const colonIdx = raw.indexOf(':')
+  if (colonIdx < 1) return false
+  const userId = raw.slice(0, colonIdx)
+  const token  = raw.slice(colonIdx + 1)
+  if (!userId || !token) return false
+  const expected = createHmac('sha256', secret).update(userId).digest('base64')
+  return token === expected
+}
+
+function hashPassword(password: string): string {
+  const secret = process.env.ADMIN_SECRET ?? 'dev-secret-change-me'
+  return createHmac('sha256', secret).update(password).digest('hex')
+}
+
+export async function POST(req: NextRequest) {
+  if (!await checkAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { restaurant_id, username, password, role } = await req.json()
+  if (!restaurant_id || !username || !password) {
+    return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+  }
+  if (password.length < 8) {
+    return NextResponse.json({ error: 'Password too short' }, { status: 400 })
+  }
+
+  const db = getSupabaseAdmin()
+  const { error } = await db
+    .from('restaurant_users')
+    .insert({ restaurant_id, username, password_hash: hashPassword(password), role: role ?? 'business_manager' })
+
+  if (error) {
+    if (error.code === '23505') return NextResponse.json({ error: 'Bu kullanıcı adı zaten alınmış' }, { status: 409 })
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ ok: true })
+}
+</file>
+
+<file path="app/admin/restaurants/[id]/RestaurantDetail.tsx">
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Check, X, ToggleRight, ToggleLeft } from 'lucide-react'
+import { useToast } from '@/components/ui/Toast'
+import { getRoleLabel } from '@/lib/roles'
+
+type Restaurant = {
+  id: string
+  name: string
+  slug: string
+  phone?: string | null
+  address?: string | null
+  capacity?: number | null
+  business_type?: string | null
+  is_active?: boolean
+  is_verified?: boolean
+  created_at?: string
+}
+
+type FeatureFlag = {
+  id: string
+  restaurant_id: string
+  feature: string
+  enabled: boolean
+}
+
+type User = {
+  id: string
+  username: string
+  role: string
+  is_active: boolean
+  created_at?: string
+}
+
+type Subscription = {
+  id: string
+  restaurant_id: string
+  plan: string
+  status: string
+  billing_period?: string
+  current_period_end?: string
+  created_at?: string
+}
+
+type Reservation = {
+  id: string
+  customer_name?: string
+  date?: string
+  time?: string
+  party_size?: number
+  status?: string
+  created_at?: string
+}
+
+const FEATURES = [
+  { key: 'floor_plan', label: 'Masa Krokisi', desc: 'Müşteri rezervasyonda masa seçebilir' },
+  { key: 'crm', label: 'Misafir CRM', desc: 'Müşteri profilleri ve segmentasyon' },
+  { key: 'analytics', label: 'Gelir Analizi', desc: 'Detaylı raporlar ve grafikler' },
+  { key: 'whatsapp', label: 'WhatsApp Entegrasyonu', desc: 'Otomatik mesaj gönderimi' },
+  { key: 'multi_branch', label: 'Çoklu Şube', desc: 'Birden fazla lokasyon yönetimi' },
+]
+
+const PLANS = ['starter', 'pro', 'enterprise']
+
+async function apiCall(method: string, url: string, body: object) {
+  const res = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(text)
+  }
+  return res.json()
+}
+
+export default function RestaurantDetail({
+  restaurant,
+  featureFlags,
+  users,
+  subscription,
+  recentReservations,
+  stats,
+}: {
+  restaurant: Restaurant
+  featureFlags: FeatureFlag[]
+  users: User[]
+  subscription: Subscription | null
+  recentReservations: Reservation[]
+  stats: { calisanlarCount: number; hizmetlerCount: number; totalReservations: number }
+}) {
+  const router = useRouter()
+  const toast = useToast()
+
+  const [isActive, setIsActive] = useState(restaurant.is_active ?? true)
+  const [isVerified, setIsVerified] = useState(restaurant.is_verified ?? false)
+  const [flags, setFlags] = useState<Record<string, boolean>>(
+    Object.fromEntries(featureFlags.map(f => [f.feature, f.enabled]))
+  )
+  const [selectedPlan, setSelectedPlan] = useState(subscription?.plan ?? 'starter')
+  const [newUser, setNewUser] = useState({ username: '', password: '', role: 'business_manager' })
+
+  // ─── Toggle işletme aktif/pasif ───
+  async function toggleActive() {
+    const newVal = !isActive
+    try {
+      await apiCall('PATCH', '/api/admin/restaurant', { id: restaurant.id, is_active: newVal })
+      setIsActive(newVal)
+      toast.show(newVal ? 'İşletme aktif edildi' : 'İşletme pasif edildi', 'success')
+    } catch {
+      toast.show('Güncellenemedi', 'error')
+    }
+  }
+
+  // ─── Onayla / Reddet işlemleri ───
+  async function logAudit(action: string, targetId: string, metadata?: Record<string, unknown>) {
+    await fetch('/api/admin/audit-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, target_type: 'restaurant', target_id: targetId, metadata }),
+    }).catch(() => {})
+  }
+
+  async function verifyRestaurant() {
+    try {
+      await apiCall('PATCH', '/api/admin/restaurant', { id: restaurant.id, is_verified: true, is_active: true })
+      setIsVerified(true)
+      setIsActive(true)
+      toast.show('İşletme onaylandı', 'success')
+      logAudit('restaurant_verified', restaurant.id, { name: restaurant.name })
+    } catch {
+      toast.show('Onaylanamadı', 'error')
+    }
+  }
+
+  async function rejectRestaurant() {
+    try {
+      await apiCall('PATCH', '/api/admin/restaurant', { id: restaurant.id, is_active: false })
+      setIsActive(false)
+      toast.show('İşletme reddedildi', 'success')
+      logAudit('restaurant_rejected', restaurant.id, { name: restaurant.name })
+    } catch {
+      toast.show('İşlem başarısız', 'error')
+    }
+  }
+
+  // ─── Feature flag toggle ───
+  async function toggleFlag(feature: string) {
+    const newVal = !(flags[feature] ?? false)
+    setFlags(prev => ({ ...prev, [feature]: newVal }))
+    try {
+      await apiCall('POST', '/api/admin/feature-flags', { restaurant_id: restaurant.id, feature, enabled: newVal })
+      toast.show(newVal ? 'Özellik aktif edildi' : 'Özellik pasif edildi', 'success')
+    } catch {
+      setFlags(prev => ({ ...prev, [feature]: !newVal }))
+      toast.show('Güncellenemedi', 'error')
+    }
+  }
+
+  // ─── Plan değiştir ───
+  async function savePlan() {
+    try {
+      await apiCall('PATCH', '/api/admin/restaurant', { id: restaurant.id, plan: selectedPlan })
+      toast.show('Plan güncellendi', 'success')
+    } catch {
+      toast.show('Plan güncellenemedi', 'error')
+    }
+  }
+
+  // ─── Kullanıcı ekle ───
+  async function addUser() {
+    if (!newUser.username.trim() || newUser.password.length < 8) {
+      toast.show('Kullanıcı adı ve en az 8 karakter şifre gerekli', 'error')
+      return
+    }
+    try {
+      const res = await fetch('/api/admin/restaurant-users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          restaurant_id: restaurant.id,
+          username: newUser.username.trim(),
+          password: newUser.password,
+          role: newUser.role,
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error ?? 'Başarısız')
+      }
+      toast.show('Kullanıcı eklendi', 'success')
+      setNewUser({ username: '', password: '', role: 'business_manager' })
+      router.refresh()
+    } catch (e) {
+      toast.show(e instanceof Error ? e.message : 'Eklenemedi', 'error')
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-stone-950 text-white">
+      {/* Header */}
+      <div className="border-b border-white/5 px-4 py-3 sm:px-6">
+        <div className="mx-auto max-w-4xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link href="/admin" className="text-xs text-stone-500 hover:text-amber-400 transition-colors">
+              ← Admin
+            </Link>
+            <h1 className="text-base font-bold text-white">{restaurant.name}</h1>
+            <span className="text-xs text-stone-600">/{restaurant.slug}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-4xl px-4 py-6 space-y-6">
+
+        {/* ═══ Bölüm 1 — Genel Bilgiler ═══ */}
+        <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-white mb-4">Genel Bilgiler</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-stone-500 text-xs">İşletme Adı</span>
+              <p className="text-white font-medium">{restaurant.name}</p>
+            </div>
+            <div>
+              <span className="text-stone-500 text-xs">Slug</span>
+              <p className="text-stone-300 font-mono">/{restaurant.slug}</p>
+            </div>
+            <div>
+              <span className="text-stone-500 text-xs">Adres</span>
+              <p className="text-stone-300">{restaurant.address ?? '—'}</p>
+            </div>
+            <div>
+              <span className="text-stone-500 text-xs">Telefon</span>
+              <p className="text-stone-300">{restaurant.phone ?? '—'}</p>
+            </div>
+            <div>
+              <span className="text-stone-500 text-xs">Tip</span>
+              <p className="text-stone-300">{restaurant.business_type ?? '—'}</p>
+            </div>
+            <div>
+              <span className="text-stone-500 text-xs">Kapasite</span>
+              <p className="text-stone-300">{restaurant.capacity ?? '—'}</p>
+            </div>
+            <div>
+              <span className="text-stone-500 text-xs">Oluşturulma</span>
+              <p className="text-stone-300">{restaurant.created_at ? new Date(restaurant.created_at).toLocaleDateString('tr-TR') : '—'}</p>
+            </div>
+            <div>
+              <span className="text-stone-500 text-xs">Durum</span>
+              <button
+                onClick={toggleActive}
+                className={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                  isActive ? 'text-emerald-400 hover:text-emerald-300' : 'text-red-400 hover:text-red-300'
+                }`}
+              >
+                {isActive ? <><Check size={14} /> Aktif</> : <><X size={14} /> Pasif</>}
+              </button>
+            </div>
+            <div>
+              <span className="text-stone-500 text-xs">Doğrulama</span>
+              <p className={`text-sm font-medium ${isVerified ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {isVerified ? '✓ Onaylı' : 'Onay Bekliyor'}
+              </p>
+            </div>
+          </div>
+          {!isVerified && (
+            <div className="flex gap-3 mt-5 pt-4 border-t border-stone-800">
+              <button
+                onClick={verifyRestaurant}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 text-sm font-semibold hover:bg-emerald-500/30 transition-colors"
+              >
+                <Check size={14} /> Onayla
+              </button>
+              <button
+                onClick={rejectRestaurant}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-500/15 text-red-400 text-sm font-semibold hover:bg-red-500/25 transition-colors"
+              >
+                <X size={14} /> Reddet
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* ═══ Bölüm 2 — Abonelik ═══ */}
+        <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-white mb-4">Abonelik</h2>
+          {subscription ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-stone-500 text-xs">Plan</span>
+                  <p className="text-white font-medium capitalize">{subscription.plan}</p>
+                </div>
+                <div>
+                  <span className="text-stone-500 text-xs">Durum</span>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    subscription.status === 'active' ? 'bg-emerald-500/15 text-emerald-400' :
+                    subscription.status === 'trialing' ? 'bg-blue-500/15 text-blue-400' :
+                    'bg-red-500/15 text-red-400'
+                  }`}>
+                    {subscription.status}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-stone-500 text-xs">Dönem</span>
+                  <p className="text-stone-300">{subscription.billing_period === 'yearly' ? 'Yıllık' : 'Aylık'}</p>
+                </div>
+                <div>
+                  <span className="text-stone-500 text-xs">Periyot Sonu</span>
+                  <p className="text-stone-300">
+                    {subscription.current_period_end
+                      ? new Date(subscription.current_period_end).toLocaleDateString('tr-TR')
+                      : '—'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-stone-500 text-sm">Abonelik bulunmuyor</p>
+          )}
+
+          <div className="mt-4 flex items-center gap-3">
+            <select
+              value={selectedPlan}
+              onChange={e => setSelectedPlan(e.target.value)}
+              className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
+            >
+              {PLANS.map(p => (
+                <option key={p} value={p} className="capitalize">{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+              ))}
+            </select>
+            <button
+              onClick={savePlan}
+              className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-sm font-semibold transition-colors"
+            >
+              Planı Değiştir
+            </button>
+          </div>
+        </section>
+
+        {/* ═══ Bölüm 3 — Feature Flags ═══ */}
+        <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-white mb-4">Özellikler</h2>
+          <div className="space-y-2">
+            {FEATURES.map(f => {
+              const enabled = flags[f.key] ?? false
+              return (
+                <div key={f.key} className="flex items-center justify-between bg-stone-800/50 rounded-xl px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium text-white">{f.label}</p>
+                    <p className="text-xs text-stone-500">{f.desc}</p>
+                  </div>
+                  <button
+                    onClick={() => toggleFlag(f.key)}
+                    className={`p-2 rounded-lg transition-colors ${
+                      enabled ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-stone-500 hover:text-white hover:bg-stone-800'
+                    }`}
+                  >
+                    {enabled ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+
+        {/* ═══ Bölüm 4 — Panel Kullanıcıları ═══ */}
+        <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-white mb-4">Panel Kullanıcıları</h2>
+
+          {/* Kullanıcı listesi */}
+          {users.length > 0 ? (
+            <div className="space-y-2 mb-4">
+              {users.map(u => (
+                <div key={u.id} className="flex items-center justify-between bg-stone-800/50 rounded-xl px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-7 h-7 rounded-full bg-stone-700 flex items-center justify-center text-xs font-bold text-white">
+                      {u.username.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">{u.username}</p>
+                      <span className="inline-block text-[10px] font-medium text-stone-400 bg-stone-700/50 px-1.5 py-0.5 rounded">
+                        {getRoleLabel(u.role)}
+                      </span>
+                    </div>
+                  </div>
+                  <span className={`text-xs font-medium ${u.is_active ? 'text-emerald-400' : 'text-stone-600'}`}>
+                    {u.is_active ? 'Aktif' : 'Pasif'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-stone-500 text-sm mb-4">Henüz kullanıcı yok</p>
+          )}
+
+          {/* Kullanıcı ekle formu */}
+          <div className="bg-stone-800/30 border border-stone-700/50 rounded-xl p-4">
+            <h3 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-3">Manager Ekle</h3>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                value={newUser.username}
+                onChange={e => setNewUser(f => ({ ...f, username: e.target.value }))}
+                placeholder="Kullanıcı adı"
+                className="flex-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white placeholder-stone-600 focus:outline-none focus:border-amber-500"
+              />
+              <input
+                value={newUser.password}
+                onChange={e => setNewUser(f => ({ ...f, password: e.target.value }))}
+                type="password"
+                placeholder="Şifre (en az 8 karakter)"
+                className="flex-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white placeholder-stone-600 focus:outline-none focus:border-amber-500"
+              />
+              <select
+                value={newUser.role}
+                onChange={e => setNewUser(f => ({ ...f, role: e.target.value }))}
+                className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
+              >
+                <option value="business_owner">Sahip</option>
+                <option value="business_manager">Yönetici</option>
+              </select>
+              <button
+                onClick={addUser}
+                disabled={!newUser.username.trim() || newUser.password.length < 8}
+                className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-black text-sm font-semibold transition-colors whitespace-nowrap"
+              >
+                Ekle
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══ Bölüm 5 — Özet İstatistikler ═══ */}
+        <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-white mb-4">İstatistikler</h2>
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-stone-800/50 rounded-xl p-4 text-center">
+              <p className="text-2xl font-bold text-white">{stats.totalReservations}</p>
+              <p className="text-xs text-stone-500 mt-1">Toplam Rezervasyon</p>
+            </div>
+            <div className="bg-stone-800/50 rounded-xl p-4 text-center">
+              <p className="text-2xl font-bold text-white">{stats.calisanlarCount}</p>
+              <p className="text-xs text-stone-500 mt-1">Çalışan</p>
+            </div>
+            <div className="bg-stone-800/50 rounded-xl p-4 text-center">
+              <p className="text-2xl font-bold text-white">{stats.hizmetlerCount}</p>
+              <p className="text-xs text-stone-500 mt-1">Hizmet</p>
+            </div>
+          </div>
+
+          {/* Son 10 rezervasyon */}
+          <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">Son 10 Rezervasyon</h3>
+          {recentReservations.length > 0 ? (
+            <div className="space-y-1.5">
+              {recentReservations.map(r => (
+                <div key={r.id} className="flex items-center justify-between bg-stone-800/30 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-white font-medium">{r.customer_name ?? 'İsimsiz'}</span>
+                    <span className="text-xs text-stone-500">{r.date} {r.time}</span>
+                    {r.party_size && <span className="text-xs text-stone-500">{r.party_size} kişi</span>}
+                  </div>
+                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                    r.status === 'confirmed' ? 'bg-emerald-500/15 text-emerald-400' :
+                    r.status === 'cancelled' ? 'bg-red-500/15 text-red-400' :
+                    r.status === 'completed' ? 'bg-blue-500/15 text-blue-400' :
+                    'bg-stone-700/50 text-stone-400'
+                  }`}>
+                    {r.status === 'confirmed' ? 'Onaylandı' :
+                     r.status === 'cancelled' ? 'İptal' :
+                     r.status === 'completed' ? 'Tamamlandı' :
+                     r.status === 'pending' ? 'Bekliyor' : r.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-stone-500 text-sm">Henüz rezervasyon yok</p>
+          )}
+        </section>
+
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="types/index.ts">
+// ─── Floor Plan / Masa Krokisi ────────────────────────────────────────────────
+
+export type Table = {
+  id: string
+  restaurant_id: string
+  label: string
+  capacity: number
+  area_id: string | null
+  x: number
+  y: number
+  width: number
+  height: number
+  shape: 'rect' | 'circle'
+  is_active: boolean
+  created_at: string
+}
+
+// Backward compat
+export type FloorTable = Table
+
+// ─── İş Yeri Türleri ──────────────────────────────────────────────────────────
+
+export type BusinessType =
+  | 'restaurant'
+  | 'barber'
+  | 'hairdresser'
+  | 'psychologist'
+  | 'spa'
+  | 'beauty_salon'
+  | 'dentist'
+  | 'fitness'
+  | 'pilates'
+  | 'chiropractor'
+  | 'veterinary'
+  | 'other'
+
+export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
+  restaurant:   'Restoran / Kafe',
+  barber:       'Berber',
+  hairdresser:  'Kuaför / Saç Salonu',
+  psychologist: 'Psikolog / Terapist',
+  spa:          'Spa / Masaj',
+  beauty_salon: 'Güzellik Salonu',
+  dentist:      'Diş Hekimi',
+  fitness:      'Spor Salonu / PT',
+  pilates:      'Pilates Stüdyosu',
+  chiropractor: 'Kayropraktik / Fizyoterapi',
+  veterinary:   'Veteriner',
+  other:        'Diğer',
+}
+
+export const BUSINESS_TYPE_ICONS: Record<BusinessType, string> = {
+  restaurant:   '🍽️',
+  barber:       '✂️',
+  hairdresser:  '💇',
+  psychologist: '🧠',
+  spa:          '💆',
+  beauty_salon: '💅',
+  dentist:      '🦷',
+  fitness:      '🏋️',
+  pilates:      '🧘',
+  chiropractor: '🦴',
+  veterinary:   '🐾',
+  other:        '📅',
+}
+
+// "Rezervasyon" mu "Randevu" mu? İş türüne göre değişir.
+export const BOOKING_TERM: Record<BusinessType, { singular: string; plural: string }> = {
+  restaurant:   { singular: 'Rezervasyon', plural: 'Rezervasyonlar' },
+  barber:       { singular: 'Randevu',     plural: 'Randevular'     },
+  hairdresser:  { singular: 'Randevu',     plural: 'Randevular'     },
+  psychologist: { singular: 'Seans',       plural: 'Seanslar'       },
+  spa:          { singular: 'Randevu',     plural: 'Randevular'     },
+  beauty_salon: { singular: 'Randevu',     plural: 'Randevular'     },
+  dentist:      { singular: 'Randevu',     plural: 'Randevular'     },
+  fitness:      { singular: 'Randevu',     plural: 'Randevular'     },
+  pilates:      { singular: 'Ders',        plural: 'Dersler'        },
+  chiropractor: { singular: 'Randevu',     plural: 'Randevular'     },
+  veterinary:   { singular: 'Randevu',     plural: 'Randevular'     },
+  other:        { singular: 'Randevu',     plural: 'Randevular'     },
+}
+
+// ─── Supabase Tablo Tipleri ────────────────────────────────────────────────────
+
+export type WorkingDayHours = {
+  open:  boolean
+  start: string  // "HH:MM"
+  end:   string  // "HH:MM"
+}
+
+export type WorkingHours = Partial<Record<
+  'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday',
+  WorkingDayHours
+>>
+
+export type Restaurant = {
+  id:                       string
+  name:                     string
+  slug:                     string
+  phone:                    string | null
+  address:                  string | null
+  capacity:                 number
+  business_type:            BusinessType
+  timezone:                 string
+  booking_duration_minutes: number
+  currency:                 string
+  description:              string | null
+  website:                  string | null
+  instagram:                string | null
+  is_active:                boolean
+  created_at:               string
+  working_hours?:            WorkingHours | null
+  closed_dates?:             string[] | null
+  prepayment_amount?:        number | null
+  special_notes?:            string | null
+}
+
+export type Service = {
+  id:               string
+  restaurant_id:    string
+  name:             string
+  description:      string | null
+  duration_minutes: number
+  price:            number | null
+  currency:         string
+  is_active:        boolean
+  sort_order:       number
+  created_at:       string
+}
+
+export type StaffMember = {
+  id:            string
+  restaurant_id: string
+  name:          string
+  title:         string | null
+  bio:           string | null
+  avatar_url:    string | null
+  is_active:     boolean
+  sort_order:    number
+  created_at:    string
+}
+
+export type Reservation = {
+  id:               string
+  restaurant_id:    string
+  // Mevcut DB kolonları (geriye dönük uyumlu)
+  customer_name:    string
+  phone:            string
+  guest_name:       string | null
+  guest_phone:      string | null
+  party_size:       number
+  date:             string        // YYYY-MM-DD
+  time:             string | null // HH:MM
+  // Yeni kolonlar (multi-sector migration sonrası)
+  end_time:         string | null
+  duration_minutes: number | null
+  service_id:       string | null
+  staff_id:         string | null
+  special_requests: string | null
+  notes:            string | null
+  status:           'confirmed' | 'cancelled' | 'completed' | 'no_show'
+  source:           'form' | 'ai' | 'phone' | 'whatsapp' | 'walk_in'
+  special_area_id:  string | null
+  price_paid:       number | null
+  currency:         string
+  reminder_sent:    boolean
+  created_at:       string
+}
+
+export type SpecialArea = {
+  id:            string
+  restaurant_id: string
+  name:          string
+  capacity:      number
+  created_at:    string
+}
+
+export type RestaurantUser = {
+  id:            string
+  restaurant_id: string
+  username:      string
+  role:          'business_owner' | 'business_manager'
+  is_active:     boolean
+  created_at:    string
+}
+
+// ─── AI Mesaj Analizi ──────────────────────────────────────────────────────────
+
+export type ReservationExtraction = {
+  is_reservation_request: boolean
+  name:           string | null
+  date:           string | null  // YYYY-MM-DD
+  time:           string | null  // HH:MM
+  party_size:     number | null
+  phone:          string | null
+  notes:          string | null
+  confidence:     number         // 0–1
+  raw_date_text:  string | null
+  service_name:   string | null  // berber/kuaför için hizmet adı
+  staff_name:     string | null  // tercih edilen personel
+}
+</file>
+
+</files>

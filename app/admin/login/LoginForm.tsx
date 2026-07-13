@@ -1,13 +1,22 @@
 'use client'
 
-import { useActionState, useRef } from 'react'
+import { useActionState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { loginAction, type LoginState } from './actions'
 
 const initial: LoginState = { error: null }
 
 export function LoginForm({ redirectTo }: { redirectTo: string }) {
   const [state, formAction, pending] = useActionState(loginAction, initial)
+  const router = useRouter()
   const emailRef = useRef<HTMLInputElement>(null)
+
+  // Server action success → client-side redirect
+  useEffect(() => {
+    if (state?.success && state.redirectUrl) {
+      router.push(state.redirectUrl)
+    }
+  }, [state?.success, state?.redirectUrl, router])
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
