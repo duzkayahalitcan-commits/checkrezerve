@@ -4,8 +4,9 @@ import { Users, Search, RefreshCw, AlertTriangle } from 'lucide-react'
 
 type ListRow = {
   id: string
+  musteri_id: string
   musteri_adi: string
-  musteri_telefon: string | null
+  musteri_email: string | null
   paket_adi: string
   toplam_seans: number
   kalan_seans: number
@@ -22,7 +23,7 @@ export default function UyePaketleriClient({ restaurantId }: { restaurantId: str
   const [loading, setLoading] = useState(true)
   const [paketler, setPaketler] = useState<PaketOption[]>([])
   const [showAssign, setShowAssign] = useState(false)
-  const [assignForm, setAssignForm] = useState({ musteri_adi: '', musteri_telefon: '', paket_id: '', calisan_id: '' })
+  const [assignForm, setAssignForm] = useState({ musteri_id: '', paket_id: '', calisan_id: '' })
   const [saving, setSaving] = useState(false)
 
   const load = useCallback(async () => {
@@ -42,7 +43,7 @@ export default function UyePaketleriClient({ restaurantId }: { restaurantId: str
   useEffect(() => { load() }, [load])
 
   const handleAssign = useCallback(async () => {
-    if (!assignForm.musteri_adi || !assignForm.paket_id) return
+    if (!assignForm.musteri_id || !assignForm.paket_id) return
     setSaving(true)
     try {
       const res = await fetch('/api/panel/musteri-paketleri', {
@@ -51,14 +52,13 @@ export default function UyePaketleriClient({ restaurantId }: { restaurantId: str
         body: JSON.stringify({
           restaurant_id: restaurantId,
           paket_id: assignForm.paket_id,
-          musteri_adi: assignForm.musteri_adi,
-          musteri_telefon: assignForm.musteri_telefon || null,
+          musteri_id: assignForm.musteri_id,
           calisan_id: assignForm.calisan_id || null,
         }),
       })
       if (res.ok) {
         setShowAssign(false)
-        setAssignForm({ musteri_adi: '', musteri_telefon: '', paket_id: '', calisan_id: '' })
+        setAssignForm({ musteri_id: '', paket_id: '', calisan_id: '' })
         load()
       }
     } finally {
@@ -100,14 +100,10 @@ export default function UyePaketleriClient({ restaurantId }: { restaurantId: str
       {/* Ata formu */}
       {showAssign && (
         <div className="bg-stone-800/50 border border-stone-700 rounded-xl p-4 space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-stone-400 mb-1 block">Müşteri Adı *</label>
-              <input value={assignForm.musteri_adi} onChange={e => setAssignForm(f => ({ ...f, musteri_adi: e.target.value }))} className="w-full bg-stone-800 border border-stone-600 rounded-lg px-3 py-2 text-sm text-white" placeholder="Ad Soyad" />
-            </div>
-            <div>
-              <label className="text-xs text-stone-400 mb-1 block">Telefon</label>
-              <input value={assignForm.musteri_telefon} onChange={e => setAssignForm(f => ({ ...f, musteri_telefon: e.target.value }))} className="w-full bg-stone-800 border border-stone-600 rounded-lg px-3 py-2 text-sm text-white" placeholder="05XX XXX XX XX" />
+              <label className="text-xs text-stone-400 mb-1 block">Müşteri ID (profiles) *</label>
+              <input value={assignForm.musteri_id} onChange={e => setAssignForm(f => ({ ...f, musteri_id: e.target.value }))} className="w-full bg-stone-800 border border-stone-600 rounded-lg px-3 py-2 text-sm text-white" placeholder="Kullanıcı UUID" />
             </div>
             <div>
               <label className="text-xs text-stone-400 mb-1 block">Paket *</label>
@@ -122,7 +118,7 @@ export default function UyePaketleriClient({ restaurantId }: { restaurantId: str
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={handleAssign} disabled={saving || !assignForm.musteri_adi || !assignForm.paket_id} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-all disabled:opacity-50">
+            <button onClick={handleAssign} disabled={saving || !assignForm.musteri_id || !assignForm.paket_id} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-all disabled:opacity-50">
               {saving ? 'Kaydediliyor...' : 'Ata'}
             </button>
             <button onClick={() => setShowAssign(false)} className="px-4 py-2 rounded-lg bg-stone-700 text-stone-300 text-sm hover:bg-stone-600 transition-all">İptal</button>
@@ -158,7 +154,7 @@ export default function UyePaketleriClient({ restaurantId }: { restaurantId: str
                 <tr key={r.id} className="border-b border-stone-800/50 hover:bg-white/[0.02] transition-colors">
                   <td className="py-3 px-3">
                     <div className="font-medium text-white">{r.musteri_adi}</div>
-                    {r.musteri_telefon && <div className="text-xs text-stone-500">{r.musteri_telefon}</div>}
+                    {r.musteri_email && <div className="text-xs text-stone-500">{r.musteri_email}</div>}
                   </td>
                   <td className="py-3 px-3 text-stone-300">{r.paket_adi}</td>
                   <td className="py-3 px-3">

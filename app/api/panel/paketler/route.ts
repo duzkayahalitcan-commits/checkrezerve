@@ -9,10 +9,8 @@ async function getSession() {
   return token ? verifySession(token) : null
 }
 
-// GET  /api/panel/paketler?restaurant_id=xxx
-// POST /api/panel/paketler { restaurant_id, ad, seans_sayisi, gecerlilik_gun, fiyat?, hizmet_id? }
-// PATCH /api/panel/paketler { id, ad?, seans_sayisi?, ... }
-// DELETE /api/panel/paketler { id } — soft delete (aktif=false)
+// NOT: DB'de toplam_seans ana kolondur. seans_sayisi kolonu da vardir (migration artigi)
+// ama kod sadece toplam_seans kullanir.
 
 export async function GET(req: NextRequest) {
   const session = await getSession()
@@ -37,15 +35,22 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { restaurant_id, ad, seans_sayisi, gecerlilik_gun, fiyat, hizmet_id } = body
-  if (!restaurant_id || !ad || !seans_sayisi || !gecerlilik_gun) {
-    return NextResponse.json({ error: 'restaurant_id, ad, seans_sayisi, gecerlilik_gun required' }, { status: 400 })
+  const { restaurant_id, ad, toplam_seans, gecerlilik_gun, fiyat, hizmet_id } = body
+  if (!restaurant_id || !ad || !toplam_seans || !gecerlilik_gun) {
+    return NextResponse.json({ error: 'restaurant_id, ad, toplam_seans, gecerlilik_gun required' }, { status: 400 })
   }
 
   const db = getSupabaseAdmin()
   const { data, error } = await db
     .from('paketler')
-    .insert({ restaurant_id, ad, seans_sayisi, gecerlilik_gun, fiyat: fiyat ?? null, hizmet_id: hizmet_id ?? null })
+    .insert({
+      restaurant_id,
+      ad,
+      toplam_seans,
+      gecerlilik_gun,
+      fiyat: fiyat ?? null,
+      hizmet_id: hizmet_id ?? null,
+    })
     .select()
     .single()
 
@@ -61,7 +66,7 @@ export async function PATCH(req: NextRequest) {
   const { id, ...updates } = body
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
-  const allowed = ['ad', 'seans_sayisi', 'gecerlilik_gun', 'fiyat', 'hizmet_id', 'aktif']
+  const allowed = ['ad', 'toplam_seans', 'gecerlilik_gun', 'fiyat', 'hizmet_id', 'aktif']
   const setData: Record<string, unknown> = { updated_at: new Date().toISOString() }
   for (const k of allowed) {
     if (updates[k] !== undefined) setData[k] = updates[k]
