@@ -23,23 +23,33 @@ export default async function PaketOzetiPage() {
     .eq('is_active', true)
     .order('name')
 
-  // Ayri query ile kalan seans ve biten paket sayilari
+  // Ayri query ile kalan seans ve biten paket sayilari (hesaplanan)
   const { data: kalanlar } = await db
     .from('musteri_paketleri')
     .select(`
       restaurant_id,
-      kalan_seans,
-      durum
+      toplam_seans,
+      kullanilan_seans,
+      aktif,
+      bitis_tarihi
     `)
 
   const kalanMap = new Map<string, { aktifPaket: number; toplamKalan: number; bitenPaket: number }>()
+  const today = new Date().toISOString().slice(0, 10)
   for (const r of (kalanlar ?? [])) {
     const rid = r.restaurant_id as string
     if (!kalanMap.has(rid)) kalanMap.set(rid, { aktifPaket: 0, toplamKalan: 0, bitenPaket: 0 })
     const entry = kalanMap.get(rid)!
-    entry.toplamKalan += (r.kalan_seans as number) ?? 0
-    if (r.durum === 'aktif') entry.aktifPaket++
-    if (r.durum === 'bitti') entry.bitenPaket++
+    const toplam = (r.toplam_seans as number) ?? 0
+    const kullanilan = (r.kullanilan_seans as number) ?? 0
+    const kalan = Math.max(0, toplam - kullanilan)
+    const aktif = (r.aktif as boolean) ?? true
+    const bitis = (r.bitis_tarihi as string | null) ?? null
+    const bitisGecti = bitis ? bitis < today : false
+    const bitti = (kullanilan >= toplam || bitisGecti || !aktif)
+    entry.toplamKalan += kalan
+    if (!bitti) entry.aktifPaket++
+    if (bitti) entry.bitenPaket++
   }
 
   const rows = (ozet ?? []).map((r: Record<string, unknown>) => {

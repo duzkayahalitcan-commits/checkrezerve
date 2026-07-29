@@ -5,7 +5,7 @@ import { Package, Plus, Pencil, Check, X } from 'lucide-react'
 type Paket = {
   id: string
   ad: string
-  seans_sayisi: number
+  toplam_seans: number
   gecerlilik_gun: number
   fiyat: number | null
   hizmet_id: string | null
@@ -18,18 +18,18 @@ export default function PaketlerManager({ paketler: initial, services, restauran
   const [paketler, setPaketler] = useState<Paket[]>(initial)
   const [editing, setEditing] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ ad: '', seans_sayisi: '10', gecerlilik_gun: '30', fiyat: '', hizmet_id: '' })
+  const [form, setForm] = useState({ ad: '', toplam_seans: '10', gecerlilik_gun: '30', fiyat: '', hizmet_id: '' })
   const [showNew, setShowNew] = useState(false)
 
-  const resetForm = () => setForm({ ad: '', seans_sayisi: '10', gecerlilik_gun: '30', fiyat: '', hizmet_id: '' })
+  const resetForm = () => setForm({ ad: '', toplam_seans: '10', gecerlilik_gun: '30', fiyat: '', hizmet_id: '' })
 
   const handleSave = useCallback(async () => {
-    if (!form.ad || !form.seans_sayisi || !form.gecerlilik_gun) return
+    if (!form.ad || !form.toplam_seans || !form.gecerlilik_gun) return
     setSaving(true)
     const body = {
       restaurant_id: restaurantId,
       ad: form.ad,
-      seans_sayisi: parseInt(form.seans_sayisi),
+      toplam_seans: parseInt(form.toplam_seans),
       gecerlilik_gun: parseInt(form.gecerlilik_gun),
       fiyat: form.fiyat ? parseFloat(form.fiyat) : null,
       hizmet_id: form.hizmet_id || null,
@@ -74,8 +74,8 @@ export default function PaketlerManager({ paketler: initial, services, restauran
               <input value={form.ad} onChange={e => setForm(f => ({ ...f, ad: e.target.value }))} className="w-full bg-stone-800 border border-stone-600 rounded-lg px-3 py-2 text-sm text-white" placeholder="10 Seans Paketi" />
             </div>
             <div>
-              <label className="text-xs text-stone-400 mb-1 block">Seans Sayısı</label>
-              <input type="number" min="1" value={form.seans_sayisi} onChange={e => setForm(f => ({ ...f, seans_sayisi: e.target.value }))} className="w-full bg-stone-800 border border-stone-600 rounded-lg px-3 py-2 text-sm text-white" />
+              <label className="text-xs text-stone-400 mb-1 block">Toplam Seans</label>
+              <input type="number" min="1" value={form.toplam_seans} onChange={e => setForm(f => ({ ...f, toplam_seans: e.target.value }))} className="w-full bg-stone-800 border border-stone-600 rounded-lg px-3 py-2 text-sm text-white" />
             </div>
             <div>
               <label className="text-xs text-stone-400 mb-1 block">Geçerlilik (gün)</label>
@@ -122,7 +122,7 @@ export default function PaketlerManager({ paketler: initial, services, restauran
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-white text-sm">{p.ad}</div>
               <div className="text-xs text-stone-400 mt-0.5">
-                {p.seans_sayisi} seans · {p.gecerlilik_gun} gün
+                {p.toplam_seans} seans · {p.gecerlilik_gun} gün
                 {p.fiyat ? ` · ₺${p.fiyat}` : ''}
                 {p.hizmet_id ? ` · ${services.find(s => s.id === p.hizmet_id)?.name ?? '?'}` : ''}
               </div>

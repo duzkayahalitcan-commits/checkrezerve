@@ -185,12 +185,15 @@ export type RestaurantUser = {
 }
 
 // ─── Paket / Seans Sistemi (W-61) ──────────────────────────────────────────────
+// Gercek DB semasi: paketler.toplam_seans, musteri_paketleri.musteri_id (profiles FK),
+// musteri_paketleri.kullanilan_seans, musteri_paketleri.aktif
+// "kalan" her yerde hesaplanir: kalan = toplam_seans - kullanilan_seans
 
 export type Paket = {
   id:              string
   restaurant_id:   string
   ad:              string
-  seans_sayisi:    number
+  toplam_seans:    number
   gecerlilik_gun:  number
   fiyat:           number | null
   hizmet_id:       string | null
@@ -203,23 +206,26 @@ export type MusteriPaketi = {
   id:               string
   restaurant_id:    string
   paket_id:         string
-  musteri_adi:      string
-  musteri_telefon:  string | null
+  musteri_id:       string
   toplam_seans:     number
-  kalan_seans:      number
+  kullanilan_seans: number
   baslangic_tarihi: string
   bitis_tarihi:     string | null
-  durum:            'aktif' | 'bitti' | 'iptal'
+  aktif:            boolean
   calisan_id:       string | null
   created_at:       string
   updated_at:       string
 }
 
-// API'den gelen join'li liste tipi
+// API'den gelen join'li liste tipi (kalan hesaplanir)
 export type MusteriPaketListRow = MusteriPaketi & {
   paket_adi:      string
+  musteri_adi:    string        // profiles.email'den
+  musteri_email:  string | null
   calisan_adi:    string | null
-  kalan_oran:     number  // 0-1 arasi
+  kalan_seans:    number        // hesaplanan
+  kalan_oran:     number        // 0-1
+  durum:          string        // hesaplanan: aktif/bitti
 }
 
 export type ReservationExtraction = {

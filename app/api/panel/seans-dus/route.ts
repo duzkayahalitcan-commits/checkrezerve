@@ -5,10 +5,11 @@ import { verifySession } from '@/lib/panel-auth'
 
 // POST /api/panel/seans-dus { reservation_id }
 // Rezervasyonun musteri_paket_id'si varsa ve seans_dusuldu=false ise:
-// - kalan_seans-1
-// - seans_dusuldu=true
-// - kalan_seans 0 olursa durum=bitti
-// - kalan_seans<=2 ise response'a uyari flag ekle
+// - kullanilan_seans + 1
+// - seans_dusuldu = true
+// - kalan = toplam - kullanilan (hesaplanan)
+// - kalan <= 2 ise uyari flag
+// - kullanilan >= toplam ise aktif = false
 
 export async function POST(req: NextRequest) {
   const jar = await cookies()
@@ -35,19 +36,21 @@ export async function POST(req: NextRequest) {
   // musteri_paketi'ni guncelle
   const { data: mp } = await db
     .from('musteri_paketleri')
-    .select('kalan_seans, durum')
+    .select('toplam_seans, kullanilan_seans, aktif')
     .eq('id', reservation.musteri_paket_id)
     .single()
 
   if (!mp) return NextResponse.json({ error: 'Musteri paketi bulunamadi' }, { status: 404 })
-  if (mp.durum !== 'aktif') return NextResponse.json({ error: 'Paket aktif degil' }, { status: 400 })
+  if (!mp.aktif) return NextResponse.json({ error: 'Paket aktif degil' }, { status: 400 })
 
-  const yeniKalan = Math.max(0, (mp.kalan_seans ?? 1) - 1)
-  const yeniDurum = yeniKalan === 0 ? 'bitti' : 'aktif'
+  const yeniKullanilan = (mp.kullanilan_seans ?? 0) + 1
+  const toplam = mp.toplam_seans ?? 0
+  const yeniAktif = yeniKullanilan < toplam
+  const kalan = Math.max(0, toplam - yeniKullanilan)
 
   const { error: mpError } = await db
     .from('musteri_paketleri')
-    .update({ kalan_seans: yeniKalan, durum: yeniDurum, updated_at: new Date().toISOString() })
+    .update({ kullanilan_seans: yeniKullanilan, aktif: yeniAktif, updated_at: new Date().toISOString() })
     .eq('id', reservation.musteri_paket_id)
 
   if (mpError) return NextResponse.json({ error: mpError.message }, { status: 500 })
@@ -62,13 +65,14 @@ export async function POST(req: NextRequest) {
 
   const response: Record<string, unknown> = {
     success: true,
-    kalan_seans: yeniKalan,
-    durum: yeniDurum,
+    kalan_seans: kalan,
+    kullanilan_seans: yeniKullanilan,
+    aktif: yeniAktif,
   }
 
-  if (yeniKalan <= 2 && yeniKalan > 0) {
+  if (kalan <= 2 && kalan > 0) {
     response.uyari = true
-    response.uyari_mesaji = `Kalan seans sayisi ${yeniKalan}. Yenileme vakti geldi.`
+    response.uyari_mesaji = `Kalan seans sayisi ${kalan}. Yenileme vakti geldi.`
   }
 
   return NextResponse.json(response)
