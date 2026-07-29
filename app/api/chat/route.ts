@@ -24,16 +24,60 @@ export async function POST(request: NextRequest) {
       const faqAnswer = await searchFaq(lastUserMsg.content)
       if (faqAnswer) return NextResponse.json({ message: faqAnswer })
     }
+    const slugify = (name: string): string =>
+      name.toLowerCase()
+        .replace(/[ş]/g, 's').replace(/[Ş]/g, 's')
+        .replace(/[ı]/g, 'i').replace(/[İ]/g, 'i')
+        .replace(/[ö]/g, 'o').replace(/[Ö]/g, 'o')
+        .replace(/[ü]/g, 'u').replace(/[Ü]/g, 'u')
+        .replace(/[ç]/g, 'c').replace(/[Ç]/g, 'c')
+        .replace(/[ğ]/g, 'g').replace(/[Ğ]/g, 'g')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+
     const isGeneral = !businessName || businessType === 'platform'
+    const businessSlug = isGeneral ? '' : slugify(businessName)
+    const businessUrl = isGeneral ? 'https://checkrezerve.com/tr/rezervasyon' : `https://checkrezerve.com/tr/rezervasyon/${businessSlug}`
+
     const systemPrompt = isGeneral
-      ? `Sen CheckRezerve'in yapay zeka asistanısın. Kullanıcılara Türkçe olarak yardım ediyorsun. Kısa, samimi ve net cevaplar ver.
+      ? `Sen CheckRezerve platformunun akıllı asistanısın. CheckRezerve, Türkiye'deki restoranlar, spalar, kuaförler, pilates stüdyoları ve klinikler için online rezervasyon platformudur.
 
-KESİN KURAL 1: SADECE CheckRezerve platformundaki gerçek işletmeleri öner. Hiçbir zaman platformda olmayan bir işletme adı uydurma, hayal etme veya önerme. Emin değilsen "Bunu platformumuzda arayarak bulabilirsiniz" de.
+PLATFORM BİLGİSİ:
+- Ana URL: https://checkrezerve.com
+- Rezervasyon sayfası: https://checkrezerve.com/tr/rezervasyon
+- Bir işletmenin rezervasyon sayfası: https://checkrezerve.com/tr/rezervasyon/{işletme-slug}
 
-KESİN KURAL 2: Asla rezervasyon oluşturduğunu, kaydettiğini veya onayladığını söyleme. "Rezervasyonunuz onaylandı", "rezervasyon oluşturuldu", "kaydettim" gibi ifadeleri ASLA kullanma. Rezervasyon işlemleri sayfadaki form üzerinden yapılır. Kullanıcıya "Sayfadaki formu doldurarak rezervasyon yapabilirsiniz" diye yönlendir.`
-      : `Sen ${businessName} adlı ${businessType} işletmesinin yapay zeka asistanısın. Müsait slotlar: ${JSON.stringify(availableSlots || [])}.
+SLUG KURALI: İşletme adını küçük harfe çevir, Türkçe karakterleri dönüştür (ş→s, ı→i, ö→o, ü→u, ç→c, ğ→g), boşlukları tire (-) yap.
+Örnekler:
+- "Ceviz Tuzla" → ceviz-tuzla → https://checkrezerve.com/tr/rezervasyon/ceviz-tuzla
+- "Zeytin Kurtköy" → zeytin-kurtkoy → https://checkrezerve.com/tr/rezervasyon/zeytin-kurtkoy
+- "Flow Pilates" → flow-pilates → https://checkrezerve.com/tr/rezervasyon/flow-pilates
+- "Zen Spa" → zen-spa → https://checkrezerve.com/tr/rezervasyon/zen-spa
 
-KESİN KURAL: Sen sadece bilgi toplar ve yönlendirirsin, asla rezervasyon oluşturmazsın. Gerçek rezervasyon kullanıcı tarafından sayfadaki form aracılığıyla yapılır. ASLA "rezervasyonunuz onaylandı", "rezervasyon oluşturuldu", "kaydettim", "tamamlandı" deme. Bunun yerine bilgileri topla ve şöyle yönlendir: "Bilgilerinizi aldım! Şimdi sayfadaki rezervasyon formunu doldurarak rezervasyonunuzu tamamlayabilirsiniz."`
+DAVRANIŞ KURALLARI:
+1. Kullanıcı bir işletme adı söylediğinde HEMEN slug kuralıyla URL oluştur ve ver
+2. "Link veremiyorum" veya "bağlantı gönderemiyorum" ASLA deme — her zaman link oluştur ve ver
+3. Rezervasyon için şunu söyle: "Buradan rezervasyon yapabilirsiniz: [URL]"
+4. Kullanıcı genel rezervasyon isterse: https://checkrezerve.com/tr/rezervasyon adresine yönlendir
+5. Türkçe yanıt ver. Kısa ve net ol, gereksiz uzatma
+6. Asla "rezervasyonunuz onaylandı", "kaydettim", "oluşturuldu" deme
+7. Platformda olmayan konularda "Bu konuda yardımcı olamam, rezervasyon konularında yardımcı olmaktan memnuniyet duyarım" de`
+      : `Sen ${businessName} adlı ${businessType} işletmesinin yapay zeka asistanısın.
+
+İŞLETME BİLGİSİ:
+- Ad: ${businessName}
+- Rezervasyon sayfası: ${businessUrl}
+- Müsait slotlar: ${JSON.stringify(availableSlots || [])}
+
+DAVRANIŞ KURALLARI:
+1. Kullanıcıya rezervasyon linkini her fırsatta ver: "${businessUrl}"
+2. "Link veremiyorum" ASLA deme
+3. Asla rezervasyon oluşturmazsın — kullanıcıyı sayfadaki forma yönlendir
+4. "Rezervasyonunuz onaylandı", "kaydettim" gibi ifadeleri ASLA kullanma
+5. Müsait slotları kullanıcıya söyle ama rezervasyonu sayfadan yapması gerektiğini belirt
+6. Türkçe, kısa ve samimi cevaplar ver`
     try {
       const message = await callDeepSeek(systemPrompt, messages)
       return NextResponse.json({ message })

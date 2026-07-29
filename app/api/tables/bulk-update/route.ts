@@ -20,13 +20,13 @@ export async function POST(req: NextRequest) {
   // Verify all tables belong to this restaurant
   const ids = updates.map(u => u.id).filter(Boolean)
   const { data: existing } = await db
-    .from('tables')
-    .select('id, restaurant_id')
+    .from('masa_tipleri')
+    .select('id, isletme_id')
     .in('id', ids)
 
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const restaurantIds = new Set(existing.map(t => t.restaurant_id))
+  const restaurantIds = new Set(existing.map(t => t.isletme_id))
   if (restaurantIds.size !== 1 || !restaurantIds.has(session.restaurantId)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
@@ -41,14 +41,14 @@ export async function POST(req: NextRequest) {
     if (u.rotation !== undefined) payload.rotation = u.rotation
     if (u.width !== undefined) payload.width = u.width
     if (u.height !== undefined) payload.height = u.height
-    if (u.label !== undefined) payload.label = u.label
-    if (u.capacity !== undefined) payload.capacity = u.capacity
-    if (u.shape !== undefined) payload.shape = u.shape
-    if (u.is_active !== undefined) payload.is_active = u.is_active
+    if (u.label !== undefined) payload.ad = u.label          // masa_tipleri: label → ad
+    if (u.capacity !== undefined) payload.kapasite = u.capacity // masa_tipleri: capacity → kapasite
+    if (u.shape !== undefined) payload.sekil = u.shape === 'circle' ? 'yuvarlak' : 'kare'
+    if (u.is_active !== undefined) payload.aktif = u.is_active
 
     if (Object.keys(payload).length === 0) continue
 
-    const { error } = await db.from('tables').update(payload).eq('id', u.id)
+    const { error } = await db.from('masa_tipleri').update(payload).eq('id', u.id)
     if (error) errors.push(`${u.id}: ${error.message}`)
   }
 

@@ -7,6 +7,7 @@ import {
   LayoutDashboard, CalendarDays, List, Calendar,
   Users, UserCog, Scissors, Settings, CreditCard,
   LayoutGrid, PanelRightOpen, ChevronRight, LogOut, Menu, X, UtensilsCrossed,
+  Package, Layers,
 } from 'lucide-react'
 import PanelLangSelector from './PanelLangSelector'
 import NotificationBell from './NotificationBell'
@@ -44,11 +45,18 @@ export default function PanelSidebar({
     ? UtensilsCrossed
     : Scissors
 
+  // Paket sistemi sadece randevu bazli sektorlerde gorunsun
+  const paketSektoru = businessType && !['restaurant', 'cafe', 'bar'].includes(businessType)
+
   const NAV = [
     { href: base,                    label: 'Genel Bakış',   icon: LayoutDashboard },
     { href: `${base}/bugun`,         label: 'Bugün',         icon: CalendarDays    },
     { href: `${base}/rezervasyonlar`,label: 'Rezervasyonlar',icon: List            },
     { href: `${base}/takvim`,        label: 'Takvim',        icon: Calendar        },
+    ...(paketSektoru ? [
+      { href: `${base}/paketler`,      label: 'Paketler',      icon: Package as React.ComponentType<{ size?: number }> },
+      { href: `${base}/uye-paketleri`, label: 'Üye Paketleri',  icon: Layers as React.ComponentType<{ size?: number }> },
+    ] : []),
     { href: `${base}/masalar`,       label: 'Masalar',       icon: LayoutGrid      },
     { href: `${base}/kroki`,         label: 'Salon Krokisi', icon: PanelRightOpen  },
     { href: `${base}/misafirler`,    label: 'Misafirler',    icon: Users           },

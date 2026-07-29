@@ -13,7 +13,8 @@ export async function GET(
   const db = getSupabaseAdmin()
 
   const [tablesRes, areasRes, occRes] = await Promise.all([
-    db.from('tables').select('*').eq('restaurant_id', restaurantId).eq('is_active', true).order('label'),
+    // panel kroki ile aynı kaynaktan: masa_tipleri
+    db.from('masa_tipleri').select('*').eq('isletme_id', restaurantId).eq('aktif', true).order('ad'),
     db.from('special_areas').select('*').eq('restaurant_id', restaurantId).order('name'),
     date
       ? db.from('reservations').select('table_id').not('table_id', 'is', null).neq('status', 'cancelled')
@@ -21,9 +22,23 @@ export async function GET(
       : Promise.resolve({ data: [] }),
   ])
 
-  const tables = tablesRes.data ?? []
+  const rawTables = tablesRes.data ?? []
   const areas  = areasRes.data ?? []
   const occData = Array.isArray(occRes) ? [] : (occRes.data ?? [])
+
+  // masa_tipleri kolonlarını standart formata dönüştür
+  const tables = rawTables.map((t: Record<string, unknown>) => ({
+    id:         t.id as string,
+    label:      (t.ad ?? t.label ?? 'Masa') as string,
+    capacity:   (t.kapasite ?? t.capacity ?? 4) as number,
+    x:          Number(t.x ?? 0),
+    y:          Number(t.y ?? 0),
+    width:      Number(t.width ?? 80),
+    height:     Number(t.height ?? 80),
+    shape:      (t.sekil === 'yuvarlak' || t.shape === 'circle' ? 'circle' : 'rect') as string,
+    rotation:   Number(t.rotation ?? 0),
+    area_id:    t.area_id as string | null,
+  }))
 
   // Build occupied set per time slot
   const occupied = new Set<string>()

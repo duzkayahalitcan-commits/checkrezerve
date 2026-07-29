@@ -1,3 +1,5 @@
+// KURAL: Hero ve above-the-fold bileşenler whileInView KULLANMAZ. Scroll trigger sadece sayfanın alt yarısındaki section'lar için. Image wrapper'da opacity animasyonu yasak.
+
 'use client'
 import { motion } from 'motion/react'
 import { CalendarCheck, CreditCard, Bell, Users, BarChart3, Globe } from 'lucide-react'
@@ -39,7 +41,7 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
               className="fs-row"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
-              viewport={{ once: true, margin: '0px' }}
+              viewport={{ once: true, margin: '0px 0px -50px 0px' }}
               transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
             >
               <div className="fs-img-col">
@@ -47,7 +49,7 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
                   className="browser-frame"
                   initial={{ opacity: 0, x: isReversed ? 40 : -40 }}
                   whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true, margin: '0px' }}
+                  viewport={{ once: true, margin: '0px 0px -50px 0px' }}
                   transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
                 >
                   <div className="browser-bar">
@@ -74,7 +76,7 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
                 className="fs-text-col"
                 initial={{ opacity: 0, x: isReversed ? -40 : 40 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: '0px' }}
+                viewport={{ once: true, margin: '0px 0px -50px 0px' }}
                 transition={{ duration: 0.6, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
               >
                 <span className="fs-badge">{BADGES[i % BADGES.length]}</span>

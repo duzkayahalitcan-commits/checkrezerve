@@ -4,18 +4,14 @@ import { createHmac } from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
 async function checkAdmin() {
-  const secret = process.env.ADMIN_SECRET ?? ''
-  if (!secret) return null
+  const adminSecret   = process.env.ADMIN_SECRET ?? ''
+  const adminPassword = process.env.ADMIN_PASSWORD ?? ''
+  if (!adminSecret || !adminPassword) return null
   const jar = await cookies()
-  const raw = jar.get('cr_admin')?.value ?? ''
-  if (!raw) return null
-  const colonIdx = raw.indexOf(':')
-  if (colonIdx < 1) return null
-  const userId = raw.slice(0, colonIdx)
-  const token  = raw.slice(colonIdx + 1)
-  if (!userId || !token) return null
-  const expected = createHmac('sha256', secret).update(userId).digest('base64')
-  return token === expected ? userId : null
+  const token = jar.get('cr_admin')?.value ?? ''
+  if (!token) return null
+  const expected = createHmac('sha256', adminSecret).update(adminPassword).digest('base64')
+  return token === expected ? 'admin' : null
 }
 
 // POST /api/admin/audit-logs — yeni log kaydı oluştur

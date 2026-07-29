@@ -44,7 +44,7 @@ function HesapSilmeContent() {
               {t('breadcrumb.home')}
             </Link>
             <span>/</span>
-            <Link href={'/yasal' as never} className="hover:text-[#E53935] transition-colors">
+            <Link href={'/kullanim-kosullari' as never} className="hover:text-[#E53935] transition-colors">
               {t('breadcrumb.legal')}
             </Link>
             <span>/</span>
@@ -59,10 +59,10 @@ function HesapSilmeContent() {
           <div className="sticky top-8">
             <nav className="space-y-1">
               {[
-                { label: 'Kullanım Koşulları', href: '/yasal/kullanim-kosullari' },
-                { label: 'Gizlilik Politikası', href: '/yasal/gizlilik' },
-                { label: 'Çerez Politikası', href: '/yasal/cerez' },
-                { label: 'KVKK Aydınlatma', href: '/yasal/kvkk' },
+                { label: 'Kullanım Koşulları', href: '/kullanim-kosullari' },
+                { label: 'Gizlilik Politikası', href: '/gizlilik' },
+                { label: 'Çerez Politikası', href: '/cerez-politikasi' },
+                { label: 'KVKK Aydınlatma', href: '/kvkk' },
                 { label: 'Hesap Silme', href: '/yasal/hesap-silme', active: true },
               ].map((item) => (
                 <Link
@@ -271,7 +271,7 @@ function HesapSilmeContent() {
           {/* KVKK Note */}
           <div className="bg-gray-50 rounded-xl p-4 mb-8 text-sm text-gray-600">
             {t('kvkk')}{' '}
-            <Link href={'/yasal/gizlilik' as never} className="text-[#E53935] hover:underline">
+            <Link href={'/gizlilik' as never} className="text-[#E53935] hover:underline">
               {t('kvkkLink')}
             </Link>{' '}
             {t('kvkkEnd')}

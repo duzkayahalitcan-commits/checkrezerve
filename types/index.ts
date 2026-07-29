@@ -184,7 +184,43 @@ export type RestaurantUser = {
   created_at:    string
 }
 
-// ─── AI Mesaj Analizi ──────────────────────────────────────────────────────────
+// ─── Paket / Seans Sistemi (W-61) ──────────────────────────────────────────────
+
+export type Paket = {
+  id:              string
+  restaurant_id:   string
+  ad:              string
+  seans_sayisi:    number
+  gecerlilik_gun:  number
+  fiyat:           number | null
+  hizmet_id:       string | null
+  aktif:           boolean
+  created_at:      string
+  updated_at:      string
+}
+
+export type MusteriPaketi = {
+  id:               string
+  restaurant_id:    string
+  paket_id:         string
+  musteri_adi:      string
+  musteri_telefon:  string | null
+  toplam_seans:     number
+  kalan_seans:      number
+  baslangic_tarihi: string
+  bitis_tarihi:     string | null
+  durum:            'aktif' | 'bitti' | 'iptal'
+  calisan_id:       string | null
+  created_at:       string
+  updated_at:       string
+}
+
+// API'den gelen join'li liste tipi
+export type MusteriPaketListRow = MusteriPaketi & {
+  paket_adi:      string
+  calisan_adi:    string | null
+  kalan_oran:     number  // 0-1 arasi
+}
 
 export type ReservationExtraction = {
   is_reservation_request: boolean

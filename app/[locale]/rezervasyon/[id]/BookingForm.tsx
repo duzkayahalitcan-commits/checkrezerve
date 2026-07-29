@@ -12,7 +12,7 @@ import type { LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import InteractiveFloorMap from '@/components/InteractiveFloorMap'
 import type { TableLayout } from '@/components/InteractiveFloorMap'
-import { ZONE_THEME_LABELS } from '@/src/types/kroki-zone'
+import { ZONE_THEME_LABELS, ZONE_THEME_BG } from '@/src/types/kroki-zone'
 import type { ZoneTheme, ZonePoint } from '@/src/types/kroki-zone'
 
 type Hizmet     = { id: string; name: string; duration_minutes: number; price: number | null }
@@ -105,12 +105,15 @@ export default function BookingForm({
   const toast = useToast()
   const isRestaurant = businessType === 'restaurant' || businessType === 'other'
   const isServiceBased = !isRestaurant
+  const isPilates = businessType === 'pilates'
 
-  const allSteps = isRestaurant
-    ? floorPlanEnabled
-      ? ['kisi', 'tarih', 'saat', 'masa', 'bilgi', 'ozet', 'basari'] as const
-      : ['kisi', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
-    : ['hizmet', 'calisan', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
+  const allSteps = isPilates
+    ? ['tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
+    : isRestaurant
+      ? floorPlanEnabled
+        ? ['kisi', 'tarih', 'saat', 'masa', 'bilgi', 'ozet', 'basari'] as const
+        : ['kisi', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
+      : ['hizmet', 'calisan', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
   const [step, setStep] = useState(0)
 
   // Form state
@@ -129,8 +132,10 @@ export default function BookingForm({
     const dow = new Date(selectedDate + 'T12:00:00').getDay()
     const dayKey = DAY_KEY_MAP[dow]
     const wh = workingHours[dayKey]
-    // Sadece açıkça open===false ise kapalı say; wh yoksa (tanımlanmamış gün) fallback kullan
-    if (wh && wh.open === false) return []  // kapalı gün → boş array, UI mesaj gösterir
+    // Gün tanımlanmamışsa veya açıkça open===false ise
+    // wh yoksa (working_hours boş/gün eksik) → fallback varsayılan slot'lar
+    if (!wh) return DEFAULT_SLOTS
+    if (wh.open === false) return []  // kapalı gün → boş array, UI mesaj gösterir
     // Alan adları: DB'de start/end olarak, eski formatta open/close olabilir
     const rec = wh as Record<string, unknown>
     const startStr = typeof rec.start === 'string' ? rec.start : typeof wh.open === 'string' ? wh.open : null
@@ -162,7 +167,7 @@ export default function BookingForm({
 
   const [selectedTable, setSelectedTable] = useState<string | null>(null)
   const [selectedService, setSelectedService] = useState<string | null>(null)
-  const [selectedStaff, setSelectedStaff] = useState<string | null>(null)
+  const [selectedStaff, setSelectedStaff] = useState<string | null>('__any__')
   const [selectedArea, setSelectedArea] = useState<string | null>(
     specialAreas.length > 0 ? specialAreas[0].id : null
   )
@@ -208,14 +213,17 @@ export default function BookingForm({
     })
   }, [])
 
-  // Fetch occupied slots
+  // Fetch occupied slots — staff/service bazlı filtreleme
   useEffect(() => {
     if (!selectedDate || !businessId) return
-    fetch(`/api/rezervasyon/musait?business_id=${businessId}&date=${selectedDate}`)
+    const params = new URLSearchParams({ business_id: businessId, date: selectedDate })
+    if (selectedStaff && selectedStaff !== '__any__') params.set('staff_id', selectedStaff)
+    if (selectedService) params.set('service_id', selectedService)
+    fetch(`/api/rezervasyon/musait?${params.toString()}`)
       .then(r => r.ok ? r.json() : null)
       .then(json => { if (json?.times) setOccupiedSlots(new Set(json.times)) })
       .catch(() => {})
-  }, [selectedDate, businessId])
+  }, [selectedDate, businessId, selectedStaff, selectedService])
 
   // W-101: Zone modunda ilk bölgeyi varsayılan seç
   const autoZoneRef = useRef(false)
@@ -270,7 +278,7 @@ export default function BookingForm({
   const canProceed = (() => {
     const s = allSteps[step]
     if (s === 'kisi')    return partySize >= 1 && partySize <= 20
-    if (s === 'hizmet')  return selectedService !== null
+    if (s === 'hizmet')  return hizmetler.length > 0 && selectedService !== null
     if (s === 'calisan') return true
     if (s === 'tarih')   return !!selectedDate
     if (s === 'saat')    return TIME_SLOTS.length > 0 && !!selectedTime
@@ -304,7 +312,7 @@ export default function BookingForm({
         time:             selectedTime,
         table_id:         safeTableId,
         service_id:       selectedService ?? undefined,
-        staff_id:         selectedStaff ?? undefined,
+        staff_id:         (selectedStaff && selectedStaff !== '__any__') ? selectedStaff : undefined,
         special_requests: specialNotes || undefined,
         zone_id:          krokiMode === 'zones' ? (selectedArea ?? undefined) : undefined,
         zone_name:        selectedZoneName,
@@ -584,23 +592,17 @@ export default function BookingForm({
           {selectedZone ? (
             <div className="relative w-full overflow-hidden rounded-2xl shadow-md">
               <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
-                {selectedZone.customPhoto ? (
-                  <img
-                    src={selectedZone.customPhoto}
-                    alt={selectedZone.name}
-                    loading="eager"
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-stone-700 via-stone-800 to-stone-900 flex items-center justify-center">
-                    <div className="text-center text-stone-400">
-                      <svg className="w-12 h-12 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                      </svg>
-                      <p className="text-sm opacity-60">{selectedZone.name}</p>
-                    </div>
-                  </div>
-                )}
+                {(() => {
+                  const zoneImg = selectedZone.customPhoto ?? ZONE_THEME_BG[selectedZone.theme] ?? '/images/kroki/ic_mekan.jpg'
+                  return (
+                    <img
+                      src={zoneImg}
+                      alt={selectedZone.name}
+                      loading="eager"
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  )
+                })()} 
                 {/* Gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 {/* Overlay bilgi + seç butonu */}
@@ -728,7 +730,10 @@ export default function BookingForm({
   const renderHizmetSelect = () => (
     <div className="space-y-3">
       {hizmetler.length === 0 ? (
-        <p className="text-center py-8 text-zinc-400 text-sm">{r('hata.genel')}</p>
+        <div className="text-center py-10">
+          <p className="text-zinc-800 font-semibold text-base mb-1">Henüz hizmet tanımlanmamış</p>
+          <p className="text-zinc-400 text-sm">Bu işletme şu anda online rezervasyon almıyor.</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-3">
           {hizmetler.map(h => {

@@ -1,5 +1,5 @@
 'use client'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 
 export default function LegalSidebar({ activePath }: { activePath: string }) {
@@ -25,7 +25,7 @@ export default function LegalSidebar({ activePath }: { activePath: string }) {
             return (
               <li key={l.href}>
                 <Link
-                  href={l.href}
+                  href={l.href as never}
                   className={`block py-2.5 text-sm leading-snug transition-colors ${
                     active
                       ? 'pl-3 border-l-2 border-red-600 text-red-700 font-bold'

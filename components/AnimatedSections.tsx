@@ -1,3 +1,5 @@
+// KURAL: Hero ve above-the-fold bileşenler whileInView KULLANMAZ. Scroll trigger sadece sayfanın alt yarısındaki section'lar için. Image wrapper'da opacity animasyonu yasak.
+
 'use client'
 import { motion } from 'motion/react'
 import { UtensilsCrossed, Scissors, Sparkles, BedDouble, CalendarRange, Dumbbell, type LucideIcon } from 'lucide-react'
@@ -39,7 +41,7 @@ export function AnimatedSectors({ sectors }: { sectors: Sector[] }) {
           key={s.title}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '0px' }}
+          viewport={{ once: true, margin: '0px 0px -50px 0px' }}
           transition={{ duration: 0.5, delay: i * 0.07, ease: [0.23, 1, 0.32, 1] }}
           whileHover={{ y: -4, boxShadow: '0 12px 32px rgba(0,0,0,0.08)' }}
           className="rounded-2xl border border-zinc-100 bg-zinc-50 p-7 hover:border-red-100 transition-all duration-200"
@@ -70,13 +72,13 @@ export function AnimatedHowSteps({ steps }: { steps: HowStep[] }) {
           className="flex flex-col items-center text-center"
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '0px' }}
+          viewport={{ once: true, margin: '0px 0px -50px 0px' }}
           transition={{ duration: 0.6, delay: i * 0.12, ease: [0.23, 1, 0.32, 1] }}
         >
           <motion.div
             className="w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center text-xl font-extrabold mb-5 shadow-lg shadow-red-200"
             whileInView={{ scale: [0.5, 1.1, 1] }}
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: '0px 0px -50px 0px' }}
             transition={{ duration: 0.5, delay: i * 0.12 + 0.2 }}
           >
             {step.num}
@@ -98,7 +100,7 @@ export function AnimatedTestimonials({ testimonials }: { testimonials: Testimoni
           className="bg-white rounded-2xl border border-zinc-100 p-7 hover:border-red-100 hover:shadow-md transition-all duration-200 flex flex-col"
           initial={{ opacity: 0, y: 30, scale: 0.97 }}
           whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          viewport={{ once: true, margin: '0px' }}
+          viewport={{ once: true, margin: '0px 0px -50px 0px' }}
           transition={{ duration: 0.5, delay: i * 0.1, ease: [0.23, 1, 0.32, 1] }}
         >
           <div className="flex-1">

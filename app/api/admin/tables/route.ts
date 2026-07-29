@@ -4,17 +4,13 @@ import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
 async function verifyRequest(): Promise<boolean> {
-  const secret = process.env.ADMIN_SECRET ?? ''
-  if (!secret) return false
+  const adminSecret   = process.env.ADMIN_SECRET ?? ''
+  const adminPassword = process.env.ADMIN_PASSWORD ?? ''
+  if (!adminSecret || !adminPassword) return false
   const jar = await cookies()
-  const raw = jar.get('cr_admin')?.value ?? ''
-  if (!raw) return false
-  const colonIdx = raw.indexOf(':')
-  if (colonIdx < 1) return false
-  const userId = raw.slice(0, colonIdx)
-  const token  = raw.slice(colonIdx + 1)
-  if (!userId || !token) return false
-  const expected = createHmac('sha256', secret).update(userId).digest('base64')
+  const token = jar.get('cr_admin')?.value ?? ''
+  if (!token) return false
+  const expected = createHmac('sha256', adminSecret).update(adminPassword).digest('base64')
   return token === expected
 }
 
@@ -29,15 +25,29 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'restaurant_id gerekli' }, { status: 400 })
   }
 
+  // panel kroki ile aynı kaynaktan oku: masa_tipleri
   const { data, error } = await getSupabaseAdmin()
-    .from('tables')
+    .from('masa_tipleri')
     .select('*')
-    .eq('restaurant_id', restaurantId)
-    .eq('is_active', true)
+    .eq('isletme_id', restaurantId)
+    .eq('aktif', true)
     .order('created_at')
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ tables: data ?? [] })
+
+  // masa_tipleri → EditorTable formatına map'le
+  const tables = (data ?? []).map((t: Record<string, unknown>) => ({
+    id:       t.id as string,
+    label:    (t.ad ?? t.label ?? 'Masa') as string,
+    capacity: (t.kapasite ?? t.capacity ?? 4) as number,
+    x:        (t.x ?? 0) as number,
+    y:        (t.y ?? 0) as number,
+    width:    (t.width ?? 80) as number,
+    height:   (t.height ?? 80) as number,
+    shape:    ((t.sekil === 'yuvarlak' || t.shape === 'circle') ? 'circle' : 'rect') as string,
+  }))
+
+  return NextResponse.json({ tables })
 }
 
 // POST /api/admin/tables
@@ -65,11 +75,11 @@ export async function POST(req: NextRequest) {
 
   if (flagErr) return NextResponse.json({ error: flagErr.message }, { status: 500 })
 
-  // Soft-delete all existing tables, then insert the new set
+  // Soft-delete all existing tables in masa_tipleri, then insert the new set
   const { error: delErr } = await supabase
-    .from('tables')
-    .update({ is_active: false })
-    .eq('restaurant_id', restaurant_id)
+    .from('masa_tipleri')
+    .update({ aktif: false })
+    .eq('isletme_id', restaurant_id)
 
   if (delErr) return NextResponse.json({ error: delErr.message }, { status: 500 })
 
@@ -79,18 +89,18 @@ export async function POST(req: NextRequest) {
       x: number; y: number; width: number; height: number; shape: string
     }) => ({
       id:            t.id && t.id.includes('-') ? t.id : undefined, // keep uuid, drop temp ids
-      restaurant_id,
-      label:         t.label,
-      capacity:      Number(t.capacity) || 4,
+      isletme_id:    restaurant_id,           // masa_tipleri formatı
+      ad:            t.label,                 // 'label' → 'ad'
+      kapasite:      Number(t.capacity) || 4, // 'capacity' → 'kapasite'
       x:             Number(t.x)        || 0,
       y:             Number(t.y)        || 0,
       width:         Number(t.width)    || 80,
       height:        Number(t.height)   || 80,
-      shape:         t.shape === 'circle' ? 'circle' : 'rect',
-      is_active:     true,
+      sekil:         t.shape === 'circle' ? 'yuvarlak' : 'kare', // 'shape' → 'sekil'
+      aktif:         true,
     }))
 
-    const { error: insErr } = await supabase.from('tables').upsert(rows, {
+    const { error: insErr } = await supabase.from('masa_tipleri').upsert(rows, {
       onConflict: 'id',
       ignoreDuplicates: false,
     })
