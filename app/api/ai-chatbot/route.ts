@@ -4,34 +4,35 @@ import { checkGreeting, searchFaq } from '@/lib/faq-search'
 import { rateLimit } from '@/lib/rate-limit'
 
 async function callClaude(systemPrompt: string, messages: {role: string, content: string}[]) {
-  const apiMessages = messages
-    .filter(m => m.role === 'user' || m.role === 'assistant')
-    .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
-    .slice(-10)
+  // Anthropic kredisi bittiği için DeepSeek kullanılıyor
+  const apiMessages = [
+    { role: 'system' as const, content: systemPrompt },
+    ...messages
+      .filter(m => m.role === 'user' || m.role === 'assistant')
+      .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
+      .slice(-10)
+  ]
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     headers: {
-      'x-api-key': process.env.ANTHROPIC_API_KEY!,
-      'anthropic-version': '2023-06-01',
+      'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'deepseek-chat',
       max_tokens: 512,
-      system: systemPrompt,
       messages: apiMessages,
     }),
   })
   if (!res.ok) {
     const errText = await res.text()
-    console.error('[ai-chatbot] Claude error:', res.status, errText)
-    throw new Error(`Claude error: ${res.status}`)
+    console.error('[ai-chatbot] DeepSeek error:', res.status, errText)
+    throw new Error(`DeepSeek error: ${res.status}`)
   }
   const json = await res.json()
-  // Anthropic returns: { content: [{ type: 'text', text: '...' }] }
-  const textBlock = json.content?.find((b: { type: string }) => b.type === 'text')
-  return textBlock?.text ?? 'Yanıt oluşturulamadı.'
+  const reply = json.choices?.[0]?.message?.content
+  return reply ?? 'Yanıt oluşturulamadı.'
 }
 
 export async function POST(request: NextRequest) {

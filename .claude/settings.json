@@ -1,9 +1,6 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(npx tsc --noEmit *)",
-      "Bash(npm view *)"
-    ]
-  },
-  "model": "deepseek-chat"
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://api.deepseek.com/v1",
+    "ANTHROPIC_API_KEY": "sk-ccfc6ee452204c948ccc77495fd60aec"
+  }
 }

@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import type { FloorTable } from '@/types'
 import FloorPlanEditorWrapper from './FloorPlanEditorWrapper'
+import type { EditorTable } from './FloorPlanEditor'
 
 type Props = { params: Promise<{ id: string }> }
 
@@ -10,23 +10,34 @@ export default async function FloorPlanPage({ params }: Props) {
   const { id } = await params
   const supabase = getSupabaseAdmin()
 
-  const [{ data: restaurant }, { data: rawTables }] = await Promise.all([
+  // panel kroki ile aynı kaynaktan oku: masa_tipleri
+  const [{ data: restaurant }, { data: rawMasaTipleri }] = await Promise.all([
     supabase
       .from('restaurants')
       .select('id, name, floor_plan_enabled')
       .eq('id', id)
       .single(),
     supabase
-      .from('tables')
+      .from('masa_tipleri')
       .select('*')
-      .eq('restaurant_id', id)
-      .eq('is_active', true)
+      .eq('isletme_id', id)
+      .eq('aktif', true)
       .order('created_at'),
   ])
 
   if (!restaurant) notFound()
 
-  const tables = (rawTables ?? []) as FloorTable[]
+  // masa_tipleri kolonlarını EditorTable'e map'le
+  const tables: EditorTable[] = (rawMasaTipleri ?? []).map((t: Record<string, unknown>) => ({
+    id:       t.id as string,
+    label:    (t.ad ?? t.label ?? 'Masa') as string,
+    capacity: (t.kapasite ?? t.capacity ?? 4) as number,
+    x:        (t.x ?? 0) as number,
+    y:        (t.y ?? 0) as number,
+    width:    (t.width ?? 80) as number,
+    height:   (t.height ?? 80) as number,
+    shape:    ((t.sekil === 'yuvarlak' || t.shape === 'circle') ? 'circle' : 'rect') as 'rect' | 'circle',
+  }))
 
   return (
     <div className="min-h-screen bg-stone-950 text-white">

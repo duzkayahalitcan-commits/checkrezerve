@@ -34,6 +34,17 @@ function verifyPanelCookie(raw: string, secret: string): boolean {
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
+  // ── Next.js internal requests — ASLA intl middleware'e sokma ─────
+  // RSC, Server Actions, _next data fetches direkt geçmeli
+  if (
+    req.headers.get('Next-Action') ||       // Server Action request
+    req.headers.get('Next-Url') ||          // RSC internal navigation
+    req.headers.get('RSC') === '1' ||       // RSC fetch header
+    pathname.startsWith('/_next')           // Static/data/build files
+  ) {
+    return NextResponse.next()
+  }
+
   // ── Admin auth ──────────────────────────────────────────────────
   if (pathname.startsWith('/admin')) {
     if (pathname.startsWith(LOGIN) || pathname.startsWith(LOGOUT)) {
@@ -96,7 +107,6 @@ export function proxy(req: NextRequest) {
   if (
     pathname.startsWith('/api') ||
     pathname.startsWith('/auth') ||
-    pathname.startsWith('/_next') ||
     /\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|json|woff2?|ttf)$/.test(pathname)
   ) {
     return NextResponse.next()

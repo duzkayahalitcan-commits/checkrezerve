@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       reserved_date:    date,
       reserved_time:    time,
       service_id:       service_id      || null,
-      calisan_id:       staff_id        || null,
+      calisan_id:       (staff_id && staff_id !== '__any__') ? staff_id : null,
       masa_tipi_id:     safeMasaTipiId  || null,
       table_id:         safeTableId     || null,
       zone_id:          safeZoneId      || null,

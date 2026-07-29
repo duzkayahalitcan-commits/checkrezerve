@@ -1,3 +1,5 @@
+// KURAL: Hero ve above-the-fold bileşenler whileInView KULLANMAZ. Scroll trigger sadece sayfanın alt yarısındaki section'lar için. Image wrapper'da opacity animasyonu yasak.
+
 'use client'
 import Image from 'next/image'
 import { useState } from 'react'
@@ -22,7 +24,8 @@ export default function BlogCoverImage({ src, alt, tag }: { src?: string; alt: s
         width={480}
         height={176}
         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-        loading="lazy"
+        loading="eager"
+        priority
         onError={() => setError(true)}
       />
     </div>
