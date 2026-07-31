@@ -6,6 +6,7 @@ networks:
 volumes:
   certbot-www:
   certbot-conf:
+  audio-cache:
 
 services:
   blue:
@@ -28,7 +29,7 @@ services:
       DEEPSEEK_API_KEY:              ${DEEPSEEK_API_KEY}
       ELEVENLABS_API_KEY:            ${ELEVENLABS_API_KEY:-}
       ELEVENLABS_VOICE_ID:           ${ELEVENLABS_VOICE_ID:-}
-      WHISPER_SERVER_URL:            ${WHISPER_SERVER_URL:-http://checkrezerve-whisper:5001}
+      WHISPER_SERVER_URL:            ${WHISPER_SERVER_URL:-http://checkrezerve-whisper:9000}
       SMS_PROVIDER:                  ${SMS_PROVIDER:-disabled}
       TWILIO_ACCOUNT_SID:            ${TWILIO_ACCOUNT_SID:-}
       TWILIO_AUTH_TOKEN:             ${TWILIO_AUTH_TOKEN:-}
@@ -47,6 +48,8 @@ services:
       ADMIN_PASSWORD:                  ${ADMIN_PASSWORD:-}
       NODE_ENV:  production
       PORT:      3001
+    volumes:
+      - audio-cache:/app/public/audio/tr/responses:rw
     networks:
       - app-net
     healthcheck:
@@ -76,7 +79,7 @@ services:
       DEEPSEEK_API_KEY:              ${DEEPSEEK_API_KEY}
       ELEVENLABS_API_KEY:            ${ELEVENLABS_API_KEY:-}
       ELEVENLABS_VOICE_ID:           ${ELEVENLABS_VOICE_ID:-}
-      WHISPER_SERVER_URL:            ${WHISPER_SERVER_URL:-http://checkrezerve-whisper:5001}
+      WHISPER_SERVER_URL:            ${WHISPER_SERVER_URL:-http://checkrezerve-whisper:9000}
       SMS_PROVIDER:                  ${SMS_PROVIDER:-disabled}
       TWILIO_ACCOUNT_SID:            ${TWILIO_ACCOUNT_SID:-}
       TWILIO_AUTH_TOKEN:             ${TWILIO_AUTH_TOKEN:-}
@@ -95,6 +98,8 @@ services:
       ADMIN_PASSWORD:                  ${ADMIN_PASSWORD:-}
       NODE_ENV:  production
       PORT:      3002
+    volumes:
+      - audio-cache:/app/public/audio/tr/responses:rw
     networks:
       - app-net
     healthcheck:

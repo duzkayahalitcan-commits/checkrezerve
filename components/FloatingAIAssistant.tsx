@@ -81,7 +81,7 @@ export default function FloatingAIAssistant({
       const SILENCE_THRESHOLD = 0.02  // RMS threshold for silence
       const SILENCE_DURATION_MS = 1200 // 1.2s of silence triggers stop
 
-      function detectSilence() {
+      const detectSilence = () => {
         if (stateRef.current !== 'listening') return
         analyser.getFloatTimeDomainData(buffer)
         let sum = 0
