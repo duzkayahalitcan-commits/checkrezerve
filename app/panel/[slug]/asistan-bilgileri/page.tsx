@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import AssistantConfig from './AssistantConfig'
 import OzelliklerClient from './OzelliklerClient'
 import VoiceSettings from './VoiceSettings'
 
@@ -18,7 +19,7 @@ export default async function AsistanBilgileriPage({
   const db = getSupabaseAdmin()
   const { data: restaurant } = await db
     .from('restaurants')
-    .select('id, name, slug, business_type')
+    .select('id, name, slug, business_type, ai_assistant_enabled, ai_assistant_name')
     .eq('slug', slug)
     .eq('id', session.restaurantId)
     .single()
@@ -34,6 +35,11 @@ export default async function AsistanBilgileriPage({
         </p>
       </div>
       <main className="max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-6">
+        <AssistantConfig
+          restaurantId={restaurant.id}
+          aiAssistantEnabled={restaurant.ai_assistant_enabled ?? false}
+          aiAssistantName={restaurant.ai_assistant_name}
+        />
         <VoiceSettings
           restaurantId={restaurant.id}
           isSuperAdmin={session.role === 'super_admin'}

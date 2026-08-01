@@ -6,7 +6,7 @@ import type { Restaurant, WorkingHours, WorkingDayHours } from '@/types'
 
 type Props = {
   restaurant: Pick<Restaurant,
-    'id' | 'working_hours' | 'closed_dates' | 'prepayment_amount' | 'special_notes' | 'dress_code' | 'background_image' | 'ai_assistant_enabled' | 'ai_assistant_name' | 'ai_assistant_voice'
+    'id' | 'working_hours' | 'closed_dates' | 'prepayment_amount' | 'special_notes' | 'dress_code' | 'background_image'
   >
 }
 
@@ -37,18 +37,6 @@ export default function SettingsForm({ restaurant }: Props) {
   const [background, setBackground] = useState(restaurant.background_image ?? '')
   const [bgUploading, setBgUploading] = useState(false)
   const [dateInput, setDateInput] = useState('')
-
-  // ─── AI Asistan ───
-  const [aiEnabled, setAiEnabled] = useState(restaurant.ai_assistant_enabled ?? false)
-  const [aiName, setAiName] = useState(restaurant.ai_assistant_name ?? '')
-  const [aiVoice, setAiVoice] = useState(restaurant.ai_assistant_voice ?? 'yunus')
-
-  const VOICE_OPTIONS = [
-    { value: 'yunus', label: 'Yunus (Erkek)' },
-    { value: 'mert', label: 'Mert (Erkek)' },
-    { value: 'lisa', label: 'Lisa (Kadın)' },
-    { value: 'gulsu', label: 'Gülsu (Kadın)' },
-  ]
 
   function setDay(day: Day, patch: Partial<WorkingDayHours>) {
     setHours(prev => ({ ...prev, [day]: { ...prev[day], ...patch } }))
@@ -125,9 +113,6 @@ export default function SettingsForm({ restaurant }: Props) {
             prepayment_amount: prepay,
             special_notes:     notes,
             dress_code:        dressCode || null,
-            ai_assistant_enabled: aiEnabled,
-            ai_assistant_name:    aiName || null,
-            ai_assistant_voice:   aiVoice || null,
           }),
         })
         if (!res.ok) throw new Error((await res.json()).error ?? 'error')
@@ -304,50 +289,6 @@ export default function SettingsForm({ restaurant }: Props) {
           placeholder={t('specialNotesPlaceholder')}
           className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white placeholder-stone-600 focus:outline-none focus:border-amber-500 resize-none"
         />
-      </div>
-
-      {/* ─── AI Asistan ─── */}
-      <div className="border-t border-stone-800 pt-6">
-        <h3 className="text-sm font-semibold text-stone-200 mb-1">AI Sesli Asistan</h3>
-        <p className="text-xs text-stone-500 mb-3">Müşterilerinize sesli rezervasyon asistanı sunun</p>
-
-        <div className="flex items-center justify-between mb-4 bg-stone-800/30 rounded-xl px-4 py-3">
-          <span className="text-sm text-white">Asistanı Aktif Et</span>
-          <button
-            onClick={() => setAiEnabled(v => !v)}
-            className={`p-2 rounded-lg transition-colors ${aiEnabled ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-stone-500 hover:text-white'}`}
-          >
-            {aiEnabled ? '✓' : '✗'}
-          </button>
-        </div>
-
-        {aiEnabled && (
-          <div className="space-y-3 bg-stone-800/20 rounded-xl p-4">
-            <div>
-              <label className="text-xs text-stone-400 mb-1 block">Asistan Adı</label>
-              <input
-                value={aiName}
-                onChange={e => setAiName(e.target.value)}
-                placeholder="Örn: Zara"
-                maxLength={20}
-                className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white placeholder-stone-600 focus:outline-none focus:border-amber-500"
-              />
-              {aiName && <p className="text-xs text-stone-500 mt-1">💬 Müşterileriniz &quot;{aiName}&quot; ile konuşacak</p>}
-            </div>
-            <div>
-              <label className="text-xs text-stone-400 mb-1 block">Ses</label>
-              <select
-                value={aiVoice}
-                onChange={e => setAiVoice(e.target.value)}
-                className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
-              >
-                {VOICE_OPTIONS.map(v => (
-                  <option key={v.value} value={v.value}>{v.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Save button */}
