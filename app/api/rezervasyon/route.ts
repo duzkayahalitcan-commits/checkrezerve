@@ -46,6 +46,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // ── S2-T1: Temporal Reservation Guard — masa çakışma + kapasite kontrolü ──
+    if (safeTableId) {
+      const partySize = parseInt(party_size, 10) || 1
+      const { data: check } = await getSupabaseAdmin().rpc('check_reservation_availability', {
+        p_restaurant_id: restaurant_id,
+        p_table_id:      safeTableId,
+        p_date:          date,
+        p_time:          time,
+        p_duration:      null,
+        p_party_size:    partySize,
+      })
+
+      if (!check?.ok) {
+        return NextResponse.json(
+          { error: check?.message ?? 'Seçilen masa için uygunluk bulunamadı.' },
+          { status: 409 }
+        )
+      }
+    }
+
     // ── Zone kapasite kontrolü (race condition'a karşı sunucu tarafında) ──
     if (safeZoneId) {
       const [{ data: zone }, { count: existingCount }] = await Promise.all([
