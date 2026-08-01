@@ -112,6 +112,84 @@ export const UNISEX_NAMES = new Set([
   'sera','tuna','tülin','tulin','yade','yiğit','yigit',
 ])
 
+// ─── Yabancı isimler (İngilizce/Arapça/Rusça/Almanca/Fransızca...) ──
+// Türkçe dışı yaygın isimler. Bunlar da 'unknown' düşüp ünvansız kalmak
+// yerine doğru Bey/Hanım hitabı için ayrı setlerde tutulur.
+export const FOREIGN_MALE_NAMES = new Set([
+  // İngilizce / uluslararası
+  'john','james','robert','michael','william','david','richard','joseph','thomas','charles',
+  'christopher','daniel','matthew','anthony','mark','donald','steven','paul','andrew','joshua',
+  'kenneth','kevin','brian','george','edward','ronald','timothy','jason','jeffrey','ryan',
+  'jacob','gary','nicholas','eric','jonathan','stephen','larry','justin','scott','brandon',
+  'benjamin','samuel','gregory','alexander','frank','patrick','raymond','jack','dennis','jerry',
+  'tyler','aaron','jose','adam','nathan','henry','douglas','zachary','peter','kyle',
+  'walter','ethan','jeremy','harold','keith','christian','roger','noah','gerald','carl',
+  'terry','sean','austin','arthur','lawrence','jesse','dylan','bryan','joe','jordan',
+  'billy','bruce','albert','willie','gabriel','logan','alan','juan','wayne','roy',
+  // Almanca / Avrupa
+  'hans','karl','lukas','felix','paul','luca','maximilian','jonas','david','leon',
+  'tobias','simon','niklas','moritz','jannik','tim','philipp','jan','florian','christian',
+  'markus','thomas','stefan','andreas','wolfgang','klaus','peter','michael','daniel','tobias',
+  'johann','otto','friedrich','günther','gunther','dieter','jürgen','jurgen','ulrich','rainer',
+  // Fransızca
+  'lucas','lucas','nathan','leo','gabriel','raphael','louis','arthur','jules','adam',
+  'hugo','paul','maxime','antoine','nicolas','pierre','jean','jacques','francois','michel',
+  'olivier','thomas','alexandre','julien','florian','damien','romain','benjamin','quentin','thibault',
+  // Rusça / Slav
+  'alexey','aleksei','dmitry','dmitri','sergey','sergei','andrey','andre','ivan','vladimir',
+  'vlad','nikolai','nikolay','pavel','mikhail','michael','oleg','igor','anton','yuri',
+  'vadim','roman','artem','artem','kirill','daniil','stepan','grigory','denis','maxim',
+  // Arapça / Orta Doğu
+  'mohamed','mohammed','muhammad','ahmed','ahmad','omar','osama','usama','khaled','khalid',
+  'hassan','hussein','hussain','ali','abdullah','abdul','tariq','tarek','youssef','yousef',
+  'sami','samer','kareem','karim','rashid','hamza','bilal','mustapha','moustafa','mamadou',
+  // İtalyan / İspanyol / Portekiz
+  'mario','luigi','giuseppe','antonio','francesco','andrea','luca','marco','giovanni','alessandro',
+  'carlos','jose','juan','manuel','javier','diego','fernando','alejandro','pedro','miguel',
+  'rafael','luis','antonio','francisco','jorge','sergio','pablo','eduardo','ricardo','oscar',
+  'joao','joão','pedro','lucas','guilherme','rafael','bruno','tiago','diogo','felipe',
+  // Diğer
+  'george','georges','giorgi','giorgos','yorgos','dimitris','stavros','nikos','costas','michael',
+  'ahmed','murad','farid','amir','ali','reza','majid','saied','nabil','waleed',
+])
+
+export const FOREIGN_FEMALE_NAMES = new Set([
+  // İngilizce / uluslararası
+  'mary','patricia','jennifer','linda','elizabeth','barbara','susan','jessica','sarah','karen',
+  'lisa','nancy','betty','margaret','sandra','ashley','kimberly','emily','donna','michelle',
+  'carol','amanda','dorothy','melissa','deborah','stephanie','rebecca','sharon','laura','cynthia',
+  'kathleen','amy','angela','shirley','anna','brenda','pamela','emma','nicole','helen',
+  'samantha','katherine','christine','debra','rachel','carolyn','janet','catherine','maria','heather',
+  'diane','ruth','julie','olivia','joyce','virginia','victoria','kelly','lauren','christina',
+  'joan','evelyn','judith','megan','andrea','cheryl','hannah','jacqueline','martha','gloria',
+  'teresa','ann','sara','madison','frances','kathryn','janice','jean','abigail','alice',
+  'julia','judy','sophia','grace','denise','amber','doris','marilyn','danielle','beverly',
+  // Almanca / Avrupa
+  'anna','hanna','lena','laura','sophie','sofia','emma','mia','hannah','julia',
+  'sara','sarah','clara','lena','lisa','laura','johanna','marie','katharina','anna-lena',
+  'gabi','frauke','sabine','katrin','petra','monika','ursula','renate','elke','ingrid',
+  // Fransızca
+  'lea','lucie','lola','chloe','manon','camille','sarah','jade','lina','anna',
+  'emma','ines','nina','julie','pauline','marie','claire','nathalie','sophie','isabelle',
+  'celine','virginie','sandra','laurence','valerie','sylvie','caroline','anne','helene','francoise',
+  // Rusça / Slav
+  'anna','olga','svetlana','tatiana','tatyana','elena','yulia','yuliya','irina','nina',
+  'maria','mariya','daria','darya','ekaterina','katerina','oksana','natalia','natasha','vera',
+  'ludmila','ludmila','galina','valentina','alla','lyudmila','kristina','alina','veronika','polina',
+  // Arapça / Orta Doğu
+  'aisha','aïcha','fatima','zahra','layla','leila','nour','noor','amina','amira',
+  'hana','hanaa','salma','sara','maria','yasmin','yasmeen','rana','dina','heba',
+  'nadia','rania','dalia','lina','maya','malak','sara','huda','asma','zeinab',
+  // İtalyan / İspanyol / Portekiz
+  'sofia','sophia','giulia','gaia','alice','ginevra','chiara','francesca','elena','giorgia',
+  'martina','valentina','letizia','isabella','sara','anna','maria','giovanna','lucia','paola',
+  'lucia','lucia','carmen','lucia','rosa','isabel','ana','maria','carla','paula',
+  'sonia','dolores','pilar','teresa','cristina','marta','nuria','silvia','beatriz','patricia',
+  // Diğer
+  'elena','maria','zoe','zoe','chloe','amelie','amelia','noa','emma','ava',
+  'mila','sofia','leonora','ines','aya','hala','reem','shaima','nour','fatima',
+])
+
 // ─── İşletme tipi → Türkçe etiket + hitap bağlamı ────────────
 export const BUSINESS_TYPE_LABELS: Record<string, string> = {
   restaurant: 'restoran',
@@ -137,6 +215,8 @@ export function guessGender(name: string): GenderGuess {
   if (UNISEX_NAMES.has(clean)) return 'unisex'
   if (FEMALE_NAMES.has(clean)) return 'female'
   if (MALE_NAMES.has(clean)) return 'male'
+  if (FOREIGN_FEMALE_NAMES.has(clean)) return 'female'
+  if (FOREIGN_MALE_NAMES.has(clean)) return 'male'
   // Bilinmeyen isim: güvenli varsayılan → unisex (cinsiyet varsayma)
   return 'unknown'
 }
