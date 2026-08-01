@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkGreeting, searchFaq } from '@/lib/faq-search'
 import { rateLimit } from '@/lib/rate-limit'
+import { detectGibberish, enforceReservationApproval } from '@/lib/assistant-brain'
 
 async function callDeepSeek(systemPrompt: string, messages: {role: string, content: string}[]) {
   const res = await fetch('https://api.deepseek.com/chat/completions', {
@@ -13,7 +14,7 @@ async function callDeepSeek(systemPrompt: string, messages: {role: string, conte
 }
 
 export async function POST(request: NextRequest) {
-  const limited = rateLimit(request, { prefix: 'chat', max: 30, windowMs: 60_000 })
+  const limited = await rateLimit(request, { prefix: 'chat', max: 30, windowMs: 60_000 })
   if (limited) return limited
   try {
     const { messages, businessName, businessType, availableSlots } = await request.json()
@@ -77,9 +78,20 @@ DAVRANIŞ KURALLARI:
 3. Asla rezervasyon oluşturmazsın — kullanıcıyı sayfadaki forma yönlendir
 4. "Rezervasyonunuz onaylandı", "kaydettim" gibi ifadeleri ASLA kullanma
 5. Müsait slotları kullanıcıya söyle ama rezervasyonu sayfadan yapması gerektiğini belirt
-6. Türkçe, kısa ve samimi cevaplar ver`
+6. Türkçe, kısa ve samimi cevaplar ver
+7. Kullanıcı mesajı anlamsız/saçmaysa tahmin yürütme, aynen de: "Sizi tam anlayamadım, tekrar eder misiniz?"
+8. Asla eksik bilgiyle veya onay almadan "oluşturuldu/onaylandı" deme`
     try {
-      const message = await callDeepSeek(systemPrompt, messages)
+      const msgs = (messages ?? []) as {role: string, content: string}[]
+      // Saçma / anlamsız mesaj koruması
+      const lastUserMsg2 = [...msgs].reverse().find((m: {role: string, content: string}) => m.role === 'user')
+      if (lastUserMsg2 && detectGibberish(lastUserMsg2.content)) {
+        return NextResponse.json({ message: 'Sizi tam anlayamadım, tekrar eder misiniz?' })
+      }
+      let message = await callDeepSeek(systemPrompt, messages)
+      // KRİTİK: "oluşturuldu" yalnızca tam bilgi + onay sonrası
+      const override = enforceReservationApproval(msgs.map(m => ({ role: m.role as 'user'|'assistant', content: m.content })), message)
+      if (override) message = override
       return NextResponse.json({ message })
     } catch (aiError) {
       console.error('[chat/ai]', aiError)

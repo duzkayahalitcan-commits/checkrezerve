@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { rateLimit } from '@/lib/rate-limit'
 
 export async function DELETE(request: NextRequest) {
-  const limited = rateLimit(request, { prefix: 'delete-user', max: 5, windowMs: 60_000 })
+  const limited = await rateLimit(request, { prefix: 'delete-user', max: 5, windowMs: 60_000 })
   if (limited) return limited
 
   try {

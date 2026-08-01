@@ -4,7 +4,7 @@ import { rateLimit } from '@/lib/rate-limit'
 const WHISPER_URL = process.env.WHISPER_SERVER_URL ?? 'http://localhost:5001'
 
 export async function POST(request: NextRequest) {
-  const limited = rateLimit(request, { prefix: 'transcribe', max: 20, windowMs: 60_000 });
+  const limited = await rateLimit(request, { prefix: 'transcribe', max: 20, windowMs: 60_000 });
   if (limited) return limited;
 
   try {

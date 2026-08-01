@@ -50,7 +50,7 @@ YANIT (reply alanı) KURALLARI:
 
 // ── POST /api/ai-reserve ──────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, { prefix: 'ai-reserve', max: 20, windowMs: 60_000 });
+  const limited = await rateLimit(req, { prefix: 'ai-reserve', max: 20, windowMs: 60_000 });
   if (limited) return limited;
 
   try {
