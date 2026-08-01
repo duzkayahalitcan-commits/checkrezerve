@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkGreeting, searchFaq } from '@/lib/faq-search'
 import { rateLimit } from '@/lib/rate-limit'
 import { detectGibberish, enforceReservationApproval } from '@/lib/assistant-brain'
+import { genderHint, extractNameFromHistory } from '@/lib/assistant-gender'
 
 async function callDeepSeek(systemPrompt: string, messages: {role: string, content: string}[]) {
   const res = await fetch('https://api.deepseek.com/chat/completions', {
@@ -42,6 +43,12 @@ export async function POST(request: NextRequest) {
     const businessSlug = isGeneral ? '' : slugify(businessName)
     const businessUrl = isGeneral ? 'https://checkrezerve.com/tr/rezervasyon' : `https://checkrezerve.com/tr/rezervasyon/${businessSlug}`
 
+    // Öğrenilen isimden cinsiyet ipucu (unisex isimlerde cinsiyetsiz hitap)
+    const genderHintLine = (() => {
+      const name = extractNameFromHistory((messages ?? []) as { role: string; content: string }[])
+      return name ? genderHint(name) : null
+    })()
+
     const systemPrompt = isGeneral
       ? `Sen CheckRezerve platformunun akıllı asistanısın. CheckRezerve, Türkiye'deki restoranlar, spalar, kuaförler, pilates stüdyoları ve klinikler için online rezervasyon platformudur.
 
@@ -69,8 +76,11 @@ DAVRANIŞ KURALLARI:
 
 İŞLETME BİLGİSİ:
 - Ad: ${businessName}
+- Tür: ${businessType}
 - Rezervasyon sayfası: ${businessUrl}
 - Müsait slotlar: ${JSON.stringify(availableSlots || [])}
+
+HİTAP KURALI: Kullanıcı adını söylerse uygun hitabı kullan. ${genderHintLine ? genderHintLine : 'Cinsiyet belirsizse sadece isimle hitap et (Bey/Hanım kullanma).'}
 
 DAVRANIŞ KURALLARI:
 1. Kullanıcıya rezervasyon linkini her fırsatta ver: "${businessUrl}"
@@ -80,7 +90,8 @@ DAVRANIŞ KURALLARI:
 5. Müsait slotları kullanıcıya söyle ama rezervasyonu sayfadan yapması gerektiğini belirt
 6. Türkçe, kısa ve samimi cevaplar ver
 7. Kullanıcı mesajı anlamsız/saçmaysa tahmin yürütme, aynen de: "Sizi tam anlayamadım, tekrar eder misiniz?"
-8. Asla eksik bilgiyle veya onay almadan "oluşturuldu/onaylandı" deme`
+8. Asla eksik bilgiyle veya onay almadan "oluşturuldu/onaylandı" deme
+9. Bu bir ${businessType} olduğu için müşterinin amacını buna göre yorumla (${businessType === 'restaurant' || businessType === 'restoran' ? 'masa/rezervasyon, menü' : businessType === 'hairdresser' || businessType === 'kuaför' || businessType === 'barber' ? 'saç/berber randevusu' : businessType === 'spa' ? 'masaj/seans' : 'randevu/hizmet'}) ve buna göre yönlendir`
     try {
       const msgs = (messages ?? []) as {role: string, content: string}[]
       // Saçma / anlamsız mesaj koruması

@@ -6,6 +6,7 @@ import {
   getFeatures, isFarewell, isGreeting, logTurn, normalizeText,
   type ChatMsg,
 } from '@/lib/assistant-brain'
+import { genderHint, extractNameFromHistory } from '@/lib/assistant-gender'
 
 // POST /api/ai-chatbot
 // Body: { restaurant_id, messages }
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
     // ── İşletme bilgilerini çek ───────────────────────────────────────
     const { data: bizRaw } = await db
       .from('restaurants')
-      .select('id, name, slug, phone, address, working_hours, ai_assistant_name')
+      .select('id, name, slug, phone, address, working_hours, ai_assistant_name, business_type')
       .eq('id', restaurant_id)
       .single()
     if (!bizRaw) return NextResponse.json({ error: 'İşletme bulunamadı.' }, { status: 404 })
@@ -49,6 +50,7 @@ export async function POST(request: NextRequest) {
       address: bizRaw.address ?? null,
       working_hours: bizRaw.working_hours ?? null,
       assistant_name: bizRaw.ai_assistant_name ?? null,
+      business_type: bizRaw.business_type ?? null,
     }
 
     const history: ChatMsg[] = (messages as ChatMsg[]).filter(m => m.role === 'user' || m.role === 'assistant')
@@ -81,7 +83,11 @@ export async function POST(request: NextRequest) {
     // ── W-75/76 beyin ────────────────────────────────────────────────
     const maxTurn = turn_number > 12
     const features = await getFeatures(biz.id)
-    const systemPrompt = buildSystemPrompt({ biz, maxTurn, featureLines: features })
+    const genderHintLine = (() => {
+      const name = extractNameFromHistory(history)
+      return name ? genderHint(name) : null
+    })()
+    const systemPrompt = buildSystemPrompt({ biz, maxTurn, featureLines: features, genderHintLine })
 
     try {
       let reply = await callDeepSeek(systemPrompt, history, 200)

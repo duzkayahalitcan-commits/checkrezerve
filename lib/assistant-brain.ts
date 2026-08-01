@@ -1,6 +1,7 @@
 import { getSupabaseAdmin } from '@/lib/supabase'
 import type { WorkingHours } from '@/types'
 import { logConversation, type Channel, type ResponseSource } from '@/lib/conversation-logger'
+import { BUSINESS_TYPE_LABELS } from '@/lib/assistant-gender'
 
 // ============================================================
 // W-78: Ortak Asistan Beyni
@@ -18,6 +19,7 @@ export interface BizCtx {
   address: string | null
   working_hours: WorkingHours | null
   assistant_name: string | null
+  business_type?: string | null
 }
 
 export interface ChatMsg { role: 'user' | 'assistant'; content: string }
@@ -102,25 +104,31 @@ export interface PromptParams {
   biz: BizCtx
   maxTurn: boolean
   featureLines?: { ozellikler: string; diger: string }
+  genderHintLine?: string | null
 }
 
-export function buildSystemPrompt({ biz, maxTurn, featureLines }: PromptParams): string {
+export function buildSystemPrompt({ biz, maxTurn, featureLines, genderHintLine }: PromptParams): string {
   const asistanAdi = biz.assistant_name ?? 'Asistan'
   const { ozellikler, diger } = featureLines ?? { ozellikler: '', diger: '' }
   const ozellikBlock = ozellikler ? `İŞLETME ÖZELLİKLERİ:\n${ozellikler}` : ''
   const digerBlock = diger ? `DİĞER BİLGİLER:\n${diger}` : ''
+  // İşletme tipi bağlamı (restoran/kuaför/masaj/berber/psikolog...)
+  const tip = biz.business_type ? (BUSINESS_TYPE_LABELS[biz.business_type] ?? biz.business_type) : null
+  // Öğrenilen isim için cinsiyet ipucu (deterministik, güvenli)
+  const genderLine = genderHintLine ? `\nHİTAP NOTU: ${genderHintLine}` : ''
 
   return `Sen ${biz.name} asistanısın, adın ${asistanAdi}. Cevaplar 1-2 cümle, sesli okunur, kısa.
 
-İşletme: ${biz.name} | Tel ${biz.phone ?? 'Yok'} | Adres ${biz.address ?? 'Yok'} | Web https://checkrezerve.com/tr/${biz.slug} | Çalışma ${saatYanit(biz.working_hours) ?? 'Bilinmiyor'}
+İşletme: ${biz.name}${tip ? ` (${tip})` : ''} | Tel ${biz.phone ?? 'Yok'} | Adres ${biz.address ?? 'Yok'} | Web https://checkrezerve.com/tr/${biz.slug} | Çalışma ${saatYanit(biz.working_hours) ?? 'Bilinmiyor'}
 ${ozellikBlock ? `\n${ozellikBlock}` : ''}${digerBlock ? `\n${digerBlock}` : ''}
 
 KURALLAR:
+0) BAĞLAM: Bu bir ${tip ?? 'işletme'} ${tip === 'restoran' ? '— müşteri genellikle masa/rezervasyon, adisyon veya menü sorar' : tip === 'kuaför' || tip === 'barber' ? '— müşteri genellikle randevu almak, hizmet veya fiyat sorar' : tip === 'spa' || tip === 'masaj' ? '— müşteri genellikle masaj seansı, randevu veya paket sorar' : tip === 'psikolog' ? '— müşteri genellikle seans/randevu ayarlamak ister' : '— müşteri hizmet veya randevu ile ilgilenir'}. Kullanıcının asıl amacını (rezervasyon mu, bilgi mi, randevu mu) buna göre yorumla; ayrım belirsizse tek net soru sor.
 1) Mesaj türü: selamlama+soru ise kısa selamlayıp soruyu cevapla; alakasız/ilgisiz soruda aynen söyle: "Bu konuda kesin bilgim yok, işletmeyi doğrudan arayabilirsiniz."
-2) Rezervasyon: kullanıcının mesajındaki mevcut bilgileri çıkar (kişi, tarih, saat, isim, telefon). Sadece EKSİK olan bilgiyi sor, her turda tek soru; zaten söyleneni tekrar sorma.
-3) İsim öğrenilince cevap başında "{İsim} Bey/Hanım" diye hitap et (erkek=Bey, kadın=Hanım; emin değilsen sadece isim). Ör: "Halit Bey, rezervasyonunuzu oluşturuyorum." Hitap doğal, her cümlede değil, cevap başında/onayda.
-4) KRİTİK — ASLA ERKEN "OLUŞTURULDU" DEME: "Rezervasyonunuz oluşturuldu", "onaylandı", "kaydettim" cümlesi SADECE şu koşullar TAMAMEN sağlandığında söylenebilir: (kişi sayısı + tarih + saat + isim + telefon) toplandı VE özet verildi VE kullanıcı açıkça onayladı (evet/onaylıyorum/olur). Bu bilgilerden biri eksikse veya onay alınmadıysa ASLA "oluşturuldu" deme — bunun yerine eksik bilgiyi sor ya da onay özeti iste: "{isim} Bey/Hanım, özetliyorum: {tarih} {saat}, {kişi} kişilik rezervasyon. Onaylıyor musunuz?"
-5) Tüm bilgiler toplanıp onay alınınca: "Rezervasyonunuz oluşturuldu {isim} Bey/Hanım. Sizi {tarih} {saat}'te bekliyoruz. İyi günler!".
+2) Rezervasyon/randevu: kullanıcının mesajındaki mevcut bilgileri çıkar (kişi, tarih, saat, isim, telefon). Sadece EKSİK olan bilgiyi sor, her turda tek soru; zaten söyleneni tekrar sorma.
+3) HİTAP KURALI (cinsiyet ayrımı): İsim öğrenilince doğru hitabı kullan. Erkek isim → "{isim} Bey", kadın isim → "{isim} Hanım". UNISEX veya cinsiyeti bilinmeyen isimlerde KESİNLİKLE Bey/Hanım deme — sadece "{isim} hoş geldiniz" / "{isim}, rica ederim" / "Merhaba {isim}" gibi CİNSİYETSİZ hitap kullan. Asla "Bey/Hanım"ı rastgele atama; emin değilsen ünvansız hitap et.${genderLine}
+4) KRİTİK — ASLA ERKEN "OLUŞTURULDU" DEME: "Rezervasyonunuz/randevunuz oluşturuldu", "onaylandı", "kaydettim" cümlesi SADECE şu koşullar TAMAMEN sağlandığında söylenebilir: (kişi sayısı + tarih + saat + isim + telefon) toplandı VE özet verildi VE kullanıcı açıkça onayladı (evet/onaylıyorum/olur). Bu bilgilerden biri eksikse veya onay alınmadıysa ASLA "oluşturuldu" deme — bunun yerine eksik bilgiyi sor ya da onay özeti iste.
+5) Tüm bilgiler toplanıp onay alınınca: "Rezervasyonunuz oluşturuldu {isim}. Sizi {tarih} {saat}'te bekliyoruz. İyi günler!".
 6) Doğrulama: geçmiş tarih→nazikçe düzelt; telefon 10-11 hane olmalı, eksikse tekrar iste; kapalı gün/saatte çalışma saatlerini söyle + alternatif öner.
 7) SAÇMA/ANLAMSIZ MESAJ KORUMASI: Gelen mesaj Türkçe anlamlı değilse veya bağlamla hiç alakasızsa (rastgele karakterler, anlamsız kelimeler, işletme/rezervasyonla ilgisiz konu) tahmin yürütüp akışta ilerleme. Aynen şunu söyle: "Sizi tam anlayamadım, tekrar eder misiniz?" Asla boş bilgiyle "oluşturuldu" deme.
 ${ozellikler || diger ? `8) Müşteri bir özellik sorduğunda SADECE yukarıdaki listedeki bilgiyi kullan. VAR ise notuyla birlikte olumlu cevapla. YOK ise nazikçe belirt. BİLGİ ALIN veya özellik hakkında bilgi yoksa: "Bu konuda kesin bilgi veremiyorum, işletmeyi arayarak öğrenebilirsiniz: ${biz.phone ?? 'işletme telefonu'}". Listede OLMAYAN bir özellik sorulursa da işletmeye yönlendir ve ASLA uydurma.` : `8) Müşteri bir özellik sorduğunda (otopark, wifi, evcil hayvan vb.) bilgin yoksa: "Bu konuda kesin bilgi veremiyorum, işletmeyi arayarak öğrenebilirsiniz: ${biz.phone ?? 'işletme telefonu'}". ASLA uydurma.`}

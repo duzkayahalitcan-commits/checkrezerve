@@ -9,6 +9,7 @@ import {
   type BizCtx, type ChatMsg,
 } from '@/lib/assistant-brain'
 import { checkFeatureFlag } from '@/lib/feature-flags'
+import { genderHint, extractNameFromHistory } from '@/lib/assistant-gender'
 
 // ─── In-memory cache (1 saat) ─────────────────────────────────────
 const cache = new Map<string, { data: BizCtx; ts: number }>()
@@ -21,7 +22,7 @@ async function getBusiness(slug: string): Promise<BizCtx | null> {
   const db = getSupabaseAdmin()
   const { data } = await db
     .from('restaurants')
-    .select('id, name, slug, phone, address, working_hours, ai_assistant_name')
+    .select('id, name, slug, phone, address, working_hours, ai_assistant_name, business_type')
     .eq('slug', slug)
     .single()
 
@@ -34,6 +35,7 @@ async function getBusiness(slug: string): Promise<BizCtx | null> {
     address: (data as Record<string, unknown>).address as string | null,
     working_hours: (data as Record<string, unknown>).working_hours as WorkingHours | null,
     assistant_name: (data as Record<string, unknown>).ai_assistant_name as string | null,
+    business_type: (data as Record<string, unknown>).business_type as string | null,
   }
   cache.set(slug, { data: biz, ts: Date.now() })
   return biz
@@ -137,11 +139,14 @@ export async function POST(req: NextRequest) {
 
   const maxTurn = Number(turn_number ?? 0) > 12
   const features = await getFeatures(biz.id)
-  const systemPrompt = buildSystemPrompt({ biz, maxTurn, featureLines: features })
+  const history = await getHistory(session_id ?? '')
+  // Öğrenilen isimden cinsiyet ipucu üret (deterministik, güvenli)
+  const userName = extractNameFromHistory([...history, { role: 'user' as const, content: text }])
+  const genderHintLine = userName ? genderHint(userName) : null
+  const systemPrompt = buildSystemPrompt({ biz, maxTurn, featureLines: features, genderHintLine })
 
   const tLLM = Date.now()
   try {
-    const history = await getHistory(session_id ?? '')
     const messages: ChatMsg[] = [...history, { role: 'user', content: text }]
     let reply = await callDeepSeek(systemPrompt, messages, 150)
 
