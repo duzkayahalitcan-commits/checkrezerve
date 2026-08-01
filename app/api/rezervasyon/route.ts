@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createHash, randomBytes } from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { rateLimit } from '@/lib/rate-limit'
+import { notifyReservationEvent } from '@/lib/notification-orchestrator'
 
 function generateCancellationToken(): string {
   return createHash('sha256').update(randomBytes(32)).digest('hex').slice(0, 32)
@@ -120,6 +121,34 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('[rezervasyon]', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // ── S2-T5: Bildirim orkestrasyonu (müşteri + işletme + n8n) — async, engellemez ──
+    try {
+      const { data: rest } = await getSupabaseAdmin()
+        .from('restaurants')
+        .select('id, name, phone, address')
+        .eq('id', restaurant_id)
+        .single()
+
+      if (rest) {
+        void notifyReservationEvent(
+          'created',
+          {
+            id: data.id,
+            restaurant_id,
+            guest_name: insertPayload.guest_name as string,
+            guest_phone: insertPayload.guest_phone as string,
+            party_size: insertPayload.party_size as number,
+            reserved_date: insertPayload.reserved_date as string,
+            reserved_time: insertPayload.reserved_time as string,
+            cancellation_token: insertPayload.cancellation_token as string,
+          },
+          { id: rest.id, name: rest.name, phone: rest.phone, address: rest.address }
+        )
+      }
+    } catch (notifyErr) {
+      console.error('[rezervasyon] bildirim hatası (akışı durdurmaz):', notifyErr)
     }
 
     return NextResponse.json({ success: true, id: data.id })
