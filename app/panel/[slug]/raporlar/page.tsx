@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import RaporlarClient from './RaporlarClient'
+import CalisanGelir from './CalisanGelir'
 
 export const dynamic = 'force-dynamic'
 
@@ -147,18 +148,32 @@ export default async function RaporlarPage({
   })).sort((a, b) => b.count - a.count)
 
   return (
-    <RaporlarClient
-      slug={slug}
-      total={total} diff={diff} diffPct={diffPct}
-      cancelPct={cancelPct} prevCancelPct={prevCancelPct}
-      revenue={revenue} prevRevenue={prevRevenue}
-      barData={barData}
-      heatmapData={heatmapData}
-      pieData={pieData}
-      staffBarData={staffBarData}
-      reservations={allCurrent ?? []}
-      dateFrom={dateFrom} dateTo={dateTo}
-      period={periodType}
-    />
+    <div>
+      <div className="px-6 pt-6 pb-5 border-b border-white/5">
+        <h1 className="text-lg font-bold text-white mt-0.5">Raporlar</h1>
+        <p className="text-xs text-stone-500 mt-0.5">Rezervasyon ve gelir istatistikleri</p>
+      </div>
+      <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 space-y-8">
+        <RaporlarClient
+          slug={slug}
+          total={total} diff={diff} diffPct={diffPct}
+          cancelPct={cancelPct} prevCancelPct={prevCancelPct}
+          revenue={revenue} prevRevenue={prevRevenue}
+          barData={barData}
+          heatmapData={heatmapData}
+          pieData={pieData}
+          staffBarData={staffBarData}
+          reservations={allCurrent ?? []}
+          dateFrom={dateFrom} dateTo={dateTo}
+          period={periodType}
+        />
+
+        {/* Eğitmen Bazlı Gelir Raporu */}
+        <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
+          <h2 className="font-semibold text-sm text-stone-200 mb-4">Eğitmen Gelir Raporu</h2>
+          <CalisanGelir restaurantId={restaurant.id} />
+        </section>
+      </main>
+    </div>
   )
 }

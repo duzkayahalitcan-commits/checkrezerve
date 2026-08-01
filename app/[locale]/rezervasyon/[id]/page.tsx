@@ -10,6 +10,9 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { BUSINESS_TYPE_ICONS, type BusinessType, type Restaurant, type Service, type StaffMember } from '@/types'
 import BookingForm from './BookingForm'
 import BusinessDetailHero from './BusinessDetailHero'
+import nextDynamic from 'next/dynamic'
+
+const FloatingAIAssistant = nextDynamic(() => import('@/components/FloatingAIAssistant'))
 
 // Next.js 15+ — params is a Promise
 type Props = { params: Promise<{ id: string; locale: string }> }
@@ -38,10 +41,10 @@ export default async function BusinessDetailPage({ params }: Props) {
 
   const todayStr = new Date().toISOString().split('T')[0]
   const [{ data: biz }, { data: rawServices }, { data: rawStaff }, { data: rawTables }, { data: featureFlags }, { data: rawAreas }, { data: rawOccupiedZones }] = await Promise.all([
-    supabase.from('restaurants').select('*').eq('id', id).single(),
-    supabase.from('hizmetler').select('*').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
-    supabase.from('calisanlar').select('*').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
-    supabase.from('masa_tipleri').select('*').eq('isletme_id', id).eq('aktif', true).order('created_at'),
+    supabase.from('restaurants').select('id, name, slug, phone, address, description, business_type, cover_image, working_hours, kroki_mode, kroki_zones, special_notes, ai_assistant_enabled, ai_assistant_name, ai_assistant_voice').eq('id', id).single(),
+    supabase.from('hizmetler').select('id, ad, sure_dakika, fiyat, ad_en, ad_ar, ad_de, ad_da, ad_es, ad_ru').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
+    supabase.from('calisanlar').select('id, ad').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
+    supabase.from('masa_tipleri').select('id, ad, kapasite, area_id, x, y, width, height, sekil, rotation').eq('isletme_id', id).eq('aktif', true).order('created_at'),
     supabase.from('feature_flags').select('feature, enabled').eq('restaurant_id', id),
     supabase.from('special_areas').select('id, name, color').eq('restaurant_id', id).order('name'),
     supabase.from('reservations')
@@ -54,7 +57,7 @@ export default async function BusinessDetailPage({ params }: Props) {
 
   if (!biz) notFound()
 
-  const business = biz as Restaurant
+  const business = biz as unknown as Restaurant
   const icon  = BUSINESS_TYPE_ICONS[business.business_type as BusinessType] ?? '🏪'
   const label = tBiz(business.business_type as Parameters<typeof tBiz>[0])
 
@@ -189,6 +192,14 @@ export default async function BusinessDetailPage({ params }: Props) {
       </section>
 
       <MarketingFooter />
+
+      <FloatingAIAssistant
+        restaurantId={business.id}
+        restaurantName={business.name}
+        restaurantSlug={business.slug}
+        assistantName={(biz as Record<string, unknown>).ai_assistant_name as string | null}
+        assistantVoice={(biz as Record<string, unknown>).ai_assistant_voice as string | null}
+      />
     </div>
   )
 }

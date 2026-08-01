@@ -1,5 +1,6 @@
-import Link                from 'next/link'
-import { redirect }        from 'next/navigation'
+import Link                   from 'next/link'
+import nextDynamic             from 'next/dynamic'
+import { redirect }           from 'next/navigation'
 import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { getTranslations, getLocale } from 'next-intl/server'
@@ -9,6 +10,8 @@ import ReservationList from './ReservationList'
 import CountUp        from '@/components/CountUp'
 import ReservationChart from '@/components/ui/ReservationChart'
 import type { Reservation, SpecialArea } from '@/types'
+
+const CiroDashboard = nextDynamic(() => import('./dashboard/CiroDashboard'))
 
 export const dynamic = 'force-dynamic'
 
@@ -75,9 +78,9 @@ export default async function PanelDashboardPage({
       .order('date', { ascending: true }),
     db.from('special_areas').select('id, name, capacity')
       .eq('restaurant_id', restaurant.id).order('name'),
-    db.from('reservations').select('*', { count: 'exact', head: true })
+    db.from('reservations').select('id', { count: 'exact', head: true })
       .eq('restaurant_id', restaurant.id).eq('date', today).neq('status', 'cancelled'),
-    db.from('reservations').select('*', { count: 'exact', head: true })
+    db.from('reservations').select('id', { count: 'exact', head: true })
       .eq('restaurant_id', restaurant.id).eq('date', today).eq('status', 'confirmed'),
     db.from('reservations').select(`
         id, guest_name, guest_phone, reserved_date, reserved_time,
@@ -89,9 +92,9 @@ export default async function PanelDashboardPage({
       .gte('reserved_date', new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10))
       .order('reserved_date', { ascending: false })
       .order('reserved_time', { ascending: false }),
-    db.from('reservations').select('*', { count: 'exact', head: true })
+    db.from('reservations').select('id', { count: 'exact', head: true })
       .eq('restaurant_id', restaurant.id).eq('status', 'pending'),
-    db.from('reservations').select('*', { count: 'exact', head: true })
+    db.from('reservations').select('id', { count: 'exact', head: true })
       .eq('restaurant_id', restaurant.id).eq('status', 'cancelled'),
   ])
 
@@ -173,6 +176,11 @@ export default async function PanelDashboardPage({
             <div className="text-lg font-bold text-emerald-400 group-hover:scale-110 transition-transform">→</div>
             <div className="text-stone-400 text-xs mt-1">Misafirler</div>
           </Link>
+        </section>
+
+        {/* Ciro Dashboard Widget */}
+        <section>
+          <CiroDashboard restaurantId={restaurant.id} />
         </section>
 
         {/* Weekly Chart */}

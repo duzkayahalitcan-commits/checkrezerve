@@ -1,11 +1,11 @@
 import { redirect } from 'next/navigation'
 import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import CalendarView from './CalendarView'
+import OzelliklerClient from './OzelliklerClient'
 
 export const dynamic = 'force-dynamic'
 
-export default async function TakvimPage({
+export default async function AsistanBilgileriPage({
   params,
 }: {
   params: Promise<{ slug: string }>
@@ -15,10 +15,9 @@ export default async function TakvimPage({
 
   const { slug } = await params
   const db = getSupabaseAdmin()
-
   const { data: restaurant } = await db
     .from('restaurants')
-    .select('id, name, business_type')
+    .select('id, name, slug, business_type')
     .eq('slug', slug)
     .eq('id', session.restaurantId)
     .single()
@@ -28,14 +27,15 @@ export default async function TakvimPage({
   return (
     <div>
       <div className="px-6 pt-6 pb-5 border-b border-white/5">
-        <h1 className="text-lg font-bold text-white mt-0.5">Takvim</h1>
-        <p className="text-xs text-stone-500 mt-0.5">Haftalık ve aylık rezervasyon takvimi</p>
+        <h1 className="text-lg font-bold text-white mt-0.5">Asistan Bilgileri</h1>
+        <p className="text-xs text-stone-500 mt-0.5">
+          Sesli asistanın müşterilere doğru bilgi vermesi için işletme özelliklerini işaretleyin
+        </p>
       </div>
-      <main className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-        <CalendarView
+      <main className="max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-6">
+        <OzelliklerClient
           restaurantId={restaurant.id}
-          businessType={restaurant.business_type}
-          slug={slug}
+          businessType={restaurant.business_type ?? ''}
         />
       </main>
     </div>

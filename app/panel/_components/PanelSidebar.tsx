@@ -7,7 +7,7 @@ import {
   LayoutDashboard, CalendarDays, List, Calendar,
   Users, UserCog, Scissors, Settings, CreditCard,
   LayoutGrid, PanelRightOpen, ChevronRight, LogOut, Menu, X, UtensilsCrossed,
-  Package, Layers,
+  Package, Layers, BarChart3, Bot,
 } from 'lucide-react'
 import PanelLangSelector from './PanelLangSelector'
 import NotificationBell from './NotificationBell'
@@ -47,6 +47,8 @@ export default function PanelSidebar({
 
   // Paket sistemi sadece randevu bazli sektorlerde gorunsun
   const paketSektoru = businessType && !['restaurant', 'cafe', 'bar'].includes(businessType)
+  // Masa/kroki gerektirmeyen sektorler (pilates, fitness, vb.)
+  const masaGerekmez = businessType && ['fitness', 'pilates', 'psychologist', 'chiropractor'].includes(businessType)
 
   const NAV = [
     { href: base,                    label: 'Genel Bakış',   icon: LayoutDashboard },
@@ -57,11 +59,15 @@ export default function PanelSidebar({
       { href: `${base}/paketler`,      label: 'Paketler',      icon: Package as React.ComponentType<{ size?: number }> },
       { href: `${base}/uye-paketleri`, label: 'Üye Paketleri',  icon: Layers as React.ComponentType<{ size?: number }> },
     ] : []),
-    { href: `${base}/masalar`,       label: 'Masalar',       icon: LayoutGrid      },
-    { href: `${base}/kroki`,         label: 'Salon Krokisi', icon: PanelRightOpen  },
+    ...(!masaGerekmez ? [
+      { href: `${base}/masalar`,       label: 'Masalar',       icon: LayoutGrid      },
+      { href: `${base}/kroki`,         label: 'Salon Krokisi', icon: PanelRightOpen  },
+    ] : []),
     { href: `${base}/misafirler`,    label: 'Misafirler',    icon: Users           },
     { href: `${base}/calisanlar`,    label: 'Çalışanlar',    icon: UserCog         },
     { href: `${base}/hizmetler`,     label: 'Hizmetler',     icon: hizmetIcon      },
+    { href: `${base}/raporlar`,      label: 'Raporlar',       icon: BarChart3 as React.ComponentType<{ size?: number }> },
+    { href: `${base}/asistan-bilgileri`, label: 'Asistan Bilgileri', icon: Bot as React.ComponentType<{ size?: number }> },
     { href: `${base}/ayarlar`,       label: 'Ayarlar',       icon: Settings        },
     { href: `${base}/abonelik`,      label: 'Abonelik',      icon: CreditCard      },
   ]

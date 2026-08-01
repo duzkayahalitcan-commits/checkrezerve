@@ -11,6 +11,52 @@ Builder: Halitcan (solo)
 - Auth: Supabase JWKS
 - Panel yazma işlemleri: getSupabaseAdmin() (RLS bypass), API route üzerinden
 
+---
+
+## Ekosistem — Aktif Araçlar
+
+### Tmux Oturumları
+
+| Oturum | Dizin | Kullanım |
+|---|---|---|
+| `web` | `~/Desktop/checkrezerve` | Next.js web — `npm run dev` (port 3001/3002) |
+| `app` | `~/Desktop/checkrezerve-app` | Expo mobil — `npx expo start` (port 8081) |
+| `genel` | `~/` | Genel terminal, vault, araç yönetimi |
+
+**Kural:** `web` ve `app` terminallerini asla karıştırma. Her oturumda aktif süreç var.
+
+### Araçlar
+
+| Araç | Adres / Konum | Ne Zaman Devreye Girer |
+|---|---|---|
+| **OmniRoute** | `localhost:20128` | Her oturumda otomatik aktif. 290 LLM sağlayıcısı, auto-fallback, ~1.53B ücretsiz token/ay. Down olursa `~/.claude/settings.json`'da model'i Anthropic'e yönlendir. |
+| **claude-obsidian** | `~/claude-obsidian` | Vault okuma/yazma. `/wiki-query`, `/save`, `/wiki-ingest` ile. Vault: `~/Documents/CheckRezerveKnowledge` |
+| **hallmark** | `~/.claude/skills/hallmark` | Yeni sayfa/component tasarımı ve marketing UI. `hallmark audit` / `hallmark redesign` / `hallmark study` |
+| **emilkowalski/skills** | `~/.claude/skills/` | UI polish, animasyon, component craft. `/emil-design-eng`, `/improve-animations`, `/find-animation-opportunities` |
+| **strix** | `~/strix` | AI pentest — yeni API endpoint sonrası veya PR öncesi güvenlik taraması |
+| **mattpocock-skills** | `~/mattpocock-skills` | TypeScript sorunları, ticket oluşturma (`to-tickets`), spesifikasyon (`to-spec`) |
+| **book-to-skill** | `~/book-to-skill` | Teknik belge/kitap → agent skill dönüşümü (24-51× token tasarrufu) |
+
+### Knowledge Vault
+
+Tüm proje kararları, audit bulguları, sprint planları `~/Documents/CheckRezerveKnowledge/wiki/`'de yaşar.
+Oturum başında vault bağlamını yüklemek için: `wiki/hot.md` + `wiki/index.md` oku.
+
+---
+
+## Sprint Durumu (Audit 2026-08-01 — 129+ Bulgu)
+
+| Sprint | Durum | Özet |
+|---|---|---|
+| S1 Güvenlik | ✅ | RLS düzeltildi, n8n izole edildi, fallback secret'lar kaldırıldı, calendar-events/ciro-ozet auth eklendi, feature flag API'de uygulandı |
+| S2 İş Mantığı | ✅ | Temporal reservation guard (DB fn), RBAC çalışıyor, health endpoint DB kontrolü, Redis rate limiting, notification orchestrator |
+| S3 Performans | ✅ | SELECT * → explicit kolonlar, console.log temizlendi, withPanelAuth middleware, ISR, race condition fix, conversations RLS, composite index'ler, abonelik kontrolü. **Not:** `proxy.ts` S3-T4 değişikliği uncommitted — commit et. |
+| S4 UX & Eksik | ⏳ | aria-label (23 eksik), loading spinner tutarlılığı, BookingForm silent error fix, guest_activities loglama, dress_code düzenleme, React.memo, dead code temizliği |
+
+**Sprint planı & audit detayları:** `~/Documents/CheckRezerveKnowledge/wiki/decisions/Sprint-Plani-2026-08.md`
+
+---
+
 ## Veritabanı Tabloları
 - restaurants, reservations, calisanlar, hizmetler
 - user_favorites, profiles, masa_tipleri
@@ -160,10 +206,13 @@ Neyi değiştirmek gerekiyor → form UI → DB'de izin kaydı → SMS opt-out.
 
 **Her yeni oturumda, Halitcan hiçbir şey söylemeden önce şunu yap:**
 
-1. Halitcan'a şunu sor: **"Ne yapacaksın?"**
-2. Cevabına göre aşağıdaki tablodan uygun ajan(lar)ı belirle
-3. O ajanların CLAUDE.md dosyalarını oku
-4. "X + Y ajanı olarak çalışıyorum" de ve göreve başla
+1. `~/Documents/CheckRezerveKnowledge/wiki/hot.md` oku — sprint durumu ve aktif thread'leri öğren
+2. Halitcan'a şunu sor: **"Ne yapacaksın?"**
+3. Cevabına göre aşağıdaki tablodan uygun ajan(lar)ı belirle
+4. O ajanların CLAUDE.md dosyalarını oku
+5. "X + Y ajanı olarak çalışıyorum" de ve göreve başla
+
+**Sprint 4 başlamadıysa:** `proxy.ts` S3-T4 değişikliğinin commit edilmesi gerekiyor — bunu hatırlat.
 
 Halitcan sana ajan ismi söylemek zorunda değil. Sen karar verirsin.
 
@@ -478,4 +527,34 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
   - **ETKİLENEN**: `src/components/kroki/KrokiEditor.tsx`, `src/components/kroki/SetupModal.tsx`, `src/components/kroki/ModeSelector.tsx` (yeni), `src/components/kroki/ZoneViewer.tsx`, `src/types/kroki-zone.ts`, `app/panel/[slug]/kroki/page.tsx`, `app/panel/[slug]/kroki/KrokiTabsPage.tsx`, `app/panel/[slug]/kroki/NewZoneEditorPage.tsx` (yeni), `app/api/panel/kroki-mode/route.ts` (yeni), `app/api/panel/zone-photo/route.ts` (yeni), `app/[locale]/rezervasyon/[id]/page.tsx`, `app/[locale]/rezervasyon/[id]/BookingForm.tsx`, `supabase/migrations/20260705_kroki_redesign.sql` (yeni)
   - **TS**: `npx tsc --noEmit` hatasiz ✅
 
-<!-- DEVAM NOKTASI: W-93 -->
+- [x] **2026-08-01 — Sprint 1: Güvenlik Acil (5 görev, tümü tamamlandı)**
+  - **S1-T1**: `reservations` RLS — `USING(true)` → `USING(phone = get_my_phone())` (migration: `20260801_fix_reservations_rls.sql`)
+  - **S1-T2**: n8n port 5678 kapatıldı, `N8N_BASIC_AUTH_ACTIVE=true`, DB şifresi env'e taşındı
+  - **S1-T3**: 4 dosyadaki hardcoded fallback secret kaldırıldı (`'checkrezerve-fallback-secret'`), `lib/env.ts` startup validator eklendi
+  - **S1-T4**: `/api/panel/[slug]/calendar-events` ve `/api/panel/[slug]/ciro-ozet` endpoint'lerine session doğrulama eklendi
+  - **S1-T5**: `/api/ai-reserve`, `/api/ai-assistant/*` endpoint'lerine feature flag kontrolü eklendi
+  - **Kapatılan bulgular:** G1, G2, G3, G4, G5, A1, A2, A3, I3
+
+- [x] **2026-08-01 — Sprint 2: İş Mantığı (5 görev, tümü tamamlandı)**
+  - **S2-T1**: `check_reservation_availability()` PostgreSQL fonksiyonu — zaman çakışması + kapasite kontrolü tek DB sorgusunda
+  - **S2-T2**: `lib/roles.ts` fonksiyonları (`canDeleteReservation`, `canManageStaff`, `canManageTables`, `canEditSettings`) API route'larına bağlandı
+  - **S2-T3**: `/api/health` endpoint'i Supabase DB sorgusu yapacak şekilde güncellendi (stub'dan gerçek health check'e)
+  - **S2-T4**: Redis (Upstash) rate limiting — `lib/rate-limit.ts` in-memory Map → Redis, blue/green container bypass sorunu çözüldü
+  - **S2-T5**: `lib/notification-orchestrator.ts` — AI rezervasyon bildirimi, iptal bildirimi, n8n tüm kanallar için tetikleniyor
+  - **Kapatılan bulgular:** I1, I2, I4, A5, G8, A6, E1, E2, E4
+
+- [x] **2026-08-01 — Sprint 3: Performans & Kod Temizliği (10 görev, tümü tamamlandı)**
+  - SELECT * → explicit kolon listesi (26+ sorgu)
+  - console.log temizliği (50+ statement kaldırıldı)
+  - `withPanelAuth` merkezi middleware — 15+ route'daki tekrar ortadan kalktı
+  - `audio-sentences.ts` lazy/split — 129KB bundle yükü azaltıldı
+  - `force-dynamic` → `revalidate: 3600` (ISR) — işletme detay sayfaları
+  - `actions.ts:115-121` race condition fix — insert sonrası ID ayrı SELECT yerine tek sorguda
+  - Hardcoded URL'ler (`Railway URL`, `localhost:5001`) env'e taşındı
+  - `conversations` tablosu RLS `USING(true)` → super_admin kontrolüne güncellendi
+  - Composite index'ler: (restaurant_id, phone, date), (restaurant_id, ozellik_kodu), (restaurant_id, session_id)
+  - Abonelik kontrolü `app/panel/[slug]/layout.tsx`'e eklendi
+  - **Not:** `proxy.ts` S3-T4 değişikliği working tree'de — commit edilmesi gerekiyor
+  - **Kapatılan bulgular:** P1, P2, P3, K1, K4, K5, K6, S4, S5, I7
+
+<!-- DEVAM NOKTASI: Sprint 4 — proxy.ts commit et, sonra UX görevleri -->

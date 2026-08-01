@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createHmac } from 'crypto'
 import createIntlMiddleware from 'next-intl/middleware'
 import { routing } from './i18n/routing'
+import { verifyAdminToken, verifyPanelToken } from './lib/middleware-auth'
 
 const intlMiddleware = createIntlMiddleware(routing)
 
@@ -10,26 +10,9 @@ const COOKIE = 'cr_admin'
 const LOGIN  = '/admin/login'
 const LOGOUT = '/admin/logout'
 
-function makeToken(password: string, secret: string): string {
-  return createHmac('sha256', secret).update(password).digest('base64')
-}
-
 // ── Panel (business) cookie auth ────────────────────────────────
 const PANEL_LOGIN  = '/panel/login'
 const PANEL_LOGOUT = '/panel/logout'
-
-function makePanelToken(userId: string, restaurantId: string, secret: string): string {
-  return createHmac('sha256', secret).update(`${userId}:${restaurantId}`).digest('base64url')
-}
-
-function verifyPanelCookie(raw: string, secret: string): boolean {
-  const parts = raw.split(':')
-  if (parts.length < 4) return false
-  const [userId, restaurantId, , ...tokenParts] = parts
-  const token    = tokenParts.join(':')
-  const expected = makePanelToken(userId, restaurantId, secret)
-  return token === expected
-}
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
@@ -57,9 +40,8 @@ export function proxy(req: NextRequest) {
       url.pathname = LOGIN
       return NextResponse.redirect(url)
     }
-    const token    = req.cookies.get(COOKIE)?.value ?? ''
-    const expected = makeToken(adminPassword, adminSecret)
-    if (token !== expected) {
+    const token = req.cookies.get(COOKIE)?.value ?? ''
+    if (!verifyAdminToken(token, adminPassword, adminSecret)) {
       const url = req.nextUrl.clone()
       url.pathname = LOGIN
       url.searchParams.set('from', pathname)
@@ -92,8 +74,8 @@ export function proxy(req: NextRequest) {
       url.pathname = PANEL_LOGIN
       return NextResponse.redirect(url)
     }
-    const raw    = req.cookies.get('cr_panel')?.value ?? ''
-    if (!raw || !verifyPanelCookie(raw, secret)) {
+    const raw = req.cookies.get('cr_panel')?.value ?? ''
+    if (!raw || !verifyPanelToken(raw, secret)) {
       const url = req.nextUrl.clone()
       url.pathname = PANEL_LOGIN
       return NextResponse.redirect(url)
@@ -107,7 +89,7 @@ export function proxy(req: NextRequest) {
   if (
     pathname.startsWith('/api') ||
     pathname.startsWith('/auth') ||
-    /\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|json|woff2?|ttf)$/.test(pathname)
+    /\.(?:svg|png|jpg|jpeg|gif|webp|mp3|ico|txt|xml|json|woff2?|ttf)$/.test(pathname)
   ) {
     return NextResponse.next()
   }
@@ -117,5 +99,7 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon\\.ico).*)'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon\\.ico|sitemap\\.xml|sitemap\\.txt|atom\\.xml|license\\.txt|manifest\\.webmanifest|sitemaps\\.xml|robots\\.txt|[^/]+\\.json).*)',
+  ],
 }
