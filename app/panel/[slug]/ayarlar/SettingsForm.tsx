@@ -6,7 +6,7 @@ import type { Restaurant, WorkingHours, WorkingDayHours } from '@/types'
 
 type Props = {
   restaurant: Pick<Restaurant,
-    'id' | 'working_hours' | 'closed_dates' | 'prepayment_amount' | 'special_notes' | 'dress_code' | 'ai_assistant_enabled' | 'ai_assistant_name' | 'ai_assistant_voice'
+    'id' | 'working_hours' | 'closed_dates' | 'prepayment_amount' | 'special_notes' | 'dress_code' | 'background_image' | 'ai_assistant_enabled' | 'ai_assistant_name' | 'ai_assistant_voice'
   >
 }
 
@@ -34,6 +34,8 @@ export default function SettingsForm({ restaurant }: Props) {
   const [prepay, setPrepay]   = useState<number>(restaurant.prepayment_amount ?? 0)
   const [notes, setNotes]     = useState(restaurant.special_notes ?? '')
   const [dressCode, setDressCode] = useState(restaurant.dress_code ?? '')
+  const [background, setBackground] = useState(restaurant.background_image ?? '')
+  const [bgUploading, setBgUploading] = useState(false)
   const [dateInput, setDateInput] = useState('')
 
   // ─── AI Asistan ───
@@ -60,6 +62,52 @@ export default function SettingsForm({ restaurant }: Props) {
 
   function removeDate(d: string) {
     setClosedDates(prev => prev.filter(x => x !== d))
+  }
+
+  // ─── Arka plan görseli yükleme ───────────────────────────────
+  async function uploadBackground(file: File) {
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setError('Yalnızca resim dosyaları yüklenebilir')
+      return
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError('Görsel en fazla 8MB olabilir')
+      return
+    }
+    setBgUploading(true)
+    setError(null)
+    try {
+      const fd = new FormData()
+      fd.append('background', file)
+      fd.append('restaurant_id', restaurant.id)
+      const res = await fetch('/api/panel/background', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Yüklenemedi')
+      setBackground(data.background_image)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Yüklenemedi')
+    } finally {
+      setBgUploading(false)
+    }
+  }
+
+  async function removeBackground() {
+    setBgUploading(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/panel/background?restaurant_id=${restaurant.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Kaldırılamadı')
+      setBackground('')
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Kaldırılamadı')
+    } finally {
+      setBgUploading(false)
+    }
   }
 
   function save() {
@@ -186,6 +234,49 @@ export default function SettingsForm({ restaurant }: Props) {
             className="w-32 bg-stone-800 border border-stone-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-amber-500 [color-scheme:dark]"
           />
           <span className="text-stone-400 text-sm">₺</span>
+        </div>
+      </div>
+
+      {/* Arka plan görseli */}
+      <div>
+        <h3 className="text-sm font-semibold text-stone-200 mb-1">Arka Plan Görseli</h3>
+        <p className="text-xs text-stone-500 mb-2">Rezervasyon ekranında ve çağrı asistanı arayüzünde görünür. Yüklenmezse sektöre göre otomatik arka plan kullanılır.</p>
+        <div className="flex items-center gap-3">
+          {background ? (
+            <div className="relative w-40 h-24 rounded-xl overflow-hidden border border-stone-700 shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={background} alt="Arka plan" className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-40 h-24 rounded-xl overflow-hidden border border-stone-700 bg-gradient-to-br from-stone-800 to-stone-900 flex items-center justify-center shrink-0">
+              <span className="text-[10px] text-stone-500">Varsayılan</span>
+            </div>
+          )}
+          <div className="flex flex-col gap-2">
+            <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-xs font-semibold hover:bg-amber-500/25 transition-colors cursor-pointer">
+              {bgUploading ? 'Yükleniyor...' : 'Görsel Yükle'}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={bgUploading}
+                onChange={e => {
+                  const f = e.target.files?.[0]
+                  if (f) uploadBackground(f)
+                }}
+              />
+            </label>
+            {background && (
+              <button
+                type="button"
+                onClick={removeBackground}
+                disabled={bgUploading}
+                className="text-[11px] text-stone-500 hover:text-red-400 text-left transition-colors disabled:opacity-40"
+              >
+                Kaldır
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
