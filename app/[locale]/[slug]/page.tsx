@@ -6,7 +6,9 @@ import { ReservationForm } from './ReservationForm'
 import AIChatbot from '@/components/AIChatbot'
 import { BUSINESS_TYPE_ICONS, type BusinessType } from '@/types'
 
-export const dynamic = 'force-dynamic'
+// S3-T3: ISR — halka açık işletme sayfası aralıklı yenilenir (5 dk).
+// Rezervasyon akışı (rezervasyon/[id]) gerçek zamanlı kalır (force-dynamic).
+export const revalidate = 300
 
 export async function generateMetadata({
   params,

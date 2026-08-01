@@ -5,6 +5,9 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import DiagonalSplit from '@/components/DiagonalSplit'
 import LanguageSelector from '@/components/LanguageSelector'
 
+// S3-T3: ISR — statik ana sayfa 10 dakikada bir yenilenir
+export const revalidate = 600
+
 export const metadata: Metadata = {
   title: 'CheckRezerve — Rezervasyon',
   description: 'Restoran, güzellik salonu ve spa rezervasyonu — saniyeler içinde.',
