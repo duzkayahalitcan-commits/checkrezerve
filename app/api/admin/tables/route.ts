@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   // panel kroki ile aynı kaynaktan oku: masa_tipleri
   const { data, error } = await getSupabaseAdmin()
     .from('masa_tipleri')
-    .select('*')
+    .select('id, isletme_id, ad, kapasite, aktif, x, y, width, height, sekil')
     .eq('isletme_id', restaurantId)
     .eq('aktif', true)
     .order('created_at')

@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
 
   const { count: ayRezervasyon } = await db
     .from('reservations')
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .eq('restaurant_id', restaurantId)
     .gte('reserved_date', ayBaslangic)
     .lte('reserved_date', today)

@@ -24,8 +24,8 @@ export default async function MasalarPage({ params }: { params: Promise<{ slug: 
   const today = new Date().toISOString().slice(0, 10)
 
   const [{ data: tables }, { data: areas }, { data: todayReservations }] = await Promise.all([
-    db.from('tables').select('*').eq('restaurant_id', restaurant.id).order('label'),
-    db.from('special_areas').select('*').eq('restaurant_id', restaurant.id).order('name'),
+    db.from('tables').select('id, restaurant_id, label, capacity, x, y, width, height, shape, is_active, created_at, area_id, rotation').eq('restaurant_id', restaurant.id).order('label'),
+    db.from('special_areas').select('id, restaurant_id, name, capacity, created_at, color').eq('restaurant_id', restaurant.id).order('name'),
     db.from('reservations').select(`
       id, guest_name, reserved_time, party_size, status, table_id,
       calisanlar!left(ad),

@@ -52,7 +52,7 @@ export default async function BusinessPage({
 
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('*')
+    .select('id, name, slug, address, description, business_type, cover_image, dress_code, special_notes')
     .eq('slug', slug)
     .single()
 
@@ -118,7 +118,7 @@ export default async function BusinessPage({
   const today = new Date().toISOString().split('T')[0]
   const { count } = await supabase
     .from('reservations')
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .eq('restaurant_id', restaurant.id)
     .eq('date', today)
 

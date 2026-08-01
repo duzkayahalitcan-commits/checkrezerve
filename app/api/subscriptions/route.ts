@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await getSupabaseAdmin()
     .from('subscriptions')
-    .select('*')
+    .select('id, restaurant_id, plan, status, billing_period, price_per_period, currency, iyzico_customer_ref, iyzico_subscription_ref, iyzico_product_ref, iyzico_pricing_plan_ref, trial_start, trial_end, current_period_start, current_period_end, cancelled_at, cancel_reason, created_at, updated_at')
     .eq('restaurant_id', session.restaurantId)
     .in('status', ['active', 'trialing', 'past_due'])
     .order('created_at', { ascending: false })

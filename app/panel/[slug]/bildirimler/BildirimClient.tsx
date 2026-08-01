@@ -8,10 +8,10 @@ import { saveTemplate, deleteTemplate, sendNotification, resendNotification } fr
 
 type LogEntry = {
   id: string; tip: string; alici: string; mesaj: string; durum: string
-  hata_mesaji: string | null; sablon_id: string | null; created_at: string
+  hata_mesaji?: string | null; sablon_id?: string | null; created_at: string
 }
 type Template = {
-  id: string; ad: string; icerik: string; tip: string; aktif: boolean; son_kullanim: string | null; created_at: string
+  id: string; ad: string; icerik: string; tip: string; aktif: boolean; son_kullanim?: string | null; created_at: string
 }
 
 const DECIS_TIPLERI = ['sms', 'push', 'email', 'whatsapp']

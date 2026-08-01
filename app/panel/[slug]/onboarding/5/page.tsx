@@ -14,7 +14,7 @@ export default async function OnboardingStep5({ params }: { params: Promise<{ sl
 
   const { data: restaurant } = await db
     .from('restaurants')
-    .select('*')
+    .select('id, name, slug, phone, address, description, website, instagram, business_type, working_hours, email, city, district, country, cover_image, onboarding_completed')
     .eq('slug', slug)
     .eq('id', session.restaurantId)
     .single()
@@ -37,9 +37,9 @@ export default async function OnboardingStep5({ params }: { params: Promise<{ sl
 
   // Ozet bilgileri al
   const [{ count: serviceCount }, { count: staffCount }, { count: tableCount }] = await Promise.all([
-    db.from('hizmetler').select('*', { count: 'exact', head: true }).eq('restaurant_id', session.restaurantId),
-    db.from('calisanlar').select('*', { count: 'exact', head: true }).eq('restaurant_id', session.restaurantId),
-    db.from('masa_tipleri').select('*', { count: 'exact', head: true }).eq('isletme_id', session.restaurantId),
+    db.from('hizmetler').select('id', { count: 'exact', head: true }).eq('restaurant_id', session.restaurantId),
+    db.from('calisanlar').select('id', { count: 'exact', head: true }).eq('restaurant_id', session.restaurantId),
+    db.from('masa_tipleri').select('id', { count: 'exact', head: true }).eq('isletme_id', session.restaurantId),
   ])
 
   return (

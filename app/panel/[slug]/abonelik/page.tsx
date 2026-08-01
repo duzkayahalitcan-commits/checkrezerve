@@ -28,13 +28,13 @@ export default async function AbonelikPage({
 
   const { data: subscription } = await db
     .from('subscriptions')
-    .select('*')
+    .select('id, restaurant_id, plan, status, billing_period, current_period_end')
     .eq('restaurant_id', restaurant.id)
     .single()
 
   const { data: payments } = await db
     .from('subscription_payments')
-    .select('*')
+    .select('id, restaurant_id, subscription_id, amount, currency, status, created_at')
     .eq('restaurant_id', restaurant.id)
     .order('created_at', { ascending: false })
     .limit(10)

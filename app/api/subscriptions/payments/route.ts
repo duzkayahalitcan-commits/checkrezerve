@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error, count } = await getSupabaseAdmin()
     .from('subscription_payments')
-    .select('*', { count: 'exact' })
+    .select('id, subscription_id, restaurant_id, amount, currency, status, iyzico_payment_id, iyzico_basket_id, iyzico_conversation_id, period_start, period_end, error_code, error_message, paid_at, created_at', { count: 'exact' })
     .eq('restaurant_id', session.restaurantId)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)

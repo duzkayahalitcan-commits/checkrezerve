@@ -27,7 +27,7 @@ export default async function HizmetlerPage({
 
   const { data: services } = await db
     .from('hizmetler')
-    .select('*')
+    .select('id, restaurant_id, ad, sure_dakika, fiyat, aktif, created_at')
     .eq('restaurant_id', restaurant.id)
     .order('ad')
 

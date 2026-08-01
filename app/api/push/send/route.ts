@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const db = getSupabaseAdmin()
 
   // Abonelikleri çek
-  let query = db.from('push_subscriptions').select('*')
+  let query = db.from('push_subscriptions').select('id, user_id, endpoint, keys_p256dh, keys_auth, created_at')
   if (userId) {
     query = query.eq('user_id', userId)
   }

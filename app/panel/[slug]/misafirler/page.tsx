@@ -55,7 +55,7 @@ export default async function MisafirlerPage({
   // Try to get from guests table if migration ran
   const { data: guestRecords } = await db
     .from('guests')
-    .select('*')
+    .select('id, restaurant_id, name, phone, email, notes, total_visits, total_spent, last_visit_date, created_at, updated_at')
     .eq('restaurant_id', restaurant.id)
     .order('total_visits', { ascending: false })
 
@@ -78,7 +78,7 @@ export default async function MisafirlerPage({
   // Fetch guest tags for this restaurant
   const { data: allTags } = await db
     .from('guest_tags')
-    .select('*')
+    .select('id, restaurant_id, name, color, created_at')
     .eq('restaurant_id', restaurant.id)
     .order('name')
 

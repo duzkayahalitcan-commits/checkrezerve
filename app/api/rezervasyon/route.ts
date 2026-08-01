@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
           .maybeSingle(),
         getSupabaseAdmin()
           .from('reservations')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('restaurant_id', restaurant_id)
           .eq('zone_id', safeZoneId)
           .eq('reserved_date', date)

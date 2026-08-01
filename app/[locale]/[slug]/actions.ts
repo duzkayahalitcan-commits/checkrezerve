@@ -56,7 +56,7 @@ export async function createReservation(
   if (restaurant?.capacity) {
     const { count } = await db
       .from('reservations')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('restaurant_id', restaurantId)
       .eq('reserved_date', reservedDate)
       .neq('status', 'cancelled')

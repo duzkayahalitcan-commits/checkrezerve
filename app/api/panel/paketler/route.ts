@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   const db = getSupabaseAdmin()
   const { data, error } = await db
     .from('paketler')
-    .select('*')
+    .select('id, restaurant_id, ad, toplam_seans, fiyat, gecerlilik_gun, aktif, created_at, hizmet_id')
     .eq('restaurant_id', restaurantId)
     .order('created_at', { ascending: false })
 

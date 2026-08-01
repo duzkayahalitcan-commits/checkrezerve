@@ -31,7 +31,7 @@ export default async function KrokiPage({
   // ── Detaylı Masa Krokisi verisi: masa_tipleri tablosundan (kroki_zones DEĞİL) ──
   const { data: tables } = await db
     .from('masa_tipleri')
-    .select('*')
+    .select('id, isletme_id, ad, aktif, created_at, area_id, x, y, rotation, masa_tipi_kodu')
     .eq('isletme_id', restaurant.id)
     .eq('aktif', true)
     .order('created_at')
