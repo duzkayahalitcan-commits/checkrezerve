@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { getAnthropicClient } from '@/lib/anthropic'
-import { getSupabase } from '@/lib/supabase'
-import { sendReservationConfirmation } from '@/lib/notification-service'
+import { getSupabase, getSupabaseAdmin } from '@/lib/supabase'
+import { notifyReservationEvent } from '@/lib/notification-orchestrator'
 import { rateLimit } from '@/lib/rate-limit'
 import { checkFeatureFlag } from '@/lib/feature-flags'
 
@@ -140,15 +140,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Rezervasyon kaydedilemedi' }, { status: 500 })
     }
 
-    // 4. SMS bildirimi gönder (opsiyonel, hata fırlatmaz)
-    if (extracted.phone && extracted.customer_name) {
-      await sendReservationConfirmation({
-        to:           extracted.phone,
-        customerName: extracted.customer_name,
-        date:         extracted.date ?? '',
-        time:         extracted.time ?? '',
-        partySize:    extracted.party_size ?? 1,
-      }).catch((err) => console.warn('[ai-reserve] SMS gönderilemedi:', err))
+    // 4. Bildirim orkestrasyonu (müşteri + işletme + n8n) — hata fırlatmaz
+    if (reservation) {
+      const rid = (restaurant_id ?? reservation.restaurant_id ?? null) as string | null
+      const rest = rid
+        ? await getSupabaseAdmin().from('restaurants').select('id, name, phone, address').eq('id', rid).maybeSingle().then(r => r.data)
+        : null
+
+      void notifyReservationEvent(
+        'created',
+        {
+          id: reservation.id,
+          restaurant_id: rid ?? '',
+          guest_name: reservation.customer_name ?? reservation.guest_name ?? null,
+          guest_phone: reservation.phone ?? reservation.guest_phone ?? null,
+          party_size: reservation.party_size ?? null,
+          reserved_date: reservation.date ?? reservation.reserved_date ?? null,
+          reserved_time: reservation.time ?? reservation.reserved_time ?? null,
+        },
+        { id: rest?.id ?? rid ?? '', name: rest?.name ?? 'İşletme', phone: rest?.phone ?? null, address: rest?.address ?? null }
+      )
     }
 
     return NextResponse.json({
