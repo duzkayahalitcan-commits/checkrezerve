@@ -23,7 +23,6 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
       })
 
       const json = await res.json()
-      console.log('[LoginForm] response:', { ok: res.ok, status: res.status, json })
 
       if (res.ok && json.success) {
         // Cookie'yi hem client-side set et (hemen) hem sunucu set-cookie'den
