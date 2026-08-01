@@ -123,12 +123,12 @@ export default function TodayView({
   const pendingCount = reservations.filter(r => r.status === 'pending').length
   const noshowCount = reservations.filter(r => r.status === 'cancelled').length
 
-  // For grid view: group reservations by table
+  // For grid view: group reservations by table (kanonik anahtar: masa_tipi_id)
   const tableAssignments = useMemo(() => {
-    const assigned = reservations.filter(r => r.table_id)
+    const assigned = reservations.filter(r => r.masa_tipi_id)
     const map = new Map<string, Reservation[]>()
     for (const r of assigned) {
-      const tid = r.table_id!
+      const tid = r.masa_tipi_id!
       if (!map.has(tid)) map.set(tid, [])
       map.get(tid)!.push(r)
     }
@@ -137,7 +137,7 @@ export default function TodayView({
 
   // Unassigned reservations (no table)
   const unassigned = useMemo(() => {
-    return reservations.filter(r => !r.table_id)
+    return reservations.filter(r => !r.masa_tipi_id)
   }, [reservations])
 
   async function updateStatus(id: string, status: string) {

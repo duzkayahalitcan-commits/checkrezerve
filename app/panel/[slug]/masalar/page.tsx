@@ -23,20 +23,40 @@ export default async function MasalarPage({ params }: { params: Promise<{ slug: 
 
   const today = new Date().toISOString().slice(0, 10)
 
-  const [{ data: tables }, { data: areas }, { data: todayReservations }] = await Promise.all([
-    db.from('tables').select('id, restaurant_id, label, capacity, x, y, width, height, shape, is_active, created_at, area_id, rotation').eq('restaurant_id', restaurant.id).order('label'),
+  // Kanonik kaynak: `masa_tipleri`. (Legacy `tables` okunmaz.)
+  const [{ data: masaTipleri }, { data: areas }, { data: todayReservations }] = await Promise.all([
+    db.from('masa_tipleri')
+      .select('id, isletme_id, ad, kapasite, aktif, area_id, x, y, width, height, sekil, rotation')
+      .eq('isletme_id', restaurant.id)
+      .order('ad'),
     db.from('special_areas').select('id, restaurant_id, name, capacity, created_at, color').eq('restaurant_id', restaurant.id).order('name'),
     db.from('reservations').select(`
-      id, guest_name, reserved_time, party_size, status, table_id,
+      id, guest_name, reserved_time, party_size, status, masa_tipi_id,
       calisanlar!left(ad),
       hizmetler!left(ad)
     `)
       .eq('restaurant_id', restaurant.id)
       .eq('reserved_date', today)
       .neq('status', 'cancelled')
-      .not('table_id', 'is', null)
+      .not('masa_tipi_id', 'is', null)
       .order('reserved_time'),
   ])
+
+  // masa_tipleri kolonlarını görünümün beklediği standart forma dönüştür
+  const tables = (masaTipleri ?? []).map(t => ({
+    id: t.id,
+    restaurant_id: t.isletme_id,
+    label: t.ad,
+    capacity: t.kapasite,
+    x: t.x,
+    y: t.y,
+    width: t.width,
+    height: t.height,
+    shape: t.sekil === 'yuvarlak' ? 'circle' : 'rect',
+    is_active: t.aktif,
+    area_id: t.area_id,
+    rotation: t.rotation,
+  }))
 
   // Supabase returns joined tables as arrays; unwrap for component types
   const unwrapped = (todayReservations ?? []).map(r => ({

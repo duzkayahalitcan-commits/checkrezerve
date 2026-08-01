@@ -7,7 +7,7 @@ import { Users, Clock, Plus } from 'lucide-react'
 
 type Table = { id: string; label: string; capacity: number; area_id: string | null; x: number; y: number; shape?: string; rotation?: number }
 type Area = { id: string; name: string; color?: string | null }
-type TodayRes = { id: string; guest_name: string | null; reserved_time: string; party_size: number | null; status: string; table_id: string | null; calisanlar?: { ad: string } | null; hizmetler?: { ad: string } | null }
+type TodayRes = { id: string; guest_name: string | null; reserved_time: string; party_size: number | null; status: string; masa_tipi_id: string | null; calisanlar?: { ad: string } | null; hizmetler?: { ad: string } | null }
 
 const STATUS_DOT: Record<string, string> = {
   pending:   'bg-amber-400',
@@ -27,12 +27,12 @@ export default function MasalarContent({
 
   const filteredTables = selectedArea ? tables.filter(t => t.area_id === selectedArea) : tables
 
-  // Her masa için bugünkü rezervasyonlar
+  // Her masa için bugünkü rezervasyonlar (kanonik anahtar: masa_tipi_id)
   const resMap = new Map<string, TodayRes[]>()
   for (const r of todayReservations) {
-    if (r.table_id) {
-      if (!resMap.has(r.table_id)) resMap.set(r.table_id, [])
-      resMap.get(r.table_id)!.push(r)
+    if (r.masa_tipi_id) {
+      if (!resMap.has(r.masa_tipi_id)) resMap.set(r.masa_tipi_id, [])
+      resMap.get(r.masa_tipi_id)!.push(r)
     }
   }
 

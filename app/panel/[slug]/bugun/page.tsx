@@ -53,13 +53,25 @@ export default async function BugunPage({
     special_areas: (r.special_areas as { name: string }[] | null)?.[0] ?? null,
   }))
 
-  // Fetch tables for visual display
-  const { data: tables } = await db
-    .from('tables')
-    .select('id, label, capacity, x, y, width, height, shape, is_active')
-    .eq('restaurant_id', restaurant.id)
-    .eq('is_active', true)
-    .order('label')
+  // Masaları kanonik kaynaktan çek: `masa_tipleri` (legacy `tables` okunmaz)
+  const { data: masaTipleri } = await db
+    .from('masa_tipleri')
+    .select('id, isletme_id, ad, kapasite, aktif, x, y, width, height, sekil, rotation')
+    .eq('isletme_id', restaurant.id)
+    .eq('aktif', true)
+    .order('ad')
+
+  const tables = (masaTipleri ?? []).map(t => ({
+    id: t.id,
+    label: t.ad,
+    capacity: t.kapasite,
+    x: t.x,
+    y: t.y,
+    width: t.width,
+    height: t.height,
+    shape: t.sekil === 'yuvarlak' ? 'circle' : 'rect',
+    is_active: t.aktif,
+  }))
 
   // Fetch special areas
   const { data: areas } = await db

@@ -11,6 +11,7 @@ export type TakvimReservation = {
   status:         string
   notes:          string | null
   table_id:       string | null
+  masa_tipi_id:   string | null
   calisan_id:     string | null
   hizmet_id:      string | null
   special_area_id: string | null

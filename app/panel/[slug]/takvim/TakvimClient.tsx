@@ -33,21 +33,21 @@ export default function TakvimClient({
   const today = new Date().toISOString().slice(0, 10)
   const [dailyDate, setDailyDate] = useState(today)
 
-  // Masaları yükle (filtre için)
+  // Masaları yükle (filtre için) — kanonik kaynak: masa_tipleri
   useEffect(() => {
     supabase
-      .from('tables')
-      .select('id, label')
-      .eq('restaurant_id', restaurantId)
-      .eq('is_active', true)
-      .order('label')
-      .then(({ data }) => setTables(data ?? []))
+      .from('masa_tipleri')
+      .select('id, ad')
+      .eq('isletme_id', restaurantId)
+      .eq('aktif', true)
+      .order('ad')
+      .then(({ data }) => setTables((data ?? []).map(t => ({ id: t.id, label: t.ad }))))
   }, [restaurantId])
 
   // Filtrelenmiş rezervasyonlar
   const filteredReservations = useMemo(() => {
     if (tableFilter.length === 0) return reservations
-    return reservations.filter(r => r.table_id && tableFilter.includes(r.table_id))
+    return reservations.filter(r => r.masa_tipi_id && tableFilter.includes(r.masa_tipi_id))
   }, [reservations, tableFilter])
 
   // Realtime subscription
