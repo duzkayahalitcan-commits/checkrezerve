@@ -50,32 +50,61 @@ export default function PanelSidebar({
   // Masa/kroki gerektirmeyen sektorler (pilates, fitness, vb.)
   const masaGerekmez = businessType && ['fitness', 'pilates', 'psychologist', 'chiropractor'].includes(businessType)
 
-  const NAV = [
-    { href: base,                    label: 'Genel Bakış',   icon: LayoutDashboard },
-    { href: `${base}/bugun`,         label: 'Bugün',         icon: CalendarDays    },
-    { href: `${base}/rezervasyonlar`,label: 'Rezervasyonlar',icon: List            },
-    { href: `${base}/takvim`,        label: 'Takvim',        icon: Calendar        },
-    ...(paketSektoru ? [
-      { href: `${base}/paketler`,      label: 'Paketler',      icon: Package as React.ComponentType<{ size?: number }> },
-      { href: `${base}/uye-paketleri`, label: 'Üye Paketleri',  icon: Layers as React.ComponentType<{ size?: number }> },
-    ] : []),
-    ...(!masaGerekmez ? [
-      { href: `${base}/masalar`,       label: 'Masalar',       icon: LayoutGrid      },
-      { href: `${base}/kroki`,         label: 'Salon Krokisi', icon: PanelRightOpen  },
-    ] : []),
-    { href: `${base}/misafirler`,    label: 'Misafirler',    icon: Users           },
-    { href: `${base}/calisanlar`,    label: 'Çalışanlar',    icon: UserCog         },
-    { href: `${base}/hizmetler`,     label: 'Hizmetler',     icon: hizmetIcon      },
-    { href: `${base}/raporlar`,      label: 'Raporlar',       icon: BarChart3 as React.ComponentType<{ size?: number }> },
-    { href: `${base}/asistan-bilgileri`, label: 'Asistan Bilgileri', icon: Bot as React.ComponentType<{ size?: number }> },
-    { href: `${base}/ayarlar`,       label: 'Ayarlar',       icon: Settings        },
-    { href: `${base}/abonelik`,      label: 'Abonelik',      icon: CreditCard      },
+  // ── Bilgi mimarisi: mantıksal gruplar (iyi hiyerarşi, tekrar yok) ──
+  const NAV_SECTIONS: { label: string; items: { href: string; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] }[] = [
+    {
+      label: 'Yönetim',
+      items: [
+        { href: base,                    label: 'Genel Bakış',   icon: LayoutDashboard },
+        { href: `${base}/bugun`,         label: 'Bugün',         icon: CalendarDays    },
+        { href: `${base}/rezervasyonlar`,label: 'Rezervasyonlar',icon: List            },
+        { href: `${base}/takvim`,        label: 'Takvim',        icon: Calendar        },
+      ],
+    },
+    {
+      label: 'Katalog',
+      items: [
+        { href: `${base}/hizmetler`,     label: 'Hizmetler',     icon: hizmetIcon      },
+        { href: `${base}/calisanlar`,    label: 'Çalışanlar',    icon: UserCog         },
+        ...(!masaGerekmez ? [
+          { href: `${base}/masalar`,       label: 'Masalar',       icon: LayoutGrid      },
+          { href: `${base}/kroki`,         label: 'Salon Krokisi', icon: PanelRightOpen  },
+        ] : []),
+      ],
+    },
+    ...(paketSektoru ? [{
+      label: 'Paketler',
+      items: [
+        { href: `${base}/paketler`,      label: 'Paketler',      icon: Package as React.ComponentType<{ size?: number }> },
+        { href: `${base}/uye-paketleri`, label: 'Üye Paketleri',  icon: Layers as React.ComponentType<{ size?: number }> },
+      ],
+    }] : []),
+    {
+      label: 'Müşteri',
+      items: [
+        { href: `${base}/misafirler`,    label: 'Misafirler',    icon: Users           },
+      ],
+    },
+    {
+      label: 'Analiz',
+      items: [
+        { href: `${base}/raporlar`,      label: 'Raporlar',       icon: BarChart3 as React.ComponentType<{ size?: number }> },
+      ],
+    },
+    {
+      label: 'Sistem',
+      items: [
+        { href: `${base}/asistan-bilgileri`, label: 'Asistan',    icon: Bot as React.ComponentType<{ size?: number }> },
+        { href: `${base}/ayarlar`,       label: 'Ayarlar',       icon: Settings        },
+        { href: `${base}/abonelik`,      label: 'Abonelik',      icon: CreditCard      },
+      ],
+    },
   ]
 
   const roleCls   = ROLE_STYLES[role]   ?? 'text-stone-400 bg-stone-800 border-stone-700'
   const roleLabel = ROLE_LABELS[role]   ?? role
 
-  function isActive(item: typeof NAV[0]) {
+  function isActive(item: { href: string }) {
     return item.href === base
       ? pathname === base || pathname === `${base}/`
       : pathname.startsWith(item.href)
@@ -99,21 +128,30 @@ export default function PanelSidebar({
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {NAV.map(item => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                isActive(item)
-                  ? 'bg-red-500/12 text-red-400 border border-red-500/20'
-                  : 'text-stone-400 hover:text-white hover:bg-white/5 border border-transparent'
-              }`}
-            >
-              <item.icon size={15} className="flex-shrink-0" />
-              <span className="flex-1">{item.label}</span>
-              {isActive(item) && <ChevronRight size={11} className="opacity-40" />}
-            </Link>
+        <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
+          {NAV_SECTIONS.map(section => (
+            <div key={section.label}>
+              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-stone-600 select-none">
+                {section.label}
+              </p>
+              <div className="space-y-0.5">
+                {section.items.map(item => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      isActive(item)
+                        ? 'bg-red-500/12 text-red-400 border border-red-500/20'
+                        : 'text-stone-400 hover:text-white hover:bg-white/5 border border-transparent'
+                    }`}
+                  >
+                    <item.icon size={15} className="flex-shrink-0" />
+                    <span className="flex-1">{item.label}</span>
+                    {isActive(item) && <ChevronRight size={11} className="opacity-40" />}
+                  </Link>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
@@ -205,22 +243,31 @@ export default function PanelSidebar({
             </div>
 
             {/* Nav links */}
-            <nav className="px-3 py-4 space-y-0.5">
-              {NAV.map(item => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setDrawerOpen(false)}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                    isActive(item)
-                      ? 'bg-red-500/12 text-red-400 border border-red-500/20'
-                      : 'text-stone-400 hover:text-white hover:bg-white/5 border border-transparent'
-                  }`}
-                >
-                  <item.icon size={15} className="flex-shrink-0" />
-                  <span className="flex-1">{item.label}</span>
-                  {isActive(item) && <ChevronRight size={11} className="opacity-40" />}
-                </Link>
+            <nav className="px-3 py-4 space-y-4">
+              {NAV_SECTIONS.map(section => (
+                <div key={section.label}>
+                  <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-stone-600 select-none">
+                    {section.label}
+                  </p>
+                  <div className="space-y-0.5">
+                    {section.items.map(item => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setDrawerOpen(false)}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                          isActive(item)
+                            ? 'bg-red-500/12 text-red-400 border border-red-500/20'
+                            : 'text-stone-400 hover:text-white hover:bg-white/5 border border-transparent'
+                        }`}
+                      >
+                        <item.icon size={15} className="flex-shrink-0" />
+                        <span className="flex-1">{item.label}</span>
+                        {isActive(item) && <ChevronRight size={11} className="opacity-40" />}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               ))}
             </nav>
 
