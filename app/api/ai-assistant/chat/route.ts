@@ -143,7 +143,8 @@ export async function POST(req: NextRequest) {
   // Öğrenilen isimden cinsiyet ipucu üret (deterministik, güvenli)
   const userName = extractNameFromHistory([...history, { role: 'user' as const, content: text }])
   const genderHintLine = userName ? genderHint(userName) : null
-  const systemPrompt = buildSystemPrompt({ biz, maxTurn, featureLines: features, genderHintLine })
+  const voice = channel === 'web_voice' || channel === 'app_voice'
+  const systemPrompt = buildSystemPrompt({ biz, maxTurn, featureLines: features, genderHintLine, voice })
 
   const tLLM = Date.now()
   try {
