@@ -46,6 +46,8 @@ services:
       IYZICO_PLAN_PRO_YEARLY_REF:      ${IYZICO_PLAN_PRO_YEARLY_REF:-}
       ADMIN_SECRET:                    ${ADMIN_SECRET}
       ADMIN_PASSWORD:                  ${ADMIN_PASSWORD:-}
+      CRON_SECRET:                     ${CRON_SECRET}
+      N8N_DB_PASSWORD:                 ${N8N_DB_PASSWORD}
       NODE_ENV:  production
       PORT:      3001
     volumes:
@@ -96,6 +98,8 @@ services:
       IYZICO_PLAN_PRO_YEARLY_REF:      ${IYZICO_PLAN_PRO_YEARLY_REF:-}
       ADMIN_SECRET:                    ${ADMIN_SECRET}
       ADMIN_PASSWORD:                  ${ADMIN_PASSWORD:-}
+      CRON_SECRET:                     ${CRON_SECRET}
+      N8N_DB_PASSWORD:                 ${N8N_DB_PASSWORD}
       NODE_ENV:  production
       PORT:      3002
     volumes:
