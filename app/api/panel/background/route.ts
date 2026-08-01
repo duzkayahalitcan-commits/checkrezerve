@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 
   const { error: dbError } = await supabase
     .from('restaurants')
-    .update({ background_image: publicUrl, updated_at: new Date().toISOString() })
+    .update({ background_image: publicUrl })
     .eq('id', restaurantId)
 
   if (dbError) {
@@ -104,7 +104,7 @@ export async function DELETE(req: NextRequest) {
 
   const { error } = await supabase
     .from('restaurants')
-    .update({ background_image: null, updated_at: new Date().toISOString() })
+    .update({ background_image: null })
     .eq('id', restaurantId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
