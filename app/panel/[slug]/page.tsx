@@ -1,12 +1,12 @@
 import Link                   from 'next/link'
 import nextDynamic             from 'next/dynamic'
 import { redirect }           from 'next/navigation'
+import { ChevronRight, Plus, CalendarDays, Users } from 'lucide-react'
 import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { getTranslations, getLocale } from 'next-intl/server'
 import WeeklyChart    from './WeeklyChart'
 import ExportButton   from './ExportButton'
-import ReservationList from './ReservationList'
 import CountUp        from '@/components/CountUp'
 import ReservationChart from '@/components/ui/ReservationChart'
 import type { Reservation, SpecialArea } from '@/types'
@@ -159,22 +159,19 @@ export default async function PanelDashboardPage({
           </Link>
         </section>
 
-        {/* Quick-access cards */}
-        <section className="grid grid-cols-3 gap-3">
-          <Link href={`/panel/${slug}/bugun`}
-            className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center hover:border-amber-500/30 hover:bg-stone-800/80 transition-all group">
-            <div className="text-lg font-bold text-amber-400 group-hover:scale-110 transition-transform">→</div>
-            <div className="text-stone-400 text-xs mt-1">Bugün</div>
+        {/* Quick action — tek birleşik CTA (A3) */}
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Link href={`/panel/${slug}/takvim?view=gunluk`}
+            className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white rounded-xl px-4 py-3.5 text-sm font-semibold transition-colors">
+            <Plus size={16} /> Yeni Rezervasyon
           </Link>
-          <Link href={`/panel/${slug}/rezervasyonlar`}
-            className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center hover:border-amber-500/30 hover:bg-stone-800/80 transition-all group">
-            <div className="text-lg font-bold text-blue-400 group-hover:scale-110 transition-transform">→</div>
-            <div className="text-stone-400 text-xs mt-1">Rezervasyonlar</div>
+          <Link href={`/panel/${slug}/bugun`}
+            className="flex items-center justify-center gap-2 bg-stone-900 border border-stone-800 hover:border-stone-700 text-stone-300 rounded-xl px-4 py-3.5 text-sm font-medium transition-colors">
+            <CalendarDays size={15} /> Bugünün Planı
           </Link>
           <Link href={`/panel/${slug}/misafirler`}
-            className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center hover:border-amber-500/30 hover:bg-stone-800/80 transition-all group">
-            <div className="text-lg font-bold text-emerald-400 group-hover:scale-110 transition-transform">→</div>
-            <div className="text-stone-400 text-xs mt-1">Misafirler</div>
+            className="flex items-center justify-center gap-2 bg-stone-900 border border-stone-800 hover:border-stone-700 text-stone-300 rounded-xl px-4 py-3.5 text-sm font-medium transition-colors">
+            <Users size={15} /> Misafirler
           </Link>
         </section>
 
@@ -235,13 +232,30 @@ export default async function PanelDashboardPage({
           </section>
         )}
 
-        {/* Reservation List (realtime) */}
-        <ReservationList
-          restaurantId={restaurant.id}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          initialReservations={(allReservations ?? []) as any}
-          today={today}
-        />
+        {/* Son rezervasyonlar — özet + tümüne git (liste Rezervasyonlar sayfasında) */}
+        <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-sm text-stone-200">Son Rezervasyonlar</h2>
+            <Link href={`/panel/${slug}/rezervasyonlar`}
+              className="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 transition-colors">
+              Tümünü gör <ChevronRight size={12} />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Link href={`/panel/${slug}/rezervasyonlar?durum=pending`} className="block">
+              <StatCard label="Onay Bekleyen" value={pendingCount ?? 0} accent="yellow" delay="0ms" />
+            </Link>
+            <Link href={`/panel/${slug}/rezervasyonlar?durum=confirmed`} className="block">
+              <StatCard label="Onaylandı" value={todayConfirmed ?? 0} accent="green" delay="60ms" />
+            </Link>
+            <Link href={`/panel/${slug}/rezervasyonlar?durum=cancelled`} className="block">
+              <StatCard label="İptal" value={cancelledCount ?? 0} accent="red" delay="120ms" />
+            </Link>
+            <Link href={`/panel/${slug}/rezervasyonlar?tarih=${today}`} className="block">
+              <StatCard label="Bugün" value={todayCount ?? 0} accent="amber" delay="180ms" />
+            </Link>
+          </div>
+        </section>
 
         {/* Export */}
         <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
