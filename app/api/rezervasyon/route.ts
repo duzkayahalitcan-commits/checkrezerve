@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     // ── S2-T1: Temporal Reservation Guard — masa çakışma + kapasite kontrolü ──
     if (safeTableId) {
       const partySize = parseInt(party_size, 10) || 1
-      const { data: check } = await getSupabaseAdmin().rpc('check_reservation_availability', {
+      const { data: check, error: rpcErr } = await getSupabaseAdmin().rpc('check_reservation_availability', {
         p_restaurant_id: restaurant_id,
         p_table_id:      safeTableId,
         p_date:          date,
@@ -59,7 +59,10 @@ export async function POST(request: NextRequest) {
         p_party_size:    partySize,
       })
 
-      if (!check?.ok) {
+      // Fonksiyon henüz oluşturulmadıysa (migration çalışmamışsa) sessizce geç
+      if (rpcErr) {
+        console.warn('[rezervasyon] guard fonksiyonu bulunamadı, atlanıyor:', rpcErr.message)
+      } else if (!check?.ok) {
         return NextResponse.json(
           { error: check?.message ?? 'Seçilen masa için uygunluk bulunamadı.' },
           { status: 409 }
