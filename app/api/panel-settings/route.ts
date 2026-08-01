@@ -18,6 +18,7 @@ export async function PATCH(req: NextRequest) {
     closed_dates?:      string[]
     prepayment_amount?: number
     special_notes?:     string | null
+    dress_code?:        string | null
     restaurant_id?:     string
     ai_assistant_enabled?: boolean
     ai_assistant_name?:    string | null
@@ -34,6 +35,7 @@ export async function PATCH(req: NextRequest) {
   if (body.closed_dates      !== undefined) update.closed_dates      = body.closed_dates
   if (body.prepayment_amount !== undefined) update.prepayment_amount = body.prepayment_amount
   if (body.special_notes     !== undefined) update.special_notes     = body.special_notes || null
+  if (body.dress_code        !== undefined) update.dress_code        = body.dress_code || null
   if (body.ai_assistant_enabled !== undefined) update.ai_assistant_enabled = body.ai_assistant_enabled
   if (body.ai_assistant_name    !== undefined) update.ai_assistant_name    = body.ai_assistant_name || null
   if (body.ai_assistant_voice   !== undefined) update.ai_assistant_voice   = body.ai_assistant_voice || null
