@@ -283,11 +283,6 @@ export default function FloatingAIAssistant({
     startVAD(stream, () => {
       if (recorder.state === 'recording') recorder.stop()
     })
-
-    // Güvenlik: 15 saniye sonra otomatik durdur
-    setTimeout(() => {
-      if (activeRef.current && recorder.state === 'recording') recorder.stop()
-    }, 15000)
   }
 
   // ─── Çağrıyı başlat (buton press → getUserMedia) ──────────────
