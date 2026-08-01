@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPanelSession }           from '@/app/panel/login/actions'
 import { getSupabaseAdmin }          from '@/lib/supabase'
 import type { WorkingHours }         from '@/types'
+import { canEditSettings }           from '@/lib/roles'
 
 export async function PATCH(req: NextRequest) {
   const session = await getPanelSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // S2-T2: Ayarlar düzenleme — business_manager'a izin var (canEditSettings)
+  if (!canEditSettings(session.role)) {
+    return NextResponse.json({ error: 'Bu işlem için yetkiniz yok' }, { status: 403 })
+  }
 
   const body = await req.json() as {
     working_hours?:     WorkingHours
@@ -13,6 +19,9 @@ export async function PATCH(req: NextRequest) {
     prepayment_amount?: number
     special_notes?:     string | null
     restaurant_id?:     string
+    ai_assistant_enabled?: boolean
+    ai_assistant_name?:    string | null
+    ai_assistant_voice?:   string | null
   }
 
   const restaurantId = body.restaurant_id ?? session.restaurantId
@@ -25,6 +34,9 @@ export async function PATCH(req: NextRequest) {
   if (body.closed_dates      !== undefined) update.closed_dates      = body.closed_dates
   if (body.prepayment_amount !== undefined) update.prepayment_amount = body.prepayment_amount
   if (body.special_notes     !== undefined) update.special_notes     = body.special_notes || null
+  if (body.ai_assistant_enabled !== undefined) update.ai_assistant_enabled = body.ai_assistant_enabled
+  if (body.ai_assistant_name    !== undefined) update.ai_assistant_name    = body.ai_assistant_name || null
+  if (body.ai_assistant_voice   !== undefined) update.ai_assistant_voice   = body.ai_assistant_voice || null
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
