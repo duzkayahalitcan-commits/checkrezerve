@@ -133,7 +133,7 @@ export default function MisafirList({
           className="w-full pl-9 pr-4 py-2 bg-stone-900 border border-stone-700 rounded-xl text-sm text-white placeholder-stone-500 focus:outline-none focus:border-amber-500 transition-colors"
         />
         {search && (
-          <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-white">
+          <button onClick={() => setSearch('')} aria-label="Aramayı temizle" className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-white">
             <X size={14} />
           </button>
         )}
