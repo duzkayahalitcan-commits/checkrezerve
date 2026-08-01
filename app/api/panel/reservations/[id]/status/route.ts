@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { verifySession } from '@/lib/panel-auth'
 import { canDeleteReservation } from '@/lib/roles'
+import { logGuestActivity, resolveGuestByPhone } from '@/lib/guest-activities'
 
 const VALID_STATUSES = ['cancelled', 'completed', 'confirmed', 'pending']
 
@@ -30,6 +31,29 @@ export async function PUT(
   }
 
   const db = getSupabaseAdmin()
+
+  // ── S4-T2: İptal durumunda misafir aktivite kaydı düş (async, engellemez) ──
+  if (status === 'cancelled') {
+    void (async () => {
+      const { data: reservation } = await db
+        .from('reservations')
+        .select('guest_name, guest_phone, reserved_date, reserved_time, restaurant_id')
+        .eq('id', id)
+        .single()
+
+      if (reservation?.guest_phone) {
+        const guest = await resolveGuestByPhone(reservation.restaurant_id, reservation.guest_phone)
+        if (guest) {
+          await logGuestActivity({
+            guest_id: guest.id,
+            activity_type: 'cancellation',
+            description: `${reservation.guest_name ?? 'Misafir'} — ${reservation.reserved_date} ${reservation.reserved_time ?? ''}`,
+            metadata: { reservation_id: id },
+          })
+        }
+      }
+    })()
+  }
 
   const { error } = await db
     .from('reservations')

@@ -79,3 +79,35 @@ sprintidir. Yeni özellik eklemek yerine mevcut temeli sağlamlaştırır.
 - **T5:** `20260801_sprint3_composite_indexes.sql` eklendi (IF NOT EXISTS,
   DROP yok).
 
+
+---
+
+## Sprint 4 Kapsamı (2026-08)
+
+Sprint 4, erişilebilirlik (a11y), misafir aktivite izleme ve kod temizliği odaklıdır.
+
+### T1 — aria-label'lar
+- Erişilebilirlik için ikon-tabanlı, etiketsiz etkileşimli öğelere (butonlar,
+  linkler) anlamlı `aria-label` eklenir.
+- Amaç: ekran okuyucu kullanıcıları için her etkileşimli öğenin erişilebilir adı
+  olması; sadece görsel ikon içeren butonların amacını belirtmek.
+- Kapsam: panel ve halka açık sayfalardaki ikon butonları / unlabeled kontroller.
+
+### T2 — guest_activities loglama
+- Rezervasyon oluşturma, iptal, not güncelleme ve etiket değişimlerinde
+  `guest_activities` tablosuna kayıt düşülür.
+- `guest_activities` RLS'i Supabase auth (auth.uid()) gerektirdiği için
+  loglama service-role (getSupabaseAdmin) ile sunucu tarafında yapılır.
+- `lib/guest-activities.ts` helper'ı tek kaynak olur; API route'lar ve panel
+  sunucu endpoint'inden çağrılır.
+
+### T3 — dead code silme
+- Kullanılmayan dosyalar, ihraç edilmemiş/çağrılmayan fonksiyonlar ve
+  eski/değiştirilmiş component'ler temizlenir.
+- Teyit: kullanılmadığı grep ile doğrulanmadan silinmez.
+
+### T4 — dress_code düzenleme
+- `dress_code` şu an yalnızca halka açık landing sayfasında okunup gösteriliyor;
+  işletme panelinde düzenlenebilir değil.
+- İşletme ayarlar formuna (ayarlar/SettingsForm) `dress_code` alanı eklenir ve
+  kaydedilir.
