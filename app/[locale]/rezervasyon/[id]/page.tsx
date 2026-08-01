@@ -6,6 +6,7 @@ import { Link } from '@/i18n/navigation'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { resolveBackground } from '@/lib/backgrounds'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { BUSINESS_TYPE_ICONS, type BusinessType, type Restaurant, type Service, type StaffMember } from '@/types'
 import BookingForm from './BookingForm'
@@ -41,7 +42,7 @@ export default async function BusinessDetailPage({ params }: Props) {
 
   const todayStr = new Date().toISOString().split('T')[0]
   const [{ data: biz }, { data: rawServices }, { data: rawStaff }, { data: rawTables }, { data: featureFlags }, { data: rawAreas }, { data: rawOccupiedZones }] = await Promise.all([
-    supabase.from('restaurants').select('id, name, slug, phone, address, description, business_type, cover_image, working_hours, kroki_mode, kroki_zones, special_notes, ai_assistant_enabled, ai_assistant_name, ai_assistant_voice').eq('id', id).single(),
+    supabase.from('restaurants').select('id, name, slug, phone, address, description, business_type, cover_image, background_image, working_hours, kroki_mode, kroki_zones, special_notes, ai_assistant_enabled, ai_assistant_name, ai_assistant_voice').eq('id', id).single(),
     supabase.from('hizmetler').select('id, ad, sure_dakika, fiyat, ad_en, ad_ar, ad_de, ad_da, ad_es, ad_ru').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
     supabase.from('calisanlar').select('id, ad').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
     supabase.from('masa_tipleri').select('id, ad, kapasite, area_id, x, y, width, height, sekil, rotation').eq('isletme_id', id).eq('aktif', true).order('created_at'),
@@ -65,6 +66,10 @@ export default async function BusinessDetailPage({ params }: Props) {
   const voiceSearchEnabled = voiceFlagMap.get('ai_voice_search') === true
 
   const business = biz as unknown as Restaurant
+
+  // Sektöre göre (veya işletme sahibinin yüklediği) arka plan
+  const bg = resolveBackground(business.background_image, business.business_type)
+
   const icon  = BUSINESS_TYPE_ICONS[business.business_type as BusinessType] ?? '🏪'
   const label = tBiz(business.business_type as Parameters<typeof tBiz>[0])
 
@@ -144,7 +149,15 @@ export default async function BusinessDetailPage({ params }: Props) {
     : t('termAppointment')
 
   return (
-    <div className="min-h-screen bg-white">
+    <div
+      className="min-h-screen text-white"
+      style={{
+        background: bg.isImage
+          ? `linear-gradient(rgba(5,5,15,0.72), rgba(5,5,15,0.85)), url("${bg.imageUrl}") center/cover no-repeat fixed`
+          : bg.gradient,
+        backgroundSize: bg.isImage ? 'cover' : 'auto',
+      }}
+    >
       <MarketingHeader />
 
       <BusinessDetailHero
@@ -162,7 +175,7 @@ export default async function BusinessDetailPage({ params }: Props) {
 
       <section className="py-10">
         <div className="mx-auto max-w-3xl px-6">
-          <h2 className="text-xl font-bold text-zinc-900 mb-6">{t('makeBooking', { term: bookingTerm })}</h2>
+          <h2 className="text-xl font-bold text-white mb-6">{t('makeBooking', { term: bookingTerm })}</h2>
 
           <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6 sm:p-8">
             <BookingForm
@@ -207,6 +220,8 @@ export default async function BusinessDetailPage({ params }: Props) {
           restaurantSlug={business.slug}
           assistantName={(biz as Record<string, unknown>).ai_assistant_name as string | null}
           assistantVoice={(biz as Record<string, unknown>).ai_assistant_voice as string | null}
+          backgroundImage={business.background_image}
+          businessType={business.business_type}
         />
       )}
     </div>

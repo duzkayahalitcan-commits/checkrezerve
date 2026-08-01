@@ -3,8 +3,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Phone, Mic, Volume2, Loader } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
+import { resolveBackground } from '@/lib/backgrounds'
 
 type Phase = 'idle' | 'mic' | 'processing' | 'speaking'
+
+export type CallVariant = 'glass' | 'dark' | 'brand'
 
 interface Props {
   restaurantId: string
@@ -12,6 +15,11 @@ interface Props {
   restaurantSlug: string
   assistantName?: string | null
   assistantVoice?: string | null
+  /** İşletme sahibinin yüklediği arka plan görseli (opsiyonel) */
+  backgroundImage?: string | null
+  businessType?: string | null
+  /** Çağrı arayüzü tasarım varyantı (prototipler: glass | dark | brand) */
+  variant?: CallVariant
 }
 
 export default function FloatingAIAssistant({
@@ -20,6 +28,9 @@ export default function FloatingAIAssistant({
   restaurantSlug,
   assistantName,
   assistantVoice,
+  backgroundImage,
+  businessType,
+  variant = 'glass',
 }: Props) {
   const [open, setOpen] = useState(false)
   const [phase, setPhase] = useState<Phase>('idle')
@@ -47,6 +58,13 @@ export default function FloatingAIAssistant({
 
   const name = (assistantName && assistantName !== 'null') ? assistantName : 'Asistan'
   const biz = restaurantName || 'İşletme'
+  // İşletmeye özel arka plan — özel görsel yoksa sektör degradası
+  const bg = resolveBackground(backgroundImage, businessType)
+  const accentClass = variant === 'brand'
+    ? 'from-amber-500 to-orange-500'
+    : variant === 'dark'
+    ? 'from-stone-200 to-stone-400'
+    : 'from-emerald-400 to-teal-400'
 
   // ─── Timer (çağrı başından bitişine kadar kesintisiz akar) ─────
   const startTimer = useCallback(() => {
@@ -307,23 +325,40 @@ export default function FloatingAIAssistant({
               initial={{ scale: 0.85, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.85, opacity: 0 }}
-              className="relative w-full max-w-sm rounded-3xl bg-stone-900 shadow-2xl overflow-hidden"
+              transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+              className={`relative w-full max-w-sm rounded-[28px] shadow-2xl overflow-hidden border ${
+                variant === 'dark'
+                  ? 'border-white/10'
+                  : variant === 'brand'
+                  ? 'border-amber-500/25'
+                  : 'border-white/20'
+              }`}
+              style={{
+                background: bg.isImage
+                  ? `linear-gradient(rgba(10,10,25,0.55), rgba(10,10,25,0.85)), url("${bg.imageUrl}") center/cover`
+                  : bg.gradient,
+              }}
             >
-              {/* Background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-b from-emerald-900/30 to-stone-900 pointer-events-none" />
+              {/* Frosted / dim overlay — işletme arka planı üstünde okunabilirlik */}
+              <div
+                className={`absolute inset-0 pointer-events-none ${
+                  variant === 'glass'
+                    ? 'bg-white/10 backdrop-blur-xl'
+                    : variant === 'dark'
+                    ? 'bg-black/30'
+                    : 'bg-black/45'
+                }`}
+              />
 
               <div className="relative px-8 pt-12 pb-8 flex flex-col items-center text-center">
 
                 {/* Avatar — fazı yalnızca animasyonla belli eder */}
-                <div className={`relative w-24 h-24 rounded-full flex items-center justify-center mb-5 transition-colors ${
-                  phase === 'mic' ? 'bg-green-500' :
-                  phase === 'speaking' ? 'bg-emerald-500' :
-                  phase === 'processing' ? 'bg-emerald-600' :
-                  'bg-stone-700'
-                }`}>
-                  {/* Dinlerken yeşil pulse */}
+                <div className={`relative w-24 h-24 rounded-full flex items-center justify-center mb-6 bg-gradient-to-br ${accentClass} shadow-lg ${
+                  phase === 'speaking' ? 'scale-105' : ''
+                } transition-transform`}>
+                  {/* Dinlerken pulse */}
                   {phase === 'mic' && (
-                    <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-40" />
+                    <span className="absolute inset-0 rounded-full bg-white/40 animate-ping opacity-50" />
                   )}
                   {phase === 'speaking' ? (
                     <Volume2 size={32} className="text-white relative" />
@@ -332,31 +367,31 @@ export default function FloatingAIAssistant({
                   ) : phase === 'mic' ? (
                     <Mic size={32} className="text-white relative" />
                   ) : (
-                    <Phone size={32} className="text-stone-400 relative" />
+                    <Phone size={32} className="text-white/80 relative" />
                   )}
                 </div>
 
                 {/* Konuşurken ses dalgası animasyonu */}
                 {phase === 'speaking' && (
-                  <div className="flex items-center gap-1 mb-3 h-8">
+                  <div className="flex items-center gap-1 mb-4 h-8">
                     {[1,2,3,4,5].map(i => (
                       <motion.div
                         key={i}
-                        animate={{ height: [8, 32 - i * 4, 8] }}
+                        animate={{ height: [8, 30 - i * 4, 8] }}
                         transition={{ repeat: Infinity, duration: 0.8 + i * 0.1, ease: 'easeInOut' }}
-                        className="w-1 rounded-full bg-emerald-400"
+                        className="w-1 rounded-full bg-gradient-to-t from-white/70 to-white"
                       />
                     ))}
                   </div>
                 )}
 
                 {/* Asistan adı + işletme adı — gerçek telefon görüşmesi gibi */}
-                <p className="text-white font-semibold text-lg mb-1">{name}</p>
-                <p className="text-stone-400 text-sm mb-6">{biz}</p>
+                <p className="text-white font-semibold text-xl tracking-tight mb-1">{name}</p>
+                <p className="text-white/60 text-sm mb-6">{biz}</p>
 
                 {/* Timer — çağrı başında 00:00, bitene kadar akar */}
                 {active && (
-                  <div className="text-stone-500 text-xs font-mono mb-6">{fmt(timer)}</div>
+                  <div className="text-white/70 text-xs font-mono tabular-nums mb-6">{fmt(timer)}</div>
                 )}
 
                 {/* Çağrı başlat / sonlandır */}
@@ -364,7 +399,7 @@ export default function FloatingAIAssistant({
                   <button
                     type="button"
                     onClick={startCall}
-                    className="mt-2 px-8 py-3 bg-green-500 text-white rounded-full text-sm font-semibold hover:bg-green-600 transition-colors shadow-lg shadow-green-500/20"
+                    className={`mt-2 px-9 py-3 rounded-full text-white text-sm font-semibold bg-gradient-to-r ${accentClass} shadow-lg transition-transform hover:scale-105 active:scale-95`}
                   >
                     Sesli Görüşme
                   </button>
@@ -372,7 +407,7 @@ export default function FloatingAIAssistant({
                   <button
                     type="button"
                     onClick={endCall}
-                    className="mt-2 px-6 py-3 bg-red-500 text-white rounded-full text-sm font-medium hover:bg-red-600 transition-colors select-none"
+                    className="mt-2 px-7 py-3 rounded-full text-white text-sm font-medium bg-red-500/90 hover:bg-red-500 transition-colors select-none"
                   >
                     Görüşmeyi Sonlandır
                   </button>
@@ -380,7 +415,7 @@ export default function FloatingAIAssistant({
 
                 <button
                   onClick={() => setOpen(false)}
-                  className="mt-5 text-stone-500 hover:text-white text-xs transition-colors"
+                  className="mt-6 text-white/50 hover:text-white text-xs transition-colors"
                 >
                   Kapat
                 </button>
