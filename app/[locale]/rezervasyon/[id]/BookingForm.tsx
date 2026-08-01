@@ -222,7 +222,11 @@ export default function BookingForm({
     fetch(`/api/rezervasyon/musait?${params.toString()}`)
       .then(r => r.ok ? r.json() : null)
       .then(json => { if (json?.times) setOccupiedSlots(new Set(json.times)) })
-      .catch(() => {})
+      .catch(() => {
+        // Müsaitlik API'sine ulaşılamadı — slotlar güncel olmayabilir.
+        // DB katmanındaki unique constraint çift rezervasyona karşı korumaya devam eder.
+        toast.show('Müsaitlik bilgisi yüklenemedi. Seçiminiz kaydedilirken kontrol edilecek.', 'error')
+      })
   }, [selectedDate, businessId, selectedStaff, selectedService])
 
   // W-101: Zone modunda ilk bölgeyi varsayılan seç

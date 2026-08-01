@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, memo, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // ─── Tip Tanımı ─────────────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ const shadowFilter = (
   </filter>
 )
 
-function TableShape({ table, isSelected, onClick }: TableSvgProps) {
+const TableShape = memo(function TableShape({ table, isSelected, onClick }: TableSvgProps) {
   const { sx, sy } = toIso(table.x, table.y)
   const occupied = table.status === 'occupied'
   const fill  = occupied ? WOOD_D : isSelected ? RED : WOOD
@@ -160,7 +160,7 @@ function TableShape({ table, isSelected, onClick }: TableSvgProps) {
       )}
     </g>
   )
-}
+})
 
 // ─── Zone Sabitleri (varsayılan) ────────────────────────────────────────────
 
@@ -216,9 +216,9 @@ export default function InteractiveFloorMap({
   // Sadece restoran
   if (businessType !== 'restaurant') return null
 
-  const zoneTables = tables.filter(t => t.zone === activeZone)
-  const zoneOccupied = zoneTables.filter(t => t.status === 'occupied').length
-  const zoneAvailable = zoneTables.filter(t => t.status === 'available').length
+  const zoneTables = useMemo(() => tables.filter(t => t.zone === activeZone), [tables, activeZone])
+  const zoneOccupied = useMemo(() => zoneTables.filter(t => t.status === 'occupied').length, [zoneTables])
+  const zoneAvailable = useMemo(() => zoneTables.filter(t => t.status === 'available').length, [zoneTables])
 
   return (
     <div className="flex flex-col gap-4">

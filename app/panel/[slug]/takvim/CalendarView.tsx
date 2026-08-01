@@ -1,14 +1,20 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { Calendar, momentLocalizer, Views, type View } from 'react-big-calendar'
-import moment from 'moment'
+import { Calendar, dateFnsLocalizer, Views, type View } from 'react-big-calendar'
+import { format, parse, startOfWeek, getDay, startOfMonth, endOfMonth, subMonths, addMonths } from 'date-fns'
+import { tr } from 'date-fns/locale/tr'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import { supabase } from '@/lib/supabase'
 import { X, Phone, User, Clock, Tag, DollarSign } from 'lucide-react'
 
-moment.locale('tr')
-const localizer = momentLocalizer(moment)
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek: () => startOfWeek(new Date(), { locale: tr }),
+  getDay,
+  locales: { tr },
+})
 
 const STATUS_COLORS: Record<string, string> = {
   confirmed: '#E53935',
@@ -80,8 +86,8 @@ export default function CalendarView({ restaurantId, businessType, slug }: Props
   const loadEvents = useCallback(async () => {
     setLoading(true)
     try {
-      const start = moment(date).startOf('month').subtract(1, 'month').format('YYYY-MM-DD')
-      const end = moment(date).endOf('month').add(2, 'months').format('YYYY-MM-DD')
+      const start = format(startOfMonth(subMonths(new Date(date), 1)), 'yyyy-MM-dd')
+      const end = format(endOfMonth(addMonths(new Date(date), 2)), 'yyyy-MM-dd')
 
       let query = supabase
         .from('reservations')
@@ -279,7 +285,7 @@ export default function CalendarView({ restaurantId, businessType, slug }: Props
               )}
               <div className="flex items-center gap-2 text-stone-400">
                 <Clock size={14} />
-                {moment(selectedEvent.start).format('DD MMM YYYY, HH:mm')} - {moment(selectedEvent.end).format('HH:mm')}
+                {format(new Date(selectedEvent.start), 'dd MMM yyyy, HH:mm', { locale: tr })} - {format(new Date(selectedEvent.end), 'HH:mm', { locale: tr })}
                 {selectedEvent.duration_minutes && <span>({selectedEvent.duration_minutes}dk)</span>}
               </div>
               {selectedEvent.price_paid != null && (
