@@ -1,6 +1,9 @@
 import { getSupabase } from '@/lib/supabase'
 import { Link }        from '@/i18n/navigation'
+import { Check }       from 'lucide-react'
 import ConfettiClient  from './ConfettiClient'
+
+const DARK_BG = 'radial-gradient(120% 120% at 20% 0%, #1a1a2e 0%, #10101f 50%, #07070f 100%)'
 
 type Props = {
   params:       Promise<{ locale: string; id: string }>
@@ -32,11 +35,14 @@ export default async function OnayPage({ searchParams }: Props) {
 
   if (!reservation) {
     return (
-      <main className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
+      <main
+        className="min-h-screen text-white flex items-center justify-center p-6"
+        style={{ background: DARK_BG }}
+      >
         <div className="text-center">
           <div className="text-5xl mb-4">🔍</div>
-          <p className="text-zinc-500 mb-4">Rezervasyon bulunamadı.</p>
-          <Link href="/rezervasyon" className="text-[#E53935] font-semibold hover:underline">
+          <p className="text-stone-400 mb-4">Rezervasyon bulunamadı.</p>
+          <Link href="/rezervasyon" className="font-semibold hover:underline" style={{ color: 'var(--cr-primary)' }}>
             İşletmelere Dön
           </Link>
         </div>
@@ -58,22 +64,25 @@ export default async function OnayPage({ searchParams }: Props) {
   ]
 
   return (
-    <main className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
+    <main
+      className="min-h-screen text-white flex items-center justify-center p-6"
+      style={{ background: DARK_BG }}
+    >
       <ConfettiClient />
-      <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-8 w-full max-w-md text-center">
-        <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
-          <span className="text-3xl">✅</span>
+      <div className="bg-stone-900 rounded-3xl border border-stone-800 shadow-2xl p-8 w-full max-w-md text-center">
+        <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto mb-4">
+          <Check className="w-8 h-8 text-emerald-400" strokeWidth={3} />
         </div>
-        <h1 className="text-xl font-bold text-zinc-900 mb-1">Rezervasyon Tamamlandı!</h1>
-        <p className="text-sm text-zinc-500 mb-6">
+        <h1 className="text-xl font-bold text-white mb-1">Rezervasyon Tamamlandı!</h1>
+        <p className="text-sm text-stone-400 mb-6">
           Onay kısa süre içinde bilgilendirileceksiniz.
         </p>
 
-        <div className="bg-zinc-50 rounded-2xl p-5 text-left space-y-3 mb-6">
+        <div className="bg-stone-800/70 rounded-2xl p-5 text-left space-y-3 mb-6">
           {fields.map(f => (
             <div key={f.label} className="flex justify-between gap-4">
-              <span className="text-xs text-zinc-400 pt-0.5">{f.label}</span>
-              <span className="text-sm font-semibold text-zinc-800 text-right">{f.value}</span>
+              <span className="text-xs text-stone-400 pt-0.5">{f.label}</span>
+              <span className="text-sm font-semibold text-white text-right">{f.value}</span>
             </div>
           ))}
         </div>
@@ -81,13 +90,13 @@ export default async function OnayPage({ searchParams }: Props) {
         <div className="flex flex-col gap-3">
           <Link
             href="/rezervasyonlarim"
-            className="w-full py-3 rounded-xl bg-[#E53935] text-white font-semibold text-sm hover:bg-red-700 transition-colors"
+            className="w-full py-3 rounded-xl bg-[var(--cr-primary)] text-white font-semibold text-sm hover:bg-[var(--cr-primary-dark)] transition-colors"
           >
             Rezervasyonlarım
           </Link>
           <Link
             href="/"
-            className="w-full py-3 rounded-xl bg-zinc-100 text-zinc-700 font-semibold text-sm hover:bg-zinc-200 transition-colors"
+            className="w-full py-3 rounded-xl bg-stone-800 text-stone-200 font-semibold text-sm hover:bg-stone-700 transition-colors"
           >
             Ana Sayfa
           </Link>
