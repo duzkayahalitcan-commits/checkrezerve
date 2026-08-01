@@ -123,48 +123,57 @@ export default function MarketingHeader() {
                     {user.email?.charAt(0).toUpperCase()}
                   </div>
                 </button>
-                {userMenuOpen && (
-                  <div className="absolute right-0 top-12 bg-white border border-zinc-100 rounded-2xl shadow-xl py-2 w-52 z-50">
-                    <div className="px-4 py-2 border-b border-zinc-50 mb-1">
-                      <p className="text-xs text-zinc-400 truncate">{user.email}</p>
-                    </div>
-                    <Link
-                      href={"/rezervasyonlarim" as never}
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.96, y: -4 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.96, y: -4 }}
+                      transition={{ duration: 0.14, ease: [0.23, 1, 0.32, 1] }}
+                      style={{ transformOrigin: 'top right' }}
+                      className="absolute right-0 top-12 bg-white border border-zinc-100 rounded-2xl shadow-xl py-2 w-52 z-50"
                     >
-                      <Calendar size={15} className="shrink-0" /> Rezervasyonlarım
-                    </Link>
-                    <Link
-                      href={"/profil" as never}
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
-                    >
-                      <UserIcon size={15} className="shrink-0" /> Kişisel Bilgiler
-                    </Link>
-                    <Link
-                      href={"/favorilerim" as never}
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
-                    >
-                      <Heart size={15} className="shrink-0" /> Favorilerim
-                    </Link>
-                    <button
-                      aria-label="Çıkış yap"
-                      onClick={handleSignOut}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
-                    >
-                      <LogOut size={15} className="shrink-0" /> Çıkış Yap
-                    </button>
-                    <a
-                      href="/panel/login"
+                      <div className="px-4 py-2 border-b border-zinc-50 mb-1">
+                        <p className="text-xs text-zinc-400 truncate">{user.email}</p>
+                      </div>
+                      <Link
+                        href={"/rezervasyonlarim" as never}
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+                      >
+                        <Calendar size={15} className="shrink-0" /> Rezervasyonlarım
+                      </Link>
+                      <Link
+                        href={"/profil" as never}
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+                      >
+                        <UserIcon size={15} className="shrink-0" /> Kişisel Bilgiler
+                      </Link>
+                      <Link
+                        href={"/favorilerim" as never}
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+                      >
+                        <Heart size={15} className="shrink-0" /> Favorilerim
+                      </Link>
+                      <button
+                        aria-label="Çıkış yap"
+                        onClick={handleSignOut}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                      >
+                        <LogOut size={15} className="shrink-0" /> Çıkış Yap
+                      </button>
+                      <a
+                        href="/panel/login"
                       onClick={() => setUserMenuOpen(false)}
                       className="flex items-center gap-2 px-4 py-2.5 text-xs text-zinc-400 hover:bg-zinc-50 transition-colors border-t border-zinc-100 mt-1"
                     >
                       <Settings size={13} className="shrink-0" /> Yönetici Paneli
                     </a>
-                  </div>
-                )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ) : (
               <>
