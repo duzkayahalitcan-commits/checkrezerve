@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import OzelliklerClient from './OzelliklerClient'
+import VoiceSettings from './VoiceSettings'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +34,10 @@ export default async function AsistanBilgileriPage({
         </p>
       </div>
       <main className="max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-6">
+        <VoiceSettings
+          restaurantId={restaurant.id}
+          isSuperAdmin={session.role === 'super_admin'}
+        />
         <OzelliklerClient
           restaurantId={restaurant.id}
           businessType={restaurant.business_type ?? ''}
