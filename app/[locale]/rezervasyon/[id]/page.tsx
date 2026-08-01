@@ -57,6 +57,13 @@ export default async function BusinessDetailPage({ params }: Props) {
 
   if (!biz) notFound()
 
+  // S4-Sprint: Sesli asistan (FloatingAIAssistant) yalnızca ai_voice_search
+  // feature flag'i açıksa göster. speak endpoint'i bu flag'i zorunlu kılıyor;
+  // flag kapalıyken buton gösterilirse sessizce hata alır. Uygulama /api/voice
+  // kullandığından flag kontrolü yapmaz; web burada flag'e göre gate'lenir.
+  const voiceFlagMap = new Map((featureFlags ?? []).map((f: { feature: string; enabled: boolean }) => [f.feature, f.enabled]))
+  const voiceSearchEnabled = voiceFlagMap.get('ai_voice_search') === true
+
   const business = biz as unknown as Restaurant
   const icon  = BUSINESS_TYPE_ICONS[business.business_type as BusinessType] ?? '🏪'
   const label = tBiz(business.business_type as Parameters<typeof tBiz>[0])
@@ -193,13 +200,15 @@ export default async function BusinessDetailPage({ params }: Props) {
 
       <MarketingFooter />
 
-      <FloatingAIAssistant
-        restaurantId={business.id}
-        restaurantName={business.name}
-        restaurantSlug={business.slug}
-        assistantName={(biz as Record<string, unknown>).ai_assistant_name as string | null}
-        assistantVoice={(biz as Record<string, unknown>).ai_assistant_voice as string | null}
-      />
+      {voiceSearchEnabled && (
+        <FloatingAIAssistant
+          restaurantId={business.id}
+          restaurantName={business.name}
+          restaurantSlug={business.slug}
+          assistantName={(biz as Record<string, unknown>).ai_assistant_name as string | null}
+          assistantVoice={(biz as Record<string, unknown>).ai_assistant_voice as string | null}
+        />
+      )}
     </div>
   )
 }
