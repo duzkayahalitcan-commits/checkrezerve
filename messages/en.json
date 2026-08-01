@@ -114,7 +114,9 @@
     "terms": "Terms of Use",
     "kvkk": "GDPR Notice",
     "cookies": "Cookie Policy",
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "statement": "Reservations, simply and in seconds.",
+    "colophon": "Commission-free reservation SaaS. Online booking management for restaurants, spas, salons and more — all in one panel."
   },
   "hero": {
     "badge": "Turkey's Reservation Platform",
@@ -1312,7 +1314,9 @@
     "heroTitle": "Where to today?",
     "heroSlogan": "Pick your spot and book in seconds.",
     "discover": "Explore",
-    "forBusiness": "For businesses"
+    "forBusiness": "For businesses",
+    "heroEyebrow": "Commission-free reservation SaaS",
+    "ctaLabel": "Start for your business"
   },
   "accountDelete": {
     "title": "Account Deletion",

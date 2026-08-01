@@ -41,8 +41,15 @@ export default function DiagonalSplit({ fullscreen = false }: { fullscreen?: boo
       />
 
       {/* Hero header — centered at top */}
-      <div className="absolute inset-x-0 top-0 z-20 pt-14 md:pt-16 text-center px-6 pointer-events-none">
+      <div className="absolute inset-x-0 top-0 z-20 pt-12 md:pt-16 text-center px-6 pointer-events-none">
         <div className="relative inline-block px-6 py-4">
+          {/* Value proposition eyebrow */}
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-4 py-1.5 mb-4 border border-white/10">
+            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: 'var(--cr-primary)' }} />
+            <span className="text-[0.65rem] md:text-xs font-bold tracking-wider text-white/85 uppercase">
+              {t('heroEyebrow')}
+            </span>
+          </div>
           <h1 className="text-white text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight drop-shadow-[0_2px_24px_rgba(0,0,0,0.85)]"
             style={{ fontFamily: 'var(--font-outfit)' }}>
             {t('heroTitle')}
@@ -51,6 +58,16 @@ export default function DiagonalSplit({ fullscreen = false }: { fullscreen?: boo
             style={{ fontFamily: 'var(--font-outfit)', color: '#E6A47E' }}>
             {t('heroSlogan')}
           </p>
+          {/* Strong primary CTA */}
+          <button
+            type="button"
+            onClick={() => router.push('/home' as never)}
+            className="pointer-events-auto mt-6 inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm md:text-base font-bold text-white shadow-lg transition-transform active:scale-[0.98]"
+            style={{ background: 'var(--cr-primary)' }}
+          >
+            {t('ctaLabel')}
+            <span className="text-base leading-none">→</span>
+          </button>
         </div>
       </div>
 

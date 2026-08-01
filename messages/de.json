@@ -114,7 +114,9 @@
     "terms": "Nutzungsbedingungen",
     "kvkk": "DSGVO-Hinweis",
     "cookies": "Cookie-Richtlinie",
-    "rights": "Alle Rechte vorbehalten."
+    "rights": "Alle Rechte vorbehalten.",
+    "statement": "Reservierungen, einfach und in Sekunden.",
+    "colophon": "Provisionsfreie Reservierungs-SaaS. Online-Buchungsverwaltung für Restaurants, Spas, Salons und mehr – alles in einem Panel."
   },
   "hero": {
     "badge": "Türkeis Reservierungsplattform",
@@ -1312,7 +1314,9 @@
     "heroTitle": "Wohin heute?",
     "heroSlogan": "Wähle deinen Ort und buche in Sekunden.",
     "discover": "Entdecken",
-    "forBusiness": "Für Unternehmen"
+    "forBusiness": "Für Unternehmen",
+    "heroEyebrow": "Provisionsfreie Reservierungs-SaaS",
+    "ctaLabel": "Für Ihr Unternehmen starten"
   },
   "accountDelete": {
     "title": "Account Deletion",

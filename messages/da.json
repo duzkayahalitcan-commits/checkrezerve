@@ -114,7 +114,9 @@
     "terms": "Servicevilkår",
     "kvkk": "GDPR-oplysning",
     "cookies": "Cookiepolitik",
-    "rights": "Alle rettigheder forbeholdes."
+    "rights": "Alle rettigheder forbeholdes.",
+    "statement": "Booking, enkelt og på få sekunder.",
+    "colophon": "Provisionsfri bookings-SaaS. Online bookingstyring for restauranter, spa, saloner og meget mere — alt i ét panel."
   },
   "hero": {
     "badge": "Tyrkiets reservationsplatform",
@@ -1312,7 +1314,9 @@
     "heroTitle": "Hvor skal du hen i dag?",
     "heroSlogan": "Vælg dit sted og book på sekunder.",
     "discover": "Udforsk",
-    "forBusiness": "For virksomheder"
+    "forBusiness": "For virksomheder",
+    "heroEyebrow": "Provisionsfri reservations-SaaS",
+    "ctaLabel": "Start din virksomhed"
   },
   "accountDelete": {
     "title": "Account Deletion",

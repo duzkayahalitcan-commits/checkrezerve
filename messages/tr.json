@@ -114,7 +114,9 @@
     "terms": "Kullanım Koşulları",
     "kvkk": "KVKK Aydınlatma Metni",
     "cookies": "Çerez Politikası",
-    "rights": "Tüm hakları saklıdır."
+    "rights": "Tüm hakları saklıdır.",
+    "statement": "Rezervasyon, sadece ve saniyeler içinde.",
+    "colophon": "Komisyonsuz rezervasyon SaaS. Restoran, spa, kuaför ve daha fazlası için online rezervasyon yönetimi tek panelde."
   },
   "hero": {
     "badge": "Türkiye'nin Rezervasyon Platformu",
@@ -1312,7 +1314,9 @@
     "heroTitle": "Bugün nereye?",
     "heroSlogan": "Keyfine bakacağın yeri seç, anında rezerve et.",
     "discover": "Keşfet",
-    "forBusiness": "İşletmeler için"
+    "forBusiness": "İşletmeler için",
+    "heroEyebrow": "Komisyonsuz rezervasyon SaaS",
+    "ctaLabel": "İşletmenize Başlayın"
   },
   "accountDelete": {
     "title": "Hesap Silme",

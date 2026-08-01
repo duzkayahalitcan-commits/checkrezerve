@@ -260,7 +260,7 @@ export default function HomeHero({ title, subtitle, badge, ctaPrimary, ctaSecond
           display: flex;
           align-items: center;
           overflow: hidden;
-          background: #0a0a0a;
+          background: #060606;
         }
         .hero-bg {
           position: absolute;

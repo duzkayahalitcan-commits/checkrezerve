@@ -114,7 +114,9 @@
     "terms": "Términos de servicio",
     "kvkk": "Aviso de protección de datos",
     "cookies": "Política de cookies",
-    "rights": "Todos los derechos reservados."
+    "rights": "Todos los derechos reservados.",
+    "statement": "Reservas, simplemente y en segundos.",
+    "colophon": "SaaS de reservas sin comisión. Gestión de reservas online para restaurantes, spas, salones y más, todo en un panel."
   },
   "hero": {
     "badge": "La plataforma de reservas de Turquía",
@@ -1312,7 +1314,9 @@
     "heroTitle": "¿A dónde hoy?",
     "heroSlogan": "Elige tu lugar y reserva en segundos.",
     "discover": "Explorar",
-    "forBusiness": "Para empresas"
+    "forBusiness": "Para empresas",
+    "heroEyebrow": "SaaS de reservas sin comisión",
+    "ctaLabel": "Empiece para su negocio"
   },
   "accountDelete": {
     "title": "Account Deletion",
