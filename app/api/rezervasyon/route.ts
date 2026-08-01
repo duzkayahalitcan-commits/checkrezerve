@@ -8,7 +8,7 @@ function generateCancellationToken(): string {
 }
 
 export async function POST(request: NextRequest) {
-  const limited = rateLimit(request, { prefix: 'rezervasyon', max: 10, windowMs: 60_000 })
+  const limited = await rateLimit(request, { prefix: 'rezervasyon', max: 10, windowMs: 60_000 })
   if (limited) return limited
 
   try {

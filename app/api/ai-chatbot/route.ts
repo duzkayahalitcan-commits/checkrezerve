@@ -1,100 +1,102 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import { checkGreeting, searchFaq } from '@/lib/faq-search'
 import { rateLimit } from '@/lib/rate-limit'
+import {
+  buildSystemPrompt, callDeepSeek, detectGibberish, enforceReservationApproval,
+  getFeatures, isFarewell, isGreeting, logTurn, normalizeText,
+  type ChatMsg,
+} from '@/lib/assistant-brain'
 
-async function callClaude(systemPrompt: string, messages: {role: string, content: string}[]) {
-  // Anthropic kredisi bittiği için DeepSeek kullanılıyor
-  const apiMessages = [
-    { role: 'system' as const, content: systemPrompt },
-    ...messages
-      .filter(m => m.role === 'user' || m.role === 'assistant')
-      .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
-      .slice(-10)
-  ]
-
-  const res = await fetch('https://api.deepseek.com/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'deepseek-chat',
-      max_tokens: 512,
-      messages: apiMessages,
-    }),
-  })
-  if (!res.ok) {
-    const errText = await res.text()
-    console.error('[ai-chatbot] DeepSeek error:', res.status, errText)
-    throw new Error(`DeepSeek error: ${res.status}`)
-  }
-  const json = await res.json()
-  const reply = json.choices?.[0]?.message?.content
-  return reply ?? 'Yanıt oluşturulamadı.'
-}
-
+// POST /api/ai-chatbot
+// Body: { restaurant_id, messages }
+// Web AI chatbot (AIChatbot.tsx). W-78: W-75 beyni ile bağlandı.
 export async function POST(request: NextRequest) {
-  const limited = rateLimit(request, { prefix: 'ai-chatbot', max: 30, windowMs: 60_000 })
+  const limited = await rateLimit(request, { prefix: 'ai-chatbot', max: 30, windowMs: 60_000 })
   if (limited) return limited
 
   try {
     const { restaurant_id, messages } = await request.json()
-
     if (!restaurant_id || !Array.isArray(messages)) {
       return NextResponse.json({ error: 'restaurant_id and messages required' }, { status: 400 })
     }
 
-    // ── 1. Feature flag kontrolü ──────────────────────────────────────────
     const db = getSupabaseAdmin()
+
+    // ── Feature flag kontrolü ──────────────────────────────────────────
     const { data: flagRow } = await db
       .from('feature_flags')
       .select('enabled')
       .eq('restaurant_id', restaurant_id)
       .eq('feature', 'ai_chatbot')
       .maybeSingle()
-
     if (!flagRow?.enabled) {
       return NextResponse.json({ error: 'AI Chatbot bu işletme için aktif değil.' }, { status: 403 })
     }
 
-    // ── 2. İşletme bilgilerini çek ───────────────────────────────────────
-    const { data: biz } = await db
+    // ── İşletme bilgilerini çek ───────────────────────────────────────
+    const { data: bizRaw } = await db
       .from('restaurants')
-      .select('name, business_type')
+      .select('id, name, slug, phone, address, working_hours, ai_assistant_name')
       .eq('id', restaurant_id)
       .single()
+    if (!bizRaw) return NextResponse.json({ error: 'İşletme bulunamadı.' }, { status: 404 })
 
-    const businessName = biz?.name ?? 'İşletme'
-    const businessType = biz?.business_type ?? 'genel'
-
-    // ── 3. FAQ / greeting check ──────────────────────────────────────────
-    const lastUserMsg = [...messages].reverse().find((m: { role: string }) => m.role === 'user')
-    if (lastUserMsg) {
-      const greeting = checkGreeting(lastUserMsg.content)
-      if (greeting) return NextResponse.json({ message: greeting })
-      const faqAnswer = await searchFaq(lastUserMsg.content)
-      if (faqAnswer) return NextResponse.json({ message: faqAnswer })
+    const biz = {
+      id: bizRaw.id,
+      name: bizRaw.name,
+      slug: bizRaw.slug,
+      phone: bizRaw.phone ?? null,
+      address: bizRaw.address ?? null,
+      working_hours: bizRaw.working_hours ?? null,
+      assistant_name: bizRaw.ai_assistant_name ?? null,
     }
 
-    // ── 4. Sistem prompt'u oluştur ───────────────────────────────────────
-    const systemPrompt = `Sen ${businessName} adlı ${businessType} işletmesinin yapay zeka asistanısın. Türkçe, kısa ve samimi cevaplar ver. Her mesaja tek bir kısa cevap ver, uzun paragraflar yazma.
+    const history: ChatMsg[] = (messages as ChatMsg[]).filter(m => m.role === 'user' || m.role === 'assistant')
+    const lastUser = [...history].reverse().find(m => m.role === 'user')
+    const text = lastUser?.content ?? ''
+    const normalized = normalizeText(text)
 
-İşletme: ${businessName}
-Tür: ${businessType}
+    // Konuşma kaydı (channel app_chat) — her kullanıcı mesajında bir tur
+    const turn_number = history.filter(m => m.role === 'user').length
 
-KESİN KURAL: Sen sadece bilgi verir ve yönlendirirsin. Asla "rezervasyonunuz onaylandı", "kaydettim", "oluşturuldu" deme. Rezervasyonu sayfadaki form yapar. Kullanıcıyı forma yönlendir: "Sayfadaki formu doldurarak rezervasyon yapabilirsiniz."
+    // Saçma / anlamsız mesaj koruması
+    if (text && detectGibberish(text)) {
+      const reply = 'Sizi tam anlayamadım, tekrar eder misiniz?'
+      logTurn({ restaurant_id: biz.id, session_id: (history[0]?.content ?? '').slice(0, 40), turn_number, channel: 'app_chat', user_message: text, assistant_response: reply, is_unknown: true })
+      return NextResponse.json({ message: reply })
+    }
 
-SADECE bu işletme hakkında bilgi ver, başka işletmeler hakkında konuşma.`
+    // ── 0-token BYPASS ────────────────────────────────────────────────
+    if (isFarewell(normalized)) {
+      const reply = `Rica ederim, iyi günler dileriz. ${biz.name}'ı tercih ettiğiniz için teşekkürler.`
+      logTurn({ restaurant_id: biz.id, session_id: (history[0]?.content ?? '').slice(0, 40), turn_number, channel: 'app_chat', user_message: text, assistant_response: reply })
+      return NextResponse.json({ message: reply })
+    }
+    if (isGreeting(normalized)) {
+      const reply = `Merhaba, hoş geldiniz! Ben ${biz.assistant_name ?? 'Asistan'}, ${biz.name} asistanıyım. Size nasıl yardımcı olabilirim? Rezervasyon yapmak ister misiniz?`
+      logTurn({ restaurant_id: biz.id, session_id: (history[0]?.content ?? '').slice(0, 40), turn_number, channel: 'app_chat', user_message: text, assistant_response: reply })
+      return NextResponse.json({ message: reply })
+    }
 
-    // ── 5. Claude'a sor ──────────────────────────────────────────────────
+    // ── W-75/76 beyin ────────────────────────────────────────────────
+    const maxTurn = turn_number > 12
+    const features = await getFeatures(biz.id)
+    const systemPrompt = buildSystemPrompt({ biz, maxTurn, featureLines: features })
+
     try {
-      const message = await callClaude(systemPrompt, messages)
-      return NextResponse.json({ message })
+      let reply = await callDeepSeek(systemPrompt, history, 200)
+      // KRİTİK: "oluşturuldu" yalnızca tam bilgi + onay sonrası
+      const override = enforceReservationApproval(history, reply)
+      if (override) reply = override
+
+      const isUnknown = /kesin bilgim yok|bilmiyorum|alakasız|tam anlayamadım/i.test(reply)
+      logTurn({ restaurant_id: biz.id, session_id: (history[0]?.content ?? '').slice(0, 40), turn_number, channel: 'app_chat', user_message: text, assistant_response: reply, is_unknown: isUnknown })
+      return NextResponse.json({ message: reply })
     } catch (aiError) {
       console.error('[ai-chatbot]', aiError)
-      return NextResponse.json({ message: 'Şu an yanıt veremiyorum, lütfen biraz sonra tekrar deneyin.' })
+      const fallback = 'Şu an yanıt veremiyorum, lütfen biraz sonra tekrar deneyin.'
+      logTurn({ restaurant_id: biz.id, session_id: (history[0]?.content ?? '').slice(0, 40), turn_number, channel: 'app_chat', user_message: text, assistant_response: fallback })
+      return NextResponse.json({ message: fallback })
     }
   } catch (error) {
     console.error('[ai-chatbot]', error)

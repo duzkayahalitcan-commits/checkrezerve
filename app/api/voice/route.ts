@@ -3,6 +3,7 @@ import fs from 'fs'
 import { checkGreeting, searchFaq } from '@/lib/faq-search'
 import { findAudioFile, type AudioVoice } from '@/lib/audio-sentences'
 import { rateLimit } from '@/lib/rate-limit'
+import { detectGibberish, normalizeText } from '@/lib/assistant-brain'
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY
 const VOICE_IDS: Record<string, string> = {
@@ -39,18 +40,30 @@ function buildSystemPrompt(name: string, type: string, lang: string): string {
     en: `You are voice assistant for ${name}. One sentence only.`,
     de: `Sie sind Sprachassistent für ${name}. Nur ein Satz.`,
   }
-  return prompts[lang] ?? `Sen ${name} adlı ${type} işletmesinin sesli asistanısın. KURAL: Tek cümle. İsim: "Adınızı öğrenebilir miyim?" Tarih: "Hangi tarihte?" Onay: "Rezervasyonunuz oluşturuldu." Veda: "İyi günler."`
+  // W-78: TR sesli asistan — adım adım bilgi topla, özet onaylanmadan asla "oluşturuldu" deme.
+  return prompts[lang] ?? `Sen ${name} adlı ${type} işletmesinin sesli asistanısın. KISA tek cümleyle cevap ver, sesli okunur.
+KURALLAR:
+- Rezervasyon için sırayla bilgi topla (kişi→tarih→saat→isim→telefon), her turda TEK soru sor. Eksik bilgiyle asla "oluşturuldu" deme.
+- İsim öğrenilince "{isim} Bey/Hanım" diye hitap et.
+- Tüm bilgiler toplanınca ÖNCE özet ver ve onay iste: "Onaylıyor musunuz?" Onay (evet/olur/onaylıyorum) gelmeden ASLA "Rezervasyonunuz oluşturuldu" deme.
+- Onay sonrası: "Rezervasyonunuz oluşturuldu. İyi günler."
+- Anlamsız/saçma mesajda: "Sizi tam anlayamadım, tekrar eder misiniz?" de, tahmin yürütme.
+- Veda: "İyi günler."`
 }
 
 export async function POST(request: NextRequest) {
-  const limited = rateLimit(request, { prefix: 'voice', max: 15, windowMs: 60_000 })
+  const limited = await rateLimit(request, { prefix: 'voice', max: 15, windowMs: 60_000 })
   if (limited) return limited
   try {
     const { text, businessName = 'İşletme', businessType = 'genel', messages = [], voice = 'yunus', lang = 'tr' } = await request.json()
     if (!text?.trim()) return NextResponse.json({ error: 'Metin boş' }, { status: 400 })
     const isMultilang = ['ar','da','en','de','es','ru'].includes(lang)
     let answer: string | null = null
-    if (!isMultilang) {
+    // W-78: Saçma / anlamsız sesli mesaj koruması
+    if (!isMultilang && detectGibberish(text)) {
+      answer = 'Sizi tam anlayamadım, tekrar eder misiniz?'
+    }
+    if (!isMultilang && !answer) {
       answer = checkGreeting(text)
       if (!answer) answer = await searchFaq(text)
     }

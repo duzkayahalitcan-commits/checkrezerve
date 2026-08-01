@@ -8,7 +8,7 @@ const client = twilio(
 );
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, { prefix: 'send-sms', max: 10, windowMs: 60_000 });
+  const limited = await rateLimit(req, { prefix: 'send-sms', max: 10, windowMs: 60_000 });
   if (limited) return limited;
 
   try {
