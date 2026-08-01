@@ -1,28 +1,78 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
-import { checkCache, getCachePath, saveToCache } from '@/lib/audio-cache'
+import path from 'path'
+import { saveToCache, textToSlug } from '@/lib/audio-cache'
 import { resolveAudioTokens, concatAudioBuffers } from '@/lib/audio-concat'
+import { checkFeatureFlag } from '@/lib/feature-flags'
 
 // POST /api/ai-assistant/speak
 // Body: { text, voice_id? }
 // Returns audio/mpeg stream from:
-//   1. Disk cache (full text) — instant replay
+//   1. Full-text disk cache — tüm tr/ alt kategorilerinde slug eşleşmesi arar
+//      (tr/chatbot/{kategori}/{voice}/{slug}.mp3, tr/responses/{voice}/{slug}.mp3, tr/responses/{slug}.mp3)
 //   2. Audio token concatenation — zero-latency, no API call
 //   3. ElevenLabs TTS — only for novel phrases
 
 const DEFAULT_VOICE_ID = 'jbJMQWv1eS4YjQ6PCcn6' // Gülsu
+const TR_BASE = path.join(process.cwd(), 'public', 'audio', 'tr')
+
+// voice_id → cache alt klasörü adı (yalnızca bilinen adlar, varsayılan gulsu)
+function voiceCacheName(voiceId?: string): string {
+  const v = (voiceId ?? '').toLowerCase()
+  if (v === 'yunus') return 'yunus'
+  return 'gulsu'
+}
+
+/**
+ * Tüm tr/ alt kategorilerinde tam slug eşleşmesi ara.
+ * Öncelik sırası:
+ *   1) tr/chatbot/{kategori}/{voice}/{slug}.mp3  (kalıp cümleler, W-77 kategori yapısı)
+ *   2) tr/responses/{voice}/{slug}.mp3           (ses bazlı full-text cache)
+ *   3) tr/responses/{slug}.mp3                   (düz full-text cache)
+ */
+function findCachedAudio(slug: string, voiceName: string): string | null {
+  const chatbotDir = path.join(TR_BASE, 'chatbot')
+  // chatbot alt kategorileri (genel, rezervasyon, ozellikler, dogrulama, ...)
+  let dirs: string[] = []
+  try {
+    dirs = fs.readdirSync(chatbotDir)
+  } catch { /* chatbot yok */ }
+  for (const d of dirs) {
+    const p = path.join(chatbotDir, d, voiceName, `${slug}.mp3`)
+    if (fs.existsSync(p)) return p
+  }
+  const respVoice = path.join(TR_BASE, 'responses', voiceName, `${slug}.mp3`)
+  if (fs.existsSync(respVoice)) return respVoice
+  const respFlat = path.join(TR_BASE, 'responses', `${slug}.mp3`)
+  if (fs.existsSync(respFlat)) return respFlat
+  return null
+}
 
 export async function POST(req: NextRequest) {
+  const t0 = Date.now()
   const body = await req.json()
-  const { text, voice_id } = body
+  const { text, voice_id, restaurant_id } = body
 
   if (!text || typeof text !== 'string') {
     return NextResponse.json({ error: 'text required' }, { status: 400 })
   }
 
+  // S1-T5: ai_voice_search feature flag — restaurant_id verilmişse zorunlu kontrol
+  if (restaurant_id) {
+    const enabled = await checkFeatureFlag(restaurant_id, 'ai_voice_search')
+    if (!enabled) {
+      return NextResponse.json({ error: 'Sesli asistan bu işletmede aktif değil' }, { status: 403 })
+    }
+  }
+
   // ── 1) Full-text disk cache ────────────────────────────────────
-  if (checkCache(text)) {
-    const buffer = fs.readFileSync(getCachePath(text))
+  const voiceName = voiceCacheName(voice_id)
+  const slug = textToSlug(text)
+  const hitPath = findCachedAudio(slug, voiceName)
+
+  if (hitPath) {
+    const buffer = fs.readFileSync(hitPath)
+    console.log(`[speak] cache HIT voice=${voiceName} total=${Date.now() - t0}ms path=${path.relative(TR_BASE, hitPath)}`)
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'audio/mpeg',
@@ -33,7 +83,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 2) Token concatenation (no API call) ───────────────────────
-  const { tokens, allExist } = resolveAudioTokens(text, 'gulsu')
+  const { tokens, allExist } = resolveAudioTokens(text, voiceName)
 
   if (allExist && tokens.length > 0) {
     try {
@@ -44,6 +94,7 @@ export async function POST(req: NextRequest) {
       // Seed the disk cache so future requests hit instantly
       saveToCache(text, buffer)
 
+      console.log(`[speak] concat total=${Date.now() - t0}ms tokens=${tokens.length}`)
       return new NextResponse(audioData, {
         headers: {
           'Content-Type': 'audio/mpeg',
@@ -93,6 +144,7 @@ export async function POST(req: NextRequest) {
     // Save to disk cache for future requests
     saveToCache(text, buffer)
 
+    console.log(`[speak] elevenlabs MISS total=${Date.now() - t0}ms`)
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'audio/mpeg',

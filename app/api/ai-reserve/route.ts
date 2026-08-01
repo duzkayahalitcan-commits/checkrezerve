@@ -5,6 +5,7 @@ import { getAnthropicClient } from '@/lib/anthropic'
 import { getSupabase } from '@/lib/supabase'
 import { sendReservationConfirmation } from '@/lib/notification-service'
 import { rateLimit } from '@/lib/rate-limit'
+import { checkFeatureFlag } from '@/lib/feature-flags'
 
 // ── Giriş şeması ─────────────────────────────────────────────────────────────
 const RequestSchema = z.object({
@@ -63,6 +64,17 @@ export async function POST(req: NextRequest) {
       )
     }
     const { message, restaurant_id, branch_id } = parsed.data
+
+    // S1-T5: ai_reservation feature flag zorunlu
+    if (restaurant_id) {
+      const enabled = await checkFeatureFlag(restaurant_id, 'ai_reservation')
+      if (!enabled) {
+        return NextResponse.json(
+          { error: 'AI rezervasyon bu işletmede aktif değil' },
+          { status: 403 }
+        )
+      }
+    }
 
     // 2. Claude API ile bilgileri çıkar
     const client = getAnthropicClient()
