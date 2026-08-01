@@ -5,7 +5,7 @@ import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
 function makeSessionToken(userId: string, restaurantId: string): string {
-  const secret = process.env.ADMIN_SECRET ?? 'dev-secret-change-me'
+  const secret = process.env.ADMIN_SECRET! // S1-T3: fallback yok — env zorunlu
   return createHmac('sha256', secret).update(`${userId}:${restaurantId}`).digest('base64url')
 }
 

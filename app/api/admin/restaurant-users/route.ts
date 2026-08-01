@@ -15,7 +15,7 @@ async function checkAdmin() {
 }
 
 function hashPassword(password: string): string {
-  const secret = process.env.ADMIN_SECRET ?? 'dev-secret-change-me'
+  const secret = process.env.ADMIN_SECRET! // S1-T3: fallback yok — env zorunlu
   return createHmac('sha256', secret).update(password).digest('hex')
 }
 
