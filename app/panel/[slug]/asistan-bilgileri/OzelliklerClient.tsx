@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Check, X, Info, Loader2, MessageSquare } from 'lucide-react'
+import { useToast } from '@/components/ui/Toast'
 
 type Durum = 'var' | 'yok' | 'bilgi_al'
 
@@ -41,6 +42,7 @@ export default function OzelliklerClient({
   const [replyTarget, setReplyTarget] = useState<UnknownQ | null>(null)
   const [replyText, setReplyText] = useState('')
 
+  const toast = useToast()
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastSaved = useRef<string>('')
 
@@ -88,7 +90,7 @@ export default function OzelliklerClient({
     saveTimer.current = setTimeout(() => doSave(), 800)
   }
 
-  async function doSave() {
+  async function doSave(manual = false) {
     if (!features) return
     // Sadece seçilmiş (var/yok) veya notu dolu olanları gönder
     const items = features
@@ -96,19 +98,31 @@ export default function OzelliklerClient({
       .map(f => ({ ozellik_kodu: f.kod, durum: f.durum, notu: f.notu?.trim() || null }))
 
     const payload = JSON.stringify({ restaurant_id: restaurantId, items })
-    if (payload === lastSaved.current) { setSaving(false); return }
+
+    // Payload değişmemişse ve otomatik kayıttan geldiyse sessizce atla.
+    // Manuel (Şimdi Kaydet) basıldıysa kullanıcıya geri bildirim ver.
+    if (payload === lastSaved.current) {
+      setSaving(false)
+      if (manual) toast.show(items.length === 0 ? 'Kaydedilecek değişiklik yok' : 'Kayıtlar güncel', 'info')
+      return
+    }
     lastSaved.current = payload
 
     try {
       const res = await fetch('/api/panel/ozellikler', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: payload })
       const json = await res.json()
-      if (res.ok) {
+      if (res.ok && (!json.errors || json.errors.length === 0)) {
         setSavedAt(new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }))
+        setError(null)
+        if (manual) toast.show('Özellikler kaydedildi ✓', 'success')
       } else {
-        setError(json.error ?? 'Kaydetme hatası')
+        const msg = json.errors?.length ? json.errors.join('; ') : (json.error ?? 'Kaydetme hatası')
+        setError(msg)
+        if (manual) toast.show(msg, 'error')
       }
     } catch {
       setError('Kaydetme başarısız.')
+      if (manual) toast.show('Kaydetme başarısız.', 'error')
     }
     setSaving(false)
   }
@@ -127,12 +141,16 @@ export default function OzelliklerClient({
       if (res.ok) {
         setReplyTarget(null)
         setReplyText('')
+        toast.show('Yanıt kaydedildi ✓', 'success')
         load()
       } else {
-        setError(json.error ?? 'Yanıt kaydedilemedi')
+        const msg = json.error ?? 'Yanıt kaydedilemedi'
+        setError(msg)
+        toast.show(msg, 'error')
       }
     } catch {
       setError('Yanıt kaydedilemedi.')
+      toast.show('Yanıt kaydedilemedi.', 'error')
     }
     setSaving(false)
   }
@@ -150,7 +168,7 @@ export default function OzelliklerClient({
       {/* Kayıt durumu */}
       <div className="flex items-center justify-between text-xs text-stone-500">
         <span>{error ? <span className="text-amber-400">{error}</span> : `Otomatik kayıt açık${savedAt ? ` · Son kayıt ${savedAt}` : ''}${saving ? ' · kaydediliyor...' : ''}`}</span>
-        <button onClick={() => doSave()} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-500">
+        <button onClick={() => doSave(true)} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-500">
           Şimdi Kaydet
         </button>
       </div>
