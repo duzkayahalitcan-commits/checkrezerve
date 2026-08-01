@@ -26,12 +26,11 @@
 -- Sadece NULL değerleri doldurur; table_id'ye dokunmaz; veri kaybı yoktur.
 UPDATE reservations r
 SET masa_tipi_id = mt.id
-FROM masa_tipleri mt
-JOIN tables t
-  ON t.id = r.table_id
- AND t.restaurant_id = mt.isletme_id
- AND t.label = mt.ad
-WHERE r.table_id IS NOT NULL
+FROM tables t
+JOIN masa_tipleri mt
+  ON mt.isletme_id = t.restaurant_id
+ AND mt.ad = t.label
+WHERE r.table_id = t.id
   AND r.masa_tipi_id IS NULL;
 
 -- ── 2. Masa tipi bazlı okuma için dizin ─────────────────────────────────────
