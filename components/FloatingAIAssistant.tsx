@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Phone, Mic, Volume2, Loader } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { resolveBackground } from '@/lib/backgrounds'
+import { useToast } from '@/components/ui/Toast'
 
 type Phase = 'idle' | 'mic' | 'processing' | 'speaking'
 
@@ -46,6 +47,8 @@ export default function FloatingAIAssistant({
   const [timer, setTimer] = useState(0)
   const [transcript, setTranscript] = useState('')
   const [reply, setReply] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const toast = useToast()
 
   // Refs
   const mediaStreamRef = useRef<MediaStream | null>(null)
@@ -127,6 +130,14 @@ export default function FloatingAIAssistant({
     ctxRef.current = null
   }, [])
 
+  // ─── Hata yardımcısı — konsola loglar + kullanıcıya görünür gösterir ──
+  const handleError = useCallback((err: unknown, context: string) => {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error(`[voice] ${context}:`, message)
+    toast.show(message, 'error')
+    setError(message)
+  }, [toast])
+
   const preferredMimeType = useCallback(() => {
     if (typeof window === 'undefined') return 'audio/webm'
     if (MediaRecorder.isTypeSupported('audio/mp4')) return 'audio/mp4'
@@ -135,7 +146,7 @@ export default function FloatingAIAssistant({
     return ''
   }, [])
 
-  const speak = useCallback(async (text: string) => {
+  const speak = useCallback(async (text: string): Promise<boolean> => {
     try {
       const res = await fetch('/api/ai-assistant/speak', {
         method: 'POST',
@@ -146,18 +157,27 @@ export default function FloatingAIAssistant({
           restaurant_id: restaurantId,
         }),
       })
-      if (res.ok) {
-        const blob = await res.blob()
-        const url = URL.createObjectURL(blob)
-        const audio = new Audio(url)
-        await new Promise<void>((resolve) => {
-          audio.onended = () => { URL.revokeObjectURL(url); resolve() }
-          audio.onerror = () => { URL.revokeObjectURL(url); resolve() }
-          audio.play().catch(() => resolve())
-        })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        console.error('[voice] speak hata:', res.status, data.error)
+        handleError(new Error(data.error ?? `Ses üretilemedi (${res.status})`), 'Sesli yanıt üretilemedi')
+        return false
       }
-    } catch { /* audio may fail silently */ }
-  }, [assistantVoice])
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const audio = new Audio(url)
+      await new Promise<void>((resolve) => {
+        audio.onended = () => { URL.revokeObjectURL(url); resolve() }
+        audio.onerror = () => { URL.revokeObjectURL(url); resolve() }
+        audio.play().catch((e) => { console.error('[voice] audio play hatası:', e); URL.revokeObjectURL(url); resolve() })
+      })
+      return true
+    } catch (err) {
+      console.error('[voice] speak exception:', err)
+      handleError(err, 'Sesli yanıt üretilemedi')
+      return false
+    }
+  }, [assistantVoice, restaurantId, handleError])
 
   // ─── Bir tur: dinle → çöz → yanıtla → (devam) ─────────────────
   const beginTurn = (stream: MediaStream) => {
@@ -196,8 +216,11 @@ export default function FloatingAIAssistant({
         const res = await fetch('/api/ai-assistant/transcribe', { method: 'POST', body: fd })
         const data = await res.json()
         text = (data.text as string) ?? ''
-      } catch {
-        if (activeRef.current) beginTurn(stream)
+        if (data.error) console.error('[voice] transcribe hata:', data.error)
+      } catch (err) {
+        console.error('[voice] transcribe exception:', err)
+        handleError(err, 'Ses anlaşılamadı (transkripsiyon hatası)')
+        endCall()
         return
       }
       if (!text) {
@@ -224,11 +247,14 @@ export default function FloatingAIAssistant({
         const data = await res.json()
         ans = (data.response as string) ?? ''
         shouldEnd = !!data.end_call
-      } catch {
-        if (activeRef.current) beginTurn(stream)
+      } catch (err) {
+        console.error('[voice] chat API hatası:', err)
+        handleError(err, 'Asistan yanıt veremedi')
+        endCall()
         return
       }
       if (!ans) {
+        console.warn('[voice] chat boş yanıt döndü')
         if (activeRef.current) beginTurn(stream)
         return
       }
@@ -236,7 +262,12 @@ export default function FloatingAIAssistant({
 
       // 3) Speak (TTS) — ses dalgası animasyonu bu fazda görünür
       setPhase('speaking')
-      await speak(ans)
+      const ok = await speak(ans)
+      if (!ok && activeRef.current) {
+        // TTS başarısız — çağrıyı bitir (hata zaten gösterildi)
+        endCall()
+        return
+      }
 
       // Asistan vedalaştı / rezervasyon tamamlandı → çağrıyı otomatik kapat
       if (shouldEnd) {
@@ -265,6 +296,7 @@ export default function FloatingAIAssistant({
     activeRef.current = true
     setTranscript('')
     setReply('')
+    setError(null)
     setPhase('mic')
     startTimer()
 
@@ -278,12 +310,23 @@ export default function FloatingAIAssistant({
       }
       mediaStreamRef.current = stream
       beginTurn(stream)
-    } catch {
+    } catch (err) {
+      // Mikrofon izni reddedildi / erişilemedi — sessizce geçme
       activeRef.current = false
       setPhase('idle')
       stopTimer()
+      const name = err instanceof Error ? err.name : ''
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+        handleError(err, 'Mikrofon izni reddedildi. Tarayıcı adres çubuğundaki mikrofon simgesinden izin verin.')
+      } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+        handleError(err, 'Mikrofon bulunamadı. Bir mikrofon bağlı olduğundan emin olun.')
+      } else if (name === 'NotReadableError') {
+        handleError(err, 'Mikrofon kullanımda veya erişilemiyor.')
+      } else {
+        handleError(err, 'Mikrofon başlatılamadı')
+      }
     }
-  }, [phase, beginTurn, startTimer, stopTimer])
+  }, [phase, beginTurn, startTimer, stopTimer, handleError])
 
   // ─── Çağrıyı sonlandır ─────────────────────────────────────────
   const endCall = useCallback(() => {
@@ -310,6 +353,7 @@ export default function FloatingAIAssistant({
   const active = phase !== 'idle'
 
   const close = useCallback(() => {
+    setError(null)
     setOpen(false)
     onCloseRequest?.()
   }, [onCloseRequest])
@@ -404,6 +448,13 @@ export default function FloatingAIAssistant({
                 {/* Asistan adı + işletme adı — gerçek telefon görüşmesi gibi */}
                 <p className="text-white font-semibold text-xl tracking-tight mb-1">{name}</p>
                 <p className="text-white/60 text-sm mb-6">{biz}</p>
+
+                {/* Hata mesajı — kullanıcıya görünür */}
+                {error && (
+                  <div className="w-full mb-4 px-4 py-2.5 rounded-xl bg-red-500/90 text-white text-xs leading-relaxed">
+                    {error}
+                  </div>
+                )}
 
                 {/* Timer — çağrı başında 00:00, bitene kadar akar */}
                 {active && (
