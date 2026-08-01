@@ -116,7 +116,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr" className={`${geistSans.variable} ${geistMono.variable} ${outfitFont.variable} ${dmSerif.variable} ${playfair.variable} h-full antialiased`}>
+    <html lang="tr" className={`${geistSans.variable} ${geistMono.variable} ${outfitFont.variable} ${dmSerif.variable} ${playfair.variable} font-sans h-full antialiased`}>
       <head>
         {/* Hreflang — tüm dil varyantları */}
         {LOCALES.map(locale => (

@@ -290,7 +290,7 @@ function StatCard({ label, value, accent, delay = '0ms' }: { label: string; valu
       className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center animate-[fadeSlideUp_0.4s_ease_forwards] opacity-0 hover:border-stone-700 transition-colors h-full"
       style={{ animationDelay: delay }}
     >
-      <CountUp to={value} className={`text-2xl font-bold ${colors[accent]}`} />
+      <CountUp to={value} className={`text-2xl font-bold tabular-nums ${colors[accent]}`} />
       <div className="text-stone-500 text-xs mt-0.5">{label}</div>
     </div>
   )

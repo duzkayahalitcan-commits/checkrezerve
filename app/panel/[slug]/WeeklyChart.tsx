@@ -41,7 +41,7 @@ export default function WeeklyChart({
               {tooltip}
             </div>
 
-            <span className="text-xs text-stone-500 group-hover:text-white transition">
+            <span className="text-xs text-stone-500 group-hover:text-white transition tabular-nums">
               {day.count > 0 ? day.count : ''}
             </span>
 

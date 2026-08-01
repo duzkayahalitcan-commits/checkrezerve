@@ -412,7 +412,7 @@ export default function HomeHero({ title, subtitle, badge, ctaPrimary, ctaSecond
           position: absolute;
           inset: 0;
           border-radius: 50%;
-          background: #ef4444;
+          background: var(--cr-primary);
           opacity: 0.75;
           animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
         }
@@ -422,7 +422,7 @@ export default function HomeHero({ title, subtitle, badge, ctaPrimary, ctaSecond
           width: 12px;
           height: 12px;
           border-radius: 50%;
-          background: #ef4444;
+          background: var(--cr-primary);
         }
         .badge-label {
           color: #fca5a5;
@@ -480,7 +480,7 @@ export default function HomeHero({ title, subtitle, badge, ctaPrimary, ctaSecond
           box-shadow: 0 0 0 0 rgba(229,57,53,0.4);
         }
         .cta-primary:hover {
-          background: #ef5350;
+          background: var(--cr-primary-dark);
           transform: scale(1.05);
           box-shadow: 0 20px 60px rgba(229,57,53,0.45), 0 0 0 6px rgba(229,57,53,0.15);
         }

@@ -43,7 +43,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
 
 /* Global button micro-interactions */
@@ -56,7 +56,7 @@ button:not([disabled]):active {
 
 /* Smooth focus rings */
 :focus-visible {
-  outline: 2px solid #E53935;
+  outline: 2px solid var(--cr-primary);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -118,7 +118,7 @@ html.lenis, html.lenis body {
 /* Input focus animation */
 input:focus, textarea:focus, select:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(229, 57, 53, 0.2);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--cr-primary) 20%, transparent);
 }
 
 /* Smooth image loading */

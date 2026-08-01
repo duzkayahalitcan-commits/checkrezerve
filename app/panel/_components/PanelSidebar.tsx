@@ -7,7 +7,7 @@ import {
   LayoutDashboard, CalendarDays, List, Calendar,
   Users, UserCog, Scissors, Settings, CreditCard,
   LayoutGrid, PanelRightOpen, ChevronRight, LogOut, Menu, X, UtensilsCrossed,
-  Package, Layers, BarChart3, Bot,
+  Package, Layers, BarChart3, Bot, CheckCircle2, Bell,
 } from 'lucide-react'
 import PanelLangSelector from './PanelLangSelector'
 import NotificationBell from './NotificationBell'
@@ -75,7 +75,7 @@ export default function PanelSidebar({
     ...(paketSektoru ? [{
       label: 'Paketler',
       items: [
-        { href: `${base}/paketler`,      label: 'Paketler',      icon: Package as React.ComponentType<{ size?: number }> },
+        { href: `${base}/paketler`,      label: 'Paket Kataloğu', icon: Package as React.ComponentType<{ size?: number }> },
         { href: `${base}/uye-paketleri`, label: 'Üye Paketleri',  icon: Layers as React.ComponentType<{ size?: number }> },
       ],
     }] : []),
@@ -83,6 +83,13 @@ export default function PanelSidebar({
       label: 'Müşteri',
       items: [
         { href: `${base}/misafirler`,    label: 'Misafirler',    icon: Users           },
+      ],
+    },
+    {
+      label: 'Personel',
+      items: [
+        { href: `${base}/takvimim`,      label: 'Benim Takvimim', icon: Calendar        },
+        { href: `${base}/uye-seanslarim`,label: 'Seanslarım',     icon: CheckCircle2     },
       ],
     },
     {
@@ -95,6 +102,7 @@ export default function PanelSidebar({
       label: 'Sistem',
       items: [
         { href: `${base}/asistan-bilgileri`, label: 'Asistan',    icon: Bot as React.ComponentType<{ size?: number }> },
+        { href: `${base}/bildirimler`,   label: 'Bildirimler',   icon: Bell             },
         { href: `${base}/ayarlar`,       label: 'Ayarlar',       icon: Settings        },
         { href: `${base}/abonelik`,      label: 'Abonelik',      icon: CreditCard      },
       ],

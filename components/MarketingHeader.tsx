@@ -99,7 +99,7 @@ export default function MarketingHeader() {
                   {isActive && (
                     <motion.span
                       layoutId="nav-underline"
-                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-red-600 rounded-full"
+                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full"
                       transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                     />
                   )}
@@ -119,7 +119,7 @@ export default function MarketingHeader() {
                   onClick={() => setUserMenuOpen(v => !v)}
                   className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                 >
-                  <div className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                  <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold shadow-sm">
                     {user.email?.charAt(0).toUpperCase()}
                   </div>
                 </button>
@@ -169,7 +169,7 @@ export default function MarketingHeader() {
             ) : (
               <>
                 <Link href="/kayit"
-                  className="hidden sm:block rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors shadow-sm">
+                  className="hidden sm:block rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition-colors shadow-sm">
                   {t('startFree')}
                 </Link>
                 <Link href="/giris"
@@ -251,7 +251,7 @@ export default function MarketingHeader() {
                 ) : (
                   <>
                     <Link href="/kayit" onClick={() => setMobileOpen(false)}
-                      className="w-full text-center rounded-full bg-red-600 text-white py-3.5 text-base font-bold hover:bg-red-700 transition-colors">
+                      className="w-full text-center rounded-full bg-primary text-white py-3.5 text-base font-bold hover:bg-primary-dark transition-colors">
                       {t('startFree')}
                     </Link>
                     <Link href="/giris" onClick={() => setMobileOpen(false)}
