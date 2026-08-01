@@ -59,8 +59,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Cookie format'ı proxy.ts ile uyumlu: HMAC(ADMIN_SECRET, ADMIN_PASSWORD)
-    const adminSecret = process.env.ADMIN_SECRET ?? 'checkrezerve-fallback-secret'
-    const adminPassword = process.env.ADMIN_PASSWORD ?? 'checkrezerve-fallback-password'
+    // S1-T3: fallback yok — env zorunlu
+    const adminSecret = process.env.ADMIN_SECRET!
+    const adminPassword = process.env.ADMIN_PASSWORD!
     const token = createHmac('sha256', adminSecret).update(adminPassword).digest('base64')
 
     const res = NextResponse.json({ success: true, redirectUrl: from, token })
