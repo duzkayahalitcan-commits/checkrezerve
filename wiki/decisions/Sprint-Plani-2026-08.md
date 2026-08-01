@@ -56,3 +56,26 @@ sprintidir. Yeni özellik eklemek yerine mevcut temeli sağlamlaştırır.
 - `npm run build` (veya typecheck) temiz geçer.
 - T1'de hiçbir sorgu kolon listesi nedeniyle bozulmaz.
 - T5 migration'ı mevcut şemaya güvenle uygulanabilir.
+
+## Uygulama Notları (2026-08-01)
+- **T1:** 31 dosya commit'lendi (`S3-T1`). `app/[locale]/rezervasyon/[id]/page.tsx`,
+  `app/panel/[slug]/page.tsx` ve `app/panel/[slug]/paketler/page.tsx` içindeki
+  SELECT * temizliği calışan agaçta bırakıldı (bu dosyalar pre-existing S2
+  feature değişiklikleriyle iç içe; commit'leri onlarla birlikte gelecek).
+- Kritik tespit: canlı şemada `calisanlar.soyad/pozisyon/email/telefon`,
+  `hizmetler.kategori/renk`, `bildirim_log.hata_mesaji/sablon_id`,
+  `bildirim_sablonlari.son_kullanim` YOK (migration'lar prod'a uygulanmamış).
+  Bu yüzden bu kolonlar select'e konulmadı; BildirimClient/Flag tipleri hizaya
+  getirildi. Tip doğrulaması için `scripts` altında canlı OpenAPI şemasından
+  kolon çapraz kontrol yapıldı.
+- **T3:** ISR yalnızca halka açık `[locale]/[slug]` (revalidate=300) ve ana
+  sayfa (revalidate=600) üzerinde. Rezervasyon akışı (`rezervasyon/[id]`)
+  gerçek zamanlı kaldı (force-dynamic). Global `no-cache, no-store` HTML
+  başlığı güvenlik gerekçesiyle korundu.
+- **T4:** `lib/middleware-auth.ts` oluşturuldu; `lib/panel-auth.ts` refactor
+  edildi. `proxy.ts` de aynı modülü kullanacak şekilde güncellendi ancak
+  proxy.ts pre-existing değişikliklerle iç içe olduğu için değişikliği calışan
+  agaçta kaldı.
+- **T5:** `20260801_sprint3_composite_indexes.sql` eklendi (IF NOT EXISTS,
+  DROP yok).
+
