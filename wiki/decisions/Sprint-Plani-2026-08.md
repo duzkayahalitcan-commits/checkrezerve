@@ -111,3 +111,20 @@ Sprint 4, erişilebilirlik (a11y), misafir aktivite izleme ve kod temizliği oda
   işletme panelinde düzenlenebilir değil.
 - İşletme ayarlar formuna (ayarlar/SettingsForm) `dress_code` alanı eklenir ve
   kaydedilir.
+
+## Sprint 4 Uygulama Notları (2026-08-01)
+- **T1 (aria-label):** StaffManager, ServiceManager, MisafirList, OdemeTakip
+  ikon butonlarına erişilebilir adlar eklendi. PanelSidebar zaten etiketliydi;
+  NotificationBell pasif görsel rozet (buton değil), etiket gerekmedi.
+- **T2 (guest_activities):** `lib/guest-activities.ts` helper'ı eklendi
+  (service-role, RLS bypass). Rezervasyon oluşturma (reservation), iptal
+  (cancellation), misafir etiket değişimi (tag_change) ve not güncellemesi
+  (note) loglanıyor. Panel tarafı `/api/panel/guest-activities` endpoint'i
+  üzerinden service-role ile yazıyor; misafir oturumdaki işletmeye ait değilse
+  reddediliyor. Telefonla misafir çözümü `resolveGuestByPhone` ile.
+- **T3 (dead code):** `app/panel/[slug]/SettingsForm.tsx` (ayarlar/ içindeki
+  kullanılıyor, kökteki ölü) ve `kroki/ZoneEditorPage.tsx` (NewZoneEditorPage
+  kullanılıyor) grep ile doğrulanıp silindi.
+- **T4 (dress_code):** SettingsForm'a "Kıyafet Kodu" alanı, ayarlar sayfası
+  select/Pick, panel-settings route ve Restaurant tipine eklendi. Landing
+  sayfası dress_code'u zaten gösteriyordu; artık düzenlenebilir.
