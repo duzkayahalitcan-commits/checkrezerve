@@ -20,6 +20,12 @@ interface Props {
   businessType?: string | null
   /** Çağrı arayüzü tasarım varyantı (prototipler: glass | dark | brand) */
   variant?: CallVariant
+  /** Bileşen açık başlasın mı (AssistantLauncher tarafından kullanılır) */
+  initialOpen?: boolean
+  /** Kapatılınca çağrılır (AssistantLauncher modu resetler) */
+  onCloseRequest?: () => void
+  /** Kendi tetikleyici butonunu gizle (AssistantLauncher dış butonu kullanır) */
+  hideTrigger?: boolean
 }
 
 export default function FloatingAIAssistant({
@@ -31,8 +37,11 @@ export default function FloatingAIAssistant({
   backgroundImage,
   businessType,
   variant = 'glass',
+  initialOpen = false,
+  onCloseRequest,
+  hideTrigger = false,
 }: Props) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(initialOpen)
   const [phase, setPhase] = useState<Phase>('idle')
   const [timer, setTimer] = useState(0)
   const [transcript, setTranscript] = useState('')
@@ -300,16 +309,23 @@ export default function FloatingAIAssistant({
 
   const active = phase !== 'idle'
 
+  const close = useCallback(() => {
+    setOpen(false)
+    onCloseRequest?.()
+  }, [onCloseRequest])
+
   return (
     <>
-      {/* Trigger button */}
-      <button
-        onClick={() => setOpen(v => !v)}
-        className="fixed bottom-20 right-5 z-50 w-14 h-14 rounded-full bg-emerald-600 hover:bg-emerald-500 shadow-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-        aria-label="Sesli asistan"
-      >
-        <Phone size={20} className="text-white" />
-      </button>
+      {/* Trigger button (AssistantLauncher kullanmıyorsa gösterilir) */}
+      {!hideTrigger && (
+        <button
+          onClick={() => setOpen(v => !v)}
+          className="fixed bottom-20 right-5 z-50 w-14 h-14 rounded-full bg-emerald-600 hover:bg-emerald-500 shadow-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+          aria-label="Sesli asistan"
+        >
+          <Phone size={20} className="text-white" />
+        </button>
+      )}
 
       {/* Phone-call overlay */}
       <AnimatePresence>
@@ -319,7 +335,7 @@ export default function FloatingAIAssistant({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
-            onClick={(e) => { if (e.target === e.currentTarget) setOpen(false) }}
+            onClick={(e) => { if (e.target === e.currentTarget) close() }}
           >
             <motion.div
               initial={{ scale: 0.85, opacity: 0 }}
@@ -414,7 +430,7 @@ export default function FloatingAIAssistant({
                 )}
 
                 <button
-                  onClick={() => setOpen(false)}
+                  onClick={close}
                   className="mt-6 text-white/50 hover:text-white text-xs transition-colors"
                 >
                   Kapat

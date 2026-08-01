@@ -51,5 +51,24 @@ export async function PATCH(req: NextRequest) {
     .eq('id', restaurantId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // ── Sesli asistan aktivasyonu ile feature flag'leri senkronize et ──
+  // Panel'de "Asistanı Aktif Et" açılırsa ai_voice_search + ai_chatbot flag'leri
+  // otomatik açılır; kapatılırsa kapanır. Böylece rezervasyon sayfasındaki
+  // sesli asistan butonu (FloatingAIAssistant) ve landing'deki yazılı chat
+  // (AIChatbot) panel ayarıyla tutarlı çalışır.
+  if (body.ai_assistant_enabled !== undefined) {
+    const flags = [
+      { restaurant_id: restaurantId, feature: 'ai_voice_search', enabled: body.ai_assistant_enabled },
+      { restaurant_id: restaurantId, feature: 'ai_chatbot', enabled: body.ai_assistant_enabled },
+    ]
+    for (const flag of flags) {
+      const { error: fErr } = await db
+        .from('feature_flags')
+        .upsert(flag, { onConflict: 'restaurant_id,feature' })
+      if (fErr) console.error('[panel-settings] flag senkron hatası:', fErr.message)
+    }
+  }
+
   return NextResponse.json({ ok: true })
 }

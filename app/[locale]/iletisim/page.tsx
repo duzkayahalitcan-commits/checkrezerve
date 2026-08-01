@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
+import WhatsAppFloatButton from '@/components/WhatsAppFloatButton'
 import ContactForm from './ContactForm'
 import {
   Zap, BadgeDollarSign, HeadphonesIcon, Shield, Globe,
@@ -362,6 +363,7 @@ export default async function IletisimPage({
       </section>
 
       <MarketingFooter />
+      <WhatsAppFloatButton />
     </div>
   )
 }

@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { ReservationForm } from './ReservationForm'
-import AIChatbot from '@/components/AIChatbot'
+import AssistantLauncher from '@/components/AssistantLauncher'
 import { BUSINESS_TYPE_ICONS, type BusinessType } from '@/types'
 
 // S3-T3: ISR — halka açık işletme sayfası aralıklı yenilenir (5 dk).
@@ -54,7 +54,7 @@ export default async function BusinessPage({
 
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('id, name, slug, address, description, business_type, cover_image, dress_code, special_notes')
+    .select('id, name, slug, address, description, business_type, cover_image, dress_code, special_notes, ai_assistant_enabled, ai_assistant_name, ai_assistant_voice, background_image')
     .eq('slug', slug)
     .single()
 
@@ -232,11 +232,16 @@ export default async function BusinessPage({
         </div>
       </div>
 
-      {/* AI Chatbot */}
-      {hasChatbot && (
-        <AIChatbot
+      {/* AI Asistan — tek birleşik buton (sesli + yazılı) */}
+      {(hasChatbot || hasVoiceSearch) && (
+        <AssistantLauncher
           restaurantId={restaurant.id}
-          hasVoice={hasVoiceSearch}
+          restaurantName={restaurant.name}
+          restaurantSlug={restaurant.slug}
+          assistantName={(restaurant as Record<string, unknown>).ai_assistant_name as string | null}
+          assistantVoice={(restaurant as Record<string, unknown>).ai_assistant_voice as string | null}
+          backgroundImage={(restaurant as Record<string, unknown>).background_image as string | null}
+          businessType={businessType}
         />
       )}
     </div>

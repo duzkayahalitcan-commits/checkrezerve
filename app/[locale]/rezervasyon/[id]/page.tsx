@@ -13,7 +13,7 @@ import BookingForm from './BookingForm'
 import BusinessDetailHero from './BusinessDetailHero'
 import nextDynamic from 'next/dynamic'
 
-const FloatingAIAssistant = nextDynamic(() => import('@/components/FloatingAIAssistant'))
+const AssistantLauncher = nextDynamic(() => import('@/components/AssistantLauncher'))
 
 // Next.js 15+ — params is a Promise
 type Props = { params: Promise<{ id: string; locale: string }> }
@@ -63,7 +63,9 @@ export default async function BusinessDetailPage({ params }: Props) {
   // flag kapalıyken buton gösterilirse sessizce hata alır. Uygulama /api/voice
   // kullandığından flag kontrolü yapmaz; web burada flag'e göre gate'lenir.
   const voiceFlagMap = new Map((featureFlags ?? []).map((f: { feature: string; enabled: boolean }) => [f.feature, f.enabled]))
-  const voiceSearchEnabled = voiceFlagMap.get('ai_voice_search') === true
+  const voiceSearchEnabled =
+    (biz as Record<string, unknown>).ai_assistant_enabled === true ||
+    voiceFlagMap.get('ai_voice_search') === true
 
   const business = biz as unknown as Restaurant
 
@@ -214,7 +216,7 @@ export default async function BusinessDetailPage({ params }: Props) {
       <MarketingFooter />
 
       {voiceSearchEnabled && (
-        <FloatingAIAssistant
+        <AssistantLauncher
           restaurantId={business.id}
           restaurantName={business.name}
           restaurantSlug={business.slug}
