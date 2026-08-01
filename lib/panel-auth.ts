@@ -18,7 +18,7 @@ export function verifySession(raw: string): { userId: string; restaurantId: stri
 export async function resolveApiSession(
   req: NextRequest,
   cookieJar: { get: (name: string) => { value: string } | undefined },
-): Promise<{ userId: string; restaurantId: string } | null> {
+): Promise<{ userId: string; restaurantId: string; role?: string } | null> {
   const cookieSession = verifySession(cookieJar.get('cr_panel')?.value ?? '')
   if (cookieSession) return cookieSession
 
@@ -32,10 +32,10 @@ export async function resolveApiSession(
 
   const { data: profile } = await db
     .from('profiles')
-    .select('isletme_id')
+    .select('isletme_id, role')
     .eq('id', user.id)
     .maybeSingle()
 
   if (!profile?.isletme_id) return null
-  return { userId: user.id, restaurantId: profile.isletme_id }
+  return { userId: user.id, restaurantId: profile.isletme_id, role: profile.role ?? undefined }
 }
