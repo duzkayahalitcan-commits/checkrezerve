@@ -114,6 +114,7 @@ export type Restaurant = {
   prepayment_amount?:        number | null
   special_notes?:            string | null
   dress_code?:               string | null
+  background_image?:         string | null
   ai_assistant_enabled?:      boolean | null
   ai_assistant_name?:         string | null
   ai_assistant_voice?:        string | null
