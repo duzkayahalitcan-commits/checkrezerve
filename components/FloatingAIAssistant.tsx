@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from 'react'
-import { Phone, Mic, X, Loader, Volume2, Pause } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { Phone, Mic, Volume2, Loader } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 
-type State = 'idle' | 'connecting' | 'listening' | 'transcribing' | 'responding' | 'speaking'
+type Phase = 'idle' | 'mic' | 'processing' | 'speaking'
 
 interface Props {
   restaurantId: string
@@ -22,36 +22,84 @@ export default function FloatingAIAssistant({
   assistantVoice,
 }: Props) {
   const [open, setOpen] = useState(false)
-  const [state, setState] = useState<State>('idle')
-  const [transcript, setTranscript] = useState<string | null>(null)
-  const [response, setResponse] = useState<string | null>(null)
-  const [statusText, setStatusText] = useState<string | null>(null)
+  const [phase, setPhase] = useState<Phase>('idle')
+  const [timer, setTimer] = useState(0)
+  const [transcript, setTranscript] = useState('')
+  const [reply, setReply] = useState('')
 
-  // Refs for mutable values that must not be stale in callbacks
+  // Refs
+  const mediaStreamRef = useRef<MediaStream | null>(null)
+  const recRef = useRef<MediaRecorder | null>(null)
+  const phaseRef = useRef<Phase>('idle')
   const turnRef = useRef(1)
-  const sessionIdRef = useRef('')
-  const streamRef = useRef<MediaStream | null>(null)
-  const recorderRef = useRef<MediaRecorder | null>(null)
-  const chunksRef = useRef<Blob[]>([])
-  const audioCtxRef = useRef<AudioContext | null>(null)
-  const analyserRef = useRef<AnalyserNode | null>(null)
-  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const stateRef = useRef<State>('idle')
-  const rafRef = useRef<number>(0)
-
-  const displayName = (assistantName && assistantName !== 'null') ? assistantName : 'Asistan'
-
-  // Keep stateRef in sync
-  useEffect(() => { stateRef.current = state }, [state])
-
-  // Generate session ID once
-  if (!sessionIdRef.current) {
-    sessionIdRef.current = typeof crypto !== 'undefined' && crypto.randomUUID
+  const sessionId = useRef(
+    typeof crypto !== 'undefined' && crypto.randomUUID
       ? crypto.randomUUID()
-      : Math.random().toString(36).substring(2, 15) + Date.now().toString(36)
-  }
+      : Math.random().toString(36).substring(2, 15)
+  )
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const ctxRef = useRef<AudioContext | null>(null)
+  const rafRef = useRef<number>(0)
+  const activeRef = useRef(false)
 
-  // Pick best supported mime type
+  // Sync phase → ref
+  useEffect(() => { phaseRef.current = phase }, [phase])
+
+  const name = (assistantName && assistantName !== 'null') ? assistantName : 'Asistan'
+  const biz = restaurantName || 'İşletme'
+
+  // ─── Timer (çağrı başından bitişine kadar kesintisiz akar) ─────
+  const startTimer = useCallback(() => {
+    setTimer(0)
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => setTimer(t => t + 1), 1000)
+  }, [])
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
+  }, [])
+
+  const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
+
+  // ─── VAD (sessizlik algılama) — yalnızca phase 'mic' iken çalışır ──
+  const startVAD = useCallback((stream: MediaStream, onSilence: () => void) => {
+    try {
+      const ctx = new AudioContext()
+      const src = ctx.createMediaStreamSource(stream)
+      const an = ctx.createAnalyser()
+      an.fftSize = 512
+      src.connect(an)
+      ctxRef.current = ctx
+
+      const buf = new Float32Array(an.fftSize)
+      let silenceAt = 0
+
+      const check = () => {
+        if (phaseRef.current !== 'mic') return
+        an.getFloatTimeDomainData(buf)
+        let sum = 0
+        for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i]
+        const rms = Math.sqrt(sum / buf.length)
+
+        if (rms < 0.02) {
+          if (!silenceAt) silenceAt = Date.now()
+          else if (Date.now() - silenceAt > 1400) {
+            onSilence()
+            return
+          }
+        } else silenceAt = 0
+
+        rafRef.current = requestAnimationFrame(check)
+      }
+      rafRef.current = requestAnimationFrame(check)
+    } catch { /* VAD not available */ }
+  }, [])
+
+  const stopVAD = useCallback(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    ctxRef.current?.close().catch(() => {})
+    ctxRef.current = null
+  }, [])
+
   const preferredMimeType = useCallback(() => {
     if (typeof window === 'undefined') return 'audio/webm'
     if (MediaRecorder.isTypeSupported('audio/mp4')) return 'audio/mp4'
@@ -60,356 +108,284 @@ export default function FloatingAIAssistant({
     return ''
   }, [])
 
-  const setStatus = useCallback((s: string | null) => {
-    if (stateRef.current === 'idle') return // don't update if cancelled
-    setStatusText(s)
-  }, [])
-
-  // ─── VAD: detect silence and auto-stop recording ────────────────
-  const startVAD = useCallback((stream: MediaStream) => {
+  const speak = useCallback(async (text: string) => {
     try {
-      const ctx = new AudioContext()
-      const src = ctx.createMediaStreamSource(stream)
-      const analyser = ctx.createAnalyser()
-      analyser.fftSize = 512
-      src.connect(analyser)
-      audioCtxRef.current = ctx
-      analyserRef.current = analyser
-
-      const buffer = new Float32Array(analyser.fftSize)
-      let silenceStart = 0
-      const SILENCE_THRESHOLD = 0.02  // RMS threshold for silence
-      const SILENCE_DURATION_MS = 1200 // 1.2s of silence triggers stop
-
-      const detectSilence = () => {
-        if (stateRef.current !== 'listening') return
-        analyser.getFloatTimeDomainData(buffer)
-        let sum = 0
-        for (let i = 0; i < buffer.length; i++) sum += buffer[i] * buffer[i]
-        const rms = Math.sqrt(sum / buffer.length)
-
-        if (rms < SILENCE_THRESHOLD) {
-          if (silenceStart === 0) silenceStart = Date.now()
-          else if (Date.now() - silenceStart > SILENCE_DURATION_MS) {
-            // Silence detected long enough → stop recording
-            stopRecording()
-            return
-          }
-        } else {
-          silenceStart = 0 // reset on sound
-        }
-        rafRef.current = requestAnimationFrame(detectSilence)
+      const res = await fetch('/api/ai-assistant/speak', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          voice_id: assistantVoice && assistantVoice !== 'yunus' ? assistantVoice : undefined,
+          restaurant_id: restaurantId,
+        }),
+      })
+      if (res.ok) {
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const audio = new Audio(url)
+        await new Promise<void>((resolve) => {
+          audio.onended = () => { URL.revokeObjectURL(url); resolve() }
+          audio.onerror = () => { URL.revokeObjectURL(url); resolve() }
+          audio.play().catch(() => resolve())
+        })
       }
-      rafRef.current = requestAnimationFrame(detectSilence)
-    } catch {
-      // VAD not available, fall back to time-based stop
-    }
-  }, [])
+    } catch { /* audio may fail silently */ }
+  }, [assistantVoice])
 
-  const stopVAD = useCallback(() => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    if (audioCtxRef.current) {
-      audioCtxRef.current.close().catch(() => {})
-      audioCtxRef.current = null
-    }
-    analyserRef.current = null
-    if (silenceTimerRef.current) {
-      clearTimeout(silenceTimerRef.current)
-      silenceTimerRef.current = null
-    }
-  }, [])
+  // ─── Bir tur: dinle → çöz → yanıtla → (devam) ─────────────────
+  const beginTurn = (stream: MediaStream) => {
+    if (!activeRef.current) return
+    setPhase('mic')
 
-  const stopRecording = useCallback(() => {
-    if (recorderRef.current && recorderRef.current.state !== 'inactive') {
-      recorderRef.current.stop()
-    }
-  }, [])
+    const mimeType = preferredMimeType() || 'audio/webm'
+    const recorder = new MediaRecorder(stream, { mimeType })
+    recRef.current = recorder
 
-  // ─── Main voice interaction pipeline ────────────────────────────
-  const startInteraction = useCallback(async () => {
-    if (state !== 'idle') return
+    const chunks: Blob[] = []
+    recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data) }
 
-    // Update turn
     const currentTurn = turnRef.current
     turnRef.current += 1
+    const ext = mimeType.includes('mp4') ? 'mp4' : 'webm'
 
-    setState('connecting')
-    setTranscript(null)
-    setResponse(null)
-    setStatusText('Mikrofon açılıyor...')
+    recorder.onstop = async () => {
+      if (!activeRef.current) return
+      stopVAD()
+
+      const blob = new Blob(chunks, { type: mimeType })
+      if (blob.size < 1000) {
+        // Sessizlik — dinlemeye devam et
+        if (activeRef.current) beginTurn(stream)
+        return
+      }
+
+      setPhase('processing')
+
+      // 1) Whisper transcribe
+      let text = ''
+      try {
+        const fd = new FormData()
+        fd.append('audio_file', blob, `audio.${ext}`)
+        const res = await fetch('/api/ai-assistant/transcribe', { method: 'POST', body: fd })
+        const data = await res.json()
+        text = (data.text as string) ?? ''
+      } catch {
+        if (activeRef.current) beginTurn(stream)
+        return
+      }
+      if (!text) {
+        if (activeRef.current) beginTurn(stream)
+        return
+      }
+      setTranscript(text)
+
+      // 2) Chat API
+      let ans = ''
+      let shouldEnd = false
+      try {
+        const res = await fetch('/api/ai-assistant/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text,
+            restaurant_slug: restaurantSlug,
+            session_id: sessionId.current,
+            turn_number: currentTurn,
+            channel: 'web_voice',
+          }),
+        })
+        const data = await res.json()
+        ans = (data.response as string) ?? ''
+        shouldEnd = !!data.end_call
+      } catch {
+        if (activeRef.current) beginTurn(stream)
+        return
+      }
+      if (!ans) {
+        if (activeRef.current) beginTurn(stream)
+        return
+      }
+      setReply(ans)
+
+      // 3) Speak (TTS) — ses dalgası animasyonu bu fazda görünür
+      setPhase('speaking')
+      await speak(ans)
+
+      // Asistan vedalaştı / rezervasyon tamamlandı → çağrıyı otomatik kapat
+      if (shouldEnd) {
+        endCall()
+        return
+      }
+
+      // Devam et
+      if (activeRef.current) beginTurn(stream)
+    }
+
+    recorder.start()
+    startVAD(stream, () => {
+      if (recorder.state === 'recording') recorder.stop()
+    })
+
+    // Güvenlik: 15 saniye sonra otomatik durdur
+    setTimeout(() => {
+      if (activeRef.current && recorder.state === 'recording') recorder.stop()
+    }, 15000)
+  }
+
+  // ─── Çağrıyı başlat (buton press → getUserMedia) ──────────────
+  const startCall = useCallback(async () => {
+    if (activeRef.current || phase !== 'idle') return
+    activeRef.current = true
+    setTranscript('')
+    setReply('')
+    setPhase('mic')
+    startTimer()
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 16000 },
       })
-      streamRef.current = stream
-      setState('listening')
-      setStatusText('Dinliyorum...')
-
-      const mimeType = preferredMimeType()
-      const recorder = mimeType
-        ? new MediaRecorder(stream, { mimeType })
-        : new MediaRecorder(stream)
-      recorderRef.current = recorder
-      chunksRef.current = []
-
-      const fileExt = mimeType.includes('mp4') ? 'mp4' : 'webm'
-      const fileType = mimeType || 'audio/webm'
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data)
-      }
-
-      recorder.onstop = async () => {
-        stopVAD()
+      if (!activeRef.current) {
         stream.getTracks().forEach(t => t.stop())
-        streamRef.current = null
-
-        const blob = new Blob(chunksRef.current, { type: fileType })
-        if (blob.size < 1000) {
-          setState('idle')
-          setStatusText('Ses algılanamadı')
-          return
-        }
-
-        // ── 1) Transcribe ───────────────────────────────────────
-        setState('transcribing')
-        setStatusText('Ses işleniyor...')
-        let userText = ''
-        try {
-          const formData = new FormData()
-          formData.append('audio_file', blob, `audio.${fileExt}`)
-          const transRes = await fetch('/api/ai-assistant/transcribe', {
-            method: 'POST',
-            body: formData,
-          })
-          const transData = await transRes.json()
-          userText = (transData.text as string) ?? ''
-        } catch {
-          setState('idle')
-          setStatusText('Bağlantı hatası')
-          return
-        }
-
-        if (!userText) {
-          setState('idle')
-          setStatusText('Anlaşılamadı, tekrar deneyin')
-          return
-        }
-        setTranscript(userText)
-
-        // ── 2) Chat ─────────────────────────────────────────────
-        setState('responding')
-        setStatusText('Yanıt hazırlanıyor...')
-        let reply = ''
-        try {
-          const chatRes = await fetch('/api/ai-assistant/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              text: userText,
-              restaurant_slug: restaurantSlug,
-              session_id: sessionIdRef.current,
-              turn_number: currentTurn,
-              channel: 'web_voice',
-            }),
-          })
-          const chatData = await chatRes.json()
-          reply = (chatData.response as string) ?? 'Yanıt alınamadı.'
-        } catch {
-          setState('idle')
-          setStatusText('Bağlantı hatası')
-          return
-        }
-        setResponse(reply)
-
-        // ── 3) Speak (TTS) ──────────────────────────────────────
-        setState('speaking')
-        setStatusText('Yanıt seslendiriliyor...')
-        try {
-          const speakRes = await fetch('/api/ai-assistant/speak', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              text: reply,
-              voice_id: assistantVoice && assistantVoice !== 'yunus' ? assistantVoice : undefined,
-            }),
-          })
-          if (speakRes.ok) {
-            const audioBlob = await speakRes.blob()
-            const audioUrl = URL.createObjectURL(audioBlob)
-            const audio = new Audio(audioUrl)
-            await new Promise<void>((resolve, reject) => {
-              audio.onended = () => {
-                URL.revokeObjectURL(audioUrl)
-                resolve()
-              }
-              audio.onerror = () => {
-                URL.revokeObjectURL(audioUrl)
-                reject()
-              }
-              audio.play().catch(reject)
-            })
-          }
-        } catch {
-          // TTS error — silently continue
-        }
-
-        // ── Done — offer to continue ────────────────────────────
-        setState('idle')
-        setStatusText('Tekrar konuşmak için mikrofon butonuna basın')
+        return
       }
-
-      recorder.start()
-
-      // Start VAD silence detection
-      startVAD(stream)
-
-      // Safety timeout: if user is silent for too long
-      const safetyTimeout = setTimeout(() => {
-        if (recorderRef.current?.state === 'recording') {
-          stopRecording()
-        }
-      }, 15000) // 15s max recording
-      silenceTimerRef.current = safetyTimeout
-
+      mediaStreamRef.current = stream
+      beginTurn(stream)
     } catch {
-      setState('idle')
-      setStatusText('Mikrofon izni yok')
+      activeRef.current = false
+      setPhase('idle')
+      stopTimer()
     }
-  }, [state, restaurantSlug, assistantVoice, preferredMimeType, startVAD, stopVAD])
+  }, [phase, beginTurn, startTimer, stopTimer])
 
-  const handleToggle = useCallback(() => {
-    if (state === 'idle') {
-      startInteraction()
-    } else {
-      // Cancel current interaction
-      stopVAD()
-      if (recorderRef.current?.state === 'recording') {
-        recorderRef.current.stop()
-      } else {
-        recorderRef.current = null
-      }
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(t => t.stop())
-        streamRef.current = null
-      }
-      setState('idle')
-      setStatusText(null)
-      setTranscript(null)
-      setResponse(null)
+  // ─── Çağrıyı sonlandır ─────────────────────────────────────────
+  const endCall = useCallback(() => {
+    activeRef.current = false
+    stopVAD()
+    stopTimer()
+    if (recRef.current && recRef.current.state !== 'inactive') {
+      try { recRef.current.stop() } catch { /* ignore */ }
     }
-  }, [state, startInteraction, stopVAD])
+    mediaStreamRef.current?.getTracks().forEach(t => t.stop())
+    mediaStreamRef.current = null
+    recRef.current = null
+    setPhase('idle')
+  }, [stopVAD, stopTimer])
 
-  const isActive = state !== 'idle'
+  // Cleanup on unmount
+  useEffect(() => () => {
+    activeRef.current = false
+    stopVAD()
+    stopTimer()
+    mediaStreamRef.current?.getTracks().forEach(t => t.stop())
+  }, [stopVAD, stopTimer])
+
+  const active = phase !== 'idle'
 
   return (
     <>
-      {/* Floating button */}
+      {/* Trigger button */}
       <button
         onClick={() => setOpen(v => !v)}
-        className="fixed bottom-24 right-6 z-40 w-14 h-14 rounded-full bg-emerald-600 hover:bg-emerald-700 shadow-lg flex items-center justify-center transition-all hover:scale-105"
+        className="fixed bottom-20 right-5 z-50 w-14 h-14 rounded-full bg-emerald-600 hover:bg-emerald-500 shadow-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
         aria-label="Sesli asistan"
       >
-        <Phone size={22} className="text-white" />
+        <Phone size={20} className="text-white" />
       </button>
 
-      {/* Panel */}
+      {/* Phone-call overlay */}
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-40 right-6 z-40 w-80 bg-stone-900 border border-stone-700 rounded-2xl shadow-2xl overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+            onClick={(e) => { if (e.target === e.currentTarget) setOpen(false) }}
           >
-            {/* Header */}
-            <div className="bg-emerald-700 px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Volume2 size={16} className="text-white" />
-                <span className="text-white font-semibold text-sm">{displayName}</span>
-              </div>
-              <button onClick={() => setOpen(false)} className="text-white/60 hover:text-white">
-                <X size={16} />
-              </button>
-            </div>
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.85, opacity: 0 }}
+              className="relative w-full max-w-sm rounded-3xl bg-stone-900 shadow-2xl overflow-hidden"
+            >
+              {/* Background gradient */}
+              <div className="absolute inset-0 bg-gradient-to-b from-emerald-900/30 to-stone-900 pointer-events-none" />
 
-            {/* Body */}
-            <div className="p-4">
-              <p className="text-xs text-stone-400 mb-3">
-                {restaurantName || 'İşletme'} — Sesli Rezervasyon Asistanı
-              </p>
+              <div className="relative px-8 pt-12 pb-8 flex flex-col items-center text-center">
 
-              {/* Status indicator */}
-              {isActive && (
-                <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-stone-800/50">
-                  <span className={`w-2 h-2 rounded-full ${
-                    state === 'listening' ? 'bg-red-400 animate-pulse' :
-                    state === 'speaking' ? 'bg-green-400' :
-                    'bg-amber-400 animate-pulse'
-                  }`} />
-                  <span className="text-xs text-stone-400">
-                    {state === 'listening' && 'Dinliyor...'}
-                    {state === 'transcribing' && 'Ses çözümleniyor...'}
-                    {state === 'responding' && 'Yanıt hazırlanıyor...'}
-                    {state === 'speaking' && 'Yanıt seslendiriliyor...'}
-                    {state === 'connecting' && 'Bağlanıyor...'}
-                  </span>
+                {/* Avatar — fazı yalnızca animasyonla belli eder */}
+                <div className={`relative w-24 h-24 rounded-full flex items-center justify-center mb-5 transition-colors ${
+                  phase === 'mic' ? 'bg-green-500' :
+                  phase === 'speaking' ? 'bg-emerald-500' :
+                  phase === 'processing' ? 'bg-emerald-600' :
+                  'bg-stone-700'
+                }`}>
+                  {/* Dinlerken yeşil pulse */}
+                  {phase === 'mic' && (
+                    <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-40" />
+                  )}
+                  {phase === 'speaking' ? (
+                    <Volume2 size={32} className="text-white relative" />
+                  ) : phase === 'processing' ? (
+                    <Loader size={28} className="text-white animate-spin relative" />
+                  ) : phase === 'mic' ? (
+                    <Mic size={32} className="text-white relative" />
+                  ) : (
+                    <Phone size={32} className="text-stone-400 relative" />
+                  )}
                 </div>
-              )}
 
-              {/* Transcript */}
-              {transcript && (
-                <div className="bg-stone-800 rounded-lg p-3 mb-3">
-                  <p className="text-xs text-stone-500 mb-1">Söylenen:</p>
-                  <p className="text-sm text-white">&ldquo;{transcript}&rdquo;</p>
-                </div>
-              )}
-
-              {/* Response */}
-              {response && (
-                <div className="bg-emerald-500/10 rounded-lg p-3 mb-3">
-                  <p className="text-xs text-emerald-400 mb-1">{displayName}:</p>
-                  <p className="text-sm text-white">{response}</p>
-                </div>
-              )}
-
-              {/* Main action button */}
-              <button
-                onClick={handleToggle}
-                className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                  state === 'listening'
-                    ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 animate-pulse'
-                    : isActive
-                      ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
-                      : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
-                }`}
-              >
-                {state === 'connecting' ? (
-                  <Loader size={16} className="animate-spin" />
-                ) : state === 'listening' ? (
-                  <Mic size={16} />
-                ) : isActive ? (
-                  <Pause size={16} />
-                ) : (
-                  <Mic size={16} />
+                {/* Konuşurken ses dalgası animasyonu */}
+                {phase === 'speaking' && (
+                  <div className="flex items-center gap-1 mb-3 h-8">
+                    {[1,2,3,4,5].map(i => (
+                      <motion.div
+                        key={i}
+                        animate={{ height: [8, 32 - i * 4, 8] }}
+                        transition={{ repeat: Infinity, duration: 0.8 + i * 0.1, ease: 'easeInOut' }}
+                        className="w-1 rounded-full bg-emerald-400"
+                      />
+                    ))}
+                  </div>
                 )}
-                {state === 'connecting' ? 'Bağlanıyor...' :
-                 state === 'listening' ? 'Durdur' :
-                 isActive ? 'İptal' : 'Sesli Konuş'}
-              </button>
 
-              {statusText && (
-                <p className="text-xs text-stone-500 mt-3 text-center">{statusText}</p>
-              )}
+                {/* Asistan adı + işletme adı — gerçek telefon görüşmesi gibi */}
+                <p className="text-white font-semibold text-lg mb-1">{name}</p>
+                <p className="text-stone-400 text-sm mb-6">{biz}</p>
 
-              {/* History summary */}
-              {!isActive && (transcript || response) && (
-                <p className="text-[10px] text-stone-600 text-center mt-2">
-                  {transcript && response ? 'Görüşme tamamlandı' : ''}
-                </p>
-              )}
-            </div>
+                {/* Timer — çağrı başında 00:00, bitene kadar akar */}
+                {active && (
+                  <div className="text-stone-500 text-xs font-mono mb-6">{fmt(timer)}</div>
+                )}
+
+                {/* Çağrı başlat / sonlandır */}
+                {!active ? (
+                  <button
+                    type="button"
+                    onClick={startCall}
+                    className="mt-2 px-8 py-3 bg-green-500 text-white rounded-full text-sm font-semibold hover:bg-green-600 transition-colors shadow-lg shadow-green-500/20"
+                  >
+                    Sesli Görüşme
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={endCall}
+                    className="mt-2 px-6 py-3 bg-red-500 text-white rounded-full text-sm font-medium hover:bg-red-600 transition-colors select-none"
+                  >
+                    Görüşmeyi Sonlandır
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setOpen(false)}
+                  className="mt-5 text-stone-500 hover:text-white text-xs transition-colors"
+                >
+                  Kapat
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
