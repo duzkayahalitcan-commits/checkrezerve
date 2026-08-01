@@ -113,6 +113,10 @@ export type Restaurant = {
   closed_dates?:             string[] | null
   prepayment_amount?:        number | null
   special_notes?:            string | null
+  dress_code?:               string | null
+  ai_assistant_enabled?:      boolean | null
+  ai_assistant_name?:         string | null
+  ai_assistant_voice?:        string | null
 }
 
 export type Service = {
