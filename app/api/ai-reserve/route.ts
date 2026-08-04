@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
-import { getAnthropicClient } from '@/lib/anthropic'
 import { getSupabase, getSupabaseAdmin } from '@/lib/supabase'
 import { notifyReservationEvent } from '@/lib/notification-orchestrator'
 import { rateLimit } from '@/lib/rate-limit'
@@ -76,20 +74,31 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 2. Claude API ile bilgileri çıkar
-    const client = getAnthropicClient()
-    const aiResponse = await client.messages.parse({
-      model: 'claude-opus-4-6',
-      max_tokens: 1024,
-      thinking: { type: 'adaptive' },
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: message }],
-      output_config: {
-        format: zodOutputFormat(ExtractionSchema),
-      },
+    // 2. DeepSeek API ile bilgileri çıkar (JSON mode)
+    const apiKey = process.env.DEEPSEEK_API_KEY
+    if (!apiKey) throw new Error('DEEPSEEK_API_KEY not configured')
+
+    const deepSeekRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: 'deepseek-v4-flash',
+        max_tokens: 1024,
+        temperature: 0.2,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: `${SYSTEM_PROMPT}\n\nYanıtını yalnızca aşağıdaki JSON şemasına uygun olarak döndür:\n${JSON.stringify(ExtractionSchema.shape)}` },
+          { role: 'user', content: message },
+        ],
+      }),
     })
 
-    const extracted = aiResponse.parsed_output
+    if (!deepSeekRes.ok) throw new Error(`DeepSeek error: ${deepSeekRes.status}`)
+    const deepSeekJson = await deepSeekRes.json()
+
+    const parsedJson = JSON.parse(deepSeekJson.choices?.[0]?.message?.content ?? '{}')
+    const extracted = ExtractionSchema.parse(parsedJson)
+
     if (!extracted) {
       return NextResponse.json({ error: 'Mesaj analiz edilemedi' }, { status: 422 })
     }
@@ -168,8 +177,8 @@ export async function POST(req: NextRequest) {
       extracted,
       reply: extracted.reply,
       usage: {
-        input_tokens:  aiResponse.usage.input_tokens,
-        output_tokens: aiResponse.usage.output_tokens,
+        input_tokens:  deepSeekJson.usage?.prompt_tokens ?? 0,
+        output_tokens: deepSeekJson.usage?.completion_tokens ?? 0,
       },
     })
   } catch (err) {
