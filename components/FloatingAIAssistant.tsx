@@ -169,7 +169,15 @@ export default function FloatingAIAssistant({
       await new Promise<void>((resolve) => {
         audio.onended = () => { URL.revokeObjectURL(url); resolve() }
         audio.onerror = () => { URL.revokeObjectURL(url); resolve() }
-        audio.play().catch((e) => { console.error('[voice] audio play hatası:', e); URL.revokeObjectURL(url); resolve() })
+        audio.play().catch((e) => {
+          console.error('[voice] audio play hatası:', e)
+          URL.revokeObjectURL(url)
+          // Autoplay blok / ses çalınamazsa kullanıcıya görünür geri bildirim ver
+          if (e && typeof e === 'object' && 'name' in e && (e as { name?: string }).name === 'NotAllowedError') {
+            handleError(new Error('Tarayıcı sesi engelledi. Lütfen çağrıyı tekrar başlatın.'), 'Ses çalınamadı')
+          }
+          resolve()
+        })
       })
       return true
     } catch (err) {
@@ -288,6 +296,17 @@ export default function FloatingAIAssistant({
   // ─── Çağrıyı başlat (buton press → getUserMedia) ──────────────
   const startCall = useCallback(async () => {
     if (activeRef.current || phase !== 'idle') return
+
+    // Kullanıcı jestiyle senkron bir play() çağırarak Autoplay Policy'yi unlock et.
+    // Mobil Chrome/Safari, kullanıcı etkileşimi olmadan başlayan sesi sessizce engeller.
+    // Burada 1px'lik sessiz bir Audio element çalınır; böylece sonraki async play()'ler
+    // (getUserMedia → transcribe → chat → speak) tarayıcı tarafından engellenmez.
+    try {
+      const unlockAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAD/AP8A')
+      unlockAudio.volume = 0
+      unlockAudio.play().catch(() => { /* unlock denemesi — sessizce geç */ })
+    } catch { /* autoplay unlock başarısız olursa sesli yanıt hata feedback'i gösterir */ }
+
     activeRef.current = true
     setTranscript('')
     setReply('')
