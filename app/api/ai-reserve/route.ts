@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getSupabase, getSupabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase'
 import { notifyReservationEvent } from '@/lib/notification-orchestrator'
 import { rateLimit } from '@/lib/rate-limit'
 import { checkFeatureFlag } from '@/lib/feature-flags'
@@ -112,9 +112,8 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // 3. Supabase'e kaydet
-    const supabase = getSupabase()
-    const { data: reservation, error: dbError } = await supabase
+    // 3. Supabase'e kaydet — service role (RLS bypass, panel API route'larıyla tutarlı)
+    const { data: reservation, error: dbError } = await getSupabaseAdmin()
       .from('reservations')
       .insert({
         customer_name:    extracted.customer_name,
