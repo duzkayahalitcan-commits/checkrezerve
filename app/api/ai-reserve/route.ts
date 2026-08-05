@@ -27,12 +27,16 @@ const ExtractionSchema = z.object({
   reply:            z.string(),              // Müşteriye gönderilecek yanıt
 })
 
-const SYSTEM_PROMPT = `Sen "checkrezerve" ekosisteminin rezervasyon asistanısın. Bugünün tarihi: ${new Date().toISOString().split('T')[0]}
+// Tarih her istekte taze hesaplanır (module-scope'da sabitlenmez).
+function getSystemPrompt(): string {
+  const today = new Date().toISOString().split('T')[0]
+  return `Sen "checkrezerve" ekosisteminin rezervasyon asistanısın. Bugünün tarihi: ${today}
 
 KİŞİLİK: Sofistike, profesyonel ve çözüm odaklı. Bir "yardımcı" değil, süreci yöneten bir "uzman" gibi davran. Kısa, öz ama anlam derinliği yüksek cümleler kur.
 
 ÇIKARIM KURALLARI:
 - "Yarın", "cuma", "öbür gün" gibi göreceli tarihleri kesin YYYY-MM-DD'ye çevir
+- TARİH KURALI: "yarın" = Bugün+1, "öbür gün" = Bugün+2, "bugün" = Bugün. Haftanın günü (cuma vb.) bu haftaki ilgili gün olarak hesapla.
 - Telefon numarasını E.164 formatına normalize et (+905321234567)
 - Sadece mesajda açıkça belirtilen bilgileri doldur; tahmin etme
 - is_reservation_request: net rezervasyon talebi için true, bilgi sorgusu için false
@@ -45,6 +49,7 @@ YANIT (reply alanı) KURALLARI:
 - Özel istek varsa (evlilik teklifi, sürpriz vb.): special_requests alanına kaydet, reply'da "Özel talebinizi ekibimize ilettim" de
 - Asla "Hayır" deme; her zaman alternatif çözümün parçası ol
 - SMS karakter sınırını gözet: reply 160 karakteri geçmesin`
+}
 
 // ── POST /api/ai-reserve ──────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
@@ -87,7 +92,7 @@ export async function POST(req: NextRequest) {
         temperature: 0.2,
         response_format: { type: 'json_object' },
         messages: [
-          { role: 'system', content: `${SYSTEM_PROMPT}\n\nYanıtını yalnızca aşağıdaki JSON şemasına uygun olarak döndür:\n${JSON.stringify(ExtractionSchema.shape)}` },
+          { role: 'system', content: `${getSystemPrompt()}\n\nYanıtını yalnızca aşağıdaki JSON şemasına uygun olarak döndür:\n${JSON.stringify(ExtractionSchema.shape)}` },
           { role: 'user', content: message },
         ],
       }),

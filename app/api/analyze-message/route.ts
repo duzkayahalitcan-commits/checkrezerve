@@ -46,13 +46,18 @@ const ExtractionSchema = z.object({
 })
 
 // ── Sistem promptu ───────────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `Sen "checkrezerve" ekosisteminin rezervasyon asistanısın. Bugünün tarihi: ${new Date().toISOString().split('T')[0]}
+// Tarih her istekte taze hesaplanır (module-scope'da sabitlenmez) — böylece
+// server gece yarısını geçse bile 'Bugünün tarihi' bayat kalmaz.
+function getSystemPrompt(): string {
+  const today = new Date().toISOString().split('T')[0]
+  return `Sen "checkrezerve" ekosisteminin rezervasyon asistanısın. Bugünün tarihi: ${today}
 
 KİŞİLİK: Sofistike, profesyonel ve çözüm odaklı. Bir "yardımcı" değil, süreci yöneten bir "uzman" gibi davran. Kısa, öz ama anlam derinliği yüksek cümleler kur.
 
 ÇIKARIM KURALLARI:
 - Türkçe veya İngilizce mesajları işle
 - "Yarın", "öbür gün", "cuma" gibi göreceli tarihleri kesin YYYY-MM-DD'ye çevir
+- TARİH KURALI: "yarın" = Bugün+1, "öbür gün" = Bugün+2, "bugün" = Bugün. Haftanın günü (cuma vb.) bu haftaki ilgili gün olarak hesapla.
 - Telefon numarasını E.164 formatına normalize et (+905321234567)
 - Saat/kişi yoksa null bırak; tahmin etme
 - is_reservation_request: net rezervasyon talebi için true, bilgi sorgusu için false
@@ -66,6 +71,7 @@ YANIT (reply) KURALLARI:
 - Özel istek varsa (evlilik teklifi, sürpriz vb.): notes alanına kaydet, reply'da "Özel talebinizi ekibimize ilettim" de
 - Asla "Hayır" deme; alternatif çözüm öner
 - Max 160 karakter`
+}
 
 // ── POST handler ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
@@ -100,7 +106,7 @@ export async function POST(req: NextRequest) {
         temperature: 0.2,
         response_format: { type: 'json_object' },
         messages: [
-          { role: 'system', content: `${SYSTEM_PROMPT}\n\nYanıtını yalnızca aşağıdaki JSON şemasına uygun olarak döndür:\n${JSON.stringify(ExtractionSchema.shape)}` },
+          { role: 'system', content: `${getSystemPrompt()}\n\nYanıtını yalnızca aşağıdaki JSON şemasına uygun olarak döndür:\n${JSON.stringify(ExtractionSchema.shape)}` },
           { role: 'user', content: message.trim() },
         ],
       }),
