@@ -8,7 +8,7 @@ import { checkFeatureFlag } from '@/lib/feature-flags'
 // ── Giriş şeması ─────────────────────────────────────────────────────────────
 const RequestSchema = z.object({
   message:       z.string().min(1).max(2000),
-  restaurant_id: z.string().uuid().optional(),
+  restaurant_id: z.string().uuid(),  // NOT NULL (no default) — zorunlu
   branch_id:     z.string().uuid().optional(),
 })
 
@@ -116,18 +116,19 @@ export async function POST(req: NextRequest) {
     const { data: reservation, error: dbError } = await getSupabaseAdmin()
       .from('reservations')
       .insert({
-        customer_name:    extracted.customer_name,
-        phone:            extracted.phone,
-        date:             extracted.date,
-        reserved_time:    extracted.time,
-        party_size:       extracted.party_size ?? 1,
-        special_requests: extracted.special_requests,
-        restaurant_id:    restaurant_id ?? null,
-        branch_id:        branch_id ?? null,
-        status:           'confirmed',
-        source:           'ai',
+        restaurant_id:  restaurant_id ?? null,
+        branch_id:      branch_id ?? null,
+        // NOT NULL zorunlu kolonlar — doğru DB kolon adları (23502 not-null ihlalini önler)
+        guest_name:     extracted.customer_name,
+        guest_phone:    extracted.phone,
+        reserved_date:  extracted.date,
+        reserved_time:  extracted.time,
+        party_size:     extracted.party_size ?? 1,
+        status:         'confirmed',
+        source:         'ai',
         original_message: message,
-        ai_confidence:    extracted.confidence,
+        ai_confidence:  extracted.confidence,
+        special_requests: extracted.special_requests,
       })
       .select()
       .single()
