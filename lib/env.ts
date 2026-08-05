@@ -8,7 +8,6 @@ const REQUIRED = [
   'ADMIN_SECRET',
   'ADMIN_PASSWORD',
   'CRON_SECRET',
-  'ANTHROPIC_API_KEY',
   'N8N_DB_PASSWORD',
 ] as const
 
