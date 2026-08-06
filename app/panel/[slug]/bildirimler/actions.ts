@@ -100,7 +100,11 @@ async function renderTemplate(
   return template.replace(/\{(\w+)\}/g, (_, key: string) => vars[key] ?? `{${key}}`)
 }
 
-// SMS hedeflerini topla (guests.phone + reservations.guest_phone, distinct)
+// SMS hedeflerini topla (yalnızca KVKK pazarlama onayı veren müşteriler)
+// KVKK: toplu pazarlama SMS'i yalnızca sms_consent=true olan rezervasyon
+// müşterilerine gönderilir. guests tablosunda konsent kolonu olmadığından,
+// guests kaynaklı telefonlar pazarlama SMS'i için DAHİL EDİLMEZ (yasal risk).
+// Push bilinçli aboneliktir ve konsent gerektirmez.
 async function collectSmsTargets(
   db: ReturnType<typeof getSupabaseAdmin>,
   restaurantId: string,
@@ -110,41 +114,17 @@ async function collectSmsTargets(
   const targets = new Map<string, string>() // phone -> name
 
   if (hedef === 'paket_sahipleri') {
-    // Paket sahipleri için telefon numaraları guests üzerinden
-    const { data: paketler } = await db
-      .from('musteri_paketleri')
-      .select('musteri_id')
-      .eq('restaurant_id', restaurantId)
-      .eq('aktif', true)
-    const userIds = paketler?.map(p => p.musteri_id) ?? []
-    if (userIds.length === 0) return []
-    // user_id -> phone eşlemesi: guests üzerinde user_id yok, reservations.guest_phone yok.
-    // Supabase Auth user e-posta ile eşleşmez; telefon kaynağı yok. Bu nedenle
-    // paket sahibi telefonlarını bulmak için guests tablosuna bakılamıyor.
-    // Telefon yoksa bu hedef SMS için boş döner (push için kullanılır).
+    // Paket sahipleri için SMS: musteri_paketleri sahiplerinin telefonları
+    // guests'te konsent olmadığından bulunamıyor; push için kullanılır.
     return []
   }
 
-  // tum_musteriler için guests telefonlarını topla.
-  // NOT: 'rezervasyon_tarih' hedefi SADECE o tarih aralığındaki rezervasyon
-  // müşterilerini hedefler; guests tabanlı tüm müşterileri DAHİL ETMEZ.
-  if (hedef !== 'rezervasyon_tarih') {
-    let guestsQuery = db
-      .from('guests')
-      .select('name, phone')
-      .eq('restaurant_id', restaurantId)
-      .not('phone', 'is', null)
-    const { data: guests } = await guestsQuery
-    for (const g of guests ?? []) {
-      const phone = g.phone!.trim()
-      if (phone) targets.set(phone, g.name)
-    }
-  }
-
+  // SMS hedefleri yalnızca sms_consent=true rezervasyon müşterileri.
   let resQuery = db
     .from('reservations')
-    .select('guest_name, guest_phone, reserved_date')
+    .select('guest_name, guest_phone')
     .eq('restaurant_id', restaurantId)
+    .eq('sms_consent', true)
     .not('guest_phone', 'is', null)
   if (hedef === 'rezervasyon_tarih' && filtre?.baslangic) {
     resQuery = resQuery.gte('reserved_date', filtre.baslangic)

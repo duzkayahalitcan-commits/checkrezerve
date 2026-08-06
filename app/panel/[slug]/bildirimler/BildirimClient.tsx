@@ -266,8 +266,8 @@ export default function BildirimClient({ slug, logs: initialLogs, templates: ini
                   className="w-full bg-stone-800 border border-stone-700 rounded-xl px-4 py-3 text-sm text-white outline-none">
                   {bulkForm.tip === 'sms' && (
                     <>
-                      <option value="tum_musteriler">Tüm müşteriler (telefon)</option>
-                      <option value="rezervasyon_tarih">Belirli tarih aralığında rezervasyon yapanlar</option>
+                      <option value="tum_musteriler">Onaylı müşteriler (SMS izni verenler)</option>
+                      <option value="rezervasyon_tarih">Onaylı + belirli tarih aralığında rezervasyon yapanlar</option>
                     </>
                   )}
                   {bulkForm.tip === 'push' && (
@@ -306,7 +306,7 @@ export default function BildirimClient({ slug, logs: initialLogs, templates: ini
               </div>
 
               <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-[11px] text-amber-300/90">
-                ⚠️ SMS gönderimi maliyet doğurur. En fazla 500 alıcı desteklenir. Gönderim onay ister.
+                ⚠️ SMS yalnızca SMS izni (sms_consent) veren müşterilere gider (KVKK). Maliyet doğurur; en fazla 500 alıcı. Gönderim onay ister.
               </div>
 
               <button onClick={handleBulkSend} disabled={bulkSending || !bulkForm.mesaj.trim()}
