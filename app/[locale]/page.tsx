@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     description: 'Restoran, güzellik salonu ve spa rezervasyonu — saniyeler içinde.',
     url: 'https://checkrezerve.com',
     siteName: 'CheckRezerve',
-    images: [{ url: 'https://checkrezerve.com/images/og-home.jpg', width: 1200, height: 630 }],
+    images: [{ url: 'https://checkrezerve.com/api/og?title=CheckRezerve&type=Online%20Rezervasyon', width: 1200, height: 630 }],
     type: 'website',
   },
 }
