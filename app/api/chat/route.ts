@@ -9,7 +9,7 @@ async function callDeepSeek(systemPrompt: string, messages: {role: string, conte
   const res = await fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'deepseek-chat', max_tokens: 512, messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-6)] }),
+    body: JSON.stringify({ model: 'deepseek-chat', max_tokens: 512, temperature: 0.2, messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-6)] }),
   })
   if (!res.ok) throw new Error(`DeepSeek error: ${res.status}`)
   return (await res.json()).choices[0].message.content
@@ -98,7 +98,7 @@ DAVRANIŞ KURALLARI:
 
 İŞLETME BİLGİSİ:
 - Ad: ${businessName}
-- Tür: ${effectiveBusinessType}
+- Tür: ${effectiveBusinessType} (Supabase'ten doğrulanmış; bu değeri kullan, asla varsayılan olarak 'restoran' veya başka bir tip alma)
 - Rezervasyon sayfası: ${businessUrl}
 - Müsait slotlar: ${JSON.stringify(availableSlots || [])}
 
@@ -113,7 +113,8 @@ DAVRANIŞ KURALLARI:
 6. Türkçe, kısa ve samimi cevaplar ver
 7. Kullanıcı mesajı anlamsız/saçmaysa tahmin yürütme, aynen de: "Sizi tam anlayamadım, tekrar eder misiniz?"
 8. Asla eksik bilgiyle veya onay almadan "oluşturuldu/onaylandı" deme
-9. Bu bir ${effectiveBusinessType} olduğu için müşterinin amacını buna göre yorumla (${effectiveBusinessType === 'restaurant' || effectiveBusinessType === 'restoran' ? 'masa/rezervasyon, menü' : effectiveBusinessType === 'hairdresser' || effectiveBusinessType === 'kuaför' || effectiveBusinessType === 'barber' ? 'saç/berber randevusu' : effectiveBusinessType === 'spa' ? 'masaj/seans' : 'randevu/hizmet'}) ve buna göre yönlendir`
+9. Bu bir ${effectiveBusinessType} olduğu için müşterinin amacını buna göre yorumla (${effectiveBusinessType === 'restaurant' || effectiveBusinessType === 'restoran' ? 'masa/rezervasyon, menü' : effectiveBusinessType === 'hairdresser' || effectiveBusinessType === 'kuaför' || effectiveBusinessType === 'barber' ? 'saç/berber randevusu' : effectiveBusinessType === 'spa' ? 'masaj/seans' : 'randevu/hizmet'}) ve buna göre yönlendir
+10. YALNIZCA GERÇEK VERİYE DAYAN: Fiyat, hizmet, menü, müsaitlik gibi bilgileri asla uydurma/tahmin etme. Supabase'ten gelen müsait slotlar ve doğrulanmış işletme tipi dışında bilgin yoksa: "Bu konuda emin değilim, işletmeyle iletişime geçelim mi?" de. İşletme tipini asla varsayılan olarak alma; bir kuaför için masa/menü önerme.`
     try {
       const msgs = (messages ?? []) as {role: string, content: string}[]
       // Saçma / anlamsız mesaj koruması

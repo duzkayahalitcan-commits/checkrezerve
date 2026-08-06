@@ -99,22 +99,98 @@ export async function getFeatures(restaurantId: string): Promise<{ ozellikler: s
   }
 }
 
-// ─── Sistem promptu (W-75 + W-76 + KRİTİK onay kuralı + saçma koruma) ──
+// ─── RAG: işletmenin gerçek hizmet + fiyat verisini çek ────────────
+// CHATBOT MUHTEŞEM ADIM 1: Bot asla tahmin etmesin; soruyu DeepSeek'e
+// göndermeden önce Supabase'ten gerçek hizmetleri/fiyatları çekip
+// prompt'a ekler. Hizmetler tablosu (services) yoksa hizmetler tablosuna
+// (hizmetler) düşer; ikisi de boşsa boş döner (sonraki adım yakalar).
+export async function getServiceMenu(restaurantId: string): Promise<string> {
+  try {
+    const db = getSupabaseAdmin()
+
+    // Birincil: services (restoran/çok sektörlü şema)
+    const { data: svc } = await db
+      .from('services')
+      .select('name, duration_minutes, price, currency')
+      .eq('restaurant_id', restaurantId)
+      .eq('is_active', true)
+      .order('sort_order')
+    if (svc && svc.length > 0) {
+      return (svc as Record<string, unknown>[])
+        .map(s => {
+          const dur = s.duration_minutes as number | null
+          const fiyat = s.price as number | null
+          const cur = (s.currency as string) ?? 'TRY'
+          return `- ${s.name}${dur ? ` (${dur} dk)` : ''}${fiyat != null ? `: ${fiyat} ${cur}` : ''}`
+        })
+        .join('\n')
+    }
+
+    // İkincil: hizmetler (eski/berber-kuaför şeması)
+    const { data: hiz } = await db
+      .from('hizmetler')
+      .select('ad, sure_dakika, fiyat')
+      .eq('restaurant_id', restaurantId)
+      .eq('aktif', true)
+      .order('created_at')
+    if (hiz && hiz.length > 0) {
+      return (hiz as Record<string, unknown>[])
+        .map(h => {
+          const dur = h.sure_dakika as number | null
+          const fiyat = h.fiyat as number | null
+          return `- ${h.ad}${dur ? ` (${dur} dk)` : ''}${fiyat != null ? `: ${fiyat} TRY` : ''}`
+        })
+        .join('\n')
+    }
+
+    return ''
+  } catch {
+    return ''
+  }
+}
+
+// ─── RAG: bugün dolu olan saat dilimleri ───────────────────────────
+// Bot'un "şu an müsaitlik var mı?" sorusuna gerçek veriyle cevap
+// verebilmesi için bugünün dolu slotlarını döndürür (tahmin yok).
+export async function getTodayAvailability(restaurantId: string): Promise<string> {
+  try {
+    const db = getSupabaseAdmin()
+    const today = new Date().toISOString().split('T')[0]
+    const { data } = await db
+      .from('reservations')
+      .select('reserved_time')
+      .eq('restaurant_id', restaurantId)
+      .or(`reserved_date.eq.${today},date.eq.${today}`)
+      .neq('status', 'cancelled')
+    const times = [...new Set((data ?? []).map(r => (r as Record<string, unknown>).reserved_time as string).filter(Boolean))].sort()
+    return times.length > 0 ? times.join(', ') : ''
+  } catch {
+    return ''
+  }
+}
+
+// ─── Sistem promptu (W-75 + W-76 + KRİTİK onay kuralı + saçma koruma + RAG) ──
 export interface PromptParams {
   biz: BizCtx
   maxTurn: boolean
   featureLines?: { ozellikler: string; diger: string }
   genderHintLine?: string | null
   voice?: boolean
+  serviceMenu?: string
+  todayBusy?: string
 }
 
-export function buildSystemPrompt({ biz, maxTurn, featureLines, genderHintLine, voice }: PromptParams): string {
+export function buildSystemPrompt({ biz, maxTurn, featureLines, genderHintLine, voice, serviceMenu, todayBusy }: PromptParams): string {
   const asistanAdi = biz.assistant_name ?? 'Asistan'
   const { ozellikler, diger } = featureLines ?? { ozellikler: '', diger: '' }
   const ozellikBlock = ozellikler ? `İŞLETME ÖZELLİKLERİ:\n${ozellikler}` : ''
   const digerBlock = diger ? `DİĞER BİLGİLER:\n${diger}` : ''
   // İşletme tipi bağlamı (restoran/kuaför/masaj/berber/psikolog...)
   const tip = biz.business_type ? (BUSINESS_TYPE_LABELS[biz.business_type] ?? biz.business_type) : null
+  // RAG bloğu: hizmet/fiyat + bugünkü dolu saatler (yalnızca gerçek veri)
+  const serviceBlock = serviceMenu ? `HİZMETLER VE FİYATLAR (SADECE bu listedeki gerçek veriyi kullan):
+${serviceMenu}` : ''
+  const busyBlock = todayBusy ? `BUGÜN DOLU SAATLER: ${todayBusy}` : ''
   // Öğrenilen isim için cinsiyet ipucu (deterministik, güvenli)
   const genderLine = genderHintLine ? `\nHİTAP NOTU: ${genderHintLine}` : ''
   // Sesli görüşme ek kuralları
@@ -128,7 +204,7 @@ SESLİ GÖRÜŞME KURALLARI (öncelikli):
   return `Sen ${biz.name} asistanısın, adın ${asistanAdi}. Cevaplar 1-2 cümle, sesli okunur, kısa.
 
 İşletme: ${biz.name}${tip ? ` (${tip})` : ''} | Tel ${biz.phone ?? 'Yok'} | Adres ${biz.address ?? 'Yok'} | Web https://checkrezerve.com/tr/${biz.slug} | Çalışma ${saatYanit(biz.working_hours) ?? 'Bilinmiyor'}
-${ozellikBlock ? `\n${ozellikBlock}` : ''}${digerBlock ? `\n${digerBlock}` : ''}
+${serviceBlock ? `\n${serviceBlock}` : ''}${busyBlock ? `\n${busyBlock}` : ''}${ozellikBlock ? `\n${ozellikBlock}` : ''}${digerBlock ? `\n${digerBlock}` : ''}
 
 ÇEKİRDEK PRENSİPLER:
 - Görevin sohbet etmek değil, kullanıcının hedefini (rezervasyon/randevu) sonuca ulaştırmak.
@@ -139,6 +215,8 @@ ${ozellikBlock ? `\n${ozellikBlock}` : ''}${digerBlock ? `\n${digerBlock}` : ''}
 - Nazik, profesyonel, kısa ve anlaşılır ol; uzun açıklamalardan kaçın.
 - İşletme kuralları kullanıcı isteğiyle çelişirse İŞLETME KURALLARI ÖNCELİKLİDİR.
 - Her mesajdan sonra içsel değerlendir: (1) amaç nedir? (2) hangi bilgi eksik? (3) sonraki en doğru soru? (4) rezervasyon tamamlanabilir mi?
+- VERİYE DAYAN (KRİTİK): Yalnızca yukarıda verilen GERÇEK VERİYE (işletme tipi, çalışma saatleri, hizmetler, fiyatlar, dolu saatler, özellikler) dayanarak cevap ver. Asla tahmin etme, asla varsayımda bulunma, asla uydurma. Veri yoksa veya emin değilsen: "Bu konuda emin değilim, işletmeyle iletişime geçelim mi?" de, uydurma cevap verme.
+- İŞLETME TİPİNİ ASLA VARSAYMA: Yukarıda "(restoran/kuaför/psikolog...)" olarak verilen işletme tipi neyse onu kullan. Boşsa veya verilmemişse varsayılan olarak 'restoran' veya başka bir tipi alma — emin değilsen kullanıcıya hangi tür işletme olduğunu sor veya tip olmadan yanıtla. Örn. bir kuaför için masa rezervasyonu/menü önerme; restoran için saç kesimi fiyatı uydurma.
 
 KURALLAR:
 0) BAĞLAM: Bu bir ${tip ?? 'işletme'} ${tip === 'restoran' ? '— müşteri genellikle masa/rezervasyon, adisyon veya menü sorar' : tip === 'kuaför' || tip === 'barber' ? '— müşteri genellikle randevu almak, hizmet veya fiyat sorar' : tip === 'spa' || tip === 'masaj' ? '— müşteri genellikle masaj seansı, randevu veya paket sorar' : tip === 'psikolog' ? '— müşteri genellikle seans/randevu ayarlamak ister' : '— müşteri hizmet veya randevu ile ilgilenir'}. Kullanıcının asıl amacını (rezervasyon mu, bilgi mi, randevu mu) buna göre yorumla; ayrım belirsizse tek net soru sor.
@@ -151,6 +229,21 @@ KURALLAR:
 7) SAÇMA/ANLAMSIZ MESAJ KORUMASI: Gelen mesaj Türkçe anlamlı değilse veya bağlamla hiç alakasızsa (rastgele karakterler, anlamsız kelimeler, işletme/rezervasyonla ilgisiz konu) tahmin yürütüp akışta ilerleme. Aynen şunu söyle: "Sizi tam anlayamadım, tekrar eder misiniz?" Asla boş bilgiyle "oluşturuldu" deme.
 ${ozellikler || diger ? `8) Müşteri bir özellik sorduğunda SADECE yukarıdaki listedeki bilgiyi kullan. VAR ise notuyla birlikte olumlu cevapla. YOK ise nazikçe belirt. BİLGİ ALIN veya özellik hakkında bilgi yoksa: "Bu konuda kesin bilgi veremiyorum, işletmeyi arayarak öğrenebilirsiniz: ${biz.phone ?? 'işletme telefonu'}". Listede OLMAYAN bir özellik sorulursa da işletmeye yönlendir ve ASLA uydurma.` : `8) Müşteri bir özellik sorduğunda (otopark, wifi, evcil hayvan vb.) bilgin yoksa: "Bu konuda kesin bilgi veremiyorum, işletmeyi arayarak öğrenebilirsiniz: ${biz.phone ?? 'işletme telefonu'}". ASLA uydurma.`}
 ${maxTurn ? '9) Konuşma uzadı: nazikçe sonuca bağla — rezervasyonu tamamla ya da telefonunu vererek yönlendir.' : ''}${voiceRules}
+
+ÖRNEK DOĞRU/YANLIŞ DAVRANIŞLAR (few-shot):
+Kullanıcı: "Saç kesimi kaç TL?"
+YANLIŞ: "Restoranımızda masa rezervasyonu yapabilirsiniz." (işletme kuaför ise bu YANLIŞTIR)
+DOĞRU: "Saç kesimi hizmetimiz listemizde varsa fiyatını söyle; listede yoksa: 'Bu konuda emin değilim, işletmeyle iletişime geçelim mi?'"
+
+Kullanıcı: "Menünüzde ne var?"
+YANLIŞ: Bir menü listesi uydurmak veya yemek fiyatı tahmin etmek.
+DOĞRU: Hizmetler listesine bak; menü bilgisi yoksa: "Menü bilgim yok, bu konuda emin değilim, işletmeyle iletişime geçelim mi?"
+
+Kullanıcı: "Bugün müsait misiniz?"
+DOĞRU: "Bugün dolu saatler: ..." bilgisi varsa söyle; yoksa çalışma saatlerini söyle ve rezervasyon için eksik bilgiyi sor. Asla "evet dolu değil" gibi tahmin yürütme.
+
+Kullanıcı: "Otopark var mı?"
+DOĞRU: Özellik listesine bak. Listede yoksa: "Bu konuda kesin bilgi veremiyorum, işletmeyi arayarak öğrenebilirsiniz." Asla evet/hayır uydurma.
 `
 }
 
@@ -229,7 +322,7 @@ export async function callDeepSeek(systemPrompt: string, messages: ChatMsg[], ma
   const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-    body: JSON.stringify({ model: 'deepseek-chat', messages: apiMessages, max_tokens: maxTokens, temperature: 0.7, stream: false }),
+    body: JSON.stringify({ model: 'deepseek-chat', messages: apiMessages, max_tokens: maxTokens, temperature: 0.2, stream: false }),
   })
   if (!res.ok) throw new Error(`DeepSeek error: ${res.status}`)
   const json = await res.json()

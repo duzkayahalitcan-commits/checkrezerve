@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { rateLimit } from '@/lib/rate-limit'
 import {
   buildSystemPrompt, callDeepSeek, detectGibberish, enforceReservationApproval,
-  getFeatures, isFarewell, isGreeting, logTurn, normalizeText,
+  getFeatures, getServiceMenu, getTodayAvailability, isFarewell, isGreeting, logTurn, normalizeText,
   type ChatMsg,
 } from '@/lib/assistant-brain'
 import { genderHint, extractNameFromHistory } from '@/lib/assistant-gender'
@@ -83,11 +83,16 @@ export async function POST(request: NextRequest) {
     // ── W-75/76 beyin ────────────────────────────────────────────────
     const maxTurn = turn_number > 12
     const features = await getFeatures(biz.id)
+    // CHATBOT MUHTEŞEM ADIM 1: gerçek hizmet/fiyat + bugünkü dolu saatler
+    const [serviceMenu, todayBusy] = await Promise.all([
+      getServiceMenu(biz.id),
+      getTodayAvailability(biz.id),
+    ])
     const genderHintLine = (() => {
       const name = extractNameFromHistory(history)
       return name ? genderHint(name) : null
     })()
-    const systemPrompt = buildSystemPrompt({ biz, maxTurn, featureLines: features, genderHintLine })
+    const systemPrompt = buildSystemPrompt({ biz, maxTurn, featureLines: features, genderHintLine, serviceMenu, todayBusy })
 
     try {
       let reply = await callDeepSeek(systemPrompt, history, 200)

@@ -5,7 +5,7 @@ import { checkCache } from '@/lib/audio-cache'
 import type { ResponseSource } from '@/lib/conversation-logger'
 import {
   buildSystemPrompt, callDeepSeek, detectGibberish, enforceReservationApproval,
-  getFeatures, isFarewell, isGreeting, logTurn, normalizeText, saatYanit,
+  getFeatures, getServiceMenu, getTodayAvailability, isFarewell, isGreeting, logTurn, normalizeText, saatYanit,
   type BizCtx, type ChatMsg,
 } from '@/lib/assistant-brain'
 import { checkFeatureFlag } from '@/lib/feature-flags'
@@ -139,12 +139,18 @@ export async function POST(req: NextRequest) {
 
   const maxTurn = Number(turn_number ?? 0) > 12
   const features = await getFeatures(biz.id)
+  // CHATBOT MUHTEŞEM ADIM 1: soruyu DeepSeek'e göndermeden önce gerçek
+  // hizmet/fiyat ve bugünkü dolu saatleri Supabase'ten çek, prompt'a ekle.
+  const [serviceMenu, todayBusy] = await Promise.all([
+    getServiceMenu(bid),
+    getTodayAvailability(bid),
+  ])
   const history = await getHistory(session_id ?? '')
   // Öğrenilen isimden cinsiyet ipucu üret (deterministik, güvenli)
   const userName = extractNameFromHistory([...history, { role: 'user' as const, content: text }])
   const genderHintLine = userName ? genderHint(userName) : null
   const voice = channel === 'web_voice' || channel === 'app_voice'
-  const systemPrompt = buildSystemPrompt({ biz, maxTurn, featureLines: features, genderHintLine, voice })
+  const systemPrompt = buildSystemPrompt({ biz, maxTurn, featureLines: features, genderHintLine, voice, serviceMenu, todayBusy })
 
   const tLLM = Date.now()
   try {
