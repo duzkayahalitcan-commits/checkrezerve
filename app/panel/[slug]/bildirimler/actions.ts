@@ -125,16 +125,20 @@ async function collectSmsTargets(
     return []
   }
 
-  // tum_musteriler + rezervasyon tarih filtreli
-  let guestsQuery = db
-    .from('guests')
-    .select('name, phone')
-    .eq('restaurant_id', restaurantId)
-    .not('phone', 'is', null)
-  const { data: guests } = await guestsQuery
-  for (const g of guests ?? []) {
-    const phone = g.phone!.trim()
-    if (phone) targets.set(phone, g.name)
+  // tum_musteriler için guests telefonlarını topla.
+  // NOT: 'rezervasyon_tarih' hedefi SADECE o tarih aralığındaki rezervasyon
+  // müşterilerini hedefler; guests tabanlı tüm müşterileri DAHİL ETMEZ.
+  if (hedef !== 'rezervasyon_tarih') {
+    let guestsQuery = db
+      .from('guests')
+      .select('name, phone')
+      .eq('restaurant_id', restaurantId)
+      .not('phone', 'is', null)
+    const { data: guests } = await guestsQuery
+    for (const g of guests ?? []) {
+      const phone = g.phone!.trim()
+      if (phone) targets.set(phone, g.name)
+    }
   }
 
   let resQuery = db
