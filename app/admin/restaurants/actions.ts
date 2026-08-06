@@ -28,12 +28,13 @@ export async function createRestaurant(
   const phone         = (formData.get('phone')         as string)?.trim() || null
   const address       = (formData.get('address')       as string)?.trim() || null
   const capacity      = parseInt(formData.get('capacity') as string, 10) || 50
-  const business_type = (formData.get('business_type') as string) || 'restaurant'
+  const business_type = (formData.get('business_type') as string)?.trim() || null
   const instagram     = (formData.get('instagram')     as string)?.trim() || null
   const website       = (formData.get('website')       as string)?.trim() || null
   const booking_duration_minutes = parseInt(formData.get('booking_duration_minutes') as string, 10) || 60
 
   if (!name) return { error: 'İşletme adı zorunludur.', success: false }
+  if (!business_type) return { error: 'İşletme kategorisi seçilmedi. Lütfen bir kategori seçin.', success: false }
 
   const slug = toSlug(name)
 
@@ -51,7 +52,8 @@ export async function createRestaurant(
     dentist:       'diger',
     other:         'diger',
   }
-  const kategori = BUSINESS_TYPE_TO_KATEGORI[business_type] ?? 'restoran'
+  const kategori = BUSINESS_TYPE_TO_KATEGORI[business_type]
+  if (!kategori) return { error: `Geçersiz işletme kategorisi: ${business_type}. Lütfen geçerli bir kategori seçin.`, success: false }
 
   const { error } = await getSupabaseAdmin()
     .from('restaurants')

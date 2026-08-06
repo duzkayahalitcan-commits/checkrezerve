@@ -3,6 +3,7 @@ import { checkGreeting, searchFaq } from '@/lib/faq-search'
 import { rateLimit } from '@/lib/rate-limit'
 import { detectGibberish, enforceReservationApproval } from '@/lib/assistant-brain'
 import { genderHint, extractNameFromHistory } from '@/lib/assistant-gender'
+import { getSupabaseAdmin } from '@/lib/supabase'
 
 async function callDeepSeek(systemPrompt: string, messages: {role: string, content: string}[]) {
   const res = await fetch('https://api.deepseek.com/chat/completions', {
@@ -43,6 +44,27 @@ export async function POST(request: NextRequest) {
     const businessSlug = isGeneral ? '' : slugify(businessName)
     const businessUrl = isGeneral ? 'https://checkrezerve.com/tr/rezervasyon' : `https://checkrezerve.com/tr/rezervasyon/${businessSlug}`
 
+    // Otorite Supabase: istemciden gelen businessType yalnızca hint; doğru değer
+    // restaurants tablosundan çekilir. Eşleşen işletme bulunamazsa istemci değeri kullanılır.
+    let authoritativeBusinessType = businessType as string | null | undefined
+    if (!isGeneral && businessName) {
+      try {
+        const db = getSupabaseAdmin()
+        const { data } = await db
+          .from('restaurants')
+          .select('business_type')
+          .ilike('name', businessName)
+          .limit(1)
+          .maybeSingle()
+        if (data?.business_type) {
+          authoritativeBusinessType = data.business_type
+        }
+      } catch (e) {
+        console.error('[chat] business_type doğrulama hatası:', e)
+      }
+    }
+    const effectiveBusinessType = authoritativeBusinessType ?? 'platform'
+
     // Öğrenilen isimden cinsiyet ipucu (unisex isimlerde cinsiyetsiz hitap)
     const genderHintLine = (() => {
       const name = extractNameFromHistory((messages ?? []) as { role: string; content: string }[])
@@ -72,11 +94,11 @@ DAVRANIŞ KURALLARI:
 5. Türkçe yanıt ver. Kısa ve net ol, gereksiz uzatma
 6. Asla "rezervasyonunuz onaylandı", "kaydettim", "oluşturuldu" deme
 7. Platformda olmayan konularda "Bu konuda yardımcı olamam, rezervasyon konularında yardımcı olmaktan memnuniyet duyarım" de`
-      : `Sen ${businessName} adlı ${businessType} işletmesinin yapay zeka asistanısın.
+      : `Sen ${businessName} adlı ${effectiveBusinessType} işletmesinin yapay zeka asistanısın.
 
 İŞLETME BİLGİSİ:
 - Ad: ${businessName}
-- Tür: ${businessType}
+- Tür: ${effectiveBusinessType}
 - Rezervasyon sayfası: ${businessUrl}
 - Müsait slotlar: ${JSON.stringify(availableSlots || [])}
 
@@ -91,7 +113,7 @@ DAVRANIŞ KURALLARI:
 6. Türkçe, kısa ve samimi cevaplar ver
 7. Kullanıcı mesajı anlamsız/saçmaysa tahmin yürütme, aynen de: "Sizi tam anlayamadım, tekrar eder misiniz?"
 8. Asla eksik bilgiyle veya onay almadan "oluşturuldu/onaylandı" deme
-9. Bu bir ${businessType} olduğu için müşterinin amacını buna göre yorumla (${businessType === 'restaurant' || businessType === 'restoran' ? 'masa/rezervasyon, menü' : businessType === 'hairdresser' || businessType === 'kuaför' || businessType === 'barber' ? 'saç/berber randevusu' : businessType === 'spa' ? 'masaj/seans' : 'randevu/hizmet'}) ve buna göre yönlendir`
+9. Bu bir ${effectiveBusinessType} olduğu için müşterinin amacını buna göre yorumla (${effectiveBusinessType === 'restaurant' || effectiveBusinessType === 'restoran' ? 'masa/rezervasyon, menü' : effectiveBusinessType === 'hairdresser' || effectiveBusinessType === 'kuaför' || effectiveBusinessType === 'barber' ? 'saç/berber randevusu' : effectiveBusinessType === 'spa' ? 'masaj/seans' : 'randevu/hizmet'}) ve buna göre yönlendir`
     try {
       const msgs = (messages ?? []) as {role: string, content: string}[]
       // Saçma / anlamsız mesaj koruması
