@@ -19,7 +19,10 @@ export async function POST(req: NextRequest) {
     const whisperForm = new FormData()
     whisperForm.append('audio_file', audioFile, 'recording.webm')
 
-    const res = await fetch(`${whisperUrl}/asr?encode=true&task=transcribe&language=tr&output=json`, {
+    // WHISPER KALİTE FİX: initial_prompt Türkçe rezervasyon sözlüğü verir —
+    // "kişilik", "yarın akşam", "saat dokuz", telefon numarası gibi kelimeleri
+    // Whisper'ın doğru çözmesine yardımcı olur (sosyal bağlam, kişi sayısı).
+    const res = await fetch(`${whisperUrl}/asr?encode=true&task=transcribe&language=tr&output=json&initial_prompt=${encodeURIComponent('Restoran rezervasyon asistanı. Türkçe konuşma. kişilik, kişi, yarın, akşam, saat, telefon numarası, rezervasyon, masa, isim, telefondaki rakamlar 0 5 4 2 3 4 5 6 7 8 9')}`, {
       method: 'POST',
       body: whisperForm,
     })

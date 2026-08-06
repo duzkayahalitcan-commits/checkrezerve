@@ -91,6 +91,11 @@ export default function FloatingAIAssistant({
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
   // ─── VAD (sessizlik algılama) — yalnızca phase 'mic' iken çalışır ──
+  // WHISPER KALİTE FİX: 1400ms sessizlik penceresi çok agresifti; telefon
+  // numarası grup grup okunurken (0542 · 345 · 67 · 89) aradaki duraksamalar
+  // kaydı ilk gruptan sonra kesiyordu. Şimdi: eşik düşürüldü (0.02→0.012),
+  // pencere 3000ms'e çıkarıldı, en az bir süre konuşma algılanmadan kesme
+  // yapılmıyor, ve güvenlik için 25sn'lik üst sınır eklendi.
   const startVAD = useCallback((stream: MediaStream, onSilence: () => void) => {
     try {
       const ctx = new AudioContext()
@@ -101,18 +106,29 @@ export default function FloatingAIAssistant({
       ctxRef.current = ctx
 
       const buf = new Float32Array(an.fftSize)
+      const startAt = Date.now()
+      const SILENCE_RMS = 0.012     // sessizlik eşiği — yumuşak konuşmayı da ses say
+      const SILENCE_MS = 3000       // kesmeden önce beklenen sessizlik (numara gruplarını tolere eder)
+      const MIN_SPEECH_MS = 800     // en az bu kadar süre geçmeden kesme (başlangıç sessizliği)
+      const MAX_RECORD_MS = 25000   // güvenlik üst sınırı — uzun cümlelerde takılıp kalmamak için
       let silenceAt = 0
 
       const check = () => {
         if (phaseRef.current !== 'mic') return
+        const now = Date.now()
+
+        // Üst sınır — kayıt sonsuza kadar sürmesin
+        if (now - startAt > MAX_RECORD_MS) { onSilence(); return }
+
         an.getFloatTimeDomainData(buf)
         let sum = 0
         for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i]
         const rms = Math.sqrt(sum / buf.length)
 
-        if (rms < 0.02) {
-          if (!silenceAt) silenceAt = Date.now()
-          else if (Date.now() - silenceAt > 1400) {
+        if (rms < SILENCE_RMS) {
+          if (!silenceAt) silenceAt = now
+          // Yalnızca konuşma için yeterli süre geçtikten sonra kes
+          else if (now - startAt > MIN_SPEECH_MS && now - silenceAt > SILENCE_MS) {
             onSilence()
             return
           }
@@ -193,7 +209,12 @@ export default function FloatingAIAssistant({
     setPhase('mic')
 
     const mimeType = preferredMimeType() || 'audio/webm'
-    const recorder = new MediaRecorder(stream, { mimeType })
+    const recorder = new MediaRecorder(stream, {
+      mimeType,
+      // WHISPER KALİTE FİX: Opus/AAC varsayılan bitrate düşük kalabiliyor;
+      // konuşma netliği için 64kbps mono yeterli ama 96kbps daha güvenli.
+      audioBitsPerSecond: 96000,
+    })
     recRef.current = recorder
 
     const chunks: Blob[] = []
@@ -316,7 +337,17 @@ export default function FloatingAIAssistant({
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 16000 },
+        // WHISPER KALİTE FİX: Whisper 16kHz mono bekler. Önceki ayar 16kHz isteyip
+        // kanal sayısı belirtmiyordu (stereo olabiliyordu). Şimdi açıkça mono + 16kHz
+        // istenir. echoCancellation/noiseSuppression açık kalır — VAD'in sessizliği
+        // doğru algılaması ve ortam gürültüsünün transkripsiyonu bozmaması için.
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 16000,
+          channelCount: 1,
+        },
       })
       if (!activeRef.current) {
         stream.getTracks().forEach(t => t.stop())
