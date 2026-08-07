@@ -67,13 +67,18 @@ export default async function BusinessPage({
   const localeKey = locale !== 'tr' ? `_${locale}` : ''
 
   // Hizmetler, personel, masa tipleri ve AI feature flags (paralel)
+  // VERTICAL FIX: TEK veri kaynağı 'hizmetler' (panel bu tabloyu yazıyor).
+  // Önceden public sayfa 'services' okuyordu → panelde tanımlanan hizmet
+  // public sayfada görünmüyordu (paralel tablo çakışması). Artık hizmetler
+  // kullanılıyor; 'services' deprecated (silinmedi, not: asistan-brain getServiceMenu
+  // yedek olarak services'e düşebilir).
   const [{ data: rawServices }, { data: staff }, { data: rawMasaTipleri }, { data: featureFlags }] = await Promise.all([
     supabase
-      .from('services')
-      .select('id, name, name_en, name_ar, name_de, name_da, name_es, name_ru, duration_minutes, price, currency')
+      .from('hizmetler')
+      .select('id, ad, ad_en, ad_ar, ad_de, ad_da, ad_es, ad_ru, sure_dakika, fiyat')
       .eq('restaurant_id', restaurant.id)
-      .eq('is_active', true)
-      .order('sort_order'),
+      .eq('aktif', true)
+      .order('created_at'),
     supabase
       .from('staff')
       .select('id, name, title')
@@ -93,10 +98,10 @@ export default async function BusinessPage({
 
   const services = (rawServices ?? []).map((s: Record<string, unknown>) => ({
     id:               s.id as string,
-    name:             ((localeKey ? s[`name${localeKey}`] : null) ?? s.name) as string,
-    duration_minutes: s.duration_minutes as number,
-    price:            s.price as number | null,
-    currency:         s.currency as string,
+    name:             ((localeKey ? s[`ad${localeKey}`] : null) ?? s.ad) as string,
+    duration_minutes: (s.sure_dakika ?? s.duration_minutes) as number,
+    price:            (s.fiyat ?? s.price) as number | null,
+    currency:         (s.currency ?? 'TRY') as string,
   }))
 
   const masaTipleri = (rawMasaTipleri ?? []).map((m: Record<string, unknown>) => ({

@@ -31,6 +31,10 @@ ALTER TABLE restaurants
   ADD COLUMN IF NOT EXISTS is_active       boolean       NOT NULL DEFAULT true;
 
 -- 3. Hizmetler tablosu (berber: "Saç Kesimi", psikolog: "Bireysel Seans" vb.)
+-- ⚠️ DEPRECATED: 'hizmetler' tablosu tek gerçek kaynak (panel + rezervasyon + public
+-- profil onu kullanıyor). Bu 'services' tablosu geriye dönük uyumluluk için tutuluyor
+-- (asistan-brain getServiceMenu yedek olarak düşebilir). Yeni veri BURAYA YAZILMAZ.
+-- (Vertical parity fix 2026-08: public [locale]/[slug] artık hizmetler okuyor.)
 CREATE TABLE IF NOT EXISTS services (
   id              uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
   restaurant_id   uuid        NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,

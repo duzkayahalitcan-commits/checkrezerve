@@ -80,7 +80,7 @@ export default async function KullanimSartlariPage({
 
             <h2>{t('s13Title')}</h2>
             <p>
-              <a href="mailto:info@checkrezerve.com">info@checkrezerve.com</a>
+              <a href="mailto:destek@checkrezerve.com">destek@checkrezerve.com</a>
             </p>
           </article>
         </div>

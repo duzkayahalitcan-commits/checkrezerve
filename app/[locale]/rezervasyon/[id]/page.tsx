@@ -38,6 +38,7 @@ export default async function BusinessDetailPage({ params }: Props) {
   setRequestLocale(locale)
   const t    = await getTranslations('bizDetail')
   const tBiz = await getTranslations('businessTypes')
+  const tTerms = await getTranslations('bookingTerms')
   const supabase = getSupabaseAdmin()
 
   const todayStr = new Date().toISOString().split('T')[0]
@@ -151,9 +152,11 @@ export default async function BusinessDetailPage({ params }: Props) {
 
   const floorPlanEnabled = zoneMode ? true : floorTables.length > 0
 
-  const bookingTerm = ['restaurant', 'other'].includes(business.business_type)
-    ? t('termReservation')
-    : t('termAppointment')
+  // VERTICAL FIX: bookingTerms zaten sektöre özel terimi veriyor
+  // (psychologist→Seans, pilates→Ders, diğerleri→Randevu, restaurant→Rezervasyon).
+  // Önceden yalnızca restaurant/other ayrımı vardı → psikolog/pilates "Randevu"
+  // gösteriyordu. Artık her sektör doğru terimle CTA görür.
+  const bookingTerm = tTerms(business.business_type as Parameters<typeof tTerms>[0])
 
   return (
     <div

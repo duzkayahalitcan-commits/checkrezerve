@@ -203,7 +203,7 @@ export async function bulkSendNotification(formData: FormData): Promise<BulkResu
 
     const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY ?? ''
     const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY ?? ''
-    const VAPID_EMAIL = process.env.VAPID_EMAIL ?? 'info@checkrezerve.com'
+    const VAPID_EMAIL = process.env.VAPID_EMAIL ?? 'destek@checkrezerve.com'
     if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
       return { success: false, error: 'VAPID keys not configured', hedef, toplam: 0, basarili: 0, basarisiz: 0 }
     }

@@ -76,7 +76,7 @@ export default async function GizlilikPage({
             </ul>
             <p>
               {t('s7ContactPrefix')}{' '}
-              <a href="mailto:kvkk@checkrezerve.com">kvkk@checkrezerve.com</a>{' '}
+              <a href="mailto:destek@checkrezerve.com">destek@checkrezerve.com</a>{' '}
               {t('s7ContactSuffix')}
             </p>
 
@@ -89,7 +89,7 @@ export default async function GizlilikPage({
             <h2 className="font-bold">{t('s10Title')}</h2>
             <p>
               {t('s10Prefix')}{' '}
-              <a href="mailto:info@checkrezerve.com" className="text-red-600">info@checkrezerve.com</a>
+              <a href="mailto:destek@checkrezerve.com" className="text-red-600">destek@checkrezerve.com</a>
             </p>
 
             <h2 className="font-bold">{t('s11Title')}</h2>
@@ -105,8 +105,8 @@ export default async function GizlilikPage({
               <p><strong>{t('dataControllerLabel')}</strong> {t('dataControllerName')}</p>
               <p>
                 <strong>{t('emailLabel')}</strong>{' '}
-                <a href="mailto:info@checkrezerve.com" className="text-red-600">
-                  info@checkrezerve.com
+                <a href="mailto:destek@checkrezerve.com" className="text-red-600">
+                  destek@checkrezerve.com
                 </a>
               </p>
             </div>

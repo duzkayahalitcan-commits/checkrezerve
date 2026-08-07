@@ -137,7 +137,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               description: 'Restoran, berber, kuaför, spa ve kafe işletmeleri için online rezervasyon yönetim sistemi.',
               contactPoint: {
                 '@type': 'ContactPoint',
-                email: 'info@checkrezerve.com',
+                email: 'destek@checkrezerve.com',
                 telephone: '+90-542-462-6295',
                 contactType: 'customer support',
                 availableLanguage: ['Türkçe', 'English', 'Deutsch'],

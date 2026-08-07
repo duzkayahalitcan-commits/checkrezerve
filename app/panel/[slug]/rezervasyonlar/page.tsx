@@ -76,10 +76,10 @@ export default async function RezervasyonlarPage({
     special_areas: (r.special_areas as { name: string }[] | null)?.[0] ?? null,
   }))
 
-  // Fetch çalışanlar and hizmetler for filter dropdowns
+  // Fetch çalışanlar and hizmetler for filter dropdowns (canonical tables)
   const [{ data: calisanlar }, { data: hizmetler }, { data: areas }] = await Promise.all([
-    db.from('staff').select('id, ad').eq('restaurant_id', restaurant.id).eq('aktif', true).order('ad'),
-    db.from('services').select('id, ad').eq('restaurant_id', restaurant.id).eq('aktif', true).order('ad'),
+    db.from('calisanlar').select('id, ad').eq('restaurant_id', restaurant.id).eq('aktif', true).order('ad'),
+    db.from('hizmetler').select('id, ad').eq('restaurant_id', restaurant.id).eq('aktif', true).order('ad'),
     db.from('special_areas').select('id, name').eq('restaurant_id', restaurant.id).order('name'),
   ])
 

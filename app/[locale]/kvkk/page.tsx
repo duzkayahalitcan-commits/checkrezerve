@@ -65,8 +65,8 @@ export default async function KvkkPage({
             <h2 className="font-bold">{t('s4Title')}</h2>
             <p>
               {t('s4Body')}{' '}
-              <a href="mailto:info@checkrezerve.com" className="text-red-600">
-                info@checkrezerve.com
+              <a href="mailto:destek@checkrezerve.com" className="text-red-600">
+                destek@checkrezerve.com
               </a>{' '}
               {t('s4BodyMiddle')}{' '}
               <Link href="/kvkk-basvuru" className="text-red-600">
@@ -79,8 +79,8 @@ export default async function KvkkPage({
               <p><strong>{t('dataControllerLabel')}</strong> {t('dataControllerName')}</p>
               <p>
                 <strong>{t('emailLabel')}</strong>{' '}
-                <a href="mailto:info@checkrezerve.com" className="text-red-600">
-                  info@checkrezerve.com
+                <a href="mailto:destek@checkrezerve.com" className="text-red-600">
+                  destek@checkrezerve.com
                 </a>
               </p>
             </div>

@@ -339,10 +339,10 @@ export default function IletisimPage() {
                 Soru ve önerileriniz için bize ulaşın.
               </p>
               <Link
-                href="mailto:info@checkrezerve.com"
+                href="mailto:destek@checkrezerve.com"
                 className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
               >
-                info@checkrezerve.com
+                destek@checkrezerve.com
               </Link>
             </div>
 

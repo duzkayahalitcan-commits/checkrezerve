@@ -62,8 +62,8 @@ export default async function KullanimKosullariPage({
             <h2>{t('s8Title')}</h2>
             <p>
               {t('s8Prefix')}{' '}
-              <a href="mailto:info@checkrezerve.com" className="text-red-600">
-                info@checkrezerve.com
+              <a href="mailto:destek@checkrezerve.com" className="text-red-600">
+                destek@checkrezerve.com
               </a>
               {t('s8Suffix') ? ` ${t('s8Suffix')}` : ''}
             </p>
@@ -72,8 +72,8 @@ export default async function KullanimKosullariPage({
               <p><strong>{t('dataControllerLabel')}</strong> {t('dataControllerName')}</p>
               <p>
                 <strong>{t('emailLabel')}</strong>{' '}
-                <a href="mailto:info@checkrezerve.com" className="text-red-600">
-                  info@checkrezerve.com
+                <a href="mailto:destek@checkrezerve.com" className="text-red-600">
+                  destek@checkrezerve.com
                 </a>
               </p>
             </div>

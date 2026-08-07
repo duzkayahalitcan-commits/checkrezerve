@@ -83,7 +83,6 @@ export function ReservationForm({
   const isRestaurant     = businessType === 'restaurant'
   const hasServices      = services.length > 0
   const hasStaff         = staff.length > 0
-  const isAppointmentType = ['psychologist', 'chiropractor', 'dentist'].includes(businessType)
   const showStaff        = hasStaff && !isRestaurant
   const ROOM_TYPES       = new Set(['spa', 'pilates', 'fitness', 'chiropractor', 'psychologist', 'dentist'])
   const showRooms        = masaTipleri.length > 0 && (isRestaurant || ROOM_TYPES.has(businessType))
@@ -421,7 +420,10 @@ export function ReservationForm({
             {t('submitting')}
           </span>
         ) : selectedTime ? (
-          isAppointmentType ? 'Randevu Al' : t('submit', { term: term })
+          // VERTICAL FIX: bookingTerms zaten doğru terimi üretiyor
+          // (psychologist→Seans, pilates→Ders, diğerleri→Randevu, restaurant→Rezervasyon).
+          // Sabit 'Randevu Al' override'ı kaldırıldı — böylece her sektör kendi terimiyle CTA görür.
+          t('submit', { term: term })
         ) : (
           t('selectTimeFirst')
         )}

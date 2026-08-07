@@ -221,7 +221,7 @@ export default async function PricingPage({
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a
-                  href="mailto:merhaba@checkrezerve.com?subject=Kurumsal Paket Teklifi"
+                  href="mailto:destek@checkrezerve.com?subject=Kurumsal Paket Teklifi"
                   className="rounded-full bg-red-600 hover:bg-red-500 px-9 py-3.5 text-sm font-bold text-white transition-colors shadow-lg shadow-red-900/30 w-full sm:w-auto text-center"
                 >
                   {p('enterpriseCta')} →

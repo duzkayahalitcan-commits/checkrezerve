@@ -202,7 +202,7 @@ export function PricingToggle() {
           </ul>
 
           <a
-            href={`mailto:merhaba@checkrezerve.com?subject=${t('enterpriseEmailSubject')}`}
+            href={`mailto:destek@checkrezerve.com?subject=${t('enterpriseEmailSubject')}`}
             className="mt-auto rounded-xl border border-white/15 py-3.5 text-center text-sm font-semibold text-white bg-white/[0.04] hover:bg-white hover:text-zinc-900 transition-all duration-200"
           >
             {t('enterpriseCta')}

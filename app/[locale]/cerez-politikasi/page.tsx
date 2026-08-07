@@ -57,8 +57,8 @@ export default async function CerezPolitikasiPage({
             <h2 className="font-bold">{t('s4Title')}</h2>
             <p>
               {t('s4Prefix')}{' '}
-              <a href="mailto:info@checkrezerve.com" className="text-red-600">
-                info@checkrezerve.com
+              <a href="mailto:destek@checkrezerve.com" className="text-red-600">
+                destek@checkrezerve.com
               </a>
               {t('s4Suffix') ? ` ${t('s4Suffix')}` : ''}
             </p>
@@ -67,8 +67,8 @@ export default async function CerezPolitikasiPage({
               <p><strong>{t('dataControllerLabel')}</strong> {t('dataControllerName')}</p>
               <p>
                 <strong>{t('emailLabel')}</strong>{' '}
-                <a href="mailto:info@checkrezerve.com" className="text-red-600">
-                  info@checkrezerve.com
+                <a href="mailto:destek@checkrezerve.com" className="text-red-600">
+                  destek@checkrezerve.com
                 </a>
               </p>
             </div>

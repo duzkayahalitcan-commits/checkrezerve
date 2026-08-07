@@ -126,7 +126,7 @@ export default async function IletisimPage({
     { Icon: Headset,      title: t('quickSupportTitle'), desc: t('quickSupportDesc'), href: '/destek' },
     { Icon: CalendarCheck,title: t('quickDemoTitle'),    desc: t('quickDemoDesc'),    href: '/demo' },
     { Icon: Handshake,    title: t('quickSectorTitle'),  desc: t('quickSectorDesc'),  href: '/sektorler' },
-    { Icon: Mail,         title: t('quickContactTitle'), desc: t('quickContactDesc'), href: 'mailto:info@checkrezerve.com' },
+    { Icon: Mail,         title: t('quickContactTitle'), desc: t('quickContactDesc'), href: 'mailto:destek@checkrezerve.com' },
   ]
 
   const SOCIALS = [

@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 // VAPID ayarları (dinamik import ile)
 const VAPID_PUBLIC_KEY  = process.env.VAPID_PUBLIC_KEY  ?? ''
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY ?? ''
-const VAPID_EMAIL       = process.env.VAPID_EMAIL       ?? 'info@checkrezerve.com'
+const VAPID_EMAIL       = process.env.VAPID_EMAIL       ?? 'destek@checkrezerve.com'
 
 // POST /api/push/send
 // Body: { userId?: string, title: string, body: string, url?: string }
