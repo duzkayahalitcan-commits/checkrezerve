@@ -105,15 +105,17 @@ export default function BookingForm({
   const toast = useToast()
   const isRestaurant = businessType === 'restaurant' || businessType === 'other'
   const isServiceBased = !isRestaurant
-  const isPilates = businessType === 'pilates'
 
-  const allSteps = isPilates
-    ? ['tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
-    : isRestaurant
-      ? floorPlanEnabled
-        ? ['kisi', 'tarih', 'saat', 'masa', 'bilgi', 'ozet', 'basari'] as const
-        : ['kisi', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
-      : ['hizmet', 'calisan', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
+  // VERTICAL FIX: Pilates artık diğer randevu bazlı türlerle (spa, kuaför, psikolog)
+  // AYNI ortak akışı kullanıyor — hizmet seçimi + çalışan seçimi adımları dahil.
+  // Önceden izole bir akıştı (tarih/saat/bilgi) ve hizmet/çalışan adlarını atlıyordu,
+  // bu yüzden pilates diğer türlerle parite sağlamıyordu. İzole bilesen kaldırıldı;
+  // ortak service-based akış kullanılıyor.
+  const allSteps = isRestaurant
+    ? floorPlanEnabled
+      ? ['kisi', 'tarih', 'saat', 'masa', 'bilgi', 'ozet', 'basari'] as const
+      : ['kisi', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
+    : ['hizmet', 'calisan', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
   const [step, setStep] = useState(0)
 
   // Form state

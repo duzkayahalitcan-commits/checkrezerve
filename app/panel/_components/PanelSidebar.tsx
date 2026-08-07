@@ -47,8 +47,14 @@ export default function PanelSidebar({
 
   // Paket sistemi sadece randevu bazli sektorlerde gorunsun
   const paketSektoru = businessType && !['restaurant', 'cafe', 'bar'].includes(businessType)
-  // Masa/kroki gerektirmeyen sektorler (pilates, fitness, vb.)
-  const masaGerekmez = businessType && ['fitness', 'pilates', 'psychologist', 'chiropractor'].includes(businessType)
+  // Masa/kroki gerektirmeyen sektorler — randevu bazli turler masaya ihtiyac duymaz.
+  // VERTICAL FIX: spa, hairdresser, barber, beauty_salon, dentist, veterinary de eklendi
+  // (önceden bunlarda gereksiz "Masalar"/"Salon Krokisi" UI gösteriliyordu).
+  // Yalnızca restoran/other masa ve kroki kullanır.
+  const masaGerekmez = businessType && [
+    'fitness', 'pilates', 'psychologist', 'chiropractor',
+    'spa', 'hairdresser', 'barber', 'beauty_salon', 'dentist', 'veterinary',
+  ].includes(businessType)
 
   // ── Bilgi mimarisi: mantıksal gruplar (iyi hiyerarşi, tekrar yok) ──
   const NAV_SECTIONS: { label: string; items: { href: string; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] }[] = [
