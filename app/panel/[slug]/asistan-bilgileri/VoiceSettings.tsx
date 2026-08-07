@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Volume2, Check, Loader2, Clock } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { VOICE_OPTIONS, getVoice } from '@/lib/voice-catalog'
 
 interface VoiceSettingsProps {
@@ -10,6 +11,7 @@ interface VoiceSettingsProps {
 }
 
 export default function VoiceSettings({ restaurantId, isSuperAdmin }: VoiceSettingsProps) {
+  const t = useTranslations('panel.voiceSettings')
   const [voiceId, setVoiceId] = useState<string>('')
   const [lockedUntil, setLockedUntil] = useState<number | null>(null)
   const [remainingMs, setRemainingMs] = useState(0)
@@ -43,7 +45,7 @@ export default function VoiceSettings({ restaurantId, isSuperAdmin }: VoiceSetti
     const h = Math.floor(totalSec / 3600)
     const m = Math.floor((totalSec % 3600) / 60)
     const s = totalSec % 60
-    return `${h} saat ${String(m).padStart(2, '0')} dk ${String(s).padStart(2, '0')} sn`
+    return `${h}s ${String(m).padStart(2, '0')}dk ${String(s).padStart(2, '0')}sn`
   }
 
   const load = useCallback(async () => {
@@ -117,7 +119,7 @@ export default function VoiceSettings({ restaurantId, isSuperAdmin }: VoiceSetti
         setServerLocked(false)
         setLockedUntil(null)
         setRemainingMs(0)
-        setInfo('Ses kaydedildi ✓')
+        setInfo(t('voiceSaved'))
         setTimeout(() => setInfo(null), 3000)
       } else {
         // 429: kilit aktif
@@ -139,17 +141,17 @@ export default function VoiceSettings({ restaurantId, isSuperAdmin }: VoiceSetti
   return (
     <div className="bg-stone-900 border border-stone-800 rounded-2xl overflow-hidden">
       <div className="px-5 py-4 border-b border-stone-800">
-        <h2 className="text-sm font-bold text-white flex items-center gap-2"><Volume2 size={15} /> Asistan Sesi</h2>
+        <h2 className="text-sm font-bold text-white flex items-center gap-2"><Volume2 size={15} /> {t('voiceTitle')}</h2>
         <p className="text-xs text-stone-500 mt-0.5">
-          Sesli asistanın kullanacağı sesi seçin. İşletme sahibi 24 saatte bir değiştirebilir.
-          {isSuperAdmin && <span className="text-amber-400 ml-1">(Super admin — kısıtlama yok)</span>}
+          {t('voiceSubtitle')}
+          {isSuperAdmin && <span className="text-amber-400 ml-1">{t('superAdminNoLock')}</span>}
         </p>
       </div>
 
       <div className="px-5 py-4">
         {loading ? (
           <div className="flex items-center justify-center py-6 text-stone-500">
-            <Loader2 size={18} className="animate-spin mr-2" /> Yükleniyor...
+            <Loader2 size={18} className="animate-spin mr-2" /> {t('loading')}
           </div>
         ) : (
           <>
@@ -157,7 +159,7 @@ export default function VoiceSettings({ restaurantId, isSuperAdmin }: VoiceSetti
             {locked && lockedUntil !== null && (
               <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs">
                 <Clock size={14} className="shrink-0" />
-                Ses değiştirme kilidi aktif. <strong className="ml-1">{formatRemaining(remainingMs)}</strong> sonra tekrar değiştirebilirsiniz.
+                {t('lockedMsg')} <strong className="ml-1">{formatRemaining(remainingMs)}</strong>
               </div>
             )}
 
@@ -168,6 +170,7 @@ export default function VoiceSettings({ restaurantId, isSuperAdmin }: VoiceSetti
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {VOICE_OPTIONS.map(v => {
                 const active = voiceId === v.key
+                const genderLabel = v.gender === 'kadın' ? t('female') : t('male')
                 return (
                   <div
                     key={v.key}
@@ -191,7 +194,7 @@ export default function VoiceSettings({ restaurantId, isSuperAdmin }: VoiceSetti
                         <span className={`block text-sm font-medium ${active ? 'text-emerald-300' : 'text-white'}`}>
                           {v.label}
                         </span>
-                        <span className="block text-[10px] text-stone-500 capitalize">{v.gender}</span>
+                        <span className="block text-[10px] text-stone-500 capitalize">{genderLabel}</span>
                       </span>
                       {active && <Check size={16} className="text-emerald-400 shrink-0" />}
                     </button>
@@ -199,7 +202,7 @@ export default function VoiceSettings({ restaurantId, isSuperAdmin }: VoiceSetti
                       onClick={() => preview(v.key)}
                       disabled={saving}
                       className="shrink-0 p-2 rounded-lg text-stone-400 hover:text-white hover:bg-stone-700 transition-colors disabled:opacity-40"
-                      aria-label={`${v.label} sesini önizle`}
+                      aria-label={`${v.label} ${t('preview')}`}
                     >
                       {playing === v.key ? <Loader2 size={15} className="animate-spin" /> : <Volume2 size={15} />}
                     </button>

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { getTranslations } from 'next-intl/server'
 import AssistantConfig from './AssistantConfig'
 import OzelliklerClient from './OzelliklerClient'
 import VoiceSettings from './VoiceSettings'
@@ -26,12 +27,14 @@ export default async function AsistanBilgileriPage({
 
   if (!restaurant) redirect('/panel/login')
 
+  const t = await getTranslations('panel.voiceSettings')
+
   return (
     <div>
       <div className="px-6 pt-6 pb-5 border-b border-white/5">
-        <h1 className="text-lg font-bold text-white mt-0.5">Asistan Bilgileri</h1>
+        <h1 className="text-lg font-bold text-white mt-0.5">{t('title')}</h1>
         <p className="text-xs text-stone-500 mt-0.5">
-          Sesli asistanın müşterilere doğru bilgi vermesi için işletme özelliklerini işaretleyin
+          {t('subtitle')}
         </p>
       </div>
       <main className="max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-6">

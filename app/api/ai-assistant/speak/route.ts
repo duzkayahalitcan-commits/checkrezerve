@@ -4,23 +4,27 @@ import path from 'path'
 import { saveToCache, textToSlug } from '@/lib/audio-cache'
 import { resolveAudioTokens, concatAudioBuffers } from '@/lib/audio-concat'
 import { checkFeatureFlag } from '@/lib/feature-flags'
+import { getVoice, DEFAULT_VOICE_KEY } from '@/lib/voice-catalog'
 
 // POST /api/ai-assistant/speak
 // Body: { text, voice_id? }
+// voice_id: ElevenLabs sesinin KEY'i ('yunus' | 'mert' | 'lisa' | 'gulsu').
 // Returns audio/mpeg stream from:
 //   1. Full-text disk cache — tüm tr/ alt kategorilerinde slug eşleşmesi arar
 //      (tr/chatbot/{kategori}/{voice}/{slug}.mp3, tr/responses/{voice}/{slug}.mp3, tr/responses/{slug}.mp3)
 //   2. Audio token concatenation — zero-latency, no API call
 //   3. ElevenLabs TTS — only for novel phrases
 
-const DEFAULT_VOICE_ID = 'jbJMQWv1eS4YjQ6PCcn6' // Gülsu
 const TR_BASE = path.join(process.cwd(), 'public', 'audio', 'tr')
 
-// voice_id → cache alt klasörü adı (yalnızca bilinen adlar, varsayılan gulsu)
+// Ses KEY'i → cache alt klasörü adı (4 ses de desteklenir; geçersizse gulsu)
 function voiceCacheName(voiceId?: string): string {
-  const v = (voiceId ?? '').toLowerCase()
-  if (v === 'yunus') return 'yunus'
-  return 'gulsu'
+  return getVoice(voiceId ?? DEFAULT_VOICE_KEY).key
+}
+
+// Ses KEY'i → ElevenLabs voice ID (voice-catalog tek kaynak)
+function voiceElevenLabsId(voiceId?: string): string {
+  return getVoice(voiceId ?? DEFAULT_VOICE_KEY).elevenLabsId
 }
 
 /**
@@ -114,7 +118,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'ELEVENLABS_API_KEY not configured' }, { status: 500 })
   }
 
-  const vid = voice_id || DEFAULT_VOICE_ID
+  const vid = voiceElevenLabsId(voice_id)
 
   try {
     const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${vid}`, {

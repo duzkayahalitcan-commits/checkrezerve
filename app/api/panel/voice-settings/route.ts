@@ -102,6 +102,9 @@ export async function PATCH(req: NextRequest) {
   // Ses değişti mi kontrol et — değişmediyse voice_changed_at'ı güncelleme
   const changed = current?.voice_id !== body.voice_id
   const update: Record<string, unknown> = { voice_id: body.voice_id }
+  // ai_assistant_voice'ı da senkronize et — landing/rezervasyon sayfaları
+  // sesli asistanı bu kolondan okur (ai_assistant_voice = ses key'i).
+  update.ai_assistant_voice = body.voice_id
   if (changed) update.voice_changed_at = new Date().toISOString()
 
   const { error } = await db
