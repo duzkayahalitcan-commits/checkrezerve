@@ -917,7 +917,15 @@
     "kat_restoran": "Restaurant",
     "kat_kafe": "Café",
     "kat_bar": "Bar",
-    "kat_diger": "Andet"
+    "kat_diger": "Andet",
+    "recentReservations": "Seneste reservationer",
+    "noReservations": "Du har endnu ingen reservationer.",
+    "business": "Virksomhed",
+    "guests": "{count} gæster",
+    "status_pending": "Afventer",
+    "status_confirmed": "Bekræftet",
+    "status_cancelled": "Annulleret",
+    "status_completed": "Afsluttet"
   },
   "bookingForm": {
     "today": "I dag",
@@ -1097,7 +1105,22 @@
     },
     "hata": {
       "genel": "An error occurred, please try again."
-    }
+    },
+    "searchPlaceholder": "Søg virksomhed, adresse eller service…",
+    "noRatings": "Ingen anmeldelser endnu",
+    "resultsFor": "Resultater for \"{query}\"",
+    "filters": "Filtre",
+    "clearFilters": "Ryd filtre",
+    "sortNew": "Nyeste",
+    "sortNear": "I nærheden",
+    "cityDistrict": "By / Distrikt",
+    "all": "Alle",
+    "clear": "Ryd",
+    "apply": "Anvend ({count} resultater)",
+    "noMatch": "Ingen matchende virksomheder fundet",
+    "tryAnother": "Prøv en anden søgning",
+    "clearSearch": "Ryd søgning",
+    "makeReservation": "Foretag en reservation"
   },
   "bizDetail": {
     "allBusinesses": "Alle virksomheder",

@@ -917,7 +917,15 @@
     "kat_restoran": "مطعم",
     "kat_kafe": "مقهى",
     "kat_bar": "بار",
-    "kat_diger": "أخرى"
+    "kat_diger": "أخرى",
+    "recentReservations": "الحجوزات الأخيرة",
+    "noReservations": "لا توجد لديك حجوزات بعد.",
+    "business": "النشاط التجاري",
+    "guests": "{count} أشخاص",
+    "status_pending": "قيد الانتظار",
+    "status_confirmed": "مؤكد",
+    "status_cancelled": "ملغي",
+    "status_completed": "مكتمل"
   },
   "bookingForm": {
     "today": "اليوم",
@@ -1097,7 +1105,22 @@
     },
     "hata": {
       "genel": "An error occurred, please try again."
-    }
+    },
+    "searchPlaceholder": "ابحث عن نشاط تجاري أو عنوان أو خدمة…",
+    "noRatings": "لا توجد تقييمات بعد",
+    "resultsFor": "نتائج البحث عن \"{query}\"",
+    "filters": "الفلاتر",
+    "clearFilters": "مسح الفلاتر",
+    "sortNew": "الأحدث",
+    "sortNear": "بالقرب",
+    "cityDistrict": "المدينة / المنطقة",
+    "all": "الكل",
+    "clear": "مسح",
+    "apply": "تطبيق ({count} نتائج)",
+    "noMatch": "لا توجد أنشطة تجارية مطابقة",
+    "tryAnother": "جرّب بحثًا مختلفًا",
+    "clearSearch": "مسح البحث",
+    "makeReservation": "احجز الآن"
   },
   "bizDetail": {
     "allBusinesses": "جميع الأعمال",

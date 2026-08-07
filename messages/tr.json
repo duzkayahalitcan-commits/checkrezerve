@@ -917,7 +917,15 @@
     "kat_restoran": "Restoran",
     "kat_kafe": "Kafe",
     "kat_bar": "Bar",
-    "kat_diger": "Diğer"
+    "kat_diger": "Diğer",
+    "recentReservations": "Son Rezervasyonlar",
+    "noReservations": "Henüz rezervasyonunuz yok.",
+    "business": "İşletme",
+    "guests": "{count} kişi",
+    "status_pending": "Beklemede",
+    "status_confirmed": "Onaylı",
+    "status_cancelled": "İptal",
+    "status_completed": "Tamamlandı"
   },
   "bookingForm": {
     "today": "Bugün",
@@ -1097,7 +1105,22 @@
     },
     "hata": {
       "genel": "Bir hata oluştu, lütfen tekrar deneyin."
-    }
+    },
+    "searchPlaceholder": "İşletme, adres veya hizmet ara…",
+    "noRatings": "Henüz değerlendirme yok",
+    "resultsFor": "\"{query}\" için sonuçlar",
+    "filters": "Filtreler",
+    "clearFilters": "Filtreleri temizle",
+    "sortNew": "En Yeni",
+    "sortNear": "Yakın",
+    "cityDistrict": "Şehir / İlçe",
+    "all": "Tümü",
+    "clear": "Temizle",
+    "apply": "Uygula ({count} sonuç)",
+    "noMatch": "Eşleşen işletme bulunamadı",
+    "tryAnother": "Farklı bir arama deneyin",
+    "clearSearch": "Aramayı temizle",
+    "makeReservation": "Rezervasyon Yap"
   },
   "bizDetail": {
     "allBusinesses": "Tüm İşletmeler",

@@ -33,9 +33,6 @@ interface UserReservation {
   restaurants: { name: string } | null
 }
 
-const RES_STATUS_LABEL: Record<string, string> = {
-  pending: 'Beklemede', confirmed: 'Onaylı', cancelled: 'İptal', completed: 'Tamamlandı',
-}
 const RES_STATUS_COLOR: Record<string, string> = {
   pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
   confirmed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -136,12 +133,12 @@ export default function ProfilPage() {
         <NotificationToggle />
 
         {/* Son Rezervasyonlar */}
-        <h2 className="text-lg font-bold text-zinc-900 mb-5">📋 Son Rezervasyonlar</h2>
+        <h2 className="text-lg font-bold text-zinc-900 mb-5">📋 {t('recentReservations')}</h2>
         {reservations.length === 0 ? (
           <div className="bg-white rounded-2xl border border-dashed border-zinc-200 p-6 text-center mb-8">
-            <p className="text-zinc-400 text-sm">Henüz rezervasyonunuz yok.</p>
+            <p className="text-zinc-400 text-sm">{t('noReservations')}</p>
             <Link href="/rezervasyon" className="mt-3 inline-block text-sm text-[#E53935] font-semibold hover:underline">
-              Rezervasyon Yap →
+              {t('reserveButton')}
             </Link>
           </div>
         ) : (
@@ -149,14 +146,14 @@ export default function ProfilPage() {
             {reservations.map(r => (
               <div key={r.id} className="bg-white rounded-2xl border border-zinc-100 p-4 flex items-center gap-4 shadow-sm">
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-zinc-900 truncate">{r.restaurants?.name ?? 'İşletme'}</p>
+                  <p className="font-bold text-zinc-900 truncate">{r.restaurants?.name ?? t('business')}</p>
                   <p className="text-xs text-zinc-500 mt-0.5">
                     {r.reserved_date} · {(r.reserved_time ?? '').slice(0, 5)}
-                    {r.party_size ? ` · ${r.party_size} kişi` : ''}
+                    {r.party_size ? ` · ${t('guests', { count: r.party_size })}` : ''}
                   </p>
                 </div>
                 <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${RES_STATUS_COLOR[r.status] ?? 'bg-zinc-50 text-zinc-600 border-zinc-200'}`}>
-                  {RES_STATUS_LABEL[r.status] ?? r.status}
+                  {t(`status_${r.status}` as Parameters<typeof t>[0])}
                 </span>
               </div>
             ))}

@@ -917,7 +917,15 @@
     "kat_restoran": "Restaurante",
     "kat_kafe": "Café",
     "kat_bar": "Bar",
-    "kat_diger": "Otro"
+    "kat_diger": "Otro",
+    "recentReservations": "Reservas Recientes",
+    "noReservations": "Aún no tienes reservas.",
+    "business": "Empresa",
+    "guests": "{count} personas",
+    "status_pending": "Pendiente",
+    "status_confirmed": "Confirmada",
+    "status_cancelled": "Cancelada",
+    "status_completed": "Completada"
   },
   "bookingForm": {
     "today": "Hoy",
@@ -1097,7 +1105,22 @@
     },
     "hata": {
       "genel": "An error occurred, please try again."
-    }
+    },
+    "searchPlaceholder": "Buscar empresa, dirección o servicio…",
+    "noRatings": "Aún no hay reseñas",
+    "resultsFor": "Resultados para \"{query}\"",
+    "filters": "Filtros",
+    "clearFilters": "Limpiar filtros",
+    "sortNew": "Más recientes",
+    "sortNear": "Cerca",
+    "cityDistrict": "Ciudad / Distrito",
+    "all": "Todos",
+    "clear": "Limpiar",
+    "apply": "Aplicar ({count} resultados)",
+    "noMatch": "No se encontraron empresas coincidentes",
+    "tryAnother": "Prueba con otra búsqueda",
+    "clearSearch": "Limpiar búsqueda",
+    "makeReservation": "Hacer una reserva"
   },
   "bizDetail": {
     "allBusinesses": "Todos los negocios",

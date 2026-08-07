@@ -917,7 +917,15 @@
     "kat_restoran": "Ресторан",
     "kat_kafe": "Кафе",
     "kat_bar": "Бар",
-    "kat_diger": "Другое"
+    "kat_diger": "Другое",
+    "recentReservations": "Недавние брони",
+    "noReservations": "У вас пока нет бронирований.",
+    "business": "Заведение",
+    "guests": "{count} гостей",
+    "status_pending": "В ожидании",
+    "status_confirmed": "Подтверждено",
+    "status_cancelled": "Отменено",
+    "status_completed": "Завершено"
   },
   "bookingForm": {
     "today": "Сегодня",
@@ -1097,7 +1105,22 @@
     },
     "hata": {
       "genel": "An error occurred, please try again."
-    }
+    },
+    "searchPlaceholder": "Искать заведение, адрес или услугу…",
+    "noRatings": "Пока нет отзывов",
+    "resultsFor": "Результаты для \"{query}\"",
+    "filters": "Фильтры",
+    "clearFilters": "Сбросить фильтры",
+    "sortNew": "Новые",
+    "sortNear": "Рядом",
+    "cityDistrict": "Город / Район",
+    "all": "Все",
+    "clear": "Очистить",
+    "apply": "Применить ({count} результатов)",
+    "noMatch": "Совпадающих заведений не найдено",
+    "tryAnother": "Попробуйте другой поиск",
+    "clearSearch": "Очистить поиск",
+    "makeReservation": "Забронировать"
   },
   "bizDetail": {
     "allBusinesses": "Все заведения",
