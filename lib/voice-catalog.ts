@@ -29,3 +29,17 @@ export function getVoice(key: string | null | undefined): VoiceOption {
 export function isValidVoiceKey(key: string | null | undefined): key is VoiceKey {
   return !!key && VOICE_OPTIONS.some(v => v.key === key)
 }
+
+/**
+ * BUG 2/uyumluluk: Girdiyi ses KEY'ine çöz.
+ * Girdi bir KEY ise ('gulsu'|'yunus'|'mert'|'lisa') olduğu gibi döner;
+ * bir ElevenLabs ID ise karşılık gelen KEY'i bulur; hiçbiri değilse varsayılan
+ * (gulsu) döner. Böylece hem KEY hem de ElevenLabs ID veren çağrılar tek
+ * kaynaktan doğru sese çözülür.
+ */
+export function resolveVoiceKey(input: string | null | undefined): VoiceKey {
+  if (isValidVoiceKey(input)) return input
+  const byId = VOICE_OPTIONS.find(v => v.elevenLabsId === input)
+  if (byId) return byId.key
+  return DEFAULT_VOICE_KEY
+}

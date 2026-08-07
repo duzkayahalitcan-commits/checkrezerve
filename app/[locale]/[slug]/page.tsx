@@ -112,10 +112,13 @@ export default async function BusinessPage({
   }))
 
   // AI feature flags
+  // BUG 3 FİX: ai_assistant_enabled tek yetkili master anahtar. Feature flag'ler
+  // yalnızca enabled=true iken anlamlı; enabled=false ise asistan tamamen kapalı.
   const flagMap = new Map((featureFlags ?? []).map((f: { feature: string; enabled: boolean }) => [f.feature, f.enabled]))
-  const hasChatbot     = flagMap.get('ai_chatbot') === true
-  const hasReservation  = flagMap.get('ai_reservation') === true
-  const hasVoiceSearch  = flagMap.get('ai_voice_search') === true
+  const masterEnabled = (restaurant as Record<string, unknown>).ai_assistant_enabled === true
+  const hasChatbot     = masterEnabled && flagMap.get('ai_chatbot') === true
+  const hasReservation  = masterEnabled && flagMap.get('ai_reservation') === true
+  const hasVoiceSearch  = masterEnabled && flagMap.get('ai_voice_search') === true
 
   const today = new Date().toISOString().split('T')[0]
   const { count } = await supabase

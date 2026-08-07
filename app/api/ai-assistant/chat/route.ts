@@ -8,8 +8,9 @@ import {
   getFeatures, getServiceMenu, getTodayAvailability, isFarewell, isGreeting, logTurn, normalizeText, saatYanit,
   type BizCtx, type ChatMsg,
 } from '@/lib/assistant-brain'
-import { checkFeatureFlag } from '@/lib/feature-flags'
+import { checkAssistantEnabled } from '@/lib/feature-flags'
 import { genderHint, extractNameFromHistory } from '@/lib/assistant-gender'
+import { resolveVoiceKey } from '@/lib/voice-catalog'
 
 // ─── In-memory cache (1 saat) ─────────────────────────────────────
 const cache = new Map<string, { data: BizCtx; ts: number }>()
@@ -22,7 +23,7 @@ async function getBusiness(slug: string): Promise<BizCtx | null> {
   const db = getSupabaseAdmin()
   const { data } = await db
     .from('restaurants')
-    .select('id, name, slug, phone, address, working_hours, ai_assistant_name, business_type')
+    .select('id, name, slug, phone, address, working_hours, ai_assistant_name, ai_assistant_voice, business_type')
     .eq('slug', slug)
     .single()
 
@@ -35,6 +36,7 @@ async function getBusiness(slug: string): Promise<BizCtx | null> {
     address: (data as Record<string, unknown>).address as string | null,
     working_hours: (data as Record<string, unknown>).working_hours as WorkingHours | null,
     assistant_name: (data as Record<string, unknown>).ai_assistant_name as string | null,
+    assistant_voice: (data as Record<string, unknown>).ai_assistant_voice as string | null,
     business_type: (data as Record<string, unknown>).business_type as string | null,
   }
   cache.set(slug, { data: biz, ts: Date.now() })
@@ -76,8 +78,8 @@ export async function POST(req: NextRequest) {
   const biz = await getBusiness(restaurant_slug)
   if (!biz) return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
 
-  // S1-T5: ai_chatbot feature flag zorunlu (asistan beyni yalnızca açık işletmelerde)
-  const enabled = await checkFeatureFlag(biz.id, 'ai_chatbot')
+  // S1-T5 + BUG 3: ai_assistant_enabled master gate (asistan beyni yalnızca açık işletmelerde)
+  const enabled = await checkAssistantEnabled(biz.id, 'ai_chatbot')
   if (!enabled) {
     return NextResponse.json({ error: 'AI asistan bu işletmede aktif değil' }, { status: 403 })
   }
@@ -86,6 +88,7 @@ export async function POST(req: NextRequest) {
   const normalized = normalizeText(text)
   const asistanAdi = biz.assistant_name ?? 'Asistan'
   const bid = biz.id
+  const bizVoiceKey = resolveVoiceKey(biz.assistant_voice ?? null)
 
   async function respond(reply: string, source: ResponseSource, isUnknown = false, endCall = false) {
     logTurn({
@@ -99,7 +102,7 @@ export async function POST(req: NextRequest) {
       is_unknown: isUnknown,
     })
     console.log(`[chat] respond source=${source} end_call=${endCall} total=${Date.now() - t0}ms biz=${Date.now() - tBiz}ms`)
-    return NextResponse.json({ response: reply, cached: checkCache(reply), is_unknown: isUnknown, end_call: endCall })
+    return NextResponse.json({ response: reply, cached: checkCache(reply, bizVoiceKey), is_unknown: isUnknown, end_call: endCall })
   }
 
   // Saçma / anlamsız mesaj koruması

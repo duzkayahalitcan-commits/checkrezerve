@@ -19,6 +19,7 @@ export interface BizCtx {
   address: string | null
   working_hours: WorkingHours | null
   assistant_name: string | null
+  assistant_voice?: string | null
   business_type?: string | null
 }
 

@@ -7,6 +7,7 @@ import {
   type ChatMsg,
 } from '@/lib/assistant-brain'
 import { genderHint, extractNameFromHistory } from '@/lib/assistant-gender'
+import { checkAssistantEnabled } from '@/lib/feature-flags'
 
 // POST /api/ai-chatbot
 // Body: { restaurant_id, messages }
@@ -24,13 +25,10 @@ export async function POST(request: NextRequest) {
     const db = getSupabaseAdmin()
 
     // ── Feature flag kontrolü ──────────────────────────────────────────
-    const { data: flagRow } = await db
-      .from('feature_flags')
-      .select('enabled')
-      .eq('restaurant_id', restaurant_id)
-      .eq('feature', 'ai_chatbot')
-      .maybeSingle()
-    if (!flagRow?.enabled) {
+    // BUG 3 FİX: ai_assistant_enabled master gate — enabled=false ise flag true
+    // olsa bile chatbot kapalıdır.
+    const enabled = await checkAssistantEnabled(restaurant_id, 'ai_chatbot')
+    if (!enabled) {
       return NextResponse.json({ error: 'AI Chatbot bu işletme için aktif değil.' }, { status: 403 })
     }
 

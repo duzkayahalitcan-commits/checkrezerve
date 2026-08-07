@@ -62,10 +62,15 @@ export default async function BusinessDetailPage({ params }: Props) {
   // feature flag'i açıksa göster. speak endpoint'i bu flag'i zorunlu kılıyor;
   // flag kapalıyken buton gösterilirse sessizce hata alır. Uygulama /api/voice
   // kullandığından flag kontrolü yapmaz; web burada flag'e göre gate'lenir.
+  // BUG 3 FİX: ai_assistant_enabled tek yetkili (master) anahtar.
+  // Sesli asistan YALNIZCA ai_assistant_enabled=true iken gösterilir; ayrıca
+  // voice özelliği için ai_voice_search flag'i de açık olmalı (AND).
+  // Böylece DB'den yalnızca ai_assistant_enabled=false yapmak asistanı tamamen
+  // kapatır (OR mantığı kaldırıldı — flag true kalsa bile enabled=false yeter).
   const voiceFlagMap = new Map((featureFlags ?? []).map((f: { feature: string; enabled: boolean }) => [f.feature, f.enabled]))
+  const masterEnabled = (biz as Record<string, unknown>).ai_assistant_enabled === true
   const voiceSearchEnabled =
-    (biz as Record<string, unknown>).ai_assistant_enabled === true ||
-    voiceFlagMap.get('ai_voice_search') === true
+    masterEnabled && voiceFlagMap.get('ai_voice_search') === true
 
   const business = biz as unknown as Restaurant
 

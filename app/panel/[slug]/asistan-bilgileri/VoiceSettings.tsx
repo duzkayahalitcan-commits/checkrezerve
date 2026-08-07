@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Volume2, Check, Loader2, Clock } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { VOICE_OPTIONS, getVoice } from '@/lib/voice-catalog'
+import { VOICE_OPTIONS } from '@/lib/voice-catalog'
 
 interface VoiceSettingsProps {
   restaurantId: string
@@ -71,17 +71,20 @@ export default function VoiceSettings({ restaurantId, isSuperAdmin }: VoiceSetti
   useEffect(() => { load() }, [load])
 
   // Ses önizleme — ElevenLabs TTS ile kısa cümle oynat
+  // BUG 1 FİX: speak route voice KEY bekliyor ('gulsu'|'yunus'|'mert'|'lisa').
+  // Önceden voice.elevenLabsId gönderiliyordu → getVoice(ID) bulamayınca
+  // varsayılan gulsu'ya düşüyordu (hangi sese tıklanırsa tıklansın gulsu çalıyordu).
+  // Artık preview'e gelen voiceKey (zaten ses KEY'i) doğrudan gönderiliyor.
   const preview = async (voiceKey: string) => {
     setPlaying(voiceKey)
     setError(null)
     try {
-      const voice = getVoice(voiceKey)
       const res = await fetch('/api/ai-assistant/speak', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: 'Merhaba, ben asistanınızım. Size nasıl yardımcı olabilirim?',
-          voice_id: voice.elevenLabsId,
+          voice_id: voiceKey,
           restaurant_id: restaurantId,
         }),
       })
