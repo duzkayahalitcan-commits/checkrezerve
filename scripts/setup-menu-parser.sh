@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # CheckRezerve menü ayrıştırıcı ortamı kurulumu (yerel geliştirme).
-# MarkItDown (Python) PDF'leri metne çevirmek için kullanılır.
+# pdfminer.six (Python) PDF'leri metne çevirmek için kullanılır.
 #
 # ── Docker/Production (ÖNERİLEN) ─────────────────────────────────────────────
 # Docker image'ı (Dockerfile) bu ortamı ZATEN içine kurar:
@@ -26,7 +26,7 @@ PYTHON="${PYTHON:-python3}"
 echo "▶ Kuruluyor: $VENV_DIR"
 "$PYTHON" -m venv "$VENV_DIR"
 "$VENV_DIR/bin/python" -m pip install --upgrade pip
-"$VENV_DIR/bin/python" -m pip install markitdown
+"$VENV_DIR/bin/python" -m pip install pdfminer.six
 
 echo ""
 echo "✅ Hazır! Şu satırı .env.local'e ekleyin:"

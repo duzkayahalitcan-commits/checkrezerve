@@ -21,7 +21,7 @@ const ALLOWED = {
   'image/webp': 'webp',
 } as const
 
-// MarkItDown python yolu — proje içi .venv Turbopack build'ini bozduğu için
+// PDF python yolu — proje içi .venv Turbopack build'ini bozduğu için
 // dışarıdaki bir venv'e (veya ortama) işaret eder. Sırasıyla:
 //  1) MENU_MARKITDOWN_PYTHON env'i (önerilen)
 //  2) ~/.checkrezerve-venv/bin/python (varsayılan kurulum noktası)
@@ -54,7 +54,7 @@ async function ocrImage(filePath: string): Promise<string> {
   }
 }
 
-// PDF → metin (MarkItDown / python venv)
+// PDF → metin (pdfminer.six / python venv)
 async function pdfToText(filePath: string): Promise<string> {
   const py = venvPython()
   const converter = path.join(process.cwd(), 'scripts', 'menu_convert.py')
@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
     tempPath = path.join(os.tmpdir(), `cr-menu-${id}.${ext}`)
     await writeFile(tempPath, buf)
 
-    // 4) Metne çevir (PDF → MarkItDown, görsel → OCR)
+    // 4) Metne çevir (PDF → pdfminer.six, görsel → OCR)
     let rawText: string
     if (mime === 'application/pdf') {
       rawText = await pdfToText(tempPath)

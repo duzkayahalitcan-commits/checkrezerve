@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CheckRezerve menu converter: PDF/görsel dosyayı MarkItDown ile markdown/metne çevirir.
+"""CheckRezerve menu converter: PDF dosyayı pdfminer.six ile metne çevirir.
 
 Kullanım:
     python menu_convert.py <dosya_yolu>
@@ -7,10 +7,19 @@ Kullanım:
 Çıktı: dönüştürülmüş metni stdout'a basar. Hata durumunda stderr'e yazar ve
 nonzero çıkış koduyla döner.
 
-Bu script'i Node/Next.js sunucusu, /api/menu/parse içinden subprocess olarak çağırır.
+Bu script'i Node/Next.js sunucusu, /api/menu/parse içinden subprocess olarak
+çağırır. Görsel (jpg/png) OCR'ı ayrıca Node tarafında (tesseract.js) yapılır;
+bu script YALNIZCA PDF için kullanılır.
+
+PDF->metin: pdfminer.six'in high_level.extract_text() fonksiyonu kullanılır.
+Bu, eski markitdown bağımlılığının PDF yoluyla BİREBİR aynı motordur
+(markitdown da aynı pdfminer fonksiyonunu çağırır), ancak markitdown'ın
+beraberinde getirdiği ~330MB'lık gereksiz bağımlılık ağacı (pandas, numpy,
+openai, azure, pptx, magika vs.) image'dan elenir.
 """
 import sys
 from pathlib import Path
+
 
 def main() -> int:
     if len(sys.argv) < 2:
@@ -23,15 +32,13 @@ def main() -> int:
         return 2
 
     try:
-        from markitdown import MarkItDown
+        from pdfminer.high_level import extract_text
     except Exception as e:  # noqa: BLE001
-        print(f"MarkItDown yüklenemiyor: {e}", file=sys.stderr)
+        print(f"pdfminer.six yüklenemiyor: {e}", file=sys.stderr)
         return 3
 
     try:
-        md = MarkItDown()
-        result = md.convert(str(src))
-        text = (result.text_content or "").strip()
+        text = (extract_text(str(src)) or "").strip()
         if not text:
             print("Dosyadan metin çıkarılamadı (boş sonuç).", file=sys.stderr)
             return 4
@@ -40,6 +47,7 @@ def main() -> int:
     except Exception as e:  # noqa: BLE001
         print(f"Dönüştürme hatası: {e}", file=sys.stderr)
         return 5
+
 
 if __name__ == "__main__":
     sys.exit(main())

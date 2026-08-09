@@ -39,14 +39,15 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# ── PDF menü ayrıştırıcı (MarkItDown) — image içinde build-time venv ────────
-# scripts/setup-menu-parser.sh mantığının image içi karşılığı. venv, host'a
-# bağımlı olmadan bu image'ın içine kurulur. /opt/checkrezerve-venv, README ve
-# parse route'undaki varsayılan arama konumuyla eşleşir.
+# ── PDF menü ayrıştırıcı (pdfminer.six) — image içinde build-time venv ──────
+# markitdown -> pdfminer.six geçişi (image boyutu küçültme).
+# markitdown'ın PDF motoru zaten pdfminer.six idi; artık doğrudan sadece
+# pdfminer.six kurulur (~330MB gereksiz bağımlılık ağacı elendi).
+# venv, host'a bağımlı olmadan image içine kurulur.
 RUN apk add --no-cache python3 py3-virtualenv py3-pip \
  && python3 -m venv /opt/checkrezerve-venv \
  && /opt/checkrezerve-venv/bin/pip install --no-cache-dir --upgrade pip \
- && /opt/checkrezerve-venv/bin/pip install --no-cache-dir markitdown \
+ && /opt/checkrezerve-venv/bin/pip install --no-cache-dir pdfminer.six \
  && apk del py3-virtualenv
 
 ENV MENU_MARKITDOWN_PYTHON=/opt/checkrezerve-venv/bin/python
