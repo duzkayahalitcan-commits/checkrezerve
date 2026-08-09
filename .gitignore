@@ -40,3 +40,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 cr-web-safe.txt
+
+# python (menu_convert.py)
+scripts/.venv/
+__pycache__/
+*.pyc
+
+# tesseract.js OCR cache
+*.traineddata

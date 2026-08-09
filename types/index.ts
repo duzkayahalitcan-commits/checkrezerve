@@ -120,17 +120,35 @@ export type Restaurant = {
   ai_assistant_voice?:        string | null
 }
 
+// Gerçek DB kolonlarıyla birebir eşleşir (hizmetler tablosu).
+// NOT: name/price/duration_minutes DEĞİL — ad/fiyat/sure_dakika kullanılır.
 export type Service = {
-  id:               string
-  restaurant_id:    string
-  name:             string
-  description:      string | null
-  duration_minutes: number
-  price:            number | null
-  currency:         string
-  is_active:        boolean
-  sort_order:       number
-  created_at:       string
+  id:            string
+  restaurant_id: string
+  calisan_id:    string | null
+  ad:            string
+  sure_dakika:   number | null
+  fiyat:         number | null
+  aktif:         boolean
+  kategori:      string | null
+  renk:          string | null
+  created_at:    string
+  ad_en?:        string | null
+  ad_ar?:        string | null
+  ad_de?:        string | null
+  ad_da?:        string | null
+  ad_es?:        string | null
+  ad_ru?:        string | null
+}
+
+// Mobil/onboarding'de kullanılan "id + ad + sure_dakika + fiyat" özeti
+export type ServiceSummary = {
+  id:            string
+  ad:            string
+  sure_dakika:   number | null
+  fiyat:         number | null
+  aktif:         boolean
+  kategori:      string | null
 }
 
 export type StaffMember = {
