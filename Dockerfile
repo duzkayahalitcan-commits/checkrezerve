@@ -39,6 +39,18 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+# ── PDF menü ayrıştırıcı (MarkItDown) — image içinde build-time venv ────────
+# scripts/setup-menu-parser.sh mantığının image içi karşılığı. venv, host'a
+# bağımlı olmadan bu image'ın içine kurulur. /opt/checkrezerve-venv, README ve
+# parse route'undaki varsayılan arama konumuyla eşleşir.
+RUN apk add --no-cache python3 py3-virtualenv py3-pip \
+ && python3 -m venv /opt/checkrezerve-venv \
+ && /opt/checkrezerve-venv/bin/pip install --no-cache-dir --upgrade pip \
+ && /opt/checkrezerve-venv/bin/pip install --no-cache-dir markitdown \
+ && apk del py3-virtualenv
+
+ENV MENU_MARKITDOWN_PYTHON=/opt/checkrezerve-venv/bin/python
+
 # Güvenlik: root olmayan kullanıcı
 RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 nextjs

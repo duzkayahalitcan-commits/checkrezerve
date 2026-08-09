@@ -50,6 +50,8 @@ services:
       N8N_DB_PASSWORD:                 ${N8N_DB_PASSWORD}
       NODE_ENV:  production
       PORT:      3001
+      # PDF menü ayrıştırıcı (MarkItDown) — image içine build sırasında kurulur
+      MENU_MARKITDOWN_PYTHON: /opt/checkrezerve-venv/bin/python
     volumes:
       - audio-cache:/app/public/audio/tr/responses:rw
     networks:
@@ -102,6 +104,8 @@ services:
       N8N_DB_PASSWORD:                 ${N8N_DB_PASSWORD}
       NODE_ENV:  production
       PORT:      3002
+      # PDF menü ayrıştırıcı (MarkItDown) — image içine build sırasında kurulur
+      MENU_MARKITDOWN_PYTHON: /opt/checkrezerve-venv/bin/python
     volumes:
       - audio-cache:/app/public/audio/tr/responses:rw
     networks:

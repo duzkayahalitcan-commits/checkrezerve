@@ -1,12 +1,19 @@
 #!/usr/bin/env bash
-# CheckRezerve menü ayrıştırıcı ortamı kurulumu.
+# CheckRezerve menü ayrıştırıcı ortamı kurulumu (yerel geliştirme).
 # MarkItDown (Python) PDF'leri metne çevirmek için kullanılır.
 #
+# ── Docker/Production (ÖNERİLEN) ─────────────────────────────────────────────
+# Docker image'ı (Dockerfile) bu ortamı ZATEN içine kurar:
+#   /opt/checkrezerve-venv/bin/python
+# ve MENU_MARKITDOWN_PYTHON env'ini otomatik set eder (Dockerfile ENV + compose).
+# Bu durumda bu scripti ÇALIŞTIRMANA GEREK YOK.
+#
+# ── Yerel geliştirme ─────────────────────────────────────────────────────────
 # Proje içinde .venv oluşturmak Turbopack build'ini bozar (symlink dışa işaret
 # eder). Bu yüzden venv, proje DIŞINA (~/.checkrezerve-venv) kurulur ve
 # MENU_MARKITDOWN_PYTHON env'i ile işaret edilir.
 #
-# Kullanım:
+# Kullanım (yalnızca yerel/öncesi):
 #   ./scripts/setup-menu-parser.sh
 #
 # Kurulduktan sonra .env.local dosyanıza ekleyin:
