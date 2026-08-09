@@ -2,6 +2,8 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import type { WorkingHours } from '@/types'
 import { logConversation, type Channel, type ResponseSource } from '@/lib/conversation-logger'
 import { BUSINESS_TYPE_LABELS } from '@/lib/assistant-gender'
+import { readFileSync, existsSync } from 'node:fs'
+import path from 'node:path'
 
 // ============================================================
 // W-78: Ortak Asistan Beyni
@@ -150,6 +152,59 @@ export async function getServiceMenu(restaurantId: string): Promise<string> {
   }
 }
 
+// ─── PART 2: İşletmenin canlı hizmet + çalışan verisi ──────────────
+// CHATBOT MUHTEŞEM: Bot, bir işletmeyle konuşurken o işletmenin GÜNCEL
+// hizmetlerini (services/hizmetler) ve çalışanlarını (calisanlar)
+// Supabase'den canlı çeker. Böylece işletme yeni hizmet/çalışan eklediği
+// an bir sonraki konuşmada otomatik bilinir — manuel yeniden tarama gerekmez.
+//
+// Performans: Bu sorgu HER chatbot mesajında değil, konuşma başında bir
+// kez çekilir ve session içinde cache'lenir (kısa TTL, ortalama 60 sn).
+// TTL dolunca (veya yeni konuşmada) tazelenir.
+const liveCache = new Map<string, { data: string; at: number }>()
+const LIVE_TTL_MS = 60_000
+
+export async function getBusinessLiveContext(restaurantId: string): Promise<string> {
+  // Cache kontrolü (konuşma/session içinde tekrar sorgulama)
+  const cached = liveCache.get(restaurantId)
+  if (cached && Date.now() - cached.at < LIVE_TTL_MS) {
+    return cached.data
+  }
+
+  try {
+    const db = getSupabaseAdmin()
+
+    // Hizmetler: birincil services, ikincil hizmetler (getServiceMenu yeniden kullanılır)
+    const serviceMenu = await getServiceMenu(restaurantId)
+
+    // Çalışanlar: calisanlar tablosu (aktif olanlar)
+    const { data: calisanlar } = await db
+      .from('calisanlar')
+      .select('ad, uzmanlik, pozisyon, unvan, aktif')
+      .eq('restaurant_id', restaurantId)
+      .order('created_at')
+
+    const aktifCalisanlar = (calisanlar ?? [])
+      .filter((c: Record<string, unknown>) => c.aktif !== false)
+      .map((c: Record<string, unknown>) => {
+        const ad = (c.ad as string) ?? '?'
+        const uzmanlik = (c.uzmanlik as string) || (c.pozisyon as string) || (c.unvan as string) || ''
+        return `- ${ad}${uzmanlik ? ` (${uzmanlik})` : ''}`
+      })
+      .join('\n')
+
+    const blocks: string[] = []
+    if (serviceMenu) blocks.push(`HİZMETLER:\n${serviceMenu}`)
+    if (aktifCalisanlar) blocks.push(`ÇALIŞANLAR:\n${aktifCalisanlar}`)
+
+    const data = blocks.join('\n')
+    if (data) liveCache.set(restaurantId, { data, at: Date.now() })
+    return data
+  } catch {
+    return ''
+  }
+}
+
 // ─── RAG: bugün dolu olan saat dilimleri ───────────────────────────
 // Bot'un "şu an müsaitlik var mı?" sorusuna gerçek veriyle cevap
 // verebilmesi için bugünün dolu slotlarını döndürür (tahmin yok).
@@ -179,9 +234,13 @@ export interface PromptParams {
   voice?: boolean
   serviceMenu?: string
   todayBusy?: string
+  /** PART 1: Firecrawl ile üretilen statik platform bilgi tabanı (workers/kb/*.md) */
+  kbBlock?: string
+  /** PART 2: Canlı Supabase sorgusuyla çekilen işletmeye özel veri (hizmetler + çalışanlar) */
+  liveBlock?: string
 }
 
-export function buildSystemPrompt({ biz, maxTurn, featureLines, genderHintLine, voice, serviceMenu, todayBusy }: PromptParams): string {
+export function buildSystemPrompt({ biz, maxTurn, featureLines, genderHintLine, voice, serviceMenu, todayBusy, kbBlock, liveBlock }: PromptParams): string {
   const asistanAdi = biz.assistant_name ?? 'Asistan'
   const { ozellikler, diger } = featureLines ?? { ozellikler: '', diger: '' }
   const ozellikBlock = ozellikler ? `İŞLETME ÖZELLİKLERİ:\n${ozellikler}` : ''
@@ -192,6 +251,14 @@ export function buildSystemPrompt({ biz, maxTurn, featureLines, genderHintLine, 
   const serviceBlock = serviceMenu ? `HİZMETLER VE FİYATLAR (SADECE bu listedeki gerçek veriyi kullan):
 ${serviceMenu}` : ''
   const busyBlock = todayBusy ? `BUGÜN DOLU SAATLER: ${todayBusy}` : ''
+  // PART 1: Firecrawl ile üretilen statik platform bilgi tabanı (SSS, fiyat, özellikler)
+  const kbBlockText = kbBlock ? `CHECKREZERVE PLATFORM BİLGİSİ (genel platform soruları için — sadece bu veriye dayan):
+${kbBlock}` : ''
+  // PART 2: Canlı Supabase verisi — işletmenin güncel hizmetleri + çalışanları.
+  // Her konuşma başında çekilip session'da cache'lenir; işletme yeni hizmet/çalışan
+  // eklediği an sonraki konuşmada otomatik görünür (manuel tarama gerekmez).
+  const liveBlockText = liveBlock ? `BU İŞLETMENİN GÜNCEL VERİSİ (canlı — hizmetler ve çalışanlar):
+${liveBlock}` : ''
   // Öğrenilen isim için cinsiyet ipucu (deterministik, güvenli)
   const genderLine = genderHintLine ? `\nHİTAP NOTU: ${genderHintLine}` : ''
   // Sesli görüşme ek kuralları
@@ -205,7 +272,7 @@ SESLİ GÖRÜŞME KURALLARI (öncelikli):
   return `Sen ${biz.name} asistanısın, adın ${asistanAdi}. Cevaplar 1-2 cümle, sesli okunur, kısa.
 
 İşletme: ${biz.name}${tip ? ` (${tip})` : ''} | Tel ${biz.phone ?? 'Yok'} | Adres ${biz.address ?? 'Yok'} | Web https://checkrezerve.com/tr/${biz.slug} | Çalışma ${saatYanit(biz.working_hours) ?? 'Bilinmiyor'}
-${serviceBlock ? `\n${serviceBlock}` : ''}${busyBlock ? `\n${busyBlock}` : ''}${ozellikBlock ? `\n${ozellikBlock}` : ''}${digerBlock ? `\n${digerBlock}` : ''}
+${serviceBlock ? `\n${serviceBlock}` : ''}${busyBlock ? `\n${busyBlock}` : ''}${liveBlockText ? `\n${liveBlockText}` : ''}${ozellikBlock ? `\n${ozellikBlock}` : ''}${digerBlock ? `\n${digerBlock}` : ''}${kbBlockText ? `\n${kbBlockText}` : ''}
 
 ÇEKİRDEK PRENSİPLER:
 - Görevin sohbet etmek değil, kullanıcının hedefini (rezervasyon/randevu) sonuca ulaştırmak.
@@ -328,4 +395,35 @@ export async function callDeepSeek(systemPrompt: string, messages: ChatMsg[], ma
   if (!res.ok) throw new Error(`DeepSeek error: ${res.status}`)
   const json = await res.json()
   return (json.choices?.[0]?.message?.content as string) ?? 'Yanıt alınamadı.'
+}
+
+// ─── PART 1: Firecrawl ile üretilen statik platform bilgi tabanı ───
+// workers/kb/*.md dosyalarını okuyup tek bir "CHECKREZERVE_KB" bloğu
+// halinde döndürür. Dosyalar Firecrawl (Hosted API) ile crawl edilerek
+// temiz markdown olarak üretilir (workers/kb üretim script'i).
+// Dosyalar yoksa boş döner → buildSystemPrompt'a kbBlock eklenmez.
+const kbCache: { data: string; at: number } = { data: '', at: 0 }
+const KB_TTL_MS = 5 * 60_000 // 5 dk — statik içerik nadiren değişir
+
+export function getKbContext(): string {
+  if (Date.now() - kbCache.at < KB_TTL_MS) return kbCache.data
+
+  try {
+    const kbDir = path.join(process.cwd(), 'workers', 'kb')
+    const files = ['tr-sss.md', 'tr-pricing.md', 'tr-ozellikler.md']
+    const parts: string[] = []
+    for (const f of files) {
+      const p = path.join(kbDir, f)
+      if (existsSync(p)) {
+        const content = readFileSync(p, 'utf-8').trim()
+        if (content) parts.push(content)
+      }
+    }
+    const data = parts.join('\n\n')
+    kbCache.data = data
+    kbCache.at = Date.now()
+    return data
+  } catch {
+    return ''
+  }
 }

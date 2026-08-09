@@ -3,7 +3,8 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { rateLimit } from '@/lib/rate-limit'
 import {
   buildSystemPrompt, callDeepSeek, detectGibberish, enforceReservationApproval,
-  getFeatures, getServiceMenu, getTodayAvailability, isFarewell, isGreeting, logTurn, normalizeText,
+  getBusinessLiveContext, getFeatures, getKbContext, getServiceMenu, getTodayAvailability,
+  isFarewell, isGreeting, logTurn, normalizeText,
   type ChatMsg,
 } from '@/lib/assistant-brain'
 import { genderHint, extractNameFromHistory } from '@/lib/assistant-gender'
@@ -82,15 +83,19 @@ export async function POST(request: NextRequest) {
     const maxTurn = turn_number > 12
     const features = await getFeatures(biz.id)
     // CHATBOT MUHTEŞEM ADIM 1: gerçek hizmet/fiyat + bugünkü dolu saatler
-    const [serviceMenu, todayBusy] = await Promise.all([
+    const [serviceMenu, todayBusy, liveBlock, kbBlock] = await Promise.all([
       getServiceMenu(biz.id),
       getTodayAvailability(biz.id),
+      // PART 2: işletmenin canlı hizmet + çalışan verisi (konuşma başında bir kez)
+      getBusinessLiveContext(biz.id),
+      // PART 1: Firecrawl ile üretilen statik platform bilgi tabanı
+      getKbContext(),
     ])
     const genderHintLine = (() => {
       const name = extractNameFromHistory(history)
       return name ? genderHint(name) : null
     })()
-    const systemPrompt = buildSystemPrompt({ biz, maxTurn, featureLines: features, genderHintLine, serviceMenu, todayBusy })
+    const systemPrompt = buildSystemPrompt({ biz, maxTurn, featureLines: features, genderHintLine, serviceMenu, todayBusy, liveBlock, kbBlock })
 
     try {
       let reply = await callDeepSeek(systemPrompt, history, 200)
