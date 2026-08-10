@@ -139,7 +139,9 @@ services:
       - "5001"
     environment:
       ASR_MODEL: base
-      ASR_ENGINE: openai_whisper
+      # faster_whisper (CTranslate2, int8 CPU) — openai/whisper PyTorch FP32'den
+      # 4-10x hızlı; /asr API'si birebir aynı (transcribe route'u değişmedi)
+      ASR_ENGINE: faster_whisper
     networks:
       - app-net
 
