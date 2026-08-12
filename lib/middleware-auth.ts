@@ -18,9 +18,12 @@ export function verifyAdminToken(raw: string, password: string, secret: string):
 }
 
 // ── Panel (business) cookie token ─────────────────────────────────────────
-// Format: `userId:restaurantId:role:hmac(userId:restaurantId)`
-export function makePanelToken(userId: string, restaurantId: string, secret: string): string {
-  return createHmac('sha256', secret).update(`${userId}:${restaurantId}`).digest('base64url')
+// Format: `userId:restaurantId:role:hmac(userId:restaurantId:role)`
+// K1 FİX: HMAC artık role DAHİL olacak şekilde `userId:restaurantId:role`
+// üzerinden hesaplanır. Böylece kullanıcı cookie'deki role değerini
+// değiştirirse HMAC doğrulaması başarısız olur (privilege escalation engellenir).
+export function makePanelToken(userId: string, restaurantId: string, role: string, secret: string): string {
+  return createHmac('sha256', secret).update(`${userId}:${restaurantId}:${role}`).digest('base64url')
 }
 
 export interface PanelSession {
@@ -41,7 +44,8 @@ export function parsePanelCookie(
 export function verifyPanelToken(raw: string, secret: string): PanelSession | null {
   const parsed = parsePanelCookie(raw)
   if (!parsed) return null
-  const expected = makePanelToken(parsed.userId, parsed.restaurantId, secret)
+  // K1 FİX: role'u da HMAC hesabına kat
+  const expected = makePanelToken(parsed.userId, parsed.restaurantId, parsed.role ?? '', secret)
   if (parsed.token !== expected) return null
   return { userId: parsed.userId, restaurantId: parsed.restaurantId, role: parsed.role }
 }

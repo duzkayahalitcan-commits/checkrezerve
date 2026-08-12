@@ -1,19 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies }                  from 'next/headers'
-import { createHmac }               from 'crypto'
 import { getSupabaseAdmin }         from '@/lib/supabase'
+import { verifyPanelToken }         from '@/lib/middleware-auth'
 
-// Cookie doğrulama (panel session)
+// K1 FİX: verifyPanelToken role dahil HMAC doğrular (inline HMAC kaldırıldı)
 function verifySession(raw: string): { userId: string; restaurantId: string; role: string } | null {
-  const parts = raw.split(':')
-  if (parts.length < 4) return null
-  const [userId, restaurantId, role, ...tokenParts] = parts
-  const token    = tokenParts.join(':')
-  const secret   = process.env.ADMIN_SECRET
+  const secret = process.env.ADMIN_SECRET
   if (!secret) return null
-  const expected = createHmac('sha256', secret).update(`${userId}:${restaurantId}`).digest('base64url')
-  if (token !== expected) return null
-  return { userId, restaurantId, role }
+  const session = verifyPanelToken(raw, secret)
+  if (!session) return null
+  return { userId: session.userId, restaurantId: session.restaurantId, role: session.role ?? '' }
 }
 
 // CSV satırı: özel karakter escape

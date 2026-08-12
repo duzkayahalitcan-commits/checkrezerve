@@ -4,9 +4,10 @@ import { createHmac } from 'crypto'
 import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
-function makeSessionToken(userId: string, restaurantId: string): string {
+function makeSessionToken(userId: string, restaurantId: string, role: string): string {
   const secret = process.env.ADMIN_SECRET! // S1-T3: fallback yok — env zorunlu
-  return createHmac('sha256', secret).update(`${userId}:${restaurantId}`).digest('base64url')
+  // K1 FİX: role da HMAC hesabına dahil
+  return createHmac('sha256', secret).update(`${userId}:${restaurantId}:${role}`).digest('base64url')
 }
 
 type CookieResult =
@@ -32,7 +33,7 @@ export async function setPanelSessionCookie(userId: string): Promise<CookieResul
     super_admin:     'super_admin',
   }
   const role = roleMap[profile.role] ?? profile.role ?? 'business_manager'
-  const token = makeSessionToken(userId, profile.isletme_id)
+  const token = makeSessionToken(userId, profile.isletme_id, role)
   const cookiePayload = `${userId}:${profile.isletme_id}:${role}:${token}`
 
   const jar = await cookies()

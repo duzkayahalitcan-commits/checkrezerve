@@ -12,15 +12,16 @@ function hashPassword(password: string): string {
   return createHmac('sha256', secret).update(password).digest('hex')
 }
 
-function makeSessionToken(userId: string, restaurantId: string): string {
+function makeSessionToken(userId: string, restaurantId: string, role: string): string {
   const secret  = process.env.ADMIN_SECRET
   if (!secret) throw new Error('ADMIN_SECRET is not configured')
-  const payload = `${userId}:${restaurantId}`
+  // K1 FİX: role da HMAC hesabına dahil — cookie'de role değiştirilirse doğrulama başarısız olur
+  const payload = `${userId}:${restaurantId}:${role}`
   return createHmac('sha256', secret).update(payload).digest('base64url')
 }
 
 async function setSessionCookie(userId: string, restaurantId: string, role: string, remember = true) {
-  const token         = makeSessionToken(userId, restaurantId)
+  const token         = makeSessionToken(userId, restaurantId, role)
   const cookiePayload = `${userId}:${restaurantId}:${role}:${token}`
   const jar           = await cookies()
   jar.set('cr_panel', cookiePayload, {
@@ -119,7 +120,8 @@ export async function getPanelSession(): Promise<PanelSession> {
 
   const [userId, restaurantId, role, ...tokenParts] = parts
   const token    = tokenParts.join(':')
-  const expected = makeSessionToken(userId, restaurantId)
+  // K1 FİX: role da doğrulamaya dahil
+  const expected = makeSessionToken(userId, restaurantId, role)
 
   if (token !== expected) return null
   return { userId, restaurantId, role }
