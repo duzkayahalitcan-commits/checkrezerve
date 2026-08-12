@@ -23,7 +23,7 @@ export default async function RaporlarPage({
 
   const { data: restaurant } = await db
     .from('restaurants')
-    .select('id, name, slug, onboarding_completed')
+    .select('id, name, slug, onboarding_completed, business_type')
     .eq('slug', slug)
     .eq('id', session.restaurantId)
     .single()
@@ -83,6 +83,21 @@ export default async function RaporlarPage({
   const prevTotal = prevRes?.length ?? 0
   const diff = total - prevTotal
   const diffPct = prevTotal > 0 ? Math.round((diff / prevTotal) * 100) : total > 0 ? 100 : 0
+
+  // Durum kırılımı (onaylanan/iptal/tamamlanan)
+  const statusLabels: Record<string, string> = {
+    confirmed: 'Onaylanan', pending: 'Bekleyen',
+    cancelled: 'İptal', completed: 'Tamamlanan',
+  }
+  const statusCount = new Map<string, number>()
+  for (const r of currentRes ?? []) {
+    const s = (r.status as string) ?? 'unknown'
+    statusCount.set(s, (statusCount.get(s) ?? 0) + 1)
+  }
+  const statusBreakdown = Array.from(statusCount.entries())
+    .map(([k, count]) => ({ label: statusLabels[k] ?? k, count }))
+    .sort((a, b) => b.count - a.count)
+
 
   const cancelled = currentRes?.filter(r => r.status === 'cancelled').length ?? 0
   const cancelPct = total > 0 ? Math.round((cancelled / total) * 100) : 0
@@ -156,9 +171,11 @@ export default async function RaporlarPage({
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 space-y-8">
         <RaporlarClient
           slug={slug}
+          businessType={restaurant.business_type as string | null}
           total={total} diff={diff} diffPct={diffPct}
           cancelPct={cancelPct} prevCancelPct={prevCancelPct}
           revenue={revenue} prevRevenue={prevRevenue}
+          statusBreakdown={statusBreakdown}
           barData={barData}
           heatmapData={heatmapData}
           pieData={pieData}
