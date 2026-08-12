@@ -7,6 +7,7 @@ import CustomerHeader from '@/components/CustomerHeader'
 import { Link } from '@/i18n/navigation'
 import NextLink from 'next/link'
 import NotificationToggle from './NotificationToggle'
+import KanalTercihi from './KanalTercihi'
 import type { User } from '@supabase/supabase-js'
 
 const KAT_ICON: Record<string, string> = {
@@ -131,6 +132,9 @@ export default function ProfilPage() {
 
         {/* Notification toggle */}
         <NotificationToggle />
+
+        {/* Bildirim kanal tercihleri (paket sahibi işletmeler) */}
+        <KanalTercihi />
 
         {/* Son Rezervasyonlar */}
         <h2 className="text-lg font-bold text-zinc-900 mb-5">📋 {t('recentReservations')}</h2>

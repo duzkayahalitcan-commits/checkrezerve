@@ -109,6 +109,7 @@ export default function PanelSidebar({
       items: [
         { href: `${base}/asistan-bilgileri`, label: 'Asistan',    icon: Bot as React.ComponentType<{ size?: number }> },
         { href: `${base}/bildirimler`,   label: 'Bildirimler',   icon: Bell             },
+        { href: `${base}/bildirim-kanallari`, label: 'Bildirim Kanalları', icon: Bell },
         { href: `${base}/ayarlar`,       label: 'Ayarlar',       icon: Settings        },
         { href: `${base}/abonelik`,      label: 'Abonelik',      icon: CreditCard      },
       ],
