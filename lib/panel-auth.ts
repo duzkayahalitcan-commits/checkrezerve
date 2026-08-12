@@ -1,6 +1,6 @@
 import { type NextRequest } from 'next/server'
-import { getSupabaseAdmin } from './supabase'
-import { verifyPanelToken } from './middleware-auth'
+import { getSupabaseAdmin } from '@/lib/supabase'
+import { verifyPanelToken } from '@/lib/middleware-auth'
 
 export function verifySession(raw: string): { userId: string; restaurantId: string; role: string } | null {
   const secret = process.env.ADMIN_SECRET
