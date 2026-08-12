@@ -9,9 +9,7 @@ import {
 } from 'recharts'
 
 const GOLD = '#D4A373'
-const ESPRESSO = '#2B1B17'
 const GREEN = '#22c55e'
-const RED = '#ef4444'
 const COLORS = ['#D4A373', '#22c55e', '#0ea5e9', '#8b5cf6', '#f97316', '#ec4899', '#14b8a6']
 
 type ResType = Record<string, unknown>
@@ -82,7 +80,7 @@ export default function RaporlarClient(props: Props) {
   function exportCSV() {
     const header = 'Tarih,Saat,Müşteri,Telefon,Kişi,Durum,Notlar'
     const rows = filtered.map(r =>
-      `"${r.reserved_date}","${(r.reserved_time as string)?.slice(0,5)}","${r.guest_name ?? ''}","${r.guest_phone ?? ''}","${r.party_size ?? ''}","${r.status}","${(r.notes as string) ?? ''}"`
+      `"${r.reserved_date}","${(r.reserved_time as string)?.slice(0,5)}","${r.guest_name ?? ''}","${r.guest_phone ?? ''}","${r.party_size ?? ''}","${r.status}","${(r.special_requests as string) ?? ''}"`
     )
     const csv = [header, ...rows].join('\n')
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
@@ -277,7 +275,7 @@ export default function RaporlarClient(props: Props) {
                           'bg-stone-800 text-stone-400'
                         }`}>{r.status as string}</span>
                       </td>
-                      <td className="py-2 px-2 text-stone-500 max-w-32 truncate">{r.notes as string ?? ''}</td>
+                      <td className="py-2 px-2 text-stone-500 max-w-32 truncate">{r.special_requests as string ?? ''}</td>
                     </tr>
                   ))
                 )}

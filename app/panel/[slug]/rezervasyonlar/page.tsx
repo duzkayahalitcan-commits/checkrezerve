@@ -42,7 +42,7 @@ export default async function RezervasyonlarPage({
     .from('reservations')
     .select(`
       id, guest_name, guest_phone, reserved_date, reserved_time,
-      party_size, notes, status, source, special_area_id, table_id,
+      party_size, special_requests, status, source, special_area_id, table_id,
       calisan_id, hizmet_id, created_at,
       calisanlar(ad),
       hizmetler(ad, fiyat),

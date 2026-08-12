@@ -93,7 +93,7 @@ export default function CalendarView({ restaurantId, businessType, slug }: Props
         .from('reservations')
         .select(`
           id, guest_name, guest_phone, reserved_date, reserved_time,
-          party_size, status, notes, price_paid, duration_minutes,
+          party_size, status, special_requests, price_paid, duration_minutes,
           calisan_id, hizmet_id,
           calisanlar!left(name, ad),
           hizmetler!left(ad, renk)

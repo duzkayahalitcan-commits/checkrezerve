@@ -12,7 +12,7 @@ type Reservation = {
   guest_phone: string | null
   reserved_time: string
   party_size: number | null
-  notes: string | null
+  special_requests: string | null
   status: string
   source: string | null
   special_area_id: string | null
@@ -425,7 +425,7 @@ function ReservationCard({
               <Phone size={10} /> {r.guest_phone}
             </a>
           )}
-          {r.notes && <p className="mt-1.5 text-xs text-stone-600 italic">&ldquo;{r.notes}&rdquo;</p>}
+          {r.special_requests && <p className="mt-1.5 text-xs text-stone-600 italic">&ldquo;{r.special_requests}&rdquo;</p>}
         </div>
 
         {/* Actions */}

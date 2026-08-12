@@ -180,7 +180,6 @@ export type Reservation = {
   service_id:       string | null
   staff_id:         string | null
   special_requests: string | null
-  notes:            string | null
   status:           'confirmed' | 'cancelled' | 'completed' | 'no_show'
   source:           'form' | 'ai' | 'phone' | 'whatsapp' | 'walk_in'
   special_area_id:  string | null

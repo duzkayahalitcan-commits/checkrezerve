@@ -68,7 +68,7 @@ export default async function RaporlarPage({
   const [{ data: currentRes }, { data: prevRes }, { data: allCurrent }, { data: hizmetler }, { data: calisanlar }, { data: dailyData }, { data: hourlyData }, { data: serviceData }] = await Promise.all([
     db.from('reservations').select('id, status').eq('restaurant_id', restaurant.id).gte('reserved_date', dateFrom).lte('reserved_date', dateTo),
     db.from('reservations').select('id, status').eq('restaurant_id', restaurant.id).gte('reserved_date', prevFrom).lte('reserved_date', prevTo),
-    db.from('reservations').select('id, guest_name, guest_phone, reserved_date, reserved_time, party_size, status, notes, hizmet_id, calisan_id, created_at').eq('restaurant_id', restaurant.id).gte('reserved_date', dateFrom).lte('reserved_date', dateTo).order('reserved_date', { ascending: false }).order('reserved_time', { ascending: false }),
+    db.from('reservations').select('id, guest_name, guest_phone, reserved_date, reserved_time, party_size, status, special_requests, hizmet_id, calisan_id, created_at').eq('restaurant_id', restaurant.id).gte('reserved_date', dateFrom).lte('reserved_date', dateTo).order('reserved_date', { ascending: false }).order('reserved_time', { ascending: false }),
     db.from('hizmetler').select('id, ad, fiyat').eq('restaurant_id', restaurant.id).eq('aktif', true),
     db.from('calisanlar').select('id, ad').eq('restaurant_id', restaurant.id).eq('aktif', true),
     // Günlük rezervasyon sayısı

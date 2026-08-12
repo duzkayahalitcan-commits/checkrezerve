@@ -9,7 +9,7 @@ export type TakvimReservation = {
   reserved_time:  string       // HH:mm
   party_size:     number | null
   status:         string
-  notes:          string | null
+  special_requests:  string | null
   table_id:       string | null
   masa_tipi_id:   string | null
   calisan_id:     string | null
