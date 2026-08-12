@@ -1,12 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { verifySession } from '@/lib/panel-auth'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { canViewReports } from '@/lib/roles'
 
+export const dynamic = 'force-dynamic'
+
+// GET /api/panel/calisan-gelir?restaurant_id=<uuid>&month=YYYY-MM
+// Çalışan bazlı gelir raporu. GÜVENLİK FİX:
+//  - Yalnızca panel (cr_panel cookie / verifySession) ile korunur
+//  - Sadece rapor görebilen roller (owner/manager/super_admin)
+//  - restaurant_id, session.restaurantId ile eşleşmek ZORUNDA
+//    (kendi isletmesinin dışındaki veriye erişim reddedilir)
 export async function GET(req: NextRequest) {
-  const restaurantId = req.nextUrl.searchParams.get('restaurant_id')
-  const month = req.nextUrl.searchParams.get('month')
+  // 1) Panel auth — geçerli oturum yoksa 401
+  const jar = await cookies()
+  const session = verifySession(jar.get('cr_panel')?.value ?? '')
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  // 2) RBAC — rapor görme yetkisi yoksa 403
+  if (!canViewReports(session.role ?? '')) {
+    return NextResponse.json({ error: 'Bu işlem için yetkiniz yok' }, { status: 403 })
+  }
+
+  // 3) restaurant_id zorunlu
+  const restaurantId = req.nextUrl.searchParams.get('restaurant_id')
   if (!restaurantId) return NextResponse.json({ error: 'restaurant_id required' }, { status: 400 })
 
+  // 4) Tenant izolasyonu — kullanıcı yalnızca KENDİ isletmesini sorgulayabilir
+  if (restaurantId !== session.restaurantId) {
+    return NextResponse.json({ error: 'Bu isletmeye erişim yetkiniz yok' }, { status: 403 })
+  }
+
+  const month = req.nextUrl.searchParams.get('month')
   const targetMonth = month ?? new Date().toISOString().slice(0, 7)
 
   const db = getSupabaseAdmin()
@@ -14,14 +40,14 @@ export async function GET(req: NextRequest) {
   const { data, error } = await db
     .from('calisanlar')
     .select(`
-      id, name, ad,
+      id, ad,
       reservations!left(
         id, price_paid, reserved_date, status
       )
     `)
     .eq('restaurant_id', restaurantId)
     .eq('aktif', true)
-    .order('name')
+    .order('ad')
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
