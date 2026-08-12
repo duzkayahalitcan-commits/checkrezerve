@@ -57,8 +57,7 @@ Aşağıdaki değişkenler henüz doldurulmadı (`.env.local`'da `sandbox-placeh
 ### 2.3 Supabase
 - [ ] Webhook ve callback `getSupabaseAdmin()` (service-role) kullanır. **Service-role
       key'in güncel olduğundan emin ol.** (3 Ağustos'ta eski JWT service-role key
-      devre dışı bırakıldı; `.env.local` güncel `sb_secret_...` key ile düzeltildi —
-      06 Ağu 2026.)
+      devre dışı bırakıldı; `.env` güncel key ile düzeltildi — 06 Ağu 2026.)
 - [ ] `iyzico_webhook_logs`, `subscriptions`, `subscription_payments` tablolarının
       prod şemasında mevcut olduğunu ve RLS policy'lerinin uygulandığını doğrula.
 
