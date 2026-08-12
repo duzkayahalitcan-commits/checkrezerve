@@ -1,9 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies }                  from 'next/headers'
+import { z }                        from 'zod'
 import { getSupabaseAdmin }         from '@/lib/supabase'
 import { resolveApiSession }        from '@/lib/panel-auth'
 import { initCheckoutForm, getPricingPlanRef } from '@/lib/iyzico'
 import { rateLimit } from '@/lib/rate-limit'
+
+// Input validation — ödeme akışı için gerekli alanlar
+const CheckoutSchema = z.object({
+  plan: z.enum(['starter', 'pro', 'enterprise']),
+  billing_period: z.enum(['monthly', 'yearly']),
+  customer: z.object({
+    email: z.string().email(),
+    name: z.string().min(1).max(100),
+    surname: z.string().min(1).max(100),
+    phone: z.string().max(20).optional(),
+    city: z.string().max(100).optional(),
+    country: z.string().max(100).optional(),
+    address: z.string().max(500).optional(),
+  }),
+})
 
 // POST /api/subscriptions/checkout
 // Body: { plan, billing_period, customer: { email, name, surname, phone, city, address } }
@@ -15,11 +31,11 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 })
 
   const body = await req.json()
-  const { plan, billing_period, customer } = body
-
-  if (!plan || !billing_period || !customer?.email) {
-    return NextResponse.json({ error: 'Eksik parametre.' }, { status: 400 })
+  const parsed = CheckoutSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Geçersiz istek.', details: parsed.error.flatten().fieldErrors }, { status: 400 })
   }
+  const { plan, billing_period, customer } = parsed.data
 
   const pricingPlanRef = getPricingPlanRef(plan, billing_period)
   if (!pricingPlanRef) {
@@ -46,7 +62,7 @@ export async function POST(req: NextRequest) {
     pricingPlanReferenceCode:  pricingPlanRef,
     subscriptionInitialStatus: 'ACTIVE',
     customer: {
-      gsmNumber:  customer.phone,
+      gsmNumber:  customer.phone ?? '',
       email:      customer.email,
       name:       customer.name,
       surname:    customer.surname,
@@ -80,12 +96,12 @@ export async function POST(req: NextRequest) {
 
   if (dbErr) console.error('[subscriptions/checkout] db insert:', dbErr)
 
-  // Checkout formunu geçici olarak logla — mobil uygulama bu URL'yi açar
+  // Checkout başlatma durumunu logla (audit) — hassas token/checkoutFormContent loglanmaz
   const { data: logEntry } = await db
     .from('iyzico_webhook_logs')
     .insert({
       event_type:       'CHECKOUT_FORM_INIT',
-      payload:          { checkoutFormContent: result.checkoutFormContent, token: result.token },
+      payload:          { status: result.status, conversationId },
       subscription_ref: null,
       processed:        false,
     })
@@ -97,9 +113,11 @@ export async function POST(req: NextRequest) {
     ? `${appUrl}/api/subscriptions/checkout-form?session=${logEntry.id}`
     : null
 
+  // Güvenlik: hassas iyzico token'ı client'a döndürülmez; yalnızca form içeriği
+  // (ödeme formu render edilmesi için) ve checkout URL döner. Token yeniden
+  // kullanım/ele geçirme riskine karşı server tarafında saklanmaz.
   return NextResponse.json({
     checkoutFormContent: result.checkoutFormContent,
-    token:               result.token,
     checkoutUrl,
   })
 }

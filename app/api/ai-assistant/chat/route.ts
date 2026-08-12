@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { rateLimit } from '@/lib/rate-limit'
 import type { WorkingHours } from '@/types'
 import { checkCache } from '@/lib/audio-cache'
 import type { ResponseSource } from '@/lib/conversation-logger'
@@ -67,6 +68,10 @@ async function getHistory(sessionId: string): Promise<ChatMsg[]> {
 // POST /api/ai-assistant/chat
 // Body: { text, restaurant_slug, session_id?, turn_number?, channel? }
 export async function POST(req: NextRequest) {
+  // Güvenlik: Rate limit — DeepSeek çağrısı maliyetli, anonim aşırı kullanımı engeller.
+  const limited = await rateLimit(req, { prefix: 'ai-chat', max: 30, windowMs: 60_000 })
+  if (limited) return limited
+
   const t0 = Date.now()
   const body = await req.json()
   const { text, restaurant_slug, session_id, turn_number, channel } = body

@@ -12,12 +12,14 @@ function verifySession(raw: string): { userId: string; restaurantId: string; rol
   return { userId: session.userId, restaurantId: session.restaurantId, role: session.role ?? '' }
 }
 
-// CSV satırı: özel karakter escape
+// CSV satırı: özel karakter escape + formül injection koruması
+// (=, +, -, @, \t, \r ile başlayan değerler Excel'de formül olarak çalışabilir)
 function csvEscape(val: string | number | null | undefined): string {
   const str = val == null ? '' : String(val)
-  return str.includes(',') || str.includes('"') || str.includes('\n')
-    ? `"${str.replace(/"/g, '""')}"`
-    : str
+  const sanitized = /^[=+\-@\t\r]/.test(str) ? `'${str}` : str
+  return sanitized.includes(',') || sanitized.includes('"') || sanitized.includes('\n')
+    ? `"${sanitized.replace(/"/g, '""')}"`
+    : sanitized
 }
 
 export async function GET(req: NextRequest) {

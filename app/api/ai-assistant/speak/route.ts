@@ -5,6 +5,7 @@ import { saveToCache, textToSlug } from '@/lib/audio-cache'
 import { resolveAudioTokens, concatAudioBuffers } from '@/lib/audio-concat'
 import { checkAssistantEnabled } from '@/lib/feature-flags'
 import { resolveVoiceKey, getVoice, DEFAULT_VOICE_KEY } from '@/lib/voice-catalog'
+import { rateLimit } from '@/lib/rate-limit'
 
 // POST /api/ai-assistant/speak
 // Body: { text, voice_id? }
@@ -55,6 +56,10 @@ function findCachedAudio(slug: string, voiceName: string): string | null {
 }
 
 export async function POST(req: NextRequest) {
+  // Güvenlik: Rate limit — ElevenLabs TTS maliyetli, anonim aşırı kullanımı engeller.
+  const limited = await rateLimit(req, { prefix: 'speak', max: 30, windowMs: 60_000 })
+  if (limited) return limited
+
   const t0 = Date.now()
   const body = await req.json()
   const { text, voice_id, restaurant_id } = body

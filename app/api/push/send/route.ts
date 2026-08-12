@@ -10,10 +10,13 @@ const VAPID_EMAIL       = process.env.VAPID_EMAIL       ?? 'destek@checkrezerve.
 // Body: { userId?: string, title: string, body: string, url?: string }
 // userId verilmişse sadece o kullanıcıya, verilmemişse tüm aboneliklere gönderir.
 export async function POST(req: NextRequest) {
-  // CRON_SECRET veya admin token ile koruma
+  // Güvenlik: CRON_SECRET ZORUNLU — tanımlı değilse route çalışmaz (anonim push spam'ını engeller).
   const auth = req.headers.get('authorization') ?? ''
   const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && auth !== `Bearer ${cronSecret}`) {
+  if (!cronSecret) {
+    return NextResponse.json({ error: 'CRON_SECRET not configured' }, { status: 500 })
+  }
+  if (auth !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 })
   }
 
