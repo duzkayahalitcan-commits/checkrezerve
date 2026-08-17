@@ -19,11 +19,16 @@ Builder: Halitcan (solo)
 
 | Oturum | Dizin | Kullanım |
 |---|---|---|
-| `web` | `~/Desktop/checkrezerve` | Next.js web — `npm run dev` (port 3001/3002) |
-| `app` | `~/Desktop/checkrezerve-app` | Expo mobil — `npx expo start` (port 8081) |
+| `web` | `~/Desktop/checkrezerve` | Next.js web — `npm run dev` (port 3001/3002), **fix uygulayan tek oturum** |
+| `app` | `~/Desktop/checkrezerve-app` | Expo mobil — `npx expo start` (port 8081), **fix uygulayan tek oturum** |
 | `genel` | `~/` | Genel terminal, vault, araç yönetimi |
+| `web2` | `~/Desktop/checkrezerve` | Web için paralel keşif/analiz — **sadece rapor üretir, yazmaz** |
+| `app2` | `~/Desktop/checkrezerve-app` | Mobil için paralel keşif/analiz — **sadece rapor üretir, yazmaz** |
+| `genel2` | `~/` | İkinci genel oturum (araştırma, kısa komutlar) |
 
-**Kural:** `web` ve `app` terminallerini asla karıştırma. Her oturumda aktif süreç var.
+**Kurallar:**
+- `web` ve `app` terminallerini asla karıştırma. Her oturumda aktif süreç var.
+- **Paralel oturum kuralı:** `web2`/`app2`/`genel2` sadece rapor/inceleme yapar. Fix'i her zaman `web` veya `app` uygular. İki oturumun aynı dosyaya yazması race condition + kayıp değişiklik demektir.
 
 ### Araçlar
 
@@ -62,6 +67,35 @@ Oturum başında vault bağlamını yüklemek için: `wiki/hot.md` + `wiki/index
 - user_favorites, profiles, masa_tipleri
 - subscriptions, subscription_payments, iyzico_webhook_logs
 - paketler, musteri_paketleri, musteri_notlari, kroki_zones
+- restaurant_users (panel giriş bilgileri — username/password_hash/role, profiles'a bağlı DEĞİL)
+- kvkk_applications (KVKK başvuru kayıtları — migration uygulandı, tablo DB'de mevcut)
+
+### Şema Notları (Dikkat Edilecek Tuzaklar)
+
+**reservations tablosu — dual-column mimarisi**
+Tablo hem yeni (canonical) hem eski (legacy/"dead") kolonlar barındırıyor. Yeni kod
+sadece canonical'ları kullansın; eski kolonlar geri uyumluluk için duruyor.
+
+| Amaç | Canonical (kullan) | Legacy (yazma) |
+|---|---|---|
+| Misafir adı | `guest_name` | `customer_name` |
+| Telefon | `guest_phone` | `phone` |
+| Tarih | `reserved_date` | `date` |
+| Saat | `reserved_time` | `time` (text!) |
+| Kişi sayısı | `party_size` | `kisi_sayisi` |
+
+Ek: `guest_email` var (opsiyonel), email_logs trigger'ı bu kolona bakar.
+
+**reservations.status enum — İNGİLİZCE**
+Değerler: `pending` / `confirmed` / `completed` / `cancelled`. Türkçe string
+("beklemede", "onaylandi", "iptal" vb.) YAZMA — DB constraint hata verir ve UI
+filtreleri bozulur. Türkçe metin sadece görüntüleme katmanında üretilir.
+
+**calisanlar.profile_id — eklendi ama backfill YAPILMADI**
+Kolon migration ile eklendi (nullable uuid). Mevcut 8 satırın hiçbirinde dolu değil.
+Panel girişleri `restaurant_users` tablosunda (username/password_hash/role) tutuluyor;
+`calisanlar.profile_id` üzerinden auth kurulumu şu an çalışmıyor. profiles-bağlı bir
+akış yazmadan önce backfill migration'ı çalıştır.
 
 ## Erişim
 - VPS: 178.105.51.245 (Hetzner), SSH: `ssh -i ~/.ssh/checkrezerve_vps root@178.105.51.245`
