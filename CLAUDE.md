@@ -288,6 +288,16 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı database, UI tarafı web
 
 ---
 
+## VPS Cron İşleri
+
+| Cron | Zamanlama | İş |
+|---|---|---|
+| `/opt/checkrezerve` nginx watchdog | `*/5 * * * *` | checkrezerve-nginx down/exit ise recreate; log: `/var/log/nginx-watchdog.log` |
+| paket-hatirlatma tetikleyici | `0 9 * * *` | `curl -H "Authorization: Bearer <CRON_SECRET>" .../api/cron/paket-hatirlatma` — **⚠ mevcut cron'da token boş, hotfix bekliyor** |
+| **fail2ban GitHub Actions whitelist refresh** | `0 4 * * 1` | `/usr/local/bin/update-fail2ban-github-whitelist.sh` — `api.github.com/meta` → `.actions` CIDR listesini çekip `/etc/fail2ban/jail.d/github-actions-whitelist.local`'ı yeniden yazar, `fail2ban-client reload` yapar. Amaç: CI Deploy SSH oturumlarının fail2ban tarafından banlanmasını önlemek. Log: `/var/log/fail2ban-github-whitelist.log` |
+
+---
+
 ## Hızlı Başvuru
 
 | Konu | Değer |
