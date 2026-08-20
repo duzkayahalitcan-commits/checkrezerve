@@ -21,7 +21,7 @@ export default async function AyarlarPage({
 
   const { data: restaurant } = await db
     .from('restaurants')
-    .select('id, name, slug, address, capacity, working_hours, closed_dates, prepayment_amount, special_notes')
+    .select('id, name, slug, address, capacity, working_hours, closed_dates, prepayment_amount, special_notes, dress_code, background_image, ai_assistant_enabled, ai_assistant_name, ai_assistant_voice')
     .eq('slug', slug)
     .eq('id', session.restaurantId)
     .single()
@@ -37,7 +37,7 @@ export default async function AyarlarPage({
       <main className="max-w-4xl mx-auto px-4 md:px-6 py-6">
         <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
           <SettingsForm restaurant={restaurant as Pick<Restaurant,
-            'id' | 'working_hours' | 'closed_dates' | 'prepayment_amount' | 'special_notes'
+            'id' | 'working_hours' | 'closed_dates' | 'prepayment_amount' | 'special_notes' | 'dress_code' | 'background_image'
           >} />
         </div>
       </main>

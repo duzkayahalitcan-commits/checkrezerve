@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rateLimit } from '@/lib/rate-limit'
 
-const WHISPER_URL = process.env.WHISPER_SERVER_URL ?? 'http://localhost:5001'
+// Whisper STT pipeline — port 9000 (Docker servisi checkrezerve-whisper:9000)
+const WHISPER_URL = process.env.WHISPER_SERVER_URL ?? 'http://checkrezerve-whisper:9000'
 
 export async function POST(request: NextRequest) {
   const limited = await rateLimit(request, { prefix: 'transcribe', max: 20, windowMs: 60_000 });

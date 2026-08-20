@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   // Masaları çek
   const { data: tables, error } = await db
     .from('masa_tipleri')
-    .select('*')
+    .select('id, isletme_id, ad, aktif, area_id, x, y, rotation, masa_tipi_kodu')
     .eq('isletme_id', restaurantId)
     .eq('aktif', true)
     .order('created_at')

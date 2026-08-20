@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkGreeting, searchFaq } from '@/lib/faq-search'
 import { rateLimit } from '@/lib/rate-limit'
 import { detectGibberish, enforceReservationApproval } from '@/lib/assistant-brain'
+import { genderHint, extractNameFromHistory } from '@/lib/assistant-gender'
+import { getSupabaseAdmin } from '@/lib/supabase'
 
 async function callDeepSeek(systemPrompt: string, messages: {role: string, content: string}[]) {
   const res = await fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'deepseek-chat', max_tokens: 512, messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-6)] }),
+    body: JSON.stringify({ model: 'deepseek-chat', max_tokens: 512, temperature: 0.2, messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-6)] }),
   })
   if (!res.ok) throw new Error(`DeepSeek error: ${res.status}`)
   return (await res.json()).choices[0].message.content
@@ -42,6 +44,33 @@ export async function POST(request: NextRequest) {
     const businessSlug = isGeneral ? '' : slugify(businessName)
     const businessUrl = isGeneral ? 'https://checkrezerve.com/tr/rezervasyon' : `https://checkrezerve.com/tr/rezervasyon/${businessSlug}`
 
+    // Otorite Supabase: istemciden gelen businessType yalnızca hint; doğru değer
+    // restaurants tablosundan çekilir. Eşleşen işletme bulunamazsa istemci değeri kullanılır.
+    let authoritativeBusinessType = businessType as string | null | undefined
+    if (!isGeneral && businessName) {
+      try {
+        const db = getSupabaseAdmin()
+        const { data } = await db
+          .from('restaurants')
+          .select('business_type')
+          .ilike('name', businessName)
+          .limit(1)
+          .maybeSingle()
+        if (data?.business_type) {
+          authoritativeBusinessType = data.business_type
+        }
+      } catch (e) {
+        console.error('[chat] business_type doğrulama hatası:', e)
+      }
+    }
+    const effectiveBusinessType = authoritativeBusinessType ?? 'platform'
+
+    // Öğrenilen isimden cinsiyet ipucu (unisex isimlerde cinsiyetsiz hitap)
+    const genderHintLine = (() => {
+      const name = extractNameFromHistory((messages ?? []) as { role: string; content: string }[])
+      return name ? genderHint(name) : null
+    })()
+
     const systemPrompt = isGeneral
       ? `Sen CheckRezerve platformunun akıllı asistanısın. CheckRezerve, Türkiye'deki restoranlar, spalar, kuaförler, pilates stüdyoları ve klinikler için online rezervasyon platformudur.
 
@@ -65,12 +94,15 @@ DAVRANIŞ KURALLARI:
 5. Türkçe yanıt ver. Kısa ve net ol, gereksiz uzatma
 6. Asla "rezervasyonunuz onaylandı", "kaydettim", "oluşturuldu" deme
 7. Platformda olmayan konularda "Bu konuda yardımcı olamam, rezervasyon konularında yardımcı olmaktan memnuniyet duyarım" de`
-      : `Sen ${businessName} adlı ${businessType} işletmesinin yapay zeka asistanısın.
+      : `Sen ${businessName} adlı ${effectiveBusinessType} işletmesinin yapay zeka asistanısın.
 
 İŞLETME BİLGİSİ:
 - Ad: ${businessName}
+- Tür: ${effectiveBusinessType} (Supabase'ten doğrulanmış; bu değeri kullan, asla varsayılan olarak 'restoran' veya başka bir tip alma)
 - Rezervasyon sayfası: ${businessUrl}
 - Müsait slotlar: ${JSON.stringify(availableSlots || [])}
+
+HİTAP KURALI: Kullanıcı adını söylerse uygun hitabı kullan. ${genderHintLine ? genderHintLine : 'Cinsiyet belirsizse sadece isimle hitap et (Bey/Hanım kullanma).'}
 
 DAVRANIŞ KURALLARI:
 1. Kullanıcıya rezervasyon linkini her fırsatta ver: "${businessUrl}"
@@ -80,7 +112,9 @@ DAVRANIŞ KURALLARI:
 5. Müsait slotları kullanıcıya söyle ama rezervasyonu sayfadan yapması gerektiğini belirt
 6. Türkçe, kısa ve samimi cevaplar ver
 7. Kullanıcı mesajı anlamsız/saçmaysa tahmin yürütme, aynen de: "Sizi tam anlayamadım, tekrar eder misiniz?"
-8. Asla eksik bilgiyle veya onay almadan "oluşturuldu/onaylandı" deme`
+8. Asla eksik bilgiyle veya onay almadan "oluşturuldu/onaylandı" deme
+9. Bu bir ${effectiveBusinessType} olduğu için müşterinin amacını buna göre yorumla (${effectiveBusinessType === 'restaurant' || effectiveBusinessType === 'restoran' ? 'masa/rezervasyon, menü' : effectiveBusinessType === 'hairdresser' || effectiveBusinessType === 'kuaför' || effectiveBusinessType === 'barber' ? 'saç/berber randevusu' : effectiveBusinessType === 'spa' ? 'masaj/seans' : 'randevu/hizmet'}) ve buna göre yönlendir
+10. YALNIZCA GERÇEK VERİYE DAYAN: Fiyat, hizmet, menü, müsaitlik gibi bilgileri asla uydurma/tahmin etme. Supabase'ten gelen müsait slotlar ve doğrulanmış işletme tipi dışında bilgin yoksa: "Bu konuda emin değilim, işletmeyle iletişime geçelim mi?" de. İşletme tipini asla varsayılan olarak alma; bir kuaför için masa/menü önerme.`
     try {
       const msgs = (messages ?? []) as {role: string, content: string}[]
       // Saçma / anlamsız mesaj koruması

@@ -26,8 +26,8 @@ export default async function BildirimlerPage({
   if (!restaurant.onboarding_completed) redirect(`/panel/${slug}/onboarding`)
 
   const [logData, templateData] = await Promise.all([
-    db.from('bildirim_log').select('*').eq('isletme_id', restaurant.id).order('created_at', { ascending: false }).limit(100),
-    db.from('bildirim_sablonlari').select('*').eq('isletme_id', restaurant.id).eq('aktif', true).order('ad'),
+    db.from('bildirim_log').select('id, isletme_id, tip, alici, mesaj, durum, created_at').eq('isletme_id', restaurant.id).order('created_at', { ascending: false }).limit(100),
+    db.from('bildirim_sablonlari').select('id, isletme_id, ad, icerik, tip, aktif, created_at').eq('isletme_id', restaurant.id).eq('aktif', true).order('ad'),
   ])
 
   return (

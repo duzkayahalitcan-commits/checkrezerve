@@ -105,15 +105,17 @@ export default function BookingForm({
   const toast = useToast()
   const isRestaurant = businessType === 'restaurant' || businessType === 'other'
   const isServiceBased = !isRestaurant
-  const isPilates = businessType === 'pilates'
 
-  const allSteps = isPilates
-    ? ['tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
-    : isRestaurant
-      ? floorPlanEnabled
-        ? ['kisi', 'tarih', 'saat', 'masa', 'bilgi', 'ozet', 'basari'] as const
-        : ['kisi', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
-      : ['hizmet', 'calisan', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
+  // VERTICAL FIX: Pilates artık diğer randevu bazlı türlerle (spa, kuaför, psikolog)
+  // AYNI ortak akışı kullanıyor — hizmet seçimi + çalışan seçimi adımları dahil.
+  // Önceden izole bir akıştı (tarih/saat/bilgi) ve hizmet/çalışan adlarını atlıyordu,
+  // bu yüzden pilates diğer türlerle parite sağlamıyordu. İzole bilesen kaldırıldı;
+  // ortak service-based akış kullanılıyor.
+  const allSteps = isRestaurant
+    ? floorPlanEnabled
+      ? ['kisi', 'tarih', 'saat', 'masa', 'bilgi', 'ozet', 'basari'] as const
+      : ['kisi', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
+    : ['hizmet', 'calisan', 'tarih', 'saat', 'bilgi', 'ozet', 'basari'] as const
   const [step, setStep] = useState(0)
 
   // Form state
@@ -222,7 +224,11 @@ export default function BookingForm({
     fetch(`/api/rezervasyon/musait?${params.toString()}`)
       .then(r => r.ok ? r.json() : null)
       .then(json => { if (json?.times) setOccupiedSlots(new Set(json.times)) })
-      .catch(() => {})
+      .catch(() => {
+        // Müsaitlik API'sine ulaşılamadı — slotlar güncel olmayabilir.
+        // DB katmanındaki unique constraint çift rezervasyona karşı korumaya devam eder.
+        toast.show('Müsaitlik bilgisi yüklenemedi. Seçiminiz kaydedilirken kontrol edilecek.', 'error')
+      })
   }, [selectedDate, businessId, selectedStaff, selectedService])
 
   // W-101: Zone modunda ilk bölgeyi varsayılan seç
@@ -577,10 +583,10 @@ export default function BookingForm({
               <button
                 key={zone.id}
                 onClick={() => setSelectedZone(zone)}
-                className={`flex-none px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap border ${
+                className={`flex-none px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap border ${
                   selectedZone?.id === zone.id
-                    ? 'bg-[#E53935] text-white border-[#E53935] shadow-md'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-[#E53935] hover:text-[#E53935]'
+                    ? 'bg-[#E53935] text-white font-semibold shadow-md border-[#E53935]'
+                    : 'border-gray-200 text-gray-600 hover:border-[#E53935] hover:text-[#E53935]'
                 }`}
               >
                 {zone.name}
@@ -590,7 +596,7 @@ export default function BookingForm({
 
           {/* Görsel Alan */}
           {selectedZone ? (
-            <div className="relative w-full overflow-hidden rounded-2xl shadow-md">
+            <div className="relative w-full overflow-hidden rounded-2xl shadow-lg">
               <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
                 {(() => {
                   const zoneImg = selectedZone.customPhoto ?? ZONE_THEME_BG[selectedZone.theme] ?? '/images/kroki/ic_mekan.jpg'
@@ -604,23 +610,20 @@ export default function BookingForm({
                   )
                 })()} 
                 {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 {/* Overlay bilgi + seç butonu */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
                   <div>
-                    <h3 className="text-white text-lg font-bold leading-tight">{selectedZone.name}</h3>
-                    <p className="text-white/75 text-sm mt-0.5">
+                    <h3 className="text-xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>{selectedZone.name}</h3>
+                    <p className="text-sm text-white/80 mt-0.5">
                       {selectedZone.theme ? `${ZONE_THEME_LABELS[selectedZone.theme]} · ` : ''}{selectedZone.capacity} kişi
                     </p>
                   </div>
                   <button
                     onClick={() => handleZoneSelect(selectedZone)}
-                    className="flex items-center gap-1.5 bg-[#E53935] text-white px-4 py-2 rounded-xl font-semibold text-sm hover:bg-[#C62828] transition-all active:scale-95 shadow-lg"
+                    className="bg-[#E53935] text-white rounded-full px-5 py-2 text-sm font-semibold hover:bg-[#C62828] transition-all active:scale-95 shadow-lg"
                   >
                     Seç
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
                   </button>
                 </div>
               </div>
@@ -644,7 +647,7 @@ export default function BookingForm({
           {/* Fark etmez butonu */}
           <button
             onClick={() => { handleZoneSelect(null); setSelectedZone(null) }}
-            className="w-full py-3 rounded-xl text-sm text-gray-400 hover:text-gray-600 hover:bg-gray-50 border border-gray-200 transition-all font-medium"
+            className="w-full py-3 rounded-xl text-sm text-center text-gray-500 border border-dashed border-gray-300 hover:border-[#E53935] hover:text-[#E53935] transition-all font-medium"
           >
             ↩ Fark etmez — herhangi bir bölge
           </button>

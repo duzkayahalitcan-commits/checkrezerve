@@ -1,14 +1,17 @@
-import Link                from 'next/link'
-import { redirect }        from 'next/navigation'
+import Link                   from 'next/link'
+import nextDynamic             from 'next/dynamic'
+import { redirect }           from 'next/navigation'
+import { ChevronRight, Plus, CalendarDays, Users } from 'lucide-react'
 import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { getTranslations, getLocale } from 'next-intl/server'
 import WeeklyChart    from './WeeklyChart'
 import ExportButton   from './ExportButton'
-import ReservationList from './ReservationList'
 import CountUp        from '@/components/CountUp'
 import ReservationChart from '@/components/ui/ReservationChart'
 import type { Reservation, SpecialArea } from '@/types'
+
+const CiroDashboard = nextDynamic(() => import('./dashboard/CiroDashboard'))
 
 export const dynamic = 'force-dynamic'
 
@@ -75,9 +78,9 @@ export default async function PanelDashboardPage({
       .order('date', { ascending: true }),
     db.from('special_areas').select('id, name, capacity')
       .eq('restaurant_id', restaurant.id).order('name'),
-    db.from('reservations').select('*', { count: 'exact', head: true })
+    db.from('reservations').select('id', { count: 'exact', head: true })
       .eq('restaurant_id', restaurant.id).eq('date', today).neq('status', 'cancelled'),
-    db.from('reservations').select('*', { count: 'exact', head: true })
+    db.from('reservations').select('id', { count: 'exact', head: true })
       .eq('restaurant_id', restaurant.id).eq('date', today).eq('status', 'confirmed'),
     db.from('reservations').select(`
         id, guest_name, guest_phone, reserved_date, reserved_time,
@@ -89,9 +92,9 @@ export default async function PanelDashboardPage({
       .gte('reserved_date', new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10))
       .order('reserved_date', { ascending: false })
       .order('reserved_time', { ascending: false }),
-    db.from('reservations').select('*', { count: 'exact', head: true })
+    db.from('reservations').select('id', { count: 'exact', head: true })
       .eq('restaurant_id', restaurant.id).eq('status', 'pending'),
-    db.from('reservations').select('*', { count: 'exact', head: true })
+    db.from('reservations').select('id', { count: 'exact', head: true })
       .eq('restaurant_id', restaurant.id).eq('status', 'cancelled'),
   ])
 
@@ -156,23 +159,25 @@ export default async function PanelDashboardPage({
           </Link>
         </section>
 
-        {/* Quick-access cards */}
-        <section className="grid grid-cols-3 gap-3">
-          <Link href={`/panel/${slug}/bugun`}
-            className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center hover:border-amber-500/30 hover:bg-stone-800/80 transition-all group">
-            <div className="text-lg font-bold text-amber-400 group-hover:scale-110 transition-transform">→</div>
-            <div className="text-stone-400 text-xs mt-1">Bugün</div>
+        {/* Quick action — tek birleşik CTA (A3) */}
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Link href={`/panel/${slug}/takvim?view=gunluk`}
+            className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white rounded-xl px-4 py-3.5 text-sm font-semibold transition-colors">
+            <Plus size={16} /> Yeni Rezervasyon
           </Link>
-          <Link href={`/panel/${slug}/rezervasyonlar`}
-            className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center hover:border-amber-500/30 hover:bg-stone-800/80 transition-all group">
-            <div className="text-lg font-bold text-blue-400 group-hover:scale-110 transition-transform">→</div>
-            <div className="text-stone-400 text-xs mt-1">Rezervasyonlar</div>
+          <Link href={`/panel/${slug}/bugun`}
+            className="flex items-center justify-center gap-2 bg-stone-900 border border-stone-800 hover:border-stone-700 text-stone-300 rounded-xl px-4 py-3.5 text-sm font-medium transition-colors">
+            <CalendarDays size={15} /> Bugünün Planı
           </Link>
           <Link href={`/panel/${slug}/misafirler`}
-            className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center hover:border-amber-500/30 hover:bg-stone-800/80 transition-all group">
-            <div className="text-lg font-bold text-emerald-400 group-hover:scale-110 transition-transform">→</div>
-            <div className="text-stone-400 text-xs mt-1">Misafirler</div>
+            className="flex items-center justify-center gap-2 bg-stone-900 border border-stone-800 hover:border-stone-700 text-stone-300 rounded-xl px-4 py-3.5 text-sm font-medium transition-colors">
+            <Users size={15} /> Misafirler
           </Link>
+        </section>
+
+        {/* Ciro Dashboard Widget */}
+        <section>
+          <CiroDashboard restaurantId={restaurant.id} />
         </section>
 
         {/* Weekly Chart */}
@@ -227,13 +232,30 @@ export default async function PanelDashboardPage({
           </section>
         )}
 
-        {/* Reservation List (realtime) */}
-        <ReservationList
-          restaurantId={restaurant.id}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          initialReservations={(allReservations ?? []) as any}
-          today={today}
-        />
+        {/* Son rezervasyonlar — özet + tümüne git (liste Rezervasyonlar sayfasında) */}
+        <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-sm text-stone-200">Son Rezervasyonlar</h2>
+            <Link href={`/panel/${slug}/rezervasyonlar`}
+              className="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 transition-colors">
+              Tümünü gör <ChevronRight size={12} />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Link href={`/panel/${slug}/rezervasyonlar?durum=pending`} className="block">
+              <StatCard label="Onay Bekleyen" value={pendingCount ?? 0} accent="yellow" delay="0ms" />
+            </Link>
+            <Link href={`/panel/${slug}/rezervasyonlar?durum=confirmed`} className="block">
+              <StatCard label="Onaylandı" value={todayConfirmed ?? 0} accent="green" delay="60ms" />
+            </Link>
+            <Link href={`/panel/${slug}/rezervasyonlar?durum=cancelled`} className="block">
+              <StatCard label="İptal" value={cancelledCount ?? 0} accent="red" delay="120ms" />
+            </Link>
+            <Link href={`/panel/${slug}/rezervasyonlar?tarih=${today}`} className="block">
+              <StatCard label="Bugün" value={todayCount ?? 0} accent="amber" delay="180ms" />
+            </Link>
+          </div>
+        </section>
 
         {/* Export */}
         <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
@@ -268,7 +290,7 @@ function StatCard({ label, value, accent, delay = '0ms' }: { label: string; valu
       className="bg-stone-900 border border-stone-800 rounded-xl p-4 text-center animate-[fadeSlideUp_0.4s_ease_forwards] opacity-0 hover:border-stone-700 transition-colors h-full"
       style={{ animationDelay: delay }}
     >
-      <CountUp to={value} className={`text-2xl font-bold ${colors[accent]}`} />
+      <CountUp to={value} className={`text-2xl font-bold tabular-nums ${colors[accent]}`} />
       <div className="text-stone-500 text-xs mt-0.5">{label}</div>
     </div>
   )

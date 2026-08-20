@@ -19,7 +19,7 @@ export default async function FloorPlanPage({ params }: Props) {
       .single(),
     supabase
       .from('masa_tipleri')
-      .select('*')
+      .select('id, isletme_id, ad, kapasite, aktif, x, y, width, height, sekil')
       .eq('isletme_id', id)
       .eq('aktif', true)
       .order('created_at'),

@@ -18,6 +18,7 @@ export async function PATCH(req: NextRequest) {
     closed_dates?:      string[]
     prepayment_amount?: number
     special_notes?:     string | null
+    dress_code?:        string | null
     restaurant_id?:     string
     ai_assistant_enabled?: boolean
     ai_assistant_name?:    string | null
@@ -34,6 +35,7 @@ export async function PATCH(req: NextRequest) {
   if (body.closed_dates      !== undefined) update.closed_dates      = body.closed_dates
   if (body.prepayment_amount !== undefined) update.prepayment_amount = body.prepayment_amount
   if (body.special_notes     !== undefined) update.special_notes     = body.special_notes || null
+  if (body.dress_code        !== undefined) update.dress_code        = body.dress_code || null
   if (body.ai_assistant_enabled !== undefined) update.ai_assistant_enabled = body.ai_assistant_enabled
   if (body.ai_assistant_name    !== undefined) update.ai_assistant_name    = body.ai_assistant_name || null
   if (body.ai_assistant_voice   !== undefined) update.ai_assistant_voice   = body.ai_assistant_voice || null
@@ -49,5 +51,24 @@ export async function PATCH(req: NextRequest) {
     .eq('id', restaurantId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // ── Sesli asistan aktivasyonu ile feature flag'leri senkronize et ──
+  // Panel'de "Asistanı Aktif Et" açılırsa ai_voice_search + ai_chatbot flag'leri
+  // otomatik açılır; kapatılırsa kapanır. Böylece rezervasyon sayfasındaki
+  // sesli asistan butonu (FloatingAIAssistant) ve landing'deki yazılı chat
+  // (AIChatbot) panel ayarıyla tutarlı çalışır.
+  if (body.ai_assistant_enabled !== undefined) {
+    const flags = [
+      { restaurant_id: restaurantId, feature: 'ai_voice_search', enabled: body.ai_assistant_enabled },
+      { restaurant_id: restaurantId, feature: 'ai_chatbot', enabled: body.ai_assistant_enabled },
+    ]
+    for (const flag of flags) {
+      const { error: fErr } = await db
+        .from('feature_flags')
+        .upsert(flag, { onConflict: 'restaurant_id,feature' })
+      if (fErr) console.error('[panel-settings] flag senkron hatası:', fErr.message)
+    }
+  }
+
   return NextResponse.json({ ok: true })
 }

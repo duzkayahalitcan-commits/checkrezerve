@@ -351,13 +351,14 @@ export default function NewZoneEditorPage({
         const m = z.name.match(/Bölge (\d+)/)
         if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10))
       }
+      const theme = 'ic_mekan'
       const newZone: KrokiZone = {
         id: crypto.randomUUID(),
-        name: `Bölge ${maxNum + 1}`,
+        name: ZONE_THEME_LABELS[theme],
         color: PRESET_COLORS[zs.length % PRESET_COLORS.length],
         capacity: 20,
         tableCount: 0,
-        theme: 'ic_mekan',
+        theme,
         polygon: [],
       }
       setEditing(newZone)

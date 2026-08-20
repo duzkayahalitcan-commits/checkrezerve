@@ -15,7 +15,7 @@ async function callDeepSeek(systemPrompt: string, messages: {role: string, conte
   const res = await fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'deepseek-chat', max_tokens: 256, messages: [{ role: 'system', content: systemPrompt }, ...messages] }),
+    body: JSON.stringify({ model: 'deepseek-chat', max_tokens: 256, temperature: 0.2, messages: [{ role: 'system', content: systemPrompt }, ...messages] }),
   })
   if (!res.ok) throw new Error(`DeepSeek ${res.status}`)
   return (await res.json()).choices[0].message.content

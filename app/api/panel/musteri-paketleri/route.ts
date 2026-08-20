@@ -108,7 +108,7 @@ export async function PATCH(req: NextRequest) {
   const db = getSupabaseAdmin()
 
   if (action === 'yenile') {
-    const { data: old } = await db.from('musteri_paketleri').select('*').eq('id', id).single()
+    const { data: old } = await db.from('musteri_paketleri').select('id, restaurant_id, paket_id, musteri_id, calisan_id').eq('id', id).single()
     if (!old) return NextResponse.json({ error: 'Kayit bulunamadi' }, { status: 404 })
 
     // Eski kaydi kapat

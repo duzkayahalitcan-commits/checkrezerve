@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import ServiceManager from './ServiceManager'
+import MenuUpload from './MenuUpload'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,7 +28,7 @@ export default async function HizmetlerPage({
 
   const { data: services } = await db
     .from('hizmetler')
-    .select('*')
+    .select('id, restaurant_id, ad, sure_dakika, fiyat, aktif, created_at')
     .eq('restaurant_id', restaurant.id)
     .order('ad')
 
@@ -37,7 +38,8 @@ export default async function HizmetlerPage({
         <h1 className="text-lg font-bold text-white mt-0.5">Hizmetler</h1>
         <p className="text-xs text-stone-500 mt-0.5">{services?.length ?? 0} hizmet</p>
       </div>
-      <main className="max-w-4xl mx-auto px-4 md:px-6 py-6">
+      <main className="max-w-4xl mx-auto px-4 md:px-6 py-6 space-y-4">
+        <MenuUpload />
         <ServiceManager services={services ?? []} restaurantId={restaurant.id} />
       </main>
     </div>

@@ -12,7 +12,7 @@ type Reservation = {
   guest_phone: string | null
   reserved_time: string
   party_size: number | null
-  notes: string | null
+  special_requests: string | null
   status: string
   source: string | null
   special_area_id: string | null
@@ -123,12 +123,12 @@ export default function TodayView({
   const pendingCount = reservations.filter(r => r.status === 'pending').length
   const noshowCount = reservations.filter(r => r.status === 'cancelled').length
 
-  // For grid view: group reservations by table
+  // For grid view: group reservations by table (kanonik anahtar: masa_tipi_id)
   const tableAssignments = useMemo(() => {
-    const assigned = reservations.filter(r => r.table_id)
+    const assigned = reservations.filter(r => r.masa_tipi_id)
     const map = new Map<string, Reservation[]>()
     for (const r of assigned) {
-      const tid = r.table_id!
+      const tid = r.masa_tipi_id!
       if (!map.has(tid)) map.set(tid, [])
       map.get(tid)!.push(r)
     }
@@ -137,7 +137,7 @@ export default function TodayView({
 
   // Unassigned reservations (no table)
   const unassigned = useMemo(() => {
-    return reservations.filter(r => !r.table_id)
+    return reservations.filter(r => !r.masa_tipi_id)
   }, [reservations])
 
   async function updateStatus(id: string, status: string) {
@@ -425,7 +425,7 @@ function ReservationCard({
               <Phone size={10} /> {r.guest_phone}
             </a>
           )}
-          {r.notes && <p className="mt-1.5 text-xs text-stone-600 italic">&ldquo;{r.notes}&rdquo;</p>}
+          {r.special_requests && <p className="mt-1.5 text-xs text-stone-600 italic">&ldquo;{r.special_requests}&rdquo;</p>}
         </div>
 
         {/* Actions */}

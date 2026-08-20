@@ -114,7 +114,9 @@
     "terms": "Nutzungsbedingungen",
     "kvkk": "DSGVO-Hinweis",
     "cookies": "Cookie-Richtlinie",
-    "rights": "Alle Rechte vorbehalten."
+    "rights": "Alle Rechte vorbehalten.",
+    "statement": "Reservierungen, einfach und in Sekunden.",
+    "colophon": "Provisionsfreie Reservierungs-SaaS. Online-Buchungsverwaltung für Restaurants, Spas, Salons und mehr – alles in einem Panel."
   },
   "hero": {
     "badge": "Türkeis Reservierungsplattform",
@@ -391,7 +393,7 @@
     "quickSupportTitle": "Support",
     "quickSupportDesc": "Ein Problem? Schreiben Sie uns — wir antworten noch am selben Tag.",
     "quickContactTitle": "Allgemeiner Kontakt",
-    "quickContactDesc": "Für alles andere: info@checkrezerve.com",
+    "quickContactDesc": "Für alles andere: destek@checkrezerve.com",
     "socialTitle": "Der Community beitreten",
     "socialDesc": "Neueste Nachrichten, Tipps und treffen Sie Geschäftsinhaber.",
     "socialWhatsappName": "WhatsApp",
@@ -471,7 +473,7 @@
     "s11Title": "11. Kontolöschung in der App",
     "s11Body": "Sie können Ihr Konto jederzeit dauerhaft löschen. Bei der Löschung werden Ihr Profil, Ihre Reservierungshistorie und alle persönlichen Daten dauerhaft aus unseren Systemen entfernt.",
     "s11Step1": "Navigieren Sie in der mobilen App zu Profil → Einstellungen → Mein Konto löschen.",
-    "s11Step2": "Alternativ senden Sie eine E-Mail mit dem Betreff „Kontolöschungsanfrage\" an info@checkrezerve.com.",
+    "s11Step2": "Alternativ senden Sie eine E-Mail mit dem Betreff „Kontolöschungsanfrage\" an destek@checkrezerve.com.",
     "s11Step3": "Ihre Anfrage wird innerhalb von 7 Werktagen bearbeitet und Ihr Konto dauerhaft gelöscht.",
     "s11Note": "Daten, die gesetzlichen Aufbewahrungspflichten unterliegen (z. B. Rechnungsdaten), können bis zum Ablauf der gesetzlichen Aufbewahrungsfrist anonym gespeichert werden."
   },
@@ -791,7 +793,7 @@
     "mockup4Label": "Schritt 4",
     "mockup4Desc": "Bestätigen Sie die Löschung",
     "s4Title": "Alternative Methode",
-    "altText": "Senden Sie eine E-Mail an info@checkrezerve.com mit dem Betreff \"Kontolöschungsanfrage\". Ihre Anfrage wird innerhalb von 7 Werktagen bearbeitet.",
+    "altText": "Senden Sie eine E-Mail an destek@checkrezerve.com mit dem Betreff \"Kontolöschungsanfrage\". Ihre Anfrage wird innerhalb von 7 Werktagen bearbeitet.",
     "dataControllerLabel": "Verantwortlicher:",
     "dataControllerName": "CheckRezerve Teknoloji",
     "emailLabel": "E-Mail:"
@@ -915,7 +917,15 @@
     "kat_restoran": "Restaurant",
     "kat_kafe": "Café",
     "kat_bar": "Bar",
-    "kat_diger": "Sonstiges"
+    "kat_diger": "Sonstiges",
+    "recentReservations": "Letzte Reservierungen",
+    "noReservations": "Sie haben noch keine Reservierungen.",
+    "business": "Betrieb",
+    "guests": "{count} Personen",
+    "status_pending": "Ausstehend",
+    "status_confirmed": "Bestätigt",
+    "status_cancelled": "Storniert",
+    "status_completed": "Abgeschlossen"
   },
   "bookingForm": {
     "today": "Heute",
@@ -1095,7 +1105,22 @@
     },
     "hata": {
       "genel": "An error occurred, please try again."
-    }
+    },
+    "searchPlaceholder": "Betrieb, Adresse oder Dienst suchen…",
+    "noRatings": "Noch keine Bewertungen",
+    "resultsFor": "Ergebnisse für \"{query}\"",
+    "filters": "Filter",
+    "clearFilters": "Filter zurücksetzen",
+    "sortNew": "Neueste",
+    "sortNear": "In der Nähe",
+    "cityDistrict": "Stadt / Bezirk",
+    "all": "Alle",
+    "clear": "Leeren",
+    "apply": "Anwenden ({count} Ergebnisse)",
+    "noMatch": "Keine passenden Betriebe gefunden",
+    "tryAnother": "Versuchen Sie eine andere Suche",
+    "clearSearch": "Suche zurücksetzen",
+    "makeReservation": "Reservierung machen"
   },
   "bizDetail": {
     "allBusinesses": "Alle Unternehmen",
@@ -1141,7 +1166,7 @@
     "replyInPerson": "Ich möchte es persönlich abholen",
     "errorNameRequired": "Vor- und Nachname sind erforderlich.",
     "errorRequestRequired": "Antragsdetails sind erforderlich.",
-    "errorSubmit": "Ihr Antrag konnte nicht gesendet werden. Bitte versuchen Sie es erneut oder senden Sie eine E-Mail an info@checkrezerve.com.",
+    "errorSubmit": "Ihr Antrag konnte nicht gesendet werden. Bitte versuchen Sie es erneut oder senden Sie eine E-Mail an destek@checkrezerve.com.",
     "successTitle": "Antrag eingegangen",
     "successDesc": "Ihr KVKK-Antrag wurde erfolgreich übermittelt. Er wird innerhalb von 30 Tagen beantwortet.",
     "backHome": "Zurück zur Startseite",
@@ -1300,7 +1325,34 @@
     "dressCode": "Dresscode",
     "dressCodePlaceholder": "z. B. Kein Sportkleidung",
     "specialNotes": "Besondere Hinweise",
-    "specialNotesPlaceholder": "Wird Kunden auf der Reservierungsseite angezeigt"
+    "specialNotesPlaceholder": "Wird Kunden auf der Reservierungsseite angezeigt",
+    "voiceSettings": {
+      "title": "Sprachassistent-Einstellungen",
+      "subtitle": "Wählen Sie die Stimme des Assistenten und verwalten Sie seinen Aktivstatus.",
+      "assistantTitle": "Assistent-Einstellungen",
+      "assistantSubtitle": "Aktivieren Sie den Sprachassistenten und legen Sie den Namen fest, den Kunden hören.",
+      "enableToggle": "Assistent aktivieren",
+      "enableDesc": "Wenn aktiv, werden Sprachassistent und Text-Chat auf der Reservierungsseite aktiviert.",
+      "assistantName": "Assistentenname",
+      "assistantNamePlaceholder": "z. B. Zara",
+      "assistantNameHint": "Ihre Kunden sprechen mit \"{name}\"",
+      "disabledNameWarn": "Name kann bei deaktiviertem Assistenten nicht festgelegt werden",
+      "activeName": "Aktiver Name: {name}",
+      "save": "Speichern",
+      "saving": "Speichern...",
+      "saved": "Assistent-Einstellungen gespeichert ✓",
+      "voiceTitle": "Assistentenstimme",
+      "voiceSubtitle": "Wählen Sie die Stimme des Assistenten. Der Inhaber kann sie alle 24 Stunden ändern.",
+      "superAdminNoLock": "(Super-Admin — keine Einschränkung)",
+      "loading": "Wird geladen...",
+      "lockedMsg": "Stimmwechsel-Sperre ist aktiv.",
+      "lockRemaining": "Sie können es in {time} erneut ändern.",
+      "voiceSaved": "Stimme gespeichert ✓",
+      "preview": "Stimme anhören",
+      "male": "männlich",
+      "female": "weiblich",
+      "saveError": "Assistent-Einstellungen konnten nicht gespeichert werden"
+    }
   },
   "diagonal": {
     "restoran": "Restaurant",
@@ -1312,7 +1364,9 @@
     "heroTitle": "Wohin heute?",
     "heroSlogan": "Wähle deinen Ort und buche in Sekunden.",
     "discover": "Entdecken",
-    "forBusiness": "Für Unternehmen"
+    "forBusiness": "Für Unternehmen",
+    "heroEyebrow": "Provisionsfreie Reservierungs-SaaS",
+    "ctaLabel": "Für Ihr Unternehmen starten"
   },
   "accountDelete": {
     "title": "Account Deletion",

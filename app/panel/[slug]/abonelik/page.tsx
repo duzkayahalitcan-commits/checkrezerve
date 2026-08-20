@@ -28,13 +28,13 @@ export default async function AbonelikPage({
 
   const { data: subscription } = await db
     .from('subscriptions')
-    .select('*')
+    .select('id, restaurant_id, plan, status, billing_period, current_period_end')
     .eq('restaurant_id', restaurant.id)
     .single()
 
   const { data: payments } = await db
     .from('subscription_payments')
-    .select('*')
+    .select('id, restaurant_id, subscription_id, amount, currency, status, created_at')
     .eq('restaurant_id', restaurant.id)
     .order('created_at', { ascending: false })
     .limit(10)
@@ -116,9 +116,9 @@ export default async function AbonelikPage({
                       {new Date(p.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </span>
                     <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
-                      p.status === 'paid' ? 'bg-emerald-500/15 text-emerald-300' : 'bg-red-500/15 text-red-400'
+                      p.status === 'success' ? 'bg-emerald-500/15 text-emerald-300' : 'bg-red-500/15 text-red-400'
                     }`}>
-                      {p.status === 'paid' ? 'Ödendi' : 'Başarısız'}
+                      {p.status === 'success' ? 'Ödendi' : p.status === 'pending' ? 'Beklemede' : 'Başarısız'}
                     </span>
                   </div>
                   <span className="text-sm font-semibold text-white">

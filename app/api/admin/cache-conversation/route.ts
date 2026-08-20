@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import { saveToCache } from '@/lib/audio-cache'
+import { saveToCache, textToSlug } from '@/lib/audio-cache'
+import { resolveVoiceKey, getVoice, DEFAULT_VOICE_KEY } from '@/lib/voice-catalog'
 
 // POST /api/admin/cache-conversation
 // Body: { conversation_id, text, voice_id? }
 // Purpose: Re-generate audio via ElevenLabs and mark as cached
-
-const DEFAULT_VOICE_ID = 'jbJMQWv1eS4YjQ6PCcn6' // Gülsu
+// BUG 2 FİX: cache per-voice yazılır (voice_id KEY ya da ElevenLabs ID olabilir;
+// resolveVoiceKey ile çözülür) — lisa/mert collision'ı giderilir.
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,7 +25,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'ELEVENLABS_API_KEY not configured' }, { status: 500 })
     }
 
-    const vid = voice_id || DEFAULT_VOICE_ID
+    // BUG 2 FİX: voice_id'yi ses KEY'ine çöz (KEY ya da ElevenLabs ID kabul)
+    const voiceKey = resolveVoiceKey(voice_id ?? DEFAULT_VOICE_KEY)
+    const vid = getVoice(voiceKey).elevenLabsId
     const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${vid}`, {
       method: 'POST',
       headers: {
@@ -46,8 +49,8 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await res.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    // 2. Save to disk cache
-    saveToCache(text, buffer)
+    // 2. Save to disk cache (BUG 2 FİX: per-voice)
+    saveToCache(text, buffer, voiceKey)
 
     // 3. Update DB: mark response_source = 'cache'
     const supabase = getSupabaseAdmin()
@@ -62,7 +65,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      slug: text.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 80) + '.mp3',
+      voice: voiceKey,
+      slug: `${voiceKey}/${textToSlug(text)}.mp3`,
     })
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 })

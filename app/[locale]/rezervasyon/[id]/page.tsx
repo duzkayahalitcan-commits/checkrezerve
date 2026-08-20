@@ -6,10 +6,14 @@ import { Link } from '@/i18n/navigation'
 import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { resolveBackground } from '@/lib/backgrounds'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { BUSINESS_TYPE_ICONS, type BusinessType, type Restaurant, type Service, type StaffMember } from '@/types'
 import BookingForm from './BookingForm'
 import BusinessDetailHero from './BusinessDetailHero'
+import nextDynamic from 'next/dynamic'
+
+const AssistantLauncher = nextDynamic(() => import('@/components/AssistantLauncher'))
 
 // Next.js 15+ — params is a Promise
 type Props = { params: Promise<{ id: string; locale: string }> }
@@ -34,14 +38,15 @@ export default async function BusinessDetailPage({ params }: Props) {
   setRequestLocale(locale)
   const t    = await getTranslations('bizDetail')
   const tBiz = await getTranslations('businessTypes')
+  const tTerms = await getTranslations('bookingTerms')
   const supabase = getSupabaseAdmin()
 
   const todayStr = new Date().toISOString().split('T')[0]
   const [{ data: biz }, { data: rawServices }, { data: rawStaff }, { data: rawTables }, { data: featureFlags }, { data: rawAreas }, { data: rawOccupiedZones }] = await Promise.all([
-    supabase.from('restaurants').select('*').eq('id', id).single(),
-    supabase.from('hizmetler').select('*').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
-    supabase.from('calisanlar').select('*').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
-    supabase.from('masa_tipleri').select('*').eq('isletme_id', id).eq('aktif', true).order('created_at'),
+    supabase.from('restaurants').select('id, name, slug, phone, address, description, business_type, cover_image, background_image, working_hours, kroki_mode, kroki_zones, special_notes, ai_assistant_enabled, ai_assistant_name, ai_assistant_voice').eq('id', id).single(),
+    supabase.from('hizmetler').select('id, ad, sure_dakika, fiyat, ad_en, ad_ar, ad_de, ad_da, ad_es, ad_ru').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
+    supabase.from('calisanlar').select('id, ad').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
+    supabase.from('masa_tipleri').select('id, ad, kapasite, area_id, x, y, width, height, sekil, rotation').eq('isletme_id', id).eq('aktif', true).order('created_at'),
     supabase.from('feature_flags').select('feature, enabled').eq('restaurant_id', id),
     supabase.from('special_areas').select('id, name, color').eq('restaurant_id', id).order('name'),
     supabase.from('reservations')
@@ -54,7 +59,25 @@ export default async function BusinessDetailPage({ params }: Props) {
 
   if (!biz) notFound()
 
-  const business = biz as Restaurant
+  // S4-Sprint: Sesli asistan (FloatingAIAssistant) yalnızca ai_voice_search
+  // feature flag'i açıksa göster. speak endpoint'i bu flag'i zorunlu kılıyor;
+  // flag kapalıyken buton gösterilirse sessizce hata alır. Uygulama /api/voice
+  // kullandığından flag kontrolü yapmaz; web burada flag'e göre gate'lenir.
+  // BUG 3 FİX: ai_assistant_enabled tek yetkili (master) anahtar.
+  // Sesli asistan YALNIZCA ai_assistant_enabled=true iken gösterilir; ayrıca
+  // voice özelliği için ai_voice_search flag'i de açık olmalı (AND).
+  // Böylece DB'den yalnızca ai_assistant_enabled=false yapmak asistanı tamamen
+  // kapatır (OR mantığı kaldırıldı — flag true kalsa bile enabled=false yeter).
+  const voiceFlagMap = new Map((featureFlags ?? []).map((f: { feature: string; enabled: boolean }) => [f.feature, f.enabled]))
+  const masterEnabled = (biz as Record<string, unknown>).ai_assistant_enabled === true
+  const voiceSearchEnabled =
+    masterEnabled && voiceFlagMap.get('ai_voice_search') === true
+
+  const business = biz as unknown as Restaurant
+
+  // Sektöre göre (veya işletme sahibinin yüklediği) arka plan
+  const bg = resolveBackground(business.background_image, business.business_type)
+
   const icon  = BUSINESS_TYPE_ICONS[business.business_type as BusinessType] ?? '🏪'
   const label = tBiz(business.business_type as Parameters<typeof tBiz>[0])
 
@@ -129,12 +152,22 @@ export default async function BusinessDetailPage({ params }: Props) {
 
   const floorPlanEnabled = zoneMode ? true : floorTables.length > 0
 
-  const bookingTerm = ['restaurant', 'other'].includes(business.business_type)
-    ? t('termReservation')
-    : t('termAppointment')
+  // VERTICAL FIX: bookingTerms zaten sektöre özel terimi veriyor
+  // (psychologist→Seans, pilates→Ders, diğerleri→Randevu, restaurant→Rezervasyon).
+  // Önceden yalnızca restaurant/other ayrımı vardı → psikolog/pilates "Randevu"
+  // gösteriyordu. Artık her sektör doğru terimle CTA görür.
+  const bookingTerm = tTerms(business.business_type as Parameters<typeof tTerms>[0])
 
   return (
-    <div className="min-h-screen bg-white">
+    <div
+      className="min-h-screen text-white"
+      style={{
+        background: bg.isImage
+          ? `linear-gradient(rgba(5,5,15,0.72), rgba(5,5,15,0.85)), url("${bg.imageUrl}") center/cover no-repeat fixed`
+          : bg.gradient,
+        backgroundSize: bg.isImage ? 'cover' : 'auto',
+      }}
+    >
       <MarketingHeader />
 
       <BusinessDetailHero
@@ -152,7 +185,7 @@ export default async function BusinessDetailPage({ params }: Props) {
 
       <section className="py-10">
         <div className="mx-auto max-w-3xl px-6">
-          <h2 className="text-xl font-bold text-zinc-900 mb-6">{t('makeBooking', { term: bookingTerm })}</h2>
+          <h2 className="text-xl font-bold text-white mb-6">{t('makeBooking', { term: bookingTerm })}</h2>
 
           <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6 sm:p-8">
             <BookingForm
@@ -189,6 +222,18 @@ export default async function BusinessDetailPage({ params }: Props) {
       </section>
 
       <MarketingFooter />
+
+      {voiceSearchEnabled && (
+        <AssistantLauncher
+          restaurantId={business.id}
+          restaurantName={business.name}
+          restaurantSlug={business.slug}
+          assistantName={(biz as Record<string, unknown>).ai_assistant_name as string | null}
+          assistantVoice={(biz as Record<string, unknown>).ai_assistant_voice as string | null}
+          backgroundImage={business.background_image}
+          businessType={business.business_type}
+        />
+      )}
     </div>
   )
 }

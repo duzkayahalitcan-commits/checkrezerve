@@ -1,7 +1,8 @@
 // KURAL: Hero ve above-the-fold bileşenler whileInView KULLANMAZ. Scroll trigger sadece sayfanın alt yarısındaki section'lar için. Image wrapper'da opacity animasyonu yasak.
+// Tek orkestrasyonlu giriş: tek bir whileInView konteyner + staggerChildren. Bounce keyframe yok. prefers-reduced-motion desteği var.
 
 'use client'
-import { motion } from 'motion/react'
+import { motion, useReducedMotion } from 'motion/react'
 import { UtensilsCrossed, Scissors, Sparkles, BedDouble, CalendarRange, Dumbbell, type LucideIcon } from 'lucide-react'
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -33,75 +34,88 @@ interface HowStep {
   desc: string
 }
 
+const EASE: [number, number, number, number] = [0.23, 1, 0.32, 1]
+
+// Orchestrated container + child variants — one whileInView on the container.
+const containerVariants = {
+  hidden: {},
+  show: {
+    transition: { staggerChildren: 0.08, delayChildren: 0.05 },
+  },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
+}
+
+function Orchestrator({ children, className }: { children: React.ReactNode; className: string }) {
+  const reduced = useReducedMotion()
+  // Reduced motion: render statically — no scroll-triggered animation.
+  if (reduced) {
+    return <div className={className}>{children}</div>
+  }
+  return (
+    <motion.div
+      className={className}
+      variants={containerVariants}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: '0px 0px -60px 0px' }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
 export function AnimatedSectors({ sectors }: { sectors: Sector[] }) {
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {sectors.map((s, i) => (
-        <motion.div
-          key={s.title}
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '0px 0px -50px 0px' }}
-          transition={{ duration: 0.5, delay: i * 0.07, ease: [0.23, 1, 0.32, 1] }}
-          whileHover={{ y: -4, boxShadow: '0 12px 32px rgba(0,0,0,0.08)' }}
-          className="rounded-2xl border border-zinc-100 bg-zinc-50 p-7 hover:border-red-100 transition-all duration-200"
-          style={{ willChange: 'transform' }}
-        >
-          {(() => {
-            const Icon = ICON_MAP[s.iconName]
-            return (
-              <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center mb-4">
-                {Icon ? <Icon className="w-5 h-5 text-red-600" /> : null}
-              </div>
-            )
-          })()}
-          <h3 className="text-base font-bold text-zinc-900 mb-2">{s.title}</h3>
-          <p className="text-sm text-zinc-600 leading-relaxed">{s.desc}</p>
-        </motion.div>
-      ))}
-    </div>
+    <Orchestrator className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {sectors.map((s) => {
+        const Icon = ICON_MAP[s.iconName]
+        return (
+          <motion.div
+            key={s.title}
+            variants={itemVariants}
+            className="rounded-2xl border border-zinc-100 bg-zinc-50 p-7 hover:border-red-100"
+            style={{ willChange: 'transform' }}
+          >
+            <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center mb-4">
+              {Icon ? <Icon className="w-5 h-5 text-red-600" /> : null}
+            </div>
+            <h3 className="text-base font-bold text-zinc-900 mb-2">{s.title}</h3>
+            <p className="text-sm text-zinc-600 leading-relaxed">{s.desc}</p>
+          </motion.div>
+        )
+      })}
+    </Orchestrator>
   )
 }
 
 export function AnimatedHowSteps({ steps }: { steps: HowStep[] }) {
   return (
-    <div className="grid sm:grid-cols-3 gap-8 mb-16">
-      {steps.map((step, i) => (
-        <motion.div
-          key={step.num}
-          className="flex flex-col items-center text-center"
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '0px 0px -50px 0px' }}
-          transition={{ duration: 0.6, delay: i * 0.12, ease: [0.23, 1, 0.32, 1] }}
-        >
-          <motion.div
-            className="w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center text-xl font-extrabold mb-5 shadow-lg shadow-red-200"
-            whileInView={{ scale: [0.5, 1.1, 1] }}
-            viewport={{ once: true, margin: '0px 0px -50px 0px' }}
-            transition={{ duration: 0.5, delay: i * 0.12 + 0.2 }}
-          >
+    <Orchestrator className="grid sm:grid-cols-3 gap-8 mb-16">
+      {steps.map((step) => (
+        <motion.div key={step.num} variants={itemVariants} className="flex flex-col items-center text-center">
+          <div className="w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center text-xl font-extrabold mb-5 shadow-lg shadow-red-200">
             {step.num}
-          </motion.div>
+          </div>
           <h3 className="text-base font-bold text-zinc-900 mb-2">{step.title}</h3>
           <p className="text-sm text-zinc-600 leading-relaxed">{step.desc}</p>
         </motion.div>
       ))}
-    </div>
+    </Orchestrator>
   )
 }
 
 export function AnimatedTestimonials({ testimonials }: { testimonials: Testimonial[] }) {
   return (
-    <div className="grid sm:grid-cols-3 gap-6">
-      {testimonials.map((tm, i) => (
+    <Orchestrator className="grid sm:grid-cols-3 gap-6">
+      {testimonials.map((tm) => (
         <motion.div
           key={tm.name}
+          variants={itemVariants}
           className="bg-white rounded-2xl border border-zinc-100 p-7 hover:border-red-100 hover:shadow-md transition-all duration-200 flex flex-col"
-          initial={{ opacity: 0, y: 30, scale: 0.97 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          viewport={{ once: true, margin: '0px 0px -50px 0px' }}
-          transition={{ duration: 0.5, delay: i * 0.1, ease: [0.23, 1, 0.32, 1] }}
         >
           <div className="flex-1">
             <div className="text-red-500 text-2xl mb-4 leading-none">&ldquo;</div>
@@ -118,6 +132,6 @@ export function AnimatedTestimonials({ testimonials }: { testimonials: Testimoni
           </div>
         </motion.div>
       ))}
-    </div>
+    </Orchestrator>
   )
 }

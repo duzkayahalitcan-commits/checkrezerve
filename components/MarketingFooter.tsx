@@ -6,59 +6,48 @@ import { useTranslations } from 'next-intl'
 
 export default function MarketingFooter() {
   const t = useTranslations('footer')
+  const year = new Date().getFullYear()
+
   return (
-    <footer className="bg-zinc-900 text-white py-16 px-6">
+    <footer className="bg-zinc-900 text-white px-6 pt-20 pb-10">
       <div className="mx-auto max-w-6xl">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+        {/* Statement — a closing line, not a sitemap */}
+        <p className="text-white text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.05] max-w-[18ch]">
+          {t('statement')}
+        </p>
 
-          <div>
-            <div className="flex items-center gap-2 mb-5">
-              <Image src="/logo-icon.png" alt="CheckRezerve" width={32} height={32} className="rounded-xl brightness-0 invert" />
-              <span className="text-base font-bold">CheckRezerve</span>
+        <div className="mt-14 pt-8 border-t border-zinc-800 flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+          {/* Colophon / legal — dense small type, not a column list */}
+          <div className="max-w-xl">
+            <div className="flex items-center gap-2 mb-3">
+              <Image
+                src="/logo-icon.png"
+                alt="CheckRezerve"
+                width={22}
+                height={22}
+                className="rounded-md brightness-0 invert"
+              />
+              <span className="text-sm font-bold text-white">CheckRezerve</span>
             </div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-3">{t('about')}</h3>
-            <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
-              <Link href="/hakkimizda" className="hover:text-white transition-colors">{t('whyUs')}</Link>
-              <Link href="/hakkimizda" className="hover:text-white transition-colors">{t('successStories')}</Link>
-              <Link href="/blog" className="hover:text-white transition-colors">{t('blog')}</Link>
-              <Link href="/iletisim" className="hover:text-white transition-colors">{t('contact')}</Link>
-            </div>
+            <p className="text-xs leading-relaxed text-zinc-500 max-w-sm">
+              {t('colophon')}
+            </p>
+            <p className="text-xs text-zinc-500 mt-2">
+              © {year} CheckRezerve. {t('rights')}
+            </p>
           </div>
 
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">{t('useCases')}</h3>
-            <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
-              <Link href={"/kullanim-alanlari?sektor=restoran" as any} className="hover:text-white transition-colors">{t('useCaseRestaurant')}</Link>
-              <Link href={"/kullanim-alanlari?sektor=kuafor" as any} className="hover:text-white transition-colors">{t('useCaseBarber')}</Link>
-              <Link href={"/kullanim-alanlari?sektor=spa" as any} className="hover:text-white transition-colors">{t('useCaseSpa')}</Link>
-            </div>
+          {/* Minimal inline links — legal reads as a footnote, not a nav */}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-zinc-400">
+            <Link href="/hakkimizda" className="hover:text-white transition-colors">{t('whyUs')}</Link>
+            <Link href="/iletisim" className="hover:text-white transition-colors">{t('contact')}</Link>
+            <Link href="/blog" className="hover:text-white transition-colors">{t('blog')}</Link>
+            <span className="text-zinc-700" aria-hidden>·</span>
+            <Link href="/kullanim-kosullari" className="hover:text-white transition-colors">{t('terms')}</Link>
+            <Link href="/gizlilik" className="hover:text-white transition-colors">{t('privacy')}</Link>
+            <Link href="/kvkk" className="hover:text-white transition-colors">{t('kvkk')}</Link>
+            <Link href="/cerez-politikasi" className="hover:text-white transition-colors">{t('cookies')}</Link>
           </div>
-
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">{t('features')}</h3>
-            <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
-              <Link href="/ozellikler" className="hover:text-white transition-colors">{t('featurePrepayment')}</Link>
-              <Link href="/ozellikler" className="hover:text-white transition-colors">{t('featureReservation')}</Link>
-              <Link href="/ozellikler" className="hover:text-white transition-colors">{t('featureSms')}</Link>
-              <Link href="/ozellikler" className="hover:text-white transition-colors">{t('featureCustomer')}</Link>
-              <Link href="/ozellikler" className="hover:text-white transition-colors">{t('featureOnline')}</Link>
-              <Link href="/sss" className="hover:text-white transition-colors">SSS</Link>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">{t('legal')}</h3>
-            <div className="flex flex-col gap-2.5 text-sm text-zinc-400">
-              <Link href="/kullanim-kosullari" className="hover:text-white transition-colors">{t('terms')}</Link>
-              <Link href="/gizlilik" className="hover:text-white transition-colors">{t('privacy')}</Link>
-              <Link href="/kvkk" className="hover:text-white transition-colors">{t('kvkk')}</Link>
-              <Link href="/cerez-politikasi" className="hover:text-white transition-colors">{t('cookies')}</Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="pt-8 border-t border-zinc-800 text-center">
-          <p className="text-sm text-zinc-500">© {new Date().getFullYear()} CheckRezerve. {t('rights')}</p>
         </div>
       </div>
     </footer>

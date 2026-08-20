@@ -11,6 +11,10 @@ interface AIChatbotProps {
   restaurantId?: string
   /** Sesli giriş (mikrofon butonu) gösterilsin mi? */
   hasVoice?: boolean
+  /** Bileşen açık başlasın mı (AssistantLauncher tarafından kullanılır) */
+  initialOpen?: boolean
+  /** Kapatılınca çağrılır (AssistantLauncher modu resetler) */
+  onCloseRequest?: () => void
 }
 
 const WELCOME_GENERAL: Message = {
@@ -32,8 +36,10 @@ const QUICK_REPLIES = [
 export default function AIChatbot({
   restaurantId,
   hasVoice = false,
+  initialOpen = false,
+  onCloseRequest,
 }: AIChatbotProps) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(initialOpen)
   const [messages, setMessages] = useState<Message[]>(
     restaurantId ? [WELCOME_BUSINESS] : [WELCOME_GENERAL]
   )
@@ -179,7 +185,7 @@ export default function AIChatbot({
                 </div>
               </div>
               <button
-                onClick={() => setOpen(false)}
+                onClick={() => { setOpen(false); onCloseRequest?.() }}
                 className="w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
               >
                 <X size={14} className="text-white" />

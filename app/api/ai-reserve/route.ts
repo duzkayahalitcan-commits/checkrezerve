@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
-import { getAnthropicClient } from '@/lib/anthropic'
-import { getSupabase, getSupabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase'
 import { notifyReservationEvent } from '@/lib/notification-orchestrator'
 import { rateLimit } from '@/lib/rate-limit'
 import { checkFeatureFlag } from '@/lib/feature-flags'
@@ -10,7 +8,7 @@ import { checkFeatureFlag } from '@/lib/feature-flags'
 // ── Giriş şeması ─────────────────────────────────────────────────────────────
 const RequestSchema = z.object({
   message:       z.string().min(1).max(2000),
-  restaurant_id: z.string().uuid().optional(),
+  restaurant_id: z.string().uuid(),  // NOT NULL (no default) — zorunlu
   branch_id:     z.string().uuid().optional(),
 })
 
@@ -29,12 +27,16 @@ const ExtractionSchema = z.object({
   reply:            z.string(),              // Müşteriye gönderilecek yanıt
 })
 
-const SYSTEM_PROMPT = `Sen "checkrezerve" ekosisteminin rezervasyon asistanısın. Bugünün tarihi: ${new Date().toISOString().split('T')[0]}
+// Tarih her istekte taze hesaplanır (module-scope'da sabitlenmez).
+function getSystemPrompt(): string {
+  const today = new Date().toISOString().split('T')[0]
+  return `Sen "checkrezerve" ekosisteminin rezervasyon asistanısın. Bugünün tarihi: ${today}
 
 KİŞİLİK: Sofistike, profesyonel ve çözüm odaklı. Bir "yardımcı" değil, süreci yöneten bir "uzman" gibi davran. Kısa, öz ama anlam derinliği yüksek cümleler kur.
 
 ÇIKARIM KURALLARI:
 - "Yarın", "cuma", "öbür gün" gibi göreceli tarihleri kesin YYYY-MM-DD'ye çevir
+- TARİH KURALI: "yarın" = Bugün+1, "öbür gün" = Bugün+2, "bugün" = Bugün. Haftanın günü (cuma vb.) bu haftaki ilgili gün olarak hesapla.
 - Telefon numarasını E.164 formatına normalize et (+905321234567)
 - Sadece mesajda açıkça belirtilen bilgileri doldur; tahmin etme
 - is_reservation_request: net rezervasyon talebi için true, bilgi sorgusu için false
@@ -47,6 +49,7 @@ YANIT (reply alanı) KURALLARI:
 - Özel istek varsa (evlilik teklifi, sürpriz vb.): special_requests alanına kaydet, reply'da "Özel talebinizi ekibimize ilettim" de
 - Asla "Hayır" deme; her zaman alternatif çözümün parçası ol
 - SMS karakter sınırını gözet: reply 160 karakteri geçmesin`
+}
 
 // ── POST /api/ai-reserve ──────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
@@ -76,20 +79,31 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 2. Claude API ile bilgileri çıkar
-    const client = getAnthropicClient()
-    const aiResponse = await client.messages.parse({
-      model: 'claude-opus-4-6',
-      max_tokens: 1024,
-      thinking: { type: 'adaptive' },
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: message }],
-      output_config: {
-        format: zodOutputFormat(ExtractionSchema),
-      },
+    // 2. DeepSeek API ile bilgileri çıkar (JSON mode)
+    const apiKey = process.env.DEEPSEEK_API_KEY
+    if (!apiKey) throw new Error('DEEPSEEK_API_KEY not configured')
+
+    const deepSeekRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: 'deepseek-v4-flash',
+        max_tokens: 1024,
+        temperature: 0.2,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: `${getSystemPrompt()}\n\nYanıtını yalnızca aşağıdaki JSON şemasına uygun olarak döndür:\n${JSON.stringify(ExtractionSchema.shape)}` },
+          { role: 'user', content: message },
+        ],
+      }),
     })
 
-    const extracted = aiResponse.parsed_output
+    if (!deepSeekRes.ok) throw new Error(`DeepSeek error: ${deepSeekRes.status}`)
+    const deepSeekJson = await deepSeekRes.json()
+
+    const parsedJson = JSON.parse(deepSeekJson.choices?.[0]?.message?.content ?? '{}')
+    const extracted = ExtractionSchema.parse(parsedJson)
+
     if (!extracted) {
       return NextResponse.json({ error: 'Mesaj analiz edilemedi' }, { status: 422 })
     }
@@ -103,23 +117,23 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // 3. Supabase'e kaydet
-    const supabase = getSupabase()
-    const { data: reservation, error: dbError } = await supabase
+    // 3. Supabase'e kaydet — service role (RLS bypass, panel API route'larıyla tutarlı)
+    const { data: reservation, error: dbError } = await getSupabaseAdmin()
       .from('reservations')
       .insert({
-        customer_name:    extracted.customer_name,
-        phone:            extracted.phone,
-        date:             extracted.date,
-        reserved_time:    extracted.time,
-        party_size:       extracted.party_size ?? 1,
-        special_requests: extracted.special_requests,
-        restaurant_id:    restaurant_id ?? null,
-        branch_id:        branch_id ?? null,
-        status:           'confirmed',
-        source:           'ai',
+        restaurant_id:  restaurant_id ?? null,
+        branch_id:      branch_id ?? null,
+        // NOT NULL zorunlu kolonlar — doğru DB kolon adları (23502 not-null ihlalini önler)
+        guest_name:     extracted.customer_name,
+        guest_phone:    extracted.phone,
+        reserved_date:  extracted.date,
+        reserved_time:  extracted.time,
+        party_size:     extracted.party_size ?? 1,
+        status:         'confirmed',
+        source:         'ai',
         original_message: message,
-        ai_confidence:    extracted.confidence,
+        ai_confidence:  extracted.confidence,
+        special_requests: extracted.special_requests,
       })
       .select()
       .single()
@@ -168,8 +182,8 @@ export async function POST(req: NextRequest) {
       extracted,
       reply: extracted.reply,
       usage: {
-        input_tokens:  aiResponse.usage.input_tokens,
-        output_tokens: aiResponse.usage.output_tokens,
+        input_tokens:  deepSeekJson.usage?.prompt_tokens ?? 0,
+        output_tokens: deepSeekJson.usage?.completion_tokens ?? 0,
       },
     })
   } catch (err) {

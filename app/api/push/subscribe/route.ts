@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { createHmac } from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { verifyPanelToken } from '@/lib/middleware-auth'
 
 // POST /api/push/subscribe
 // Body: { endpoint, keys: { p256dh, auth } }
@@ -13,17 +13,12 @@ export async function POST(req: NextRequest) {
 
   let userId: string | null = null
 
-  // Panel cookie'den userId çöz
+  // Panel cookie'den userId çöz (K1 FİX: verifyPanelToken role dahil HMAC doğrular)
   if (panelCookie) {
-    const parts = panelCookie.split(':')
-    if (parts.length >= 4) {
-      const uid = parts[0]
-      const secret = process.env.ADMIN_SECRET
-      if (secret) {
-        const token = parts.slice(3).join(':')
-        const expected = createHmac('sha256', secret).update(`${uid}:${parts[1]}`).digest('base64url')
-        if (token === expected) userId = uid
-      }
+    const secret = process.env.ADMIN_SECRET
+    if (secret) {
+      const session = verifyPanelToken(panelCookie, secret)
+      if (session) userId = session.userId
     }
   }
 

@@ -4,7 +4,7 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-const FROM_ADDRESS = "info@checkrezerve.com";
+const FROM_ADDRESS = "destek@checkrezerve.com";
 const FROM_NAME = "CheckRezerve";
 
 // ─── Marka renkleri ──────────────────────────────────────────────────────────

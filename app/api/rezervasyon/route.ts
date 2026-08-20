@@ -3,6 +3,7 @@ import { createHash, randomBytes } from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { rateLimit } from '@/lib/rate-limit'
 import { notifyReservationEvent } from '@/lib/notification-orchestrator'
+import { logGuestActivity, resolveGuestByPhone } from '@/lib/guest-activities'
 
 function generateCancellationToken(): string {
   return createHash('sha256').update(randomBytes(32)).digest('hex').slice(0, 32)
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
           .maybeSingle(),
         getSupabaseAdmin()
           .from('reservations')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('restaurant_id', restaurant_id)
           .eq('zone_id', safeZoneId)
           .eq('reserved_date', date)
@@ -125,6 +126,19 @@ export async function POST(request: NextRequest) {
       console.error('[rezervasyon]', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    // ── S4-T2: Misafir aktivite kaydı (reservation) — async, engellemez ──
+    void (async () => {
+      const guest = await resolveGuestByPhone(restaurant_id, insertPayload.guest_phone as string)
+      if (guest) {
+        await logGuestActivity({
+          guest_id: guest.id,
+          activity_type: 'reservation',
+          description: `${insertPayload.guest_name} — ${date} ${time} (${insertPayload.party_size} kişi)`,
+          metadata: { reservation_id: data.id, date, time, party_size: insertPayload.party_size },
+        })
+      }
+    })()
 
     // ── S2-T5: Bildirim orkestrasyonu (müşteri + işletme + n8n) — async, engellemez ──
     try {

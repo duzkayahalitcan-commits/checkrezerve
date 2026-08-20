@@ -3,10 +3,12 @@ import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { ReservationForm } from './ReservationForm'
-import AIChatbot from '@/components/AIChatbot'
+import AssistantLauncher from '@/components/AssistantLauncher'
 import { BUSINESS_TYPE_ICONS, type BusinessType } from '@/types'
 
-export const dynamic = 'force-dynamic'
+// S3-T3: ISR — halka açık işletme sayfası aralıklı yenilenir (5 dk).
+// Rezervasyon akışı (rezervasyon/[id]) gerçek zamanlı kalır (force-dynamic).
+export const revalidate = 300
 
 export async function generateMetadata({
   params,
@@ -52,7 +54,7 @@ export default async function BusinessPage({
 
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('*')
+    .select('id, name, slug, address, description, business_type, cover_image, dress_code, special_notes, ai_assistant_enabled, ai_assistant_name, ai_assistant_voice, background_image')
     .eq('slug', slug)
     .single()
 
@@ -65,13 +67,18 @@ export default async function BusinessPage({
   const localeKey = locale !== 'tr' ? `_${locale}` : ''
 
   // Hizmetler, personel, masa tipleri ve AI feature flags (paralel)
+  // VERTICAL FIX: TEK veri kaynağı 'hizmetler' (panel bu tabloyu yazıyor).
+  // Önceden public sayfa 'services' okuyordu → panelde tanımlanan hizmet
+  // public sayfada görünmüyordu (paralel tablo çakışması). Artık hizmetler
+  // kullanılıyor; 'services' deprecated (silinmedi, not: asistan-brain getServiceMenu
+  // yedek olarak services'e düşebilir).
   const [{ data: rawServices }, { data: staff }, { data: rawMasaTipleri }, { data: featureFlags }] = await Promise.all([
     supabase
-      .from('services')
-      .select('id, name, name_en, name_ar, name_de, name_da, name_es, name_ru, duration_minutes, price, currency')
+      .from('hizmetler')
+      .select('id, ad, ad_en, ad_ar, ad_de, ad_da, ad_es, ad_ru, sure_dakika, fiyat')
       .eq('restaurant_id', restaurant.id)
-      .eq('is_active', true)
-      .order('sort_order'),
+      .eq('aktif', true)
+      .order('created_at'),
     supabase
       .from('staff')
       .select('id, name, title')
@@ -91,10 +98,10 @@ export default async function BusinessPage({
 
   const services = (rawServices ?? []).map((s: Record<string, unknown>) => ({
     id:               s.id as string,
-    name:             ((localeKey ? s[`name${localeKey}`] : null) ?? s.name) as string,
-    duration_minutes: s.duration_minutes as number,
-    price:            s.price as number | null,
-    currency:         s.currency as string,
+    name:             ((localeKey ? s[`ad${localeKey}`] : null) ?? s.ad) as string,
+    duration_minutes: (s.sure_dakika ?? s.duration_minutes) as number,
+    price:            (s.fiyat ?? s.price) as number | null,
+    currency:         (s.currency ?? 'TRY') as string,
   }))
 
   const masaTipleri = (rawMasaTipleri ?? []).map((m: Record<string, unknown>) => ({
@@ -110,15 +117,18 @@ export default async function BusinessPage({
   }))
 
   // AI feature flags
+  // BUG 3 FİX: ai_assistant_enabled tek yetkili master anahtar. Feature flag'ler
+  // yalnızca enabled=true iken anlamlı; enabled=false ise asistan tamamen kapalı.
   const flagMap = new Map((featureFlags ?? []).map((f: { feature: string; enabled: boolean }) => [f.feature, f.enabled]))
-  const hasChatbot     = flagMap.get('ai_chatbot') === true
-  const hasReservation  = flagMap.get('ai_reservation') === true
-  const hasVoiceSearch  = flagMap.get('ai_voice_search') === true
+  const masterEnabled = (restaurant as Record<string, unknown>).ai_assistant_enabled === true
+  const hasChatbot     = masterEnabled && flagMap.get('ai_chatbot') === true
+  const hasReservation  = masterEnabled && flagMap.get('ai_reservation') === true
+  const hasVoiceSearch  = masterEnabled && flagMap.get('ai_voice_search') === true
 
   const today = new Date().toISOString().split('T')[0]
   const { count } = await supabase
     .from('reservations')
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .eq('restaurant_id', restaurant.id)
     .eq('date', today)
 
@@ -230,11 +240,16 @@ export default async function BusinessPage({
         </div>
       </div>
 
-      {/* AI Chatbot */}
-      {hasChatbot && (
-        <AIChatbot
+      {/* AI Asistan — tek birleşik buton (sesli + yazılı) */}
+      {(hasChatbot || hasVoiceSearch) && (
+        <AssistantLauncher
           restaurantId={restaurant.id}
-          hasVoice={hasVoiceSearch}
+          restaurantName={restaurant.name}
+          restaurantSlug={restaurant.slug}
+          assistantName={(restaurant as Record<string, unknown>).ai_assistant_name as string | null}
+          assistantVoice={(restaurant as Record<string, unknown>).ai_assistant_voice as string | null}
+          backgroundImage={(restaurant as Record<string, unknown>).background_image as string | null}
+          businessType={businessType}
         />
       )}
     </div>

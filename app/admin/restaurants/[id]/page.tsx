@@ -20,18 +20,18 @@ export default async function RestaurantDetailPage({
     { data: subscriptions },
     { data: recentReservations },
   ] = await Promise.all([
-    db.from('restaurants').select('*').eq('id', id).single(),
-    db.from('feature_flags').select('*').eq('restaurant_id', id),
+    db.from('restaurants').select('id, name, slug, phone, address, capacity, business_type, is_active, created_at').eq('id', id).single(),
+    db.from('feature_flags').select('id, restaurant_id, feature, enabled').eq('restaurant_id', id),
     db.from('restaurant_users').select('id, username, role, is_active, created_at').eq('restaurant_id', id).order('created_at', { ascending: false }),
-    db.from('subscriptions').select('*').eq('restaurant_id', id).maybeSingle(),
-    db.from('reservations').select('*').eq('restaurant_id', id).order('created_at', { ascending: false }).limit(10),
+    db.from('subscriptions').select('id, restaurant_id, plan, status, billing_period, current_period_end').eq('restaurant_id', id).maybeSingle(),
+    db.from('reservations').select('id, restaurant_id, guest_name, customer_name, party_size, date, time, status, created_at').eq('restaurant_id', id).order('created_at', { ascending: false }).limit(10),
   ])
 
   if (!restaurant) redirect('/admin')
 
-  const { count: calisanlarCount } = await db.from('calisanlar').select('*', { count: 'exact', head: true }).eq('restaurant_id', id)
-  const { count: hizmetlerCount } = await db.from('hizmetler').select('*', { count: 'exact', head: true }).eq('restaurant_id', id)
-  const { count: totalReservations } = await db.from('reservations').select('*', { count: 'exact', head: true }).eq('restaurant_id', id)
+  const { count: calisanlarCount } = await db.from('calisanlar').select('id', { count: 'exact', head: true }).eq('restaurant_id', id)
+  const { count: hizmetlerCount } = await db.from('hizmetler').select('id', { count: 'exact', head: true }).eq('restaurant_id', id)
+  const { count: totalReservations } = await db.from('reservations').select('id', { count: 'exact', head: true }).eq('restaurant_id', id)
 
   return (
     <RestaurantDetail

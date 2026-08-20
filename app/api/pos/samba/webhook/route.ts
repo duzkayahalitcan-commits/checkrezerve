@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
       status: 'completed',
       completed_at: completedAt,
       // total varsa metadata'ya ekle
-      ...(total ? { notes: `POS ödeme: ${total.toFixed(2)} TL` } : {}),
+      ...(total ? { special_requests: `POS ödeme: ${total.toFixed(2)} TL` } : {}),
     })
     .eq('id', reservation.id)
 

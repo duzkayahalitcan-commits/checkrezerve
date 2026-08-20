@@ -44,18 +44,18 @@ export default async function AdminPage() {
 
     supabase
       .from('reservations')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('reserved_date', today),
 
     supabase
       .from('reservations')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('reserved_date', today)
       .eq('status', 'confirmed'),
 
     supabase
       .from('reservations')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('reserved_date', today)
       .eq('status', 'cancelled'),
 
@@ -72,7 +72,7 @@ export default async function AdminPage() {
 
     supabase
       .from('feature_flags')
-      .select('*')
+      .select('id, restaurant_id, feature, enabled, created_at, updated_at')
       .order('restaurant_id'),
   ])
 

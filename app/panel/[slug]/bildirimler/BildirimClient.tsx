@@ -4,14 +4,14 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/Toast'
-import { saveTemplate, deleteTemplate, sendNotification, resendNotification } from './actions'
+import { saveTemplate, deleteTemplate, sendNotification, resendNotification, bulkSendNotification } from './actions'
 
 type LogEntry = {
   id: string; tip: string; alici: string; mesaj: string; durum: string
-  hata_mesaji: string | null; sablon_id: string | null; created_at: string
+  hata_mesaji?: string | null; sablon_id?: string | null; created_at: string
 }
 type Template = {
-  id: string; ad: string; icerik: string; tip: string; aktif: boolean; son_kullanim: string | null; created_at: string
+  id: string; ad: string; icerik: string; tip: string; aktif: boolean; son_kullanim?: string | null; created_at: string
 }
 
 const DECIS_TIPLERI = ['sms', 'push', 'email', 'whatsapp']
@@ -27,7 +27,7 @@ export default function BildirimClient({ slug, logs: initialLogs, templates: ini
 }) {
   const router = useRouter()
   const toast = useToast()
-  const [tab, setTab] = useState<'log' | 'gonder' | 'sablon'>('log')
+  const [tab, setTab] = useState<'log' | 'gonder' | 'toplu' | 'sablon'>('log')
   const [logs, setLogs] = useState(initialLogs)
   const [templates, setTemplates] = useState(initialTemplates)
   const [filterType, setFilterType] = useState('all')
@@ -36,6 +36,10 @@ export default function BildirimClient({ slug, logs: initialLogs, templates: ini
   // Gönder form
   const [sendForm, setSendForm] = useState({ tip: 'sms', alici: '', mesaj: '' })
   const [sending, setSending] = useState(false)
+
+  // Toplu gönder form
+  const [bulkForm, setBulkForm] = useState({ tip: 'sms', hedef: 'tum_musteriler', mesaj: '', baslangic: '', bitis: '' })
+  const [bulkSending, setBulkSending] = useState(false)
 
   // Şablon form
   const [tplForm, setTplForm] = useState({ id: '', ad: '', icerik: '', tip: 'sms' })
@@ -62,6 +66,31 @@ export default function BildirimClient({ slug, logs: initialLogs, templates: ini
     } else {
       toast.show(res.error ?? 'Hata', 'error')
     }
+  }
+
+  async function handleBulkSend() {
+    if (!bulkForm.mesaj.trim()) {
+      toast.show('Mesaj zorunludur', 'error')
+      return
+    }
+    // Onay
+    const hedefEtiketi = bulkForm.hedef === 'tum_musteriler' ? 'tüm müşterilere' : bulkForm.hedef === 'paket_sahipleri' ? 'paket sahiplerine' : 'seçili tarih aralığındaki müşterilere'
+    if (!window.confirm(`"${bulkForm.mesaj.slice(0, 40)}..." mesajını ${hedefEtiketi} toplu göndermek istediğinize emin misiniz? (SMS maliyeti olabilir)`)) return
+    setBulkSending(true)
+    const fd = new FormData()
+    fd.set('tip', bulkForm.tip)
+    fd.set('hedef', bulkForm.hedef)
+    fd.set('mesaj', bulkForm.mesaj)
+    fd.set('baslangic', bulkForm.baslangic)
+    fd.set('bitis', bulkForm.bitis)
+    const res = await bulkSendNotification(fd)
+    setBulkSending(false)
+    if (!res.success) {
+      toast.show(res.error ?? 'Hata', 'error')
+      return
+    }
+    toast.show(`Toplu gönderim tamam: ${res.basarili} başarılı, ${res.basarisiz} başarısız (toplam ${res.toplam})`, res.basarisiz > 0 ? 'error' : 'success')
+    router.refresh()
   }
 
   async function handleSaveTpl() {
@@ -102,6 +131,7 @@ export default function BildirimClient({ slug, logs: initialLogs, templates: ini
         {([
           { key: 'log' as const, label: 'Log' },
           { key: 'gonder' as const, label: 'Gönder' },
+          { key: 'toplu' as const, label: 'Toplu' },
           { key: 'sablon' as const, label: 'Şablonlar' },
         ]).map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
@@ -207,6 +237,81 @@ export default function BildirimClient({ slug, logs: initialLogs, templates: ini
               <button onClick={handleSend} disabled={sending || !sendForm.mesaj.trim()}
                 className="w-full rounded-xl bg-[#c9a84c] py-3.5 text-sm font-bold text-black hover:bg-amber-500 transition-all disabled:opacity-40">
                 {sending ? 'Gönderiliyor...' : 'Gönder'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB: TOPLU ─────────────────────────────────────────────── */}
+        {tab === 'toplu' && (
+          <div className="max-w-lg space-y-4">
+            <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 space-y-4">
+              <div>
+                <h2 className="text-base font-bold text-white mb-1">Toplu Bildirim</h2>
+                <p className="text-xs text-stone-500">Tüm müşterilere, paket sahiplerine veya tarih aralığındaki rezervasyon müşterilerine toplu SMS / push gönderin.</p>
+              </div>
+
+              <div>
+                <label className="text-xs text-stone-400 font-medium mb-1.5 block">Tür</label>
+                <select value={bulkForm.tip} onChange={e => setBulkForm(f => ({ ...f, tip: e.target.value, hedef: e.target.value === 'push' ? 'paket_sahipleri' : 'tum_musteriler' }))}
+                  className="w-full bg-stone-800 border border-stone-700 rounded-xl px-4 py-3 text-sm text-white outline-none">
+                  <option value="sms">SMS</option>
+                  <option value="push">Push</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs text-stone-400 font-medium mb-1.5 block">Hedef</label>
+                <select value={bulkForm.hedef} onChange={e => setBulkForm(f => ({ ...f, hedef: e.target.value }))}
+                  className="w-full bg-stone-800 border border-stone-700 rounded-xl px-4 py-3 text-sm text-white outline-none">
+                  {bulkForm.tip === 'sms' && (
+                    <>
+                      <option value="tum_musteriler">Onaylı müşteriler (SMS izni verenler)</option>
+                      <option value="rezervasyon_tarih">Onaylı + belirli tarih aralığında rezervasyon yapanlar</option>
+                    </>
+                  )}
+                  {bulkForm.tip === 'push' && (
+                    <option value="paket_sahipleri">Paket sahipleri (push)</option>
+                  )}
+                </select>
+              </div>
+
+              {bulkForm.tip === 'sms' && bulkForm.hedef === 'rezervasyon_tarih' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-stone-400 font-medium mb-1.5 block">Başlangıç</label>
+                    <input type="date" value={bulkForm.baslangic} onChange={e => setBulkForm(f => ({ ...f, baslangic: e.target.value }))}
+                      className="w-full bg-stone-800 border border-stone-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#c9a84c]" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-stone-400 font-medium mb-1.5 block">Bitiş</label>
+                    <input type="date" value={bulkForm.bitis} onChange={e => setBulkForm(f => ({ ...f, bitis: e.target.value }))}
+                      className="w-full bg-stone-800 border border-stone-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#c9a84c]" />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs text-stone-400 font-medium mb-1.5 block">
+                  Mesaj
+                  <span className="text-stone-600 ml-2">({bulkForm.mesaj.length}/160)</span>
+                </label>
+                <textarea value={bulkForm.mesaj} onChange={e => setBulkForm(f => ({ ...f, mesaj: e.target.value }))}
+                  rows={4} maxLength={160}
+                  className="w-full bg-stone-800 border border-stone-700 rounded-xl px-4 py-3 text-sm text-white placeholder-stone-500 outline-none focus:border-[#c9a84c] resize-none"
+                  placeholder="Mesajınızı yazın..." />
+                <p className="text-[10px] text-stone-600 mt-1">
+                  Değişkenler: {'{musteri_adi}'} {'{isletme_adi}'} {'{tarih}'} {'{saat}'}
+                </p>
+              </div>
+
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-[11px] text-amber-300/90">
+                ⚠️ SMS yalnızca SMS izni (sms_consent) veren müşterilere gider (KVKK). Maliyet doğurur; en fazla 500 alıcı. Gönderim onay ister.
+              </div>
+
+              <button onClick={handleBulkSend} disabled={bulkSending || !bulkForm.mesaj.trim()}
+                className="w-full rounded-xl bg-[#c9a84c] py-3.5 text-sm font-bold text-black hover:bg-amber-500 transition-all disabled:opacity-40">
+                {bulkSending ? 'Gönderiliyor...' : 'Toplu Gönder'}
               </button>
             </div>
           </div>

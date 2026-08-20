@@ -39,12 +39,25 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+# ── PDF menü ayrıştırıcı (pdfminer.six) — image içinde build-time venv ──────
+# markitdown -> pdfminer.six geçişi (image boyutu küçültme).
+# markitdown'ın PDF motoru zaten pdfminer.six idi; artık doğrudan sadece
+# pdfminer.six kurulur (~330MB gereksiz bağımlılık ağacı elendi).
+# venv, host'a bağımlı olmadan image içine kurulur.
+RUN apk add --no-cache python3 py3-virtualenv py3-pip \
+ && python3 -m venv /opt/checkrezerve-venv \
+ && /opt/checkrezerve-venv/bin/pip install --no-cache-dir --upgrade pip \
+ && /opt/checkrezerve-venv/bin/pip install --no-cache-dir pdfminer.six \
+ && apk del py3-virtualenv
+
+ENV MENU_MARKITDOWN_PYTHON=/opt/checkrezerve-venv/bin/python
+
 # Güvenlik: root olmayan kullanıcı
 RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 nextjs
 
 # Standalone çıktısı — sadece gerekli dosyalar
-COPY --from=builder /app/public                                  ./public
+COPY --from=builder --chown=nextjs:nodejs /app/public              ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone  ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static      ./.next/static
 

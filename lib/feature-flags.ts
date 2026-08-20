@@ -17,3 +17,28 @@ export async function checkFeatureFlag(restaurantId: string, feature: string): P
     return false
   }
 }
+
+/**
+ * BUG 3 FİX: Asistan erişim kontrolü — TEK yetkili anahtar ai_assistant_enabled.
+ * İşletmenin ai_assistant_enabled'ı restaurants tablosundan okunur; false ise
+ * feature flag ne olursa olsun (true bile) erişim reddedilir. Böylece DB'den
+ * yalnızca ai_assistant_enabled=false yapmak da asistanı tamamen kapatır.
+ */
+export async function checkAssistantEnabled(
+  restaurantId: string,
+  feature: string,
+): Promise<boolean> {
+  if (!restaurantId) return false
+  try {
+    const db = getSupabaseAdmin()
+    const { data: rest } = await db
+      .from('restaurants')
+      .select('ai_assistant_enabled')
+      .eq('id', restaurantId)
+      .maybeSingle()
+    if (rest?.ai_assistant_enabled !== true) return false // master kapalı
+    return checkFeatureFlag(restaurantId, feature)
+  } catch {
+    return false
+  }
+}

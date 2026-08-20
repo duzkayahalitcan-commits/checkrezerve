@@ -14,7 +14,7 @@ export default async function OnboardingStep3({ params }: { params: Promise<{ sl
 
   const { data: restaurant } = await db
     .from('restaurants')
-    .select('*')
+    .select('id, name, slug, phone, address, description, website, instagram, business_type, working_hours, email, city, district, country, cover_image, onboarding_completed')
     .eq('slug', slug)
     .eq('id', session.restaurantId)
     .single()

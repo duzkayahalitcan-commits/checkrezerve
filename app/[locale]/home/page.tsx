@@ -17,14 +17,14 @@ export const metadata: Metadata = {
     description: 'Restoran, güzellik salonu, spa ve daha fazlası için online rezervasyon yönetimi. Komisyon yok.',
     url: 'https://checkrezerve.com',
     siteName: 'CheckRezerve',
-    images: [{ url: 'https://checkrezerve.com/images/og-home.jpg', width: 1200, height: 630 }],
+    images: [{ url: 'https://checkrezerve.com/api/og?title=CheckRezerve&type=Online%20Rezervasyon', width: 1200, height: 630 }],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'CheckRezerve — Komisyonsuz Rezervasyon Sistemi',
     description: 'Restoran, güzellik salonu, spa ve daha fazlası için online rezervasyon yönetimi.',
-    images: ['https://checkrezerve.com/images/og-home.jpg'],
+    images: ['https://checkrezerve.com/api/og?title=CheckRezerve&type=Online%20Rezervasyon'],
   },
 }
 

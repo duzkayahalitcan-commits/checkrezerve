@@ -14,8 +14,8 @@ export async function GET(
 
   const [tablesRes, areasRes, occRes] = await Promise.all([
     // panel kroki ile aynı kaynaktan: masa_tipleri
-    db.from('masa_tipleri').select('*').eq('isletme_id', restaurantId).eq('aktif', true).order('ad'),
-    db.from('special_areas').select('*').eq('restaurant_id', restaurantId).order('name'),
+    db.from('masa_tipleri').select('id, isletme_id, ad, kapasite, aktif, x, y, width, height, sekil, rotation, area_id').eq('isletme_id', restaurantId).eq('aktif', true).order('ad'),
+    db.from('special_areas').select('id, name, color').eq('restaurant_id', restaurantId).order('name'),
     date
       ? db.from('reservations').select('table_id').not('table_id', 'is', null).neq('status', 'cancelled')
           .filter('reserved_date', 'eq', date)

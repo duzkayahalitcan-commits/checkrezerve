@@ -4,16 +4,19 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 // VAPID ayarları (dinamik import ile)
 const VAPID_PUBLIC_KEY  = process.env.VAPID_PUBLIC_KEY  ?? ''
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY ?? ''
-const VAPID_EMAIL       = process.env.VAPID_EMAIL       ?? 'info@checkrezerve.com'
+const VAPID_EMAIL       = process.env.VAPID_EMAIL       ?? 'destek@checkrezerve.com'
 
 // POST /api/push/send
 // Body: { userId?: string, title: string, body: string, url?: string }
 // userId verilmişse sadece o kullanıcıya, verilmemişse tüm aboneliklere gönderir.
 export async function POST(req: NextRequest) {
-  // CRON_SECRET veya admin token ile koruma
+  // Güvenlik: CRON_SECRET ZORUNLU — tanımlı değilse route çalışmaz (anonim push spam'ını engeller).
   const auth = req.headers.get('authorization') ?? ''
   const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && auth !== `Bearer ${cronSecret}`) {
+  if (!cronSecret) {
+    return NextResponse.json({ error: 'CRON_SECRET not configured' }, { status: 500 })
+  }
+  if (auth !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 })
   }
 
@@ -29,7 +32,7 @@ export async function POST(req: NextRequest) {
   const db = getSupabaseAdmin()
 
   // Abonelikleri çek
-  let query = db.from('push_subscriptions').select('*')
+  let query = db.from('push_subscriptions').select('id, user_id, endpoint, keys_p256dh, keys_auth, created_at')
   if (userId) {
     query = query.eq('user_id', userId)
   }

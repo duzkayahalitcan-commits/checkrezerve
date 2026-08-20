@@ -29,8 +29,9 @@ type Biz = {
 }
 
 function StarRating({ rating, count }: { rating: number | null; count: number }) {
+  const t = useTranslations('rezervasyon')
   if (rating === null || count === 0) {
-    return <span className="text-[10px] text-zinc-400">Henüz değerlendirme yok</span>
+    return <span className="text-[10px] text-zinc-400">{t('noRatings')}</span>
   }
   return (
     <span className="flex items-center gap-1">
@@ -184,7 +185,7 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="İşletme, adres veya hizmet ara…"
+          placeholder={t('searchPlaceholder')}
           className="w-full pl-10 pr-10 py-3 rounded-2xl border border-zinc-200 bg-white text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 transition-all duration-300"
         />
         {query && (
@@ -271,7 +272,7 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h2 className="text-base font-bold text-zinc-900">
           {query
-            ? `"${query}" için sonuçlar`
+            ? t('resultsFor', { query })
             : activeKey
             ? (tabs.find(t => t.key === activeKey)?.label ?? t('allBusinesses'))
             : t('allBusinesses')}
@@ -288,7 +289,7 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
             }`}
           >
             <SlidersHorizontal size={12} />
-            Filtreler
+            {t('filters')}
             {activeFilterCount > 0 && (
               <span className="ml-0.5 inline-flex items-center justify-center w-4 h-4 bg-white text-red-600 rounded-full text-[10px] font-bold">
                 {activeFilterCount}
@@ -305,14 +306,14 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                   : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
               }`}
             >
-              {s === 'yeni' ? 'En Yeni' : s === 'az' ? 'A–Z' : 'Yakın'}
+              {s === 'yeni' ? t('sortNew') : s === 'az' ? 'A–Z' : t('sortNear')}
             </button>
           ))}
           {(siralama !== 'yeni' || query || activeKey || sehir) && (
             <button
               onClick={() => { setSiralama('yeni'); setQuery(''); setSehir('') }}
               className="text-xs px-2.5 py-1.5 rounded-full text-zinc-400 hover:text-zinc-600 transition-colors"
-              title="Filtreleri temizle"
+              title={t('clearFilters')}
             >
               <X size={13} />
             </button>
@@ -331,7 +332,7 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-zinc-900">Filtreler</h3>
+              <h3 className="font-bold text-zinc-900">{t('filters')}</h3>
               <button onClick={() => setFilterOpen(false)} className="text-zinc-400 hover:text-zinc-600 p-1">
                 <X size={18} />
               </button>
@@ -339,13 +340,13 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
 
             {/* Şehir filter */}
             <div className="mb-4">
-              <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">Şehir / İlçe</label>
+              <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">{t('cityDistrict')}</label>
               <select
                 value={sehir}
                 onChange={e => setSehir(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl border border-zinc-200 text-sm text-zinc-800 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
               >
-                <option value="">Tümü</option>
+                <option value="">{t('all')}</option>
                 {cities.map(c => (
                   <option key={c} value={c}>{c}</option>
                 ))}
@@ -357,13 +358,13 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                 onClick={() => { setSehir(''); setFilterOpen(false) }}
                 className="flex-1 py-2.5 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-600 hover:bg-zinc-50 transition-colors"
               >
-                Temizle
+                {t('clear')}
               </button>
               <button
                 onClick={() => setFilterOpen(false)}
                 className="flex-1 py-2.5 rounded-xl bg-[#E53935] text-white text-sm font-semibold hover:bg-red-700 transition-colors"
               >
-                Uygula ({filtered.length} sonuç)
+                {t('apply', { count: filtered.length })}
               </button>
             </div>
           </div>
@@ -380,17 +381,17 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
         >
           <div className="text-5xl mb-4">{query ? '🔍' : '📅'}</div>
           <p className="font-semibold text-zinc-700 mb-1">
-            {query ? 'Eşleşen işletme bulunamadı' : t('emptyTitle')}
+            {query ? t('noMatch') : t('emptyTitle')}
           </p>
           <p className="text-sm text-zinc-400">
-            {query ? 'Farklı bir arama deneyin' : t('emptySubtitle')}
+            {query ? t('tryAnother') : t('emptySubtitle')}
           </p>
           {query && (
             <button
               onClick={() => setQuery('')}
               className="mt-4 text-sm text-red-600 font-semibold hover:underline"
             >
-              Aramayı temizle
+              {t('clearSearch')}
             </button>
           )}
         </motion.div>
@@ -458,7 +459,7 @@ export default function SearchableBusinessList({ allBusinesses }: { allBusinesse
                         className="inline-block text-xs font-bold px-3 py-2 rounded-xl text-white transition-colors"
                         style={{ backgroundColor: accent }}
                       >
-                        Rezervasyon Yap
+                        {t('makeReservation')}
                       </Link>
                     </div>
                   </div>

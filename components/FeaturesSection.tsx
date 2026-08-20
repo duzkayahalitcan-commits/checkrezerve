@@ -1,7 +1,6 @@
 // KURAL: Hero ve above-the-fold bileşenler whileInView KULLANMAZ. Scroll trigger sadece sayfanın alt yarısındaki section'lar için. Image wrapper'da opacity animasyonu yasak.
 
 'use client'
-import { motion } from 'motion/react'
 import { CalendarCheck, CreditCard, Bell, Users, BarChart3, Globe } from 'lucide-react'
 
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -36,57 +35,20 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
         {features.map((f, i) => {
           const isReversed = i % 2 === 1
           return (
-            <motion.div
-              key={f.title}
-              className="fs-row"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true, margin: '0px 0px -50px 0px' }}
-              transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-            >
+            <div key={f.title} className={`fs-row${isReversed ? ' fs-row--reversed' : ''}`}>
               <div className="fs-img-col">
-                <motion.div
-                  className="browser-frame"
-                  initial={{ opacity: 0, x: isReversed ? 40 : -40 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true, margin: '0px 0px -50px 0px' }}
-                  transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-                >
-                  <div className="browser-bar">
-                    <div className="flex items-center gap-1.5">
-                      <span className="browser-dot mac-red" />
-                      <span className="browser-dot mac-yellow" />
-                      <span className="browser-dot mac-green" />
-                    </div>
-                    <div className="browser-url">checkrezerve.com/panel</div>
-                    <div className="w-14" />
-                  </div>
-                  <div className="browser-image-wrap">
-                    <img
-                      src={f.img}
-                      alt={f.title}
-                      loading="eager"
-                    />
-                    <div className="img-glow" />
-                  </div>
-                </motion.div>
+                <figure className="fs-figure">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={f.img} alt={f.title} loading="lazy" />
+                </figure>
               </div>
 
-              <motion.div
-                className="fs-text-col"
-                initial={{ opacity: 0, x: isReversed ? -40 : 40 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: '0px 0px -50px 0px' }}
-                transition={{ duration: 0.6, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
-              >
+              <div className="fs-text-col">
                 <span className="fs-badge">{BADGES[i % BADGES.length]}</span>
                 <h3 className="fs-title">{f.title}</h3>
                 <p className="fs-desc">{f.desc}</p>
-                <div className="fs-cta">
-                  <span>{/* Detaylar → */}</span>
-                </div>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           )
         })}
       </div>
@@ -118,6 +80,9 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
             flex-direction: row;
             gap: 5rem;
           }
+          .fs-row--reversed {
+            flex-direction: row-reverse;
+          }
         }
 
         /* ── Image column ── */
@@ -126,79 +91,22 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
           width: 100%;
         }
 
-        /* ── Browser mockup ── */
-        .browser-frame {
-          background: #fff;
-          border-radius: 1rem;
-          overflow: hidden;
-          box-shadow:
-            0 25px 60px rgba(0,0,0,0.12),
-            0 8px 20px rgba(0,0,0,0.06);
-          border: 1px solid rgba(0,0,0,0.06);
-          transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-                      box-shadow 0.4s ease;
-          will-change: transform;
-        }
-        .browser-frame:hover {
-          transform: translateY(-4px) scale(1.01);
-          box-shadow:
-            0 35px 80px rgba(0,0,0,0.15),
-            0 10px 24px rgba(0,0,0,0.08);
-        }
-
-        .browser-bar {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          padding: 0.75rem 1rem;
-          background: #f8f8f8;
-          border-bottom: 1px solid rgba(0,0,0,0.04);
-        }
-        .browser-dot {
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          display: block;
-        }
-        .mac-red    { background: #ff5f56; }
-        .mac-yellow { background: #ffbd2e; }
-        .mac-green  { background: #27c93f; }
-
-        .browser-url {
-          flex: 1;
-          text-align: center;
-          font-size: 0.7rem;
-          color: #888;
-          background: #e8e8e8;
-          border-radius: 4px;
-          padding: 3px 8px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          font-family: var(--font-geist-mono, monospace);
-        }
-
-        .browser-image-wrap {
+        /* ── Real screenshot in a figure — hairline border, no fake chrome ── */
+        .fs-figure {
+          margin: 0;
           position: relative;
           overflow: hidden;
+          border-radius: 1rem;
+          border: 1px solid rgba(0,0,0,0.08);
+          background: #fff;
           line-height: 0;
         }
-        .browser-image-wrap img {
+        .fs-figure img {
           width: 100%;
           height: auto;
           max-height: 420px;
           object-fit: cover;
           display: block;
-          transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        .browser-frame:hover .browser-image-wrap img {
-          transform: scale(1.03);
-        }
-        .img-glow {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          background: linear-gradient(135deg, rgba(229,57,53,0.06) 0%, transparent 50%);
         }
 
         /* ── Text column ── */
@@ -241,14 +149,10 @@ export default function FeaturesSection({ features }: { features: Feature[] }) {
           max-width: 480px;
         }
 
-        .fs-cta {
-          margin-top: 0.5rem;
-        }
-
         @media (max-width: 767px) {
           .fs-inner { gap: 4rem; }
           .fs-img-col { flex: none; width: 100%; }
-          .browser-image-wrap img { max-height: 280px; }
+          .fs-figure img { max-height: 280px; }
         }
       `}</style>
     </section>

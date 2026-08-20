@@ -41,7 +41,7 @@ export default function CalendarSidebar({
     setDate(reservation.reserved_date ?? '')
     setTime((reservation.reserved_time ?? '').slice(0, 5))
     setStaffId(reservation.calisan_id ?? '')
-    setNotes(reservation.notes ?? '')
+    setNotes(reservation.special_requests ?? '')
 
     // Fetch staff for dropdown
     supabase

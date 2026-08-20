@@ -38,6 +38,19 @@ function getTagStyle(name: string) {
   return TAG_COLORS[key] ?? 'bg-stone-700/50 text-stone-400 border-stone-600'
 }
 
+// S4-T2: Misafir aktivitesini sunucu endpoint'i üzerinden logla (service-role)
+async function logActivity(guestId: string, activity_type: string, description: string) {
+  try {
+    await fetch('/api/panel/guest-activities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guest_id: guestId, activity_type, description }),
+    })
+  } catch {
+    // Loglama ana akışı bozmasın
+  }
+}
+
 export default function MisafirList({
   guests,
   tags,
@@ -100,6 +113,7 @@ export default function MisafirList({
         await client.from('guest_tag_assignments').insert({ guest_id: guestId, tag_id: tag.id })
         setGuestTags(prev => ({ ...prev, [guestId]: [...current, tagName] }))
       }
+      void logActivity(guestId, 'tag_change', `${hasTag ? 'Etiket kaldırıldı' : 'Etiket eklendi'}: ${tagName}`)
       toast.show(hasTag ? 'Etiket kaldırıldı' : 'Etiket eklendi', 'success')
     } catch {
       toast.show('Güncellenemedi', 'error')
@@ -119,7 +133,7 @@ export default function MisafirList({
           className="w-full pl-9 pr-4 py-2 bg-stone-900 border border-stone-700 rounded-xl text-sm text-white placeholder-stone-500 focus:outline-none focus:border-amber-500 transition-colors"
         />
         {search && (
-          <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-white">
+          <button onClick={() => setSearch('')} aria-label="Aramayı temizle" className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-white">
             <X size={14} />
           </button>
         )}
@@ -251,6 +265,7 @@ export default function MisafirList({
                                 )
                                 const { error } = await client.from('guests').update({ notes: noteText.trim() }).eq('id', guest.id)
                                 if (error) throw error
+                                void logActivity(guest.id, 'note', `Not güncellendi: ${noteText.trim().slice(0, 80)}`)
                                 toast.show('Not kaydedildi', 'success')
                               } catch {
                                 toast.show('Kaydedilemedi', 'error')

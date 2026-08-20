@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
   const db = getSupabaseAdmin()
   let query = db
     .from('admin_audit_logs')
-    .select('*')
+    .select('id, admin_id, action, target_type, target_id, metadata, created_at')
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)
 

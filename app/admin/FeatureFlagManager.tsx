@@ -9,7 +9,7 @@ type Flag = {
   enabled: boolean
   created_at: string
   updated_at: string
-  restaurants: { name: string; slug: string } | null
+  restaurants?: { name: string; slug: string } | null
 }
 
 type Restaurant = {

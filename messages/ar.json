@@ -114,7 +114,9 @@
     "terms": "شروط الاستخدام",
     "kvkk": "سياسة حماية البيانات",
     "cookies": "سياسة ملفات تعريف الارتباط",
-    "rights": "جميع الحقوق محفوظة."
+    "rights": "جميع الحقوق محفوظة.",
+    "statement": "الحجز ببساطة وفي ثوانٍ.",
+    "colophon": "نظام حجوزات بدون عمولة. إدارة الحجوزات عبر الإنترنت للمطاعم والمنتجعات والصالونات والمزيد — كل ذلك في لوحة واحدة."
   },
   "hero": {
     "badge": "منصة الحجز في تركيا",
@@ -391,7 +393,7 @@
     "quickSupportTitle": "الدعم",
     "quickSupportDesc": "هل لديك مشكلة؟ اكتب لنا — نرد في نفس اليوم.",
     "quickContactTitle": "التواصل العام",
-    "quickContactDesc": "لكل شيء آخر: info@checkrezerve.com",
+    "quickContactDesc": "لكل شيء آخر: destek@checkrezerve.com",
     "socialTitle": "Join the Community",
     "socialDesc": "Latest news, tips, and meet business owners.",
     "socialWhatsappName": "WhatsApp",
@@ -471,7 +473,7 @@
     "s11Title": "11. حذف الحساب داخل التطبيق",
     "s11Body": "يمكنك حذف حسابك بشكل دائم في أي وقت. عند الحذف، تتم إزالة ملفك الشخصي وسجل حجوزاتك وجميع بياناتك الشخصية من أنظمتنا نهائياً.",
     "s11Step1": "في التطبيق المحمول، انتقل إلى الملف الشخصي ← الإعدادات ← حذف حسابي.",
-    "s11Step2": "بدلاً من ذلك، أرسل بريداً إلكترونياً بموضوع \"طلب حذف الحساب\" إلى info@checkrezerve.com.",
+    "s11Step2": "بدلاً من ذلك، أرسل بريداً إلكترونياً بموضوع \"طلب حذف الحساب\" إلى destek@checkrezerve.com.",
     "s11Step3": "ستتم معالجة طلبك في غضون 7 أيام عمل وسيتم حذف حسابك بشكل دائم.",
     "s11Note": "قد تُحتفظ البيانات الخاضعة للالتزامات القانونية (مثل سجلات الفواتير) بشكل مجهول حتى انتهاء فترة الاحتفاظ القانونية."
   },
@@ -791,7 +793,7 @@
     "mockup4Label": "الخطوة 4",
     "mockup4Desc": "تأكيد الحذف",
     "s4Title": "طريقة بديلة",
-    "altText": "أرسل بريداً إلكترونياً إلى info@checkrezerve.com بعنوان \"طلب حذف الحساب\". سيتم معالجة طلبك في غضون 7 أيام عمل.",
+    "altText": "أرسل بريداً إلكترونياً إلى destek@checkrezerve.com بعنوان \"طلب حذف الحساب\". سيتم معالجة طلبك في غضون 7 أيام عمل.",
     "dataControllerLabel": "المتحكم في البيانات:",
     "dataControllerName": "CheckRezerve Teknoloji",
     "emailLabel": "البريد الإلكتروني:"
@@ -915,7 +917,15 @@
     "kat_restoran": "مطعم",
     "kat_kafe": "مقهى",
     "kat_bar": "بار",
-    "kat_diger": "أخرى"
+    "kat_diger": "أخرى",
+    "recentReservations": "الحجوزات الأخيرة",
+    "noReservations": "لا توجد لديك حجوزات بعد.",
+    "business": "النشاط التجاري",
+    "guests": "{count} أشخاص",
+    "status_pending": "قيد الانتظار",
+    "status_confirmed": "مؤكد",
+    "status_cancelled": "ملغي",
+    "status_completed": "مكتمل"
   },
   "bookingForm": {
     "today": "اليوم",
@@ -1095,7 +1105,22 @@
     },
     "hata": {
       "genel": "An error occurred, please try again."
-    }
+    },
+    "searchPlaceholder": "ابحث عن نشاط تجاري أو عنوان أو خدمة…",
+    "noRatings": "لا توجد تقييمات بعد",
+    "resultsFor": "نتائج البحث عن \"{query}\"",
+    "filters": "الفلاتر",
+    "clearFilters": "مسح الفلاتر",
+    "sortNew": "الأحدث",
+    "sortNear": "بالقرب",
+    "cityDistrict": "المدينة / المنطقة",
+    "all": "الكل",
+    "clear": "مسح",
+    "apply": "تطبيق ({count} نتائج)",
+    "noMatch": "لا توجد أنشطة تجارية مطابقة",
+    "tryAnother": "جرّب بحثًا مختلفًا",
+    "clearSearch": "مسح البحث",
+    "makeReservation": "احجز الآن"
   },
   "bizDetail": {
     "allBusinesses": "جميع الأعمال",
@@ -1141,7 +1166,7 @@
     "replyInPerson": "أرغب في استلامه شخصياً",
     "errorNameRequired": "الاسم الكامل مطلوب.",
     "errorRequestRequired": "تفاصيل الطلب مطلوبة.",
-    "errorSubmit": "تعذّر إرسال طلبك. يرجى المحاولة مرة أخرى أو إرسال بريد إلكتروني إلى info@checkrezerve.com.",
+    "errorSubmit": "تعذّر إرسال طلبك. يرجى المحاولة مرة أخرى أو إرسال بريد إلكتروني إلى destek@checkrezerve.com.",
     "successTitle": "تم استلام طلبك",
     "successDesc": "تم إرسال طلبك بموجب KVKK بنجاح. سيُجاب عليه خلال ٣٠ يوماً.",
     "backHome": "العودة إلى الصفحة الرئيسية",
@@ -1300,7 +1325,34 @@
     "dressCode": "قواعد اللباس",
     "dressCodePlaceholder": "مثال: لا تُقبل الملابس الرياضية",
     "specialNotes": "ملاحظات خاصة / تحذيرات",
-    "specialNotesPlaceholder": "تُعرض للعملاء في صفحة الحجز"
+    "specialNotesPlaceholder": "تُعرض للعملاء في صفحة الحجز",
+    "voiceSettings": {
+      "title": "إعدادات المساعد الصوتي",
+      "subtitle": "اختر الصوت الذي سيستخدمه المساعد وإدارة حالة تفعيله.",
+      "assistantTitle": "إعدادات المساعد",
+      "assistantSubtitle": "فعّل مساعد الحجز الصوتي وحدد الاسم الذي سيسمعه العملاء.",
+      "enableToggle": "تفعيل المساعد",
+      "enableDesc": "عند التفعيل، يصبح المساعد الصوتي والدردشة النصية نشطين في صفحة الحجز.",
+      "assistantName": "اسم المساعد",
+      "assistantNamePlaceholder": "مثال: زارا",
+      "assistantNameHint": "سيتحدث عملاؤك مع \"{name}\"",
+      "disabledNameWarn": "لا يمكن تعيين الاسم عند إيقاف المساعد",
+      "activeName": "الاسم النشط: {name}",
+      "save": "حفظ",
+      "saving": "جارٍ الحفظ...",
+      "saved": "تم حفظ إعدادات المساعد ✓",
+      "voiceTitle": "صوت المساعد",
+      "voiceSubtitle": "اختر الصوت الذي سيستخدمه المساعد. يمكن للمالك تغييره كل 24 ساعة.",
+      "superAdminNoLock": "(مدير عام — بدون قيود)",
+      "loading": "جارٍ التحميل...",
+      "lockedMsg": "قفل تغيير الصوت نشط.",
+      "lockRemaining": "يمكنك تغييره مرة أخرى بعد {time}.",
+      "voiceSaved": "تم حفظ الصوت ✓",
+      "preview": "معاينة الصوت",
+      "male": "ذكر",
+      "female": "أنثى",
+      "saveError": "تعذر حفظ إعدادات المساعد"
+    }
   },
   "diagonal": {
     "restoran": "مطعم",
@@ -1312,7 +1364,9 @@
     "heroTitle": "إلى أين اليوم؟",
     "heroSlogan": "اختر مكانك واحجز في ثوانٍ.",
     "discover": "اكتشف",
-    "forBusiness": "للشركات"
+    "forBusiness": "للشركات",
+    "heroEyebrow": "نظام حجوزات بدون عمولة",
+    "ctaLabel": "ابدأ لعملك"
   },
   "accountDelete": {
     "title": "Account Deletion",

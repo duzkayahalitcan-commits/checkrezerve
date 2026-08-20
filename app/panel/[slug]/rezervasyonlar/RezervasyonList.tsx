@@ -13,7 +13,7 @@ type Reservation = {
   reserved_date: string
   reserved_time: string
   party_size: number | null
-  notes: string | null
+  special_requests: string | null
   status: string
   source: string | null
   special_area_id: string | null
@@ -255,7 +255,7 @@ export default function RezervasyonList({
                         <Phone size={10} /> {r.guest_phone}
                       </a>
                     )}
-                    {r.notes && <p className="mt-1.5 text-xs text-stone-600 italic">&ldquo;{r.notes}&rdquo;</p>}
+                    {r.special_requests && <p className="mt-1.5 text-xs text-stone-600 italic">&ldquo;{r.special_requests}&rdquo;</p>}
                   </div>
                   <div className="flex flex-col gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
                     {r.status === 'pending' && (
@@ -338,7 +338,7 @@ export default function RezervasyonList({
                   selectedRes.special_areas?.name ? { label: 'Alan', value: selectedRes.special_areas.name } : null,
                   selectedRes.calisanlar?.ad ? { label: 'Çalışan', value: selectedRes.calisanlar.ad } : null,
                   selectedRes.hizmetler?.ad ? { label: 'Hizmet', value: selectedRes.hizmetler.ad + (selectedRes.hizmetler.fiyat ? ` — ${selectedRes.hizmetler.fiyat} ₺` : '') } : null,
-                  selectedRes.notes ? { label: 'Notlar', value: selectedRes.notes } : null,
+                  selectedRes.special_requests ? { label: 'Notlar', value: selectedRes.special_requests } : null,
                 ].filter(Boolean).map(f => f && (
                   <div key={f.label} className="flex gap-3">
                     <span className="text-stone-500 text-xs w-24 shrink-0 pt-0.5">{f.label}</span>

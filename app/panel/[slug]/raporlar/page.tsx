@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import RaporlarClient from './RaporlarClient'
+import CalisanGelir from './CalisanGelir'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +23,7 @@ export default async function RaporlarPage({
 
   const { data: restaurant } = await db
     .from('restaurants')
-    .select('id, name, slug, onboarding_completed')
+    .select('id, name, slug, onboarding_completed, business_type')
     .eq('slug', slug)
     .eq('id', session.restaurantId)
     .single()
@@ -67,7 +68,7 @@ export default async function RaporlarPage({
   const [{ data: currentRes }, { data: prevRes }, { data: allCurrent }, { data: hizmetler }, { data: calisanlar }, { data: dailyData }, { data: hourlyData }, { data: serviceData }] = await Promise.all([
     db.from('reservations').select('id, status').eq('restaurant_id', restaurant.id).gte('reserved_date', dateFrom).lte('reserved_date', dateTo),
     db.from('reservations').select('id, status').eq('restaurant_id', restaurant.id).gte('reserved_date', prevFrom).lte('reserved_date', prevTo),
-    db.from('reservations').select('id, guest_name, guest_phone, reserved_date, reserved_time, party_size, status, notes, hizmet_id, calisan_id, created_at').eq('restaurant_id', restaurant.id).gte('reserved_date', dateFrom).lte('reserved_date', dateTo).order('reserved_date', { ascending: false }).order('reserved_time', { ascending: false }),
+    db.from('reservations').select('id, guest_name, guest_phone, reserved_date, reserved_time, party_size, status, special_requests, hizmet_id, calisan_id, created_at').eq('restaurant_id', restaurant.id).gte('reserved_date', dateFrom).lte('reserved_date', dateTo).order('reserved_date', { ascending: false }).order('reserved_time', { ascending: false }),
     db.from('hizmetler').select('id, ad, fiyat').eq('restaurant_id', restaurant.id).eq('aktif', true),
     db.from('calisanlar').select('id, ad').eq('restaurant_id', restaurant.id).eq('aktif', true),
     // Günlük rezervasyon sayısı
@@ -82,6 +83,21 @@ export default async function RaporlarPage({
   const prevTotal = prevRes?.length ?? 0
   const diff = total - prevTotal
   const diffPct = prevTotal > 0 ? Math.round((diff / prevTotal) * 100) : total > 0 ? 100 : 0
+
+  // Durum kırılımı (onaylanan/iptal/tamamlanan)
+  const statusLabels: Record<string, string> = {
+    confirmed: 'Onaylanan', pending: 'Bekleyen',
+    cancelled: 'İptal', completed: 'Tamamlanan',
+  }
+  const statusCount = new Map<string, number>()
+  for (const r of currentRes ?? []) {
+    const s = (r.status as string) ?? 'unknown'
+    statusCount.set(s, (statusCount.get(s) ?? 0) + 1)
+  }
+  const statusBreakdown = Array.from(statusCount.entries())
+    .map(([k, count]) => ({ label: statusLabels[k] ?? k, count }))
+    .sort((a, b) => b.count - a.count)
+
 
   const cancelled = currentRes?.filter(r => r.status === 'cancelled').length ?? 0
   const cancelPct = total > 0 ? Math.round((cancelled / total) * 100) : 0
@@ -147,18 +163,34 @@ export default async function RaporlarPage({
   })).sort((a, b) => b.count - a.count)
 
   return (
-    <RaporlarClient
-      slug={slug}
-      total={total} diff={diff} diffPct={diffPct}
-      cancelPct={cancelPct} prevCancelPct={prevCancelPct}
-      revenue={revenue} prevRevenue={prevRevenue}
-      barData={barData}
-      heatmapData={heatmapData}
-      pieData={pieData}
-      staffBarData={staffBarData}
-      reservations={allCurrent ?? []}
-      dateFrom={dateFrom} dateTo={dateTo}
-      period={periodType}
-    />
+    <div>
+      <div className="px-6 pt-6 pb-5 border-b border-white/5">
+        <h1 className="text-lg font-bold text-white mt-0.5">Raporlar</h1>
+        <p className="text-xs text-stone-500 mt-0.5">Rezervasyon ve gelir istatistikleri</p>
+      </div>
+      <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 space-y-8">
+        <RaporlarClient
+          slug={slug}
+          businessType={restaurant.business_type as string | null}
+          total={total} diff={diff} diffPct={diffPct}
+          cancelPct={cancelPct} prevCancelPct={prevCancelPct}
+          revenue={revenue} prevRevenue={prevRevenue}
+          statusBreakdown={statusBreakdown}
+          barData={barData}
+          heatmapData={heatmapData}
+          pieData={pieData}
+          staffBarData={staffBarData}
+          reservations={allCurrent ?? []}
+          dateFrom={dateFrom} dateTo={dateTo}
+          period={periodType}
+        />
+
+        {/* Eğitmen Bazlı Gelir Raporu */}
+        <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
+          <h2 className="font-semibold text-sm text-stone-200 mb-4">Eğitmen Gelir Raporu</h2>
+          <CalisanGelir restaurantId={restaurant.id} />
+        </section>
+      </main>
+    </div>
   )
 }

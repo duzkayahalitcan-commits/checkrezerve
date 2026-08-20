@@ -17,7 +17,7 @@ async function checkAdmin() {
 export async function PATCH(req: NextRequest) {
   if (!await checkAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { id, is_active, plan } = await req.json()
+  const { id, is_active, plan, ai_assistant_enabled, ai_assistant_name, ai_assistant_voice } = await req.json()
   if (!id) return NextResponse.json({ error: 'Missing restaurant id' }, { status: 400 })
 
   const db = getSupabaseAdmin()
@@ -27,6 +27,15 @@ export async function PATCH(req: NextRequest) {
       .from('restaurants')
       .update({ is_active })
       .eq('id', id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  if (ai_assistant_enabled !== undefined || ai_assistant_name !== undefined || ai_assistant_voice !== undefined) {
+    const updateData: Record<string, unknown> = {}
+    if (ai_assistant_enabled !== undefined) updateData.ai_assistant_enabled = ai_assistant_enabled
+    if (ai_assistant_name !== undefined) updateData.ai_assistant_name = ai_assistant_name
+    if (ai_assistant_voice !== undefined) updateData.ai_assistant_voice = ai_assistant_voice
+    const { error } = await db.from('restaurants').update(updateData).eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   }
 

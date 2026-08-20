@@ -29,7 +29,7 @@ export async function updateReservation(
   if (data.reserved_time) patch.reserved_time = data.reserved_time!
   if ('table_id' in data) patch.table_id = data.table_id ?? null
   if ('calisan_id' in data) patch.calisan_id = data.calisan_id ?? null
-  if ('special_requests' in data) patch.notes = data.special_requests ?? null
+  if ('special_requests' in data) patch.special_requests = data.special_requests ?? null
 
   const { error } = await db
     .from('reservations')

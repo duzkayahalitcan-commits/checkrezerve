@@ -134,7 +134,7 @@ export default function ZoneEditor({
     if (w < 20 || h < 20) { setDraft(null); return }   // çok küçük → iptal
 
     const polygon = rectToPolygon(x, y, w, h, canvasSize.w, canvasSize.h)
-    const newZone = emptyZone({ polygon, name: `Bölge ${zones.length + 1}` })
+    const newZone = emptyZone({ polygon })
     setZones(zs => [...zs, newZone])
     setActiveId(newZone.id)
     setEditPanel(true)

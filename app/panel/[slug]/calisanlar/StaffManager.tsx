@@ -43,9 +43,9 @@ export default function StaffManager({ staff: initial, restaurantId }: { staff: 
   async function saveStaff() {
     setSaving(true)
     const payload = {
-      ad: newForm.ad, soyad: newForm.soyad || null,
-      telefon: newForm.telefon || null, email: newForm.email || null,
-      pozisyon: newForm.pozisyon || null,
+      ad: newForm.soyad ? `${newForm.ad} ${newForm.soyad}` : newForm.ad,
+      uzmanlik: newForm.pozisyon || null,
+      aktif: true,
     }
     try {
       const res = await fetch('/api/panel-tables', {
@@ -193,6 +193,7 @@ export default function StaffManager({ staff: initial, restaurantId }: { staff: 
                 </div>
                 <button
                   onClick={e => { e.stopPropagation(); updateStaff(s.id, { aktif: !s.aktif }) }}
+                  aria-label={s.aktif ? `${s.ad} çalışanını pasife al` : `${s.ad} çalışanını aktife al`}
                   className={`p-1.5 rounded-lg ${s.aktif ? 'text-emerald-400' : 'text-stone-500'}`}
                 >
                   {s.aktif ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
@@ -220,7 +221,7 @@ export default function StaffManager({ staff: initial, restaurantId }: { staff: 
                   {selected.pozisyon && <p className="text-xs text-stone-500">{selected.pozisyon}</p>}
                 </div>
               </div>
-              <button onClick={() => setSelected(null)} className="text-stone-500 hover:text-white p-1"><X size={16} /></button>
+              <button onClick={() => setSelected(null)} aria-label="Detayı kapat" className="text-stone-500 hover:text-white p-1"><X size={16} /></button>
             </div>
 
             {/* Bilgiler */}

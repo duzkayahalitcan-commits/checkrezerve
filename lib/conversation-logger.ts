@@ -12,6 +12,7 @@ interface LogParams {
   assistant_response: string
   response_source: ResponseSource
   voice_id?: string
+  is_unknown?: boolean
 }
 
 /**
@@ -30,6 +31,7 @@ export async function logConversation(params: LogParams) {
       assistant_response: params.assistant_response,
       response_source: params.response_source,
       voice_id: params.voice_id ?? null,
+      is_unknown: params.is_unknown ?? false,
     })
     if (error) {
       console.error('[conversation-logger] insert error:', error.message)

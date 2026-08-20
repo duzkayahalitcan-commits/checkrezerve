@@ -3,32 +3,41 @@ import fs from 'fs'
 import path from 'path'
 import { saveToCache, textToSlug } from '@/lib/audio-cache'
 import { resolveAudioTokens, concatAudioBuffers } from '@/lib/audio-concat'
-import { checkFeatureFlag } from '@/lib/feature-flags'
+import { checkAssistantEnabled } from '@/lib/feature-flags'
+import { resolveVoiceKey, getVoice, DEFAULT_VOICE_KEY } from '@/lib/voice-catalog'
+import { rateLimit } from '@/lib/rate-limit'
 
 // POST /api/ai-assistant/speak
 // Body: { text, voice_id? }
+// voice_id: ses KEY'i ('yunus' | 'mert' | 'lisa' | 'gulsu') veya ElevenLabs ID —
+//           resolveVoiceKey ile ikisi de doğru sese çözülür.
 // Returns audio/mpeg stream from:
 //   1. Full-text disk cache — tüm tr/ alt kategorilerinde slug eşleşmesi arar
-//      (tr/chatbot/{kategori}/{voice}/{slug}.mp3, tr/responses/{voice}/{slug}.mp3, tr/responses/{slug}.mp3)
+//      (tr/chatbot/{kategori}/{voice}/{slug}.mp3, tr/responses/{voice}/{slug}.mp3)
 //   2. Audio token concatenation — zero-latency, no API call
 //   3. ElevenLabs TTS — only for novel phrases
 
-const DEFAULT_VOICE_ID = 'jbJMQWv1eS4YjQ6PCcn6' // Gülsu
 const TR_BASE = path.join(process.cwd(), 'public', 'audio', 'tr')
 
-// voice_id → cache alt klasörü adı (yalnızca bilinen adlar, varsayılan gulsu)
+// Ses (KEY ya da ElevenLabs ID) → cache alt klasörü adı (4 ses de desteklenir)
 function voiceCacheName(voiceId?: string): string {
-  const v = (voiceId ?? '').toLowerCase()
-  if (v === 'yunus') return 'yunus'
-  return 'gulsu'
+  return resolveVoiceKey(voiceId ?? DEFAULT_VOICE_KEY)
+}
+
+// Ses (KEY ya da ElevenLabs ID) → ElevenLabs voice ID (voice-catalog tek kaynak)
+function voiceElevenLabsId(voiceId?: string): string {
+  const key = resolveVoiceKey(voiceId ?? DEFAULT_VOICE_KEY)
+  return getVoice(key).elevenLabsId
 }
 
 /**
  * Tüm tr/ alt kategorilerinde tam slug eşleşmesi ara.
- * Öncelik sırası:
- *   1) tr/chatbot/{kategori}/{voice}/{slug}.mp3  (kalıp cümleler, W-77 kategori yapısı)
+ * BUG 2 FİX: Yalnızca per-voice cache yollarını okur; flat
+ * (ses-bağımsız) cache artık GEÇERSİZ sayılır (lisa/mert collision'ı böylece
+ * giderilir — her ses kendi klasörüne yazılır/okunur).
+ * Öncelik:
+ *   1) tr/chatbot/{kategori}/{voice}/{slug}.mp3  (kalıp cümleler)
  *   2) tr/responses/{voice}/{slug}.mp3           (ses bazlı full-text cache)
- *   3) tr/responses/{slug}.mp3                   (düz full-text cache)
  */
 function findCachedAudio(slug: string, voiceName: string): string | null {
   const chatbotDir = path.join(TR_BASE, 'chatbot')
@@ -43,12 +52,14 @@ function findCachedAudio(slug: string, voiceName: string): string | null {
   }
   const respVoice = path.join(TR_BASE, 'responses', voiceName, `${slug}.mp3`)
   if (fs.existsSync(respVoice)) return respVoice
-  const respFlat = path.join(TR_BASE, 'responses', `${slug}.mp3`)
-  if (fs.existsSync(respFlat)) return respFlat
   return null
 }
 
 export async function POST(req: NextRequest) {
+  // Güvenlik: Rate limit — ElevenLabs TTS maliyetli, anonim aşırı kullanımı engeller.
+  const limited = await rateLimit(req, { prefix: 'speak', max: 30, windowMs: 60_000 })
+  if (limited) return limited
+
   const t0 = Date.now()
   const body = await req.json()
   const { text, voice_id, restaurant_id } = body
@@ -57,9 +68,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'text required' }, { status: 400 })
   }
 
-  // S1-T5: ai_voice_search feature flag — restaurant_id verilmişse zorunlu kontrol
+  // S1-T5 + BUG 3: ai_assistant_enabled master gate — restaurant_id verilmişse
+  // zorunlu kontrol. enabled=false ise flag true olsa bile erişim reddedilir.
   if (restaurant_id) {
-    const enabled = await checkFeatureFlag(restaurant_id, 'ai_voice_search')
+    const enabled = await checkAssistantEnabled(restaurant_id, 'ai_voice_search')
     if (!enabled) {
       return NextResponse.json({ error: 'Sesli asistan bu işletmede aktif değil' }, { status: 403 })
     }
@@ -91,8 +103,8 @@ export async function POST(req: NextRequest) {
       const buffer = concatAudioBuffers(paths)
       const audioData = new Uint8Array(buffer)
 
-      // Seed the disk cache so future requests hit instantly
-      saveToCache(text, buffer)
+      // Seed the disk cache so future requests hit instantly (per-voice)
+      saveToCache(text, buffer, voiceName)
 
       console.log(`[speak] concat total=${Date.now() - t0}ms tokens=${tokens.length}`)
       return new NextResponse(audioData, {
@@ -114,7 +126,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'ELEVENLABS_API_KEY not configured' }, { status: 500 })
   }
 
-  const vid = voice_id || DEFAULT_VOICE_ID
+  const vid = voiceElevenLabsId(voice_id)
 
   try {
     const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${vid}`, {
@@ -141,8 +153,8 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await res.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    // Save to disk cache for future requests
-    saveToCache(text, buffer)
+    // Save to disk cache for future requests (per-voice)
+    saveToCache(text, buffer, voiceName)
 
     console.log(`[speak] elevenlabs MISS total=${Date.now() - t0}ms`)
     return new NextResponse(buffer, {

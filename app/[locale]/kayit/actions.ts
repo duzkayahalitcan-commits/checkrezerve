@@ -16,9 +16,13 @@ export async function createLead(
   const countryCode = (formData.get('countryCode') as string)?.trim() || 'TR'
   const email       = (formData.get('email')       as string)?.trim()
   const category    = (formData.get('category')    as string)?.trim()
+  const kvkk        = formData.get('kvkk') as string | null
 
   if (!name)     return { error: 'İşletme adı zorunludur.',      success: false }
   if (!category) return { error: 'Firma türü seçiniz.',          success: false }
+  if (kvkk !== 'on') {
+    return { error: 'KVKK Aydınlatma Metni\'ni onaylamanız gerekmektedir.', success: false }
+  }
 
   if (!phone) return { error: 'Telefon numarası zorunludur.', success: false }
   const parsed = parsePhoneNumberFromString(phone, countryCode as never)
@@ -37,7 +41,7 @@ export async function createLead(
 
   const { error } = await getSupabaseAdmin()
     .from('business_leads')
-    .insert({ name, phone: parsed.number, email, category, payment_model: 'free', daily_avg_bookings: 1 })
+    .insert({ name, phone: parsed.number, email, category, payment_model: 'free', daily_avg_bookings: 1, kvkk_onay_tarihi: new Date().toISOString() })
 
   if (error) return { error: 'Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.', success: false }
 

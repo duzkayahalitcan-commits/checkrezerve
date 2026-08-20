@@ -39,8 +39,8 @@ export default async function BasvuruFormuAydinlatmaPage({
             <h2>{t('s1Title')}</h2>
             <p>
               {t('s1Body')}{' '}
-              <a href="mailto:info@checkrezerve.com" className="text-red-600">
-                info@checkrezerve.com
+              <a href="mailto:destek@checkrezerve.com" className="text-red-600">
+                destek@checkrezerve.com
               </a>
             </p>
 
@@ -92,8 +92,8 @@ export default async function BasvuruFormuAydinlatmaPage({
             </ul>
             <p>
               {t('s6ContactPrefix')}{' '}
-              <a href="mailto:info@checkrezerve.com" className="text-red-600">
-                info@checkrezerve.com
+              <a href="mailto:destek@checkrezerve.com" className="text-red-600">
+                destek@checkrezerve.com
               </a>{' '}
               {t('s6ContactMiddle')}{' '}
               <Link href="/kvkk-basvuru" className="text-red-600">
@@ -106,8 +106,8 @@ export default async function BasvuruFormuAydinlatmaPage({
               <p><strong>{t('dataControllerLabel')}</strong> {t('dataControllerName')}</p>
               <p>
                 <strong>{t('emailLabel')}</strong>{' '}
-                <a href="mailto:info@checkrezerve.com" className="text-red-600">
-                  info@checkrezerve.com
+                <a href="mailto:destek@checkrezerve.com" className="text-red-600">
+                  destek@checkrezerve.com
                 </a>
               </p>
             </div>

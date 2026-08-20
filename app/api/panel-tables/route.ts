@@ -30,7 +30,7 @@ function requireTablePermission(session: { role?: string }, table: AllowedTable)
 // Her tablo icin izin verilen kolonlar — bilinmeyen kolonlar PostgREST tarafindan reddedilir
 const TABLE_COLUMNS: Record<AllowedTable, string[]> = {
   calisanlar:    ['ad', 'uzmanlik', 'foto_url', 'aktif', 'restaurant_id'],
-  hizmetler:     ['ad', 'sure', 'fiyat', 'renk', 'aktif', 'restaurant_id'],
+  hizmetler:     ['ad', 'sure_dakika', 'fiyat', 'kategori', 'renk', 'aktif', 'restaurant_id'],
   tables:        ['ad', 'kapasite', 'x', 'y', 'width', 'height', 'sekil', 'area_id', 'restaurant_id'],
   special_areas: ['name', 'color', 'capacity', 'restaurant_id'],
 }

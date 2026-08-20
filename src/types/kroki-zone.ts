@@ -47,7 +47,7 @@ export interface KrokiZone {
 export function emptyZone(overrides?: Partial<KrokiZone>): KrokiZone {
   return {
     id:         crypto.randomUUID(),
-    name:       'Yeni Bölge',
+    name:       ZONE_THEME_LABELS['ic_mekan'],
     color:      '#E53935',
     capacity:   20,
     tableCount: 0,

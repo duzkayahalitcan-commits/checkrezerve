@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
-import { getAnthropicClient } from '@/lib/anthropic'
 
 // ── Çıktı şeması ────────────────────────────────────────────────────────────
 const ExtractionSchema = z.object({
@@ -48,13 +46,18 @@ const ExtractionSchema = z.object({
 })
 
 // ── Sistem promptu ───────────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `Sen "checkrezerve" ekosisteminin rezervasyon asistanısın. Bugünün tarihi: ${new Date().toISOString().split('T')[0]}
+// Tarih her istekte taze hesaplanır (module-scope'da sabitlenmez) — böylece
+// server gece yarısını geçse bile 'Bugünün tarihi' bayat kalmaz.
+function getSystemPrompt(): string {
+  const today = new Date().toISOString().split('T')[0]
+  return `Sen "checkrezerve" ekosisteminin rezervasyon asistanısın. Bugünün tarihi: ${today}
 
 KİŞİLİK: Sofistike, profesyonel ve çözüm odaklı. Bir "yardımcı" değil, süreci yöneten bir "uzman" gibi davran. Kısa, öz ama anlam derinliği yüksek cümleler kur.
 
 ÇIKARIM KURALLARI:
 - Türkçe veya İngilizce mesajları işle
 - "Yarın", "öbür gün", "cuma" gibi göreceli tarihleri kesin YYYY-MM-DD'ye çevir
+- TARİH KURALI: "yarın" = Bugün+1, "öbür gün" = Bugün+2, "bugün" = Bugün. Haftanın günü (cuma vb.) bu haftaki ilgili gün olarak hesapla.
 - Telefon numarasını E.164 formatına normalize et (+905321234567)
 - Saat/kişi yoksa null bırak; tahmin etme
 - is_reservation_request: net rezervasyon talebi için true, bilgi sorgusu için false
@@ -68,6 +71,7 @@ YANIT (reply) KURALLARI:
 - Özel istek varsa (evlilik teklifi, sürpriz vb.): notes alanına kaydet, reply'da "Özel talebinizi ekibimize ilettim" de
 - Asla "Hayır" deme; alternatif çözüm öner
 - Max 160 karakter`
+}
 
 // ── POST handler ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
@@ -89,25 +93,30 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const client = getAnthropicClient()
+    // DeepSeek API ile bilgileri çıkar (JSON mode)
+    const apiKey = process.env.DEEPSEEK_API_KEY
+    if (!apiKey) throw new Error('DEEPSEEK_API_KEY not configured')
 
-    const response = await client.messages.parse({
-      model: 'claude-opus-4-6',
-      max_tokens: 1024,
-      thinking: { type: 'adaptive' },
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: 'user',
-          content: message.trim(),
-        },
-      ],
-      output_config: {
-        format: zodOutputFormat(ExtractionSchema),
-      },
+    const deepSeekRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: 'deepseek-v4-flash',
+        max_tokens: 1024,
+        temperature: 0.2,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: `${getSystemPrompt()}\n\nYanıtını yalnızca aşağıdaki JSON şemasına uygun olarak döndür:\n${JSON.stringify(ExtractionSchema.shape)}` },
+          { role: 'user', content: message.trim() },
+        ],
+      }),
     })
 
-    const extracted = response.parsed_output
+    if (!deepSeekRes.ok) throw new Error(`DeepSeek error: ${deepSeekRes.status}`)
+    const deepSeekJson = await deepSeekRes.json()
+
+    const parsedJson = JSON.parse(deepSeekJson.choices?.[0]?.message?.content ?? '{}')
+    const extracted = ExtractionSchema.parse(parsedJson)
 
     if (!extracted) {
       return NextResponse.json(
@@ -121,8 +130,8 @@ export async function POST(req: NextRequest) {
       data: extracted,
       reply: extracted.reply,
       usage: {
-        input_tokens: response.usage.input_tokens,
-        output_tokens: response.usage.output_tokens,
+        input_tokens: deepSeekJson.usage?.prompt_tokens ?? 0,
+        output_tokens: deepSeekJson.usage?.completion_tokens ?? 0,
       },
     })
   } catch (err) {

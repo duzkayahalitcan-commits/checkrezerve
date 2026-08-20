@@ -22,7 +22,7 @@ export default async function OnboardingPage({
 
   const { data: restaurant } = await db
     .from('restaurants')
-    .select('*')
+    .select('id, name, slug, phone, address, description, website, instagram, business_type, working_hours, email, city, district, country, cover_image, onboarding_completed')
     .eq('slug', slug)
     .eq('id', session.restaurantId)
     .single()
@@ -57,7 +57,7 @@ export default async function OnboardingPage({
   if (isAppointment) {
     const { count: serviceCount } = await db
       .from('hizmetler')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('restaurant_id', session.restaurantId)
 
     if (!serviceCount || serviceCount === 0) {
@@ -80,7 +80,7 @@ export default async function OnboardingPage({
   if (isNoService) {
     const { count: serviceCount } = await db
       .from('hizmetler')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('restaurant_id', session.restaurantId)
 
     // Hizmet eklenmişse adım 2'de gösterebiliriz ama onboarding akışını kesintiye uğratmamak için:
@@ -95,7 +95,7 @@ export default async function OnboardingPage({
   if (isNoService || businessType === 'restaurant') {
     const { count: tableCount } = await db
       .from('masa_tipleri')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('isletme_id', session.restaurantId)
       .eq('aktif', true)
 

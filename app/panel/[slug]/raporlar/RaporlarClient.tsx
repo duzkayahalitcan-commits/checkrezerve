@@ -8,16 +8,17 @@ import {
   AreaChart, Area,
 } from 'recharts'
 
-const GOLD = '#c9a84c'
+const GOLD = '#D4A373'
 const GREEN = '#22c55e'
-const RED = '#ef4444'
-const COLORS = ['#c9a84c', '#22c55e', '#0ea5e9', '#8b5cf6', '#f97316', '#ec4899', '#14b8a6']
+const COLORS = ['#D4A373', '#22c55e', '#0ea5e9', '#8b5cf6', '#f97316', '#ec4899', '#14b8a6']
 
 type ResType = Record<string, unknown>
 type Props = {
-  slug: string; total: number; diff: number; diffPct: number
+  slug: string; businessType?: string | null
+  total: number; diff: number; diffPct: number
   cancelPct: number; prevCancelPct: number
   revenue: number; prevRevenue: number
+  statusBreakdown: { label: string; count: number }[]
   barData: { label: string; count: number }[]
   heatmapData: { hour: string; count: number }[]
   pieData: { name: string; value: number }[]
@@ -26,9 +27,20 @@ type Props = {
   dateFrom: string; dateTo: string; period: string
 }
 
+// Sektör bazlı terminoloji
+function sectorTerm(businessType?: string | null): string {
+  switch (businessType) {
+    case 'restaurant': return 'Rezervasyon'
+    case 'psychologist': return 'Seans'
+    case 'pilates': return 'Ders'
+    default: return 'Randevu'
+  }
+}
+
 export default function RaporlarClient(props: Props) {
   const router = useRouter()
-  const { slug, total, diff, diffPct, cancelPct, prevCancelPct, revenue, barData, heatmapData, pieData, staffBarData, reservations, dateFrom, dateTo, period } = props
+  const { slug, businessType, total, diff, diffPct, cancelPct, prevCancelPct, revenue, statusBreakdown, barData, heatmapData, pieData, staffBarData, reservations, dateFrom, dateTo, period } = props
+  const term = sectorTerm(businessType)
   const [periodType, setPeriodType] = useState(period)
   const [customStart, setCustomStart] = useState(dateFrom)
   const [customEnd, setCustomEnd] = useState(dateTo)
@@ -68,13 +80,23 @@ export default function RaporlarClient(props: Props) {
   function exportCSV() {
     const header = 'Tarih,Saat,Müşteri,Telefon,Kişi,Durum,Notlar'
     const rows = filtered.map(r =>
-      `"${r.reserved_date}","${(r.reserved_time as string)?.slice(0,5)}","${r.guest_name ?? ''}","${r.guest_phone ?? ''}","${r.party_size ?? ''}","${r.status}","${(r.notes as string) ?? ''}"`
+      `"${r.reserved_date}","${(r.reserved_time as string)?.slice(0,5)}","${r.guest_name ?? ''}","${r.guest_phone ?? ''}","${r.party_size ?? ''}","${r.status}","${(r.special_requests as string) ?? ''}"`
     )
     const csv = [header, ...rows].join('\n')
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
     a.download = `rapor-${dateFrom}-${dateTo}.csv`
+    a.click()
+  }
+
+  // Tek tıkla PDF indirme — sunucu tarafında marka temalı PDF üretilir
+  function downloadPdf() {
+    const effStart = periodType === 'custom' ? (customStart || dateFrom) : dateFrom
+    const effEnd = periodType === 'custom' ? (customEnd || dateTo) : dateTo
+    const a = document.createElement('a')
+    a.href = `/api/panel/${slug}/rapor-pdf?bas=${effStart}&son=${effEnd}`
+    a.download = `rapor-${effStart}-${effEnd}.pdf`
     a.click()
   }
 
@@ -86,10 +108,16 @@ export default function RaporlarClient(props: Props) {
           <h1 className="text-lg font-bold text-white">Raporlar</h1>
           <p className="text-xs text-stone-500 mt-0.5">{dateFrom} — {dateTo}</p>
         </div>
-        <button onClick={exportCSV}
-          className="px-4 py-2 rounded-xl bg-stone-800 text-stone-400 text-xs font-semibold hover:bg-stone-700 transition-colors">
-          CSV Export
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={exportCSV}
+            className="px-4 py-2 rounded-xl bg-stone-800 text-stone-400 text-xs font-semibold hover:bg-stone-700 transition-colors">
+            CSV Export
+          </button>
+          <button onClick={downloadPdf}
+            className="px-4 py-2 rounded-xl bg-[#D4A373] text-[#2B1B17] text-xs font-bold hover:bg-[#c79a6a] transition-colors">
+            PDF İndir
+          </button>
+        </div>
       </div>
 
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 space-y-6">
@@ -118,17 +146,34 @@ export default function RaporlarClient(props: Props) {
 
         {/* KPI Kartları */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <KpiCard label="Toplam Rezervasyon" value={total} diff={diff} diffPct={diffPct} suffix="" />
+          <KpiCard label={`Toplam ${term}`} value={total} diff={diff} diffPct={diffPct} suffix="" />
           <KpiCard label="Doluluk Oranı" value={Math.min(100, Math.round((total / 31) * 100))} diff={0} diffPct={0} suffix="%" progress />
-          <KpiCard label="Tahmini Gelir" value={revenue} diff={0} diffPct={0} suffix="₺" />
+          <KpiCard label="Toplam Ciro" value={revenue} diff={0} diffPct={0} suffix="₺" />
           <KpiCard label="İptal Oranı" value={cancelPct} diff={cancelPct - prevCancelPct} diffPct={Math.abs(cancelPct - prevCancelPct)} suffix="%" />
+        </div>
+
+        {/* Durum Kırılımı */}
+        <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-stone-200 mb-4">Durum Kırılımı</h2>
+          {statusBreakdown.length === 0 ? (
+            <p className="text-stone-500 text-sm text-center py-6">Bu dönemde kayıt yok</p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {statusBreakdown.map(s => (
+                <div key={s.label} className="bg-stone-800/40 border border-stone-700/50 rounded-xl p-4">
+                  <p className="text-2xl font-bold text-white">{s.count}</p>
+                  <p className="text-xs text-stone-400 mt-1">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Grafikler */}
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Günlük bar chart */}
           <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
-            <h2 className="text-sm font-semibold text-stone-200 mb-4">Günlük Rezervasyon</h2>
+            <h2 className="text-sm font-semibold text-stone-200 mb-4">Günlük {term}</h2>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={barData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#292524" />
@@ -197,7 +242,7 @@ export default function RaporlarClient(props: Props) {
         {/* Detay tablosu */}
         <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-stone-200">Rezervasyon Detayları</h2>
+            <h2 className="text-sm font-semibold text-stone-200">{term} Detayları</h2>
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Ara..." className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-stone-500 outline-none w-48" />
           </div>
@@ -212,7 +257,7 @@ export default function RaporlarClient(props: Props) {
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={7} className="text-center py-8 text-stone-600">Eşleşen rezervasyon yok</td></tr>
+                  <tr><td colSpan={7} className="text-center py-8 text-stone-600">Bu dönemde kayıt yok</td></tr>
                 ) : (
                   filtered.slice(0, 50).map((r: Record<string, unknown>) => (
                     <tr key={r.id as string} className="border-b border-stone-800/50 hover:bg-stone-800/30">
@@ -230,7 +275,7 @@ export default function RaporlarClient(props: Props) {
                           'bg-stone-800 text-stone-400'
                         }`}>{r.status as string}</span>
                       </td>
-                      <td className="py-2 px-2 text-stone-500 max-w-32 truncate">{r.notes as string ?? ''}</td>
+                      <td className="py-2 px-2 text-stone-500 max-w-32 truncate">{r.special_requests as string ?? ''}</td>
                     </tr>
                   ))
                 )}

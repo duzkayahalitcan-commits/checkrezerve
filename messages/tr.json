@@ -114,7 +114,9 @@
     "terms": "Kullanım Koşulları",
     "kvkk": "KVKK Aydınlatma Metni",
     "cookies": "Çerez Politikası",
-    "rights": "Tüm hakları saklıdır."
+    "rights": "Tüm hakları saklıdır.",
+    "statement": "Rezervasyon, sadece ve saniyeler içinde.",
+    "colophon": "Komisyonsuz rezervasyon SaaS. Restoran, spa, kuaför ve daha fazlası için online rezervasyon yönetimi tek panelde."
   },
   "hero": {
     "badge": "Türkiye'nin Rezervasyon Platformu",
@@ -391,7 +393,7 @@
     "quickSupportTitle": "Destek",
     "quickSupportDesc": "Bir sorun mu var? Yazın, aynı gün dönüş yapıyoruz.",
     "quickContactTitle": "Genel iletişim",
-    "quickContactDesc": "Diğer her konu için: info@checkrezerve.com",
+    "quickContactDesc": "Diğer her konu için: destek@checkrezerve.com",
     "socialTitle": "Topluluğa Katıl",
     "socialDesc": "Güncel haberler, ipuçları ve işletme sahipleriyle tanışın.",
     "socialWhatsappName": "WhatsApp",
@@ -471,7 +473,7 @@
     "s11Title": "11. Uygulama İçi Hesap Silme",
     "s11Body": "Hesabınızı istediğiniz zaman kalıcı olarak silebilirsiniz. Hesabınız silindiğinde profil bilgileriniz, rezervasyon geçmişiniz ve tüm kişisel verileriniz sistemimizden kalıcı olarak kaldırılır.",
     "s11Step1": "Mobil uygulamada Profil → Ayarlar → Hesabımı Sil yolunu takip edin.",
-    "s11Step2": "Alternatif olarak info@checkrezerve.com adresine \"Hesap silme talebi\" konulu bir e-posta gönderin.",
+    "s11Step2": "Alternatif olarak destek@checkrezerve.com adresine \"Hesap silme talebi\" konulu bir e-posta gönderin.",
     "s11Step3": "Talebiniz 7 iş günü içinde işleme alınır ve hesabınız kalıcı olarak silinir.",
     "s11Note": "Yasal zorunluluklar kapsamındaki veriler (örn. fatura bilgileri) yasal saklama süresi dolana kadar anonim hâlde saklanabilir."
   },
@@ -791,7 +793,7 @@
     "mockup4Label": "Adım 4",
     "mockup4Desc": "Silme işlemini onaylayın",
     "s4Title": "Alternatif Yöntem",
-    "altText": "info@checkrezerve.com adresine \"Hesap silme talebi\" konusuyla e-posta gönderin. Talebiniz 7 iş günü içinde işleme alınır.",
+    "altText": "destek@checkrezerve.com adresine \"Hesap silme talebi\" konusuyla e-posta gönderin. Talebiniz 7 iş günü içinde işleme alınır.",
     "dataControllerLabel": "Veri Sorumlusu:",
     "dataControllerName": "CheckRezerve Teknoloji",
     "emailLabel": "E-posta:"
@@ -915,7 +917,15 @@
     "kat_restoran": "Restoran",
     "kat_kafe": "Kafe",
     "kat_bar": "Bar",
-    "kat_diger": "Diğer"
+    "kat_diger": "Diğer",
+    "recentReservations": "Son Rezervasyonlar",
+    "noReservations": "Henüz rezervasyonunuz yok.",
+    "business": "İşletme",
+    "guests": "{count} kişi",
+    "status_pending": "Beklemede",
+    "status_confirmed": "Onaylı",
+    "status_cancelled": "İptal",
+    "status_completed": "Tamamlandı"
   },
   "bookingForm": {
     "today": "Bugün",
@@ -1095,7 +1105,22 @@
     },
     "hata": {
       "genel": "Bir hata oluştu, lütfen tekrar deneyin."
-    }
+    },
+    "searchPlaceholder": "İşletme, adres veya hizmet ara…",
+    "noRatings": "Henüz değerlendirme yok",
+    "resultsFor": "\"{query}\" için sonuçlar",
+    "filters": "Filtreler",
+    "clearFilters": "Filtreleri temizle",
+    "sortNew": "En Yeni",
+    "sortNear": "Yakın",
+    "cityDistrict": "Şehir / İlçe",
+    "all": "Tümü",
+    "clear": "Temizle",
+    "apply": "Uygula ({count} sonuç)",
+    "noMatch": "Eşleşen işletme bulunamadı",
+    "tryAnother": "Farklı bir arama deneyin",
+    "clearSearch": "Aramayı temizle",
+    "makeReservation": "Rezervasyon Yap"
   },
   "bizDetail": {
     "allBusinesses": "Tüm İşletmeler",
@@ -1141,7 +1166,7 @@
     "replyInPerson": "Elden teslim almak istiyorum",
     "errorNameRequired": "Ad Soyad zorunludur.",
     "errorRequestRequired": "Talep detayı zorunludur.",
-    "errorSubmit": "Başvurunuz gönderilemedi. Lütfen tekrar deneyin veya info@checkrezerve.com adresine e-posta gönderin.",
+    "errorSubmit": "Başvurunuz gönderilemedi. Lütfen tekrar deneyin veya destek@checkrezerve.com adresine e-posta gönderin.",
     "successTitle": "Başvurunuz Alındı",
     "successDesc": "KVKK kapsamındaki talebiniz başarıyla iletildi. 30 gün içinde yanıtlanacaktır.",
     "backHome": "Ana Sayfaya Dön",
@@ -1300,7 +1325,34 @@
     "dressCode": "Kıyafet Kuralı",
     "dressCodePlaceholder": "Örn: Spor giyim kabul edilmez",
     "specialNotes": "Özel Notlar / Uyarılar",
-    "specialNotesPlaceholder": "Rezervasyon sayfasında müşterilere gösterilir"
+    "specialNotesPlaceholder": "Rezervasyon sayfasında müşterilere gösterilir",
+    "voiceSettings": {
+      "title": "Sesli Asistan Ayarları",
+      "subtitle": "Sesli asistanın kullanacağı sesi seçin ve asistanın aktiflik durumunu yönetin.",
+      "assistantTitle": "Asistan Ayarları",
+      "assistantSubtitle": "Sesli rezervasyon asistanını açın ve müşterilerinizin konuşacağı adı belirleyin.",
+      "enableToggle": "Asistanı Aktif Et",
+      "enableDesc": "Açılırsa rezervasyon sayfasındaki sesli asistan ve yazılı sohbet aktifleşir.",
+      "assistantName": "Asistan Adı",
+      "assistantNamePlaceholder": "Örn: Zara",
+      "assistantNameHint": "Müşterileriniz \"{name}\" ile konuşacak",
+      "disabledNameWarn": "Asistan kapalıyken ad ayarlanamaz",
+      "activeName": "Aktif ad: {name}",
+      "save": "Kaydet",
+      "saving": "Kaydediliyor...",
+      "saved": "Asistan ayarları kaydedildi ✓",
+      "voiceTitle": "Asistan Sesi",
+      "voiceSubtitle": "Sesli asistanın kullanacağı sesi seçin. İşletme sahibi 24 saatte bir değiştirebilir.",
+      "superAdminNoLock": "(Super admin — kısıtlama yok)",
+      "loading": "Yükleniyor...",
+      "lockedMsg": "Ses değiştirme kilidi aktif.",
+      "lockRemaining": "{time} sonra tekrar değiştirebilirsiniz.",
+      "voiceSaved": "Ses kaydedildi ✓",
+      "preview": "sesini önizle",
+      "male": "erkek",
+      "female": "kadın",
+      "saveError": "Asistan ayarları kaydedilemedi"
+    }
   },
   "diagonal": {
     "restoran": "Restoran",
@@ -1312,7 +1364,9 @@
     "heroTitle": "Bugün nereye?",
     "heroSlogan": "Keyfine bakacağın yeri seç, anında rezerve et.",
     "discover": "Keşfet",
-    "forBusiness": "İşletmeler için"
+    "forBusiness": "İşletmeler için",
+    "heroEyebrow": "Komisyonsuz rezervasyon SaaS",
+    "ctaLabel": "İşletmenize Başlayın"
   },
   "accountDelete": {
     "title": "Hesap Silme",

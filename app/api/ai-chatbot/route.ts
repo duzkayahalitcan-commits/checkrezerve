@@ -3,9 +3,12 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { rateLimit } from '@/lib/rate-limit'
 import {
   buildSystemPrompt, callDeepSeek, detectGibberish, enforceReservationApproval,
-  getFeatures, isFarewell, isGreeting, logTurn, normalizeText,
+  getBusinessLiveContext, getFeatures, getKbContext, getServiceMenu, getTodayAvailability,
+  isFarewell, isGreeting, logTurn, normalizeText,
   type ChatMsg,
 } from '@/lib/assistant-brain'
+import { genderHint, extractNameFromHistory } from '@/lib/assistant-gender'
+import { checkAssistantEnabled } from '@/lib/feature-flags'
 
 // POST /api/ai-chatbot
 // Body: { restaurant_id, messages }
@@ -23,20 +26,17 @@ export async function POST(request: NextRequest) {
     const db = getSupabaseAdmin()
 
     // ── Feature flag kontrolü ──────────────────────────────────────────
-    const { data: flagRow } = await db
-      .from('feature_flags')
-      .select('enabled')
-      .eq('restaurant_id', restaurant_id)
-      .eq('feature', 'ai_chatbot')
-      .maybeSingle()
-    if (!flagRow?.enabled) {
+    // BUG 3 FİX: ai_assistant_enabled master gate — enabled=false ise flag true
+    // olsa bile chatbot kapalıdır.
+    const enabled = await checkAssistantEnabled(restaurant_id, 'ai_chatbot')
+    if (!enabled) {
       return NextResponse.json({ error: 'AI Chatbot bu işletme için aktif değil.' }, { status: 403 })
     }
 
     // ── İşletme bilgilerini çek ───────────────────────────────────────
     const { data: bizRaw } = await db
       .from('restaurants')
-      .select('id, name, slug, phone, address, working_hours, ai_assistant_name')
+      .select('id, name, slug, phone, address, working_hours, ai_assistant_name, business_type')
       .eq('id', restaurant_id)
       .single()
     if (!bizRaw) return NextResponse.json({ error: 'İşletme bulunamadı.' }, { status: 404 })
@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
       address: bizRaw.address ?? null,
       working_hours: bizRaw.working_hours ?? null,
       assistant_name: bizRaw.ai_assistant_name ?? null,
+      business_type: bizRaw.business_type ?? null,
     }
 
     const history: ChatMsg[] = (messages as ChatMsg[]).filter(m => m.role === 'user' || m.role === 'assistant')
@@ -81,7 +82,20 @@ export async function POST(request: NextRequest) {
     // ── W-75/76 beyin ────────────────────────────────────────────────
     const maxTurn = turn_number > 12
     const features = await getFeatures(biz.id)
-    const systemPrompt = buildSystemPrompt({ biz, maxTurn, featureLines: features })
+    // CHATBOT MUHTEŞEM ADIM 1: gerçek hizmet/fiyat + bugünkü dolu saatler
+    const [serviceMenu, todayBusy, liveBlock, kbBlock] = await Promise.all([
+      getServiceMenu(biz.id),
+      getTodayAvailability(biz.id),
+      // PART 2: işletmenin canlı hizmet + çalışan verisi (konuşma başında bir kez)
+      getBusinessLiveContext(biz.id),
+      // PART 1: Firecrawl ile üretilen statik platform bilgi tabanı
+      getKbContext(),
+    ])
+    const genderHintLine = (() => {
+      const name = extractNameFromHistory(history)
+      return name ? genderHint(name) : null
+    })()
+    const systemPrompt = buildSystemPrompt({ biz, maxTurn, featureLines: features, genderHintLine, serviceMenu, todayBusy, liveBlock, kbBlock })
 
     try {
       let reply = await callDeepSeek(systemPrompt, history, 200)

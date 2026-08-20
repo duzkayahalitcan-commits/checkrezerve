@@ -104,6 +104,32 @@ export default function RestaurantDetail({
   const [selectedPlan, setSelectedPlan] = useState(subscription?.plan ?? 'starter')
   const [newUser, setNewUser] = useState({ username: '', password: '', role: 'business_manager' })
 
+  // ─── AI Asistan ───
+  const [aiEnabled, setAiEnabled] = useState((restaurant as Record<string, unknown>).ai_assistant_enabled as boolean ?? false)
+  const [aiName, setAiName] = useState((restaurant as Record<string, unknown>).ai_assistant_name as string ?? '')
+  const [aiVoice, setAiVoice] = useState((restaurant as Record<string, unknown>).ai_assistant_voice as string ?? 'yunus')
+
+  const VOICE_OPTIONS = [
+    { value: 'yunus', label: 'Yunus (Erkek)' },
+    { value: 'mert', label: 'Mert (Erkek)' },
+    { value: 'lisa', label: 'Lisa (Kadın)' },
+    { value: 'gulsu', label: 'Gülsu (Kadın)' },
+  ]
+
+  async function saveAiSettings() {
+    try {
+      await apiCall('PATCH', '/api/admin/restaurant', {
+        id: restaurant.id,
+        ai_assistant_enabled: aiEnabled,
+        ai_assistant_name: aiName || null,
+        ai_assistant_voice: aiVoice,
+      })
+      toast.show('AI asistan ayarları kaydedildi', 'success')
+    } catch {
+      toast.show('Kaydedilemedi', 'error')
+    }
+  }
+
   // ─── Toggle işletme aktif/pasif ───
   async function toggleActive() {
     const newVal = !isActive
@@ -366,6 +392,62 @@ export default function RestaurantDetail({
               )
             })}
           </div>
+        </section>
+
+        {/* ═══ Bölüm 3b — AI Sesli Asistan ═══ */}
+        <section className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-white mb-4">AI Sesli Asistan</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-sm text-white">Sesli Asistan</p>
+              <p className="text-xs text-stone-500">Müşteriler AI asistan ile rezervasyon yapabilir</p>
+            </div>
+            <button
+              onClick={() => setAiEnabled(v => !v)}
+              className={`p-2 rounded-lg transition-colors ${aiEnabled ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-stone-500 hover:text-white hover:bg-stone-800'}`}
+            >
+              {aiEnabled ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+            </button>
+          </div>
+
+          {aiEnabled && (
+            <div className="space-y-4 bg-stone-800/30 rounded-xl p-4">
+              <div>
+                <label className="text-xs text-stone-400 mb-1 block">Asistan Adı</label>
+                <input
+                  value={aiName}
+                  onChange={e => setAiName(e.target.value)}
+                  placeholder="Örn: Zara, Chef AI"
+                  maxLength={20}
+                  className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white placeholder-stone-600 focus:outline-none focus:border-amber-500"
+                />
+                {aiName && (
+                  <p className="text-xs text-stone-500 mt-1">✨ "{aiName}" — Müşteriler bu isimle konuşacak</p>
+                )}
+              </div>
+              <div>
+                <label className="text-xs text-stone-400 mb-1 block">Ses</label>
+                <select
+                  value={aiVoice}
+                  onChange={e => setAiVoice(e.target.value)}
+                  className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
+                >
+                  {VOICE_OPTIONS.map(v => (
+                    <option key={v.value} value={v.value}>{v.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="bg-stone-800 rounded-lg p-3 text-sm text-stone-400 leading-relaxed">
+                Sistem promptu: <span className="text-stone-300">"Sen {restaurant.name}'ın sesli asistanısın, adın {aiName || 'Asistan'}. Müşterilerin sorularını Türkçe yanıtla."</span>
+              </div>
+              <button
+                onClick={saveAiSettings}
+                className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-sm font-semibold transition-colors"
+              >
+                Kaydet
+              </button>
+            </div>
+          )}
         </section>
 
         {/* ═══ Bölüm 4 — Panel Kullanıcıları ═══ */}

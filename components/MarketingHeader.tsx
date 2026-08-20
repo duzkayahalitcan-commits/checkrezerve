@@ -99,7 +99,7 @@ export default function MarketingHeader() {
                   {isActive && (
                     <motion.span
                       layoutId="nav-underline"
-                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-red-600 rounded-full"
+                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full"
                       transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                     />
                   )}
@@ -119,57 +119,66 @@ export default function MarketingHeader() {
                   onClick={() => setUserMenuOpen(v => !v)}
                   className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                 >
-                  <div className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                  <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold shadow-sm">
                     {user.email?.charAt(0).toUpperCase()}
                   </div>
                 </button>
-                {userMenuOpen && (
-                  <div className="absolute right-0 top-12 bg-white border border-zinc-100 rounded-2xl shadow-xl py-2 w-52 z-50">
-                    <div className="px-4 py-2 border-b border-zinc-50 mb-1">
-                      <p className="text-xs text-zinc-400 truncate">{user.email}</p>
-                    </div>
-                    <Link
-                      href={"/rezervasyonlarim" as never}
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.96, y: -4 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.96, y: -4 }}
+                      transition={{ duration: 0.14, ease: [0.23, 1, 0.32, 1] }}
+                      style={{ transformOrigin: 'top right' }}
+                      className="absolute right-0 top-12 bg-white border border-zinc-100 rounded-2xl shadow-xl py-2 w-52 z-50"
                     >
-                      <Calendar size={15} className="shrink-0" /> Rezervasyonlarım
-                    </Link>
-                    <Link
-                      href={"/profil" as never}
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
-                    >
-                      <UserIcon size={15} className="shrink-0" /> Kişisel Bilgiler
-                    </Link>
-                    <Link
-                      href={"/favorilerim" as never}
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
-                    >
-                      <Heart size={15} className="shrink-0" /> Favorilerim
-                    </Link>
-                    <button
-                      aria-label="Çıkış yap"
-                      onClick={handleSignOut}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
-                    >
-                      <LogOut size={15} className="shrink-0" /> Çıkış Yap
-                    </button>
-                    <a
-                      href="/panel/login"
+                      <div className="px-4 py-2 border-b border-zinc-50 mb-1">
+                        <p className="text-xs text-zinc-400 truncate">{user.email}</p>
+                      </div>
+                      <Link
+                        href={"/rezervasyonlarim" as never}
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+                      >
+                        <Calendar size={15} className="shrink-0" /> Rezervasyonlarım
+                      </Link>
+                      <Link
+                        href={"/profil" as never}
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+                      >
+                        <UserIcon size={15} className="shrink-0" /> Kişisel Bilgiler
+                      </Link>
+                      <Link
+                        href={"/favorilerim" as never}
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+                      >
+                        <Heart size={15} className="shrink-0" /> Favorilerim
+                      </Link>
+                      <button
+                        aria-label="Çıkış yap"
+                        onClick={handleSignOut}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                      >
+                        <LogOut size={15} className="shrink-0" /> Çıkış Yap
+                      </button>
+                      <a
+                        href="/panel/login"
                       onClick={() => setUserMenuOpen(false)}
                       className="flex items-center gap-2 px-4 py-2.5 text-xs text-zinc-400 hover:bg-zinc-50 transition-colors border-t border-zinc-100 mt-1"
                     >
                       <Settings size={13} className="shrink-0" /> Yönetici Paneli
                     </a>
-                  </div>
-                )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ) : (
               <>
                 <Link href="/kayit"
-                  className="hidden sm:block rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors shadow-sm">
+                  className="hidden sm:block rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition-colors shadow-sm">
                   {t('startFree')}
                 </Link>
                 <Link href="/giris"
@@ -251,7 +260,7 @@ export default function MarketingHeader() {
                 ) : (
                   <>
                     <Link href="/kayit" onClick={() => setMobileOpen(false)}
-                      className="w-full text-center rounded-full bg-red-600 text-white py-3.5 text-base font-bold hover:bg-red-700 transition-colors">
+                      className="w-full text-center rounded-full bg-primary text-white py-3.5 text-base font-bold hover:bg-primary-dark transition-colors">
                       {t('startFree')}
                     </Link>
                     <Link href="/giris" onClick={() => setMobileOpen(false)}

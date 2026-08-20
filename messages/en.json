@@ -114,7 +114,9 @@
     "terms": "Terms of Use",
     "kvkk": "GDPR Notice",
     "cookies": "Cookie Policy",
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "statement": "Reservations, simply and in seconds.",
+    "colophon": "Commission-free reservation SaaS. Online booking management for restaurants, spas, salons and more — all in one panel."
   },
   "hero": {
     "badge": "Turkey's Reservation Platform",
@@ -391,7 +393,7 @@
     "quickSupportTitle": "Support",
     "quickSupportDesc": "Got an issue? Write to us — we respond the same day.",
     "quickContactTitle": "General contact",
-    "quickContactDesc": "For everything else: info@checkrezerve.com",
+    "quickContactDesc": "For everything else: destek@checkrezerve.com",
     "socialTitle": "Join the Community",
     "socialDesc": "Latest news, tips, and meet business owners.",
     "socialWhatsappName": "WhatsApp",
@@ -471,7 +473,7 @@
     "s11Title": "11. In-App Account Deletion",
     "s11Body": "You may permanently delete your account at any time. When deleted, your profile, reservation history, and all personal data are permanently removed from our systems.",
     "s11Step1": "In the mobile app, go to Profile → Settings → Delete My Account.",
-    "s11Step2": "Alternatively, send an email with subject \"Account deletion request\" to info@checkrezerve.com.",
+    "s11Step2": "Alternatively, send an email with subject \"Account deletion request\" to destek@checkrezerve.com.",
     "s11Step3": "Your request will be processed within 7 business days and your account will be permanently deleted.",
     "s11Note": "Data subject to legal retention obligations (e.g. invoicing records) may be retained anonymously until the statutory retention period expires."
   },
@@ -791,7 +793,7 @@
     "mockup4Label": "Step 4",
     "mockup4Desc": "Confirm the deletion",
     "s4Title": "Alternative Method",
-    "altText": "Send an email to info@checkrezerve.com with the subject \"Account deletion request\". Your request will be processed within 7 business days.",
+    "altText": "Send an email to destek@checkrezerve.com with the subject \"Account deletion request\". Your request will be processed within 7 business days.",
     "dataControllerLabel": "Data Controller:",
     "dataControllerName": "CheckRezerve Teknoloji",
     "emailLabel": "E-mail:"
@@ -915,7 +917,15 @@
     "kat_restoran": "Restaurant",
     "kat_kafe": "Café",
     "kat_bar": "Bar",
-    "kat_diger": "Other"
+    "kat_diger": "Other",
+    "recentReservations": "Recent Reservations",
+    "noReservations": "You don't have any reservations yet.",
+    "business": "Business",
+    "guests": "{count} guests",
+    "status_pending": "Pending",
+    "status_confirmed": "Confirmed",
+    "status_cancelled": "Cancelled",
+    "status_completed": "Completed"
   },
   "bookingForm": {
     "today": "Today",
@@ -1095,7 +1105,22 @@
     },
     "hata": {
       "genel": "An error occurred, please try again."
-    }
+    },
+    "searchPlaceholder": "Search business, address, or service…",
+    "noRatings": "No reviews yet",
+    "resultsFor": "Results for \"{query}\"",
+    "filters": "Filters",
+    "clearFilters": "Clear filters",
+    "sortNew": "Newest",
+    "sortNear": "Nearby",
+    "cityDistrict": "City / District",
+    "all": "All",
+    "clear": "Clear",
+    "apply": "Apply ({count} results)",
+    "noMatch": "No matching businesses found",
+    "tryAnother": "Try a different search",
+    "clearSearch": "Clear search",
+    "makeReservation": "Make a Reservation"
   },
   "bizDetail": {
     "allBusinesses": "All Businesses",
@@ -1141,7 +1166,7 @@
     "replyInPerson": "I would like to collect it in person",
     "errorNameRequired": "Full Name is required.",
     "errorRequestRequired": "Request details are required.",
-    "errorSubmit": "Your application could not be submitted. Please try again or email info@checkrezerve.com.",
+    "errorSubmit": "Your application could not be submitted. Please try again or email destek@checkrezerve.com.",
     "successTitle": "Application Received",
     "successDesc": "Your KVKK request has been successfully submitted. It will be answered within 30 days.",
     "backHome": "Back to Home",
@@ -1300,7 +1325,34 @@
     "dressCode": "Dress Code",
     "dressCodePlaceholder": "E.g. Smart casual required",
     "specialNotes": "Special Notes / Warnings",
-    "specialNotesPlaceholder": "Shown to customers on the reservation page"
+    "specialNotesPlaceholder": "Shown to customers on the reservation page",
+    "voiceSettings": {
+      "title": "Voice Assistant Settings",
+      "subtitle": "Choose the voice the assistant will use and manage its active status.",
+      "assistantTitle": "Assistant Settings",
+      "assistantSubtitle": "Turn on the voice reservation assistant and set the name customers will hear.",
+      "enableToggle": "Enable Assistant",
+      "enableDesc": "When on, the voice assistant and text chat on the reservation page become active.",
+      "assistantName": "Assistant Name",
+      "assistantNamePlaceholder": "e.g. Zara",
+      "assistantNameHint": "Your customers will talk to \"{name}\"",
+      "disabledNameWarn": "Name cannot be set while assistant is off",
+      "activeName": "Active name: {name}",
+      "save": "Save",
+      "saving": "Saving...",
+      "saved": "Assistant settings saved ✓",
+      "voiceTitle": "Assistant Voice",
+      "voiceSubtitle": "Choose the voice the assistant will use. The owner can change it every 24 hours.",
+      "superAdminNoLock": "(Super admin — no restriction)",
+      "loading": "Loading...",
+      "lockedMsg": "Voice change lock is active.",
+      "lockRemaining": "You can change it again in {time}.",
+      "voiceSaved": "Voice saved ✓",
+      "preview": "preview voice",
+      "male": "male",
+      "female": "female",
+      "saveError": "Could not save assistant settings"
+    }
   },
   "diagonal": {
     "restoran": "Restaurant",
@@ -1312,7 +1364,9 @@
     "heroTitle": "Where to today?",
     "heroSlogan": "Pick your spot and book in seconds.",
     "discover": "Explore",
-    "forBusiness": "For businesses"
+    "forBusiness": "For businesses",
+    "heroEyebrow": "Commission-free reservation SaaS",
+    "ctaLabel": "Start for your business"
   },
   "accountDelete": {
     "title": "Account Deletion",

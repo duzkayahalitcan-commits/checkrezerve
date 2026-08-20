@@ -144,8 +144,8 @@ export default function ServiceManager({ services: initial, restaurantId }: { se
                     ))}
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => save(s.id)} className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400"><Check size={14} /></button>
-                    <button onClick={() => setEditing(null)} className="p-2 rounded-lg bg-stone-800 text-stone-400"><X size={14} /></button>
+                    <button onClick={() => save(s.id)} aria-label="Kaydet" className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400"><Check size={14} /></button>
+                    <button onClick={() => setEditing(null)} aria-label="Düzenlemeyi iptal et" className="p-2 rounded-lg bg-stone-800 text-stone-400"><X size={14} /></button>
                   </div>
                 </div>
               ) : (
@@ -164,11 +164,11 @@ export default function ServiceManager({ services: initial, restaurantId }: { se
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <button onClick={() => toggleActive(s)} className={`p-2 rounded-lg ${s.aktif ? 'text-emerald-400' : 'text-stone-500'}`}>
+                    <button onClick={() => toggleActive(s)} aria-label={s.aktif ? `${s.ad} hizmetini pasife al` : `${s.ad} hizmetini aktife al`} className={`p-2 rounded-lg ${s.aktif ? 'text-emerald-400' : 'text-stone-500'}`}>
                       {s.aktif ? <ToggleRight size={15} /> : <ToggleLeft size={15} />}
                     </button>
-                    <button onClick={() => startEdit(s)} className="p-2 rounded-lg text-stone-500 hover:text-[#c9a84c]"><Pencil size={13} /></button>
-                    <button onClick={() => setDeleting(s.id)} className="p-2 rounded-lg text-stone-500 hover:text-red-400"><Trash2 size={13} /></button>
+                    <button onClick={() => startEdit(s)} aria-label={`${s.ad} hizmetini düzenle`} className="p-2 rounded-lg text-stone-500 hover:text-[#c9a84c]"><Pencil size={13} /></button>
+                    <button onClick={() => setDeleting(s.id)} aria-label={`${s.ad} hizmetini sil`} className="p-2 rounded-lg text-stone-500 hover:text-red-400"><Trash2 size={13} /></button>
                   </div>
                 </div>
               )}
