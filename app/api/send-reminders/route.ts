@@ -33,16 +33,16 @@ export async function POST(req: NextRequest) {
     .from('reservations')
     .select(`
       id,
-      customer_name,
-      phone,
-      date,
-      time,
+      guest_name,
+      guest_phone,
+      reserved_date,
+      reserved_time,
       party_size,
       restaurant_id,
       cancellation_token,
       restaurants ( name, address )
     `)
-    .eq('date', today)
+    .eq('reserved_date', today)
     .eq('status', 'confirmed')
 
   if (error) {
@@ -64,12 +64,12 @@ export async function POST(req: NextRequest) {
         : undefined
 
       await sendReservationReminder({
-        to:                 r.phone,
-        customerName:       r.customer_name,
+        to:                 r.guest_phone,
+        customerName:       r.guest_name,
         restaurantName:     restaurant?.name,
         restaurantAddress:  restaurant?.address ?? undefined,
-        date:               r.date,
-        time:               r.time ?? '',
+        date:               r.reserved_date,
+        time:               r.reserved_time ? String(r.reserved_time).slice(0, 5) : '',
         partySize:          r.party_size,
         cancelUrl,
       })

@@ -59,12 +59,12 @@ export async function GET(req: NextRequest) {
   const db = getSupabaseAdmin()
   const { data: rows, error } = await db
     .from('reservations')
-    .select('customer_name, phone, date, time, party_size, status, special_requests, source')
+    .select('guest_name, guest_phone, reserved_date, reserved_time, party_size, status, special_requests, source')
     .eq('restaurant_id', restaurantId)
-    .gte('date', weekStart)
-    .lte('date', weekEnd)
-    .order('date', { ascending: true })
-    .order('time', { ascending: true })
+    .gte('reserved_date', weekStart)
+    .lte('reserved_date', weekEnd)
+    .order('reserved_date', { ascending: true })
+    .order('reserved_time', { ascending: true })
 
   if (error) return NextResponse.json({ error: 'Veri çekilemedi.' }, { status: 500 })
 
@@ -84,10 +84,10 @@ export async function GET(req: NextRequest) {
     headers.join(','),
     ...(rows ?? []).map(r =>
       [
-        r.customer_name,
-        r.phone,
-        r.date,
-        r.time ?? '',
+        r.guest_name,
+        r.guest_phone,
+        r.reserved_date,
+        r.reserved_time ? String(r.reserved_time).slice(0, 5) : '',
         r.party_size,
         r.status,
         r.special_requests ?? '',

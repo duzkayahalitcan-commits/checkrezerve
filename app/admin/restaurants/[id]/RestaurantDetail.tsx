@@ -47,9 +47,9 @@ type Subscription = {
 
 type Reservation = {
   id: string
-  customer_name?: string
-  date?: string
-  time?: string
+  guest_name?: string
+  reserved_date?: string
+  reserved_time?: string
   party_size?: number
   status?: string
   created_at?: string
@@ -541,8 +541,8 @@ export default function RestaurantDetail({
               {recentReservations.map(r => (
                 <div key={r.id} className="flex items-center justify-between bg-stone-800/30 rounded-lg px-3 py-2">
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-white font-medium">{r.customer_name ?? 'İsimsiz'}</span>
-                    <span className="text-xs text-stone-500">{r.date} {r.time}</span>
+                    <span className="text-sm text-white font-medium">{r.guest_name ?? 'İsimsiz'}</span>
+                    <span className="text-xs text-stone-500">{r.reserved_date} {r.reserved_time ? String(r.reserved_time).slice(0, 5) : ''}</span>
                     {r.party_size && <span className="text-xs text-stone-500">{r.party_size} kişi</span>}
                   </div>
                   <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${

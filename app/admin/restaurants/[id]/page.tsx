@@ -24,7 +24,7 @@ export default async function RestaurantDetailPage({
     db.from('feature_flags').select('id, restaurant_id, feature, enabled').eq('restaurant_id', id),
     db.from('restaurant_users').select('id, username, role, is_active, created_at').eq('restaurant_id', id).order('created_at', { ascending: false }),
     db.from('subscriptions').select('id, restaurant_id, plan, status, billing_period, current_period_end').eq('restaurant_id', id).maybeSingle(),
-    db.from('reservations').select('id, restaurant_id, guest_name, customer_name, party_size, date, time, status, created_at').eq('restaurant_id', id).order('created_at', { ascending: false }).limit(10),
+    db.from('reservations').select('id, restaurant_id, guest_name, reserved_date, reserved_time, party_size, status, created_at').eq('restaurant_id', id).order('created_at', { ascending: false }).limit(10),
   ])
 
   if (!restaurant) redirect('/admin')
