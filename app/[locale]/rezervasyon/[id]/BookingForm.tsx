@@ -847,7 +847,7 @@ export default function BookingForm({
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder={r('adim.bilgi.adSoyadPlaceholder')}
-          className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-[#E53935] focus:ring-2 focus:ring-red-100 transition-all"
+          className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm text-zinc-900 focus:outline-none focus:border-[#E53935] focus:ring-2 focus:ring-red-100 transition-all"
           required
         />
       </div>
@@ -858,7 +858,7 @@ export default function BookingForm({
           value={phone}
           onChange={e => setPhone(e.target.value)}
           placeholder={r('adim.bilgi.telefonPlaceholder')}
-          className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-[#E53935] focus:ring-2 focus:ring-red-100 transition-all"
+          className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm text-zinc-900 focus:outline-none focus:border-[#E53935] focus:ring-2 focus:ring-red-100 transition-all"
           required
         />
       </div>
@@ -869,7 +869,7 @@ export default function BookingForm({
           value={email}
           onChange={e => setEmail(e.target.value)}
           placeholder={r('adim.bilgi.epostaPlaceholder')}
-          className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-[#E53935] focus:ring-2 focus:ring-red-100 transition-all"
+          className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm text-zinc-900 focus:outline-none focus:border-[#E53935] focus:ring-2 focus:ring-red-100 transition-all"
         />
       </div>
       <div>
@@ -879,7 +879,7 @@ export default function BookingForm({
           onChange={e => setSpecialNotes(e.target.value)}
           rows={3}
           placeholder={r('adim.bilgi.ozelNotPlaceholder')}
-          className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-[#E53935] focus:ring-2 focus:ring-red-100 transition-all resize-none"
+          className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm text-zinc-900 focus:outline-none focus:border-[#E53935] focus:ring-2 focus:ring-red-100 transition-all resize-none"
         />
       </div>
     </div>
