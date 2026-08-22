@@ -63,27 +63,32 @@ echo "[deploy] Blue container yeniden baslatiliyor..."
 docker rm -f checkrezerve-blue 2>/dev/null || true
 docker compose up -d blue --no-deps 2>&1 | tail -3
 
-# Health check — 30 saniye bekle
-echo "[deploy] Health check bekleniyor..."
-sleep 30
-
+# Health check — 60sn içinde retry (Dockerfile'daki start_period: 60s ile uyumlu)
+# NOT: `curl http://checkrezerve-blue:3001` host DNS'te resolve edilemez
+# (checkrezerve-blue sadece Docker network içinden erişilir). O yüzden tek
+# doğru yol: `docker exec` ile container-internal test.
+echo "[deploy] Health check bekleniyor (max 60sn, 5sn arayla)..."
 HEALTH_OK=false
-if curl -sf http://checkrezerve-blue:3001/api/health >/dev/null 2>&1; then
-  HEALTH_OK=true
-fi
-
-if [ "$HEALTH_OK" = false ]; then
-  # Son bir kez docker exec ile dene
+for i in $(seq 1 12); do
   if docker exec checkrezerve-blue wget -qO- http://127.0.0.1:3001/api/health >/dev/null 2>&1; then
     HEALTH_OK=true
+    echo "[deploy] Blue container healthy (${i}. deneme, $((i*5))sn)"
+    break
   fi
-fi
+  sleep 5
+done
 
 if [ "$HEALTH_OK" = true ]; then
-  echo "[deploy] Health check basarili ✅"
   echo "[deploy] nginx reload (kesintisiz)..."
   docker exec checkrezerve-nginx nginx -s reload
   echo "[deploy] nginx reload tamam"
+
+  # Public sanity: nginx üzerinden gerçek user path'i test et
+  if curl -sfI --max-time 10 https://checkrezerve.com/api/health >/dev/null 2>&1; then
+    echo "[deploy] Public /api/health erisilebilir ✅"
+  else
+    echo "[uyari] Public /api/health erisilemedi (build OK ama nginx/SSL uyum kontrol et)"
+  fi
 else
   echo "[hata] Health check basarisiz — yeni container calismiyor"
   echo "[hata] Eski container devam ediyor, deploy IPTAL"
