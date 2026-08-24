@@ -27,7 +27,7 @@ export default async function CalisanlarPage({
 
   const { data: staff } = await db
     .from('calisanlar')
-    .select('id, restaurant_id, ad, uzmanlik, foto_url, aktif, created_at')
+    .select('id, restaurant_id, ad, soyad, uzmanlik, telefon, email, pozisyon, foto_url, aktif, created_at')
     .eq('restaurant_id', restaurant.id)
     .order('ad')
 

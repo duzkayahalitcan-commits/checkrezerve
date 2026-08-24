@@ -35,16 +35,35 @@ export default function StaffManager({ staff: initial, restaurantId }: { staff: 
     setStaffServices(Array.isArray(joinRes) ? joinRes.map((j: { hizmet_id: string }) => j.hizmet_id) : [])
   }
 
+  // Çalışma saatlerini DB'den yükle — satır yoksa varsayılanlar gösterilir
+  async function loadHours(staffId: string) {
+    try {
+      const res = await fetch(`/api/panel-tables?table=calisan_saatler&calisan_id=${staffId}`)
+      if (!res.ok) { setHours({}); return }
+      const rows = await res.json()
+      if (!Array.isArray(rows)) { setHours({}); return }
+      const seed: Record<string, { acik: boolean; baslangic: string; bitis: string }> = {}
+      for (const r of rows) {
+        seed[r.gun] = { acik: r.acik, baslangic: (r.baslangic ?? '09:00').slice(0, 5), bitis: (r.bitis ?? '18:00').slice(0, 5) }
+      }
+      setHours(seed)
+    } catch { setHours({}) }
+  }
+
   function openDetail(s: Staff) {
     setSelected(s)
+    setHours({})
     loadServices(s.id)
+    loadHours(s.id)
   }
 
   async function saveStaff() {
     setSaving(true)
     const payload = {
       ad: newForm.soyad ? `${newForm.ad} ${newForm.soyad}` : newForm.ad,
-      uzmanlik: newForm.pozisyon || null,
+      telefon: newForm.telefon || null,
+      email: newForm.email || null,
+      pozisyon: newForm.pozisyon || null,
       aktif: true,
     }
     try {
@@ -109,18 +128,19 @@ export default function StaffManager({ staff: initial, restaurantId }: { staff: 
       await Promise.all(
         DAYS.map(async (_, gun) => {
           const h = hours[gun] ?? { acik: true, baslangic: '09:00', bitis: '18:00' }
-          await fetch('/api/panel-tables', {
-            method: 'upsert' as string === 'upsert' ? 'POST' : 'POST',
+          const res = await fetch('/api/panel-tables', {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               table: 'calisan_saatler',
               payload: { calisan_id: selected.id, gun, ...h },
             }),
-          }).catch(() => {})
+          })
+          if (!res.ok) throw new Error()
         })
       )
       toast.show('Çalışma saatleri kaydedildi ✅', 'success')
-    } catch { toast.show('Hata', 'error') }
+    } catch { toast.show('Çalışma saatleri kaydedilemedi', 'error') }
     setSaving(false)
   }
 
