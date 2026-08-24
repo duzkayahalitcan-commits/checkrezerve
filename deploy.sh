@@ -41,12 +41,11 @@ rsync -avz \
   --exclude=node_modules \
   --exclude=.next \
   --exclude=middleware.ts \
-  --exclude=.codegraph \
-  --exclude=.env*.bak \
+  --exclude='.codegraph' \
+  --exclude='.env*.bak' \
   -e 'ssh -i ~/.ssh/checkrezerve_vps' \
   ~/Desktop/checkrezerve/ \
-  root@178.105.51.245:/opt/checkrezerve/ \
-  2>&1 | tail -3
+  root@178.105.51.245:/opt/checkrezerve/
 ok 'rsync tamam'
 
 # ─── 4) VPS'te build + deploy ───────────────────────────────────────────────
