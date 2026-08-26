@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 
 // POST /api/ai-assistant/transcribe
 // Body: FormData with audio blob field "audio_file"
@@ -6,6 +7,10 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
   const t0 = Date.now()
+  // Audio upload → yerel Whisper kaynağı. Limitsiz yüklemeler DoS/abuse; kardeş
+  // uçlarla aynı kuralı uygula.
+  const limited = await rateLimit(req, { prefix: 'ai-transcribe', max: 20, windowMs: 60_000 })
+  if (limited) return limited
   const formData = await req.formData()
   const audioFile = formData.get('audio_file') as Blob | null
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { rateLimit } from '@/lib/rate-limit'
 
 // POST /api/ai-assistant/initiate
 // Body: { restaurant_id, assistant_name, voice }
@@ -7,6 +8,8 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 // TODO: n8n ElevenLabs + Whisper entegrasyonu buraya eklenecek
 
 export async function POST(req: NextRequest) {
+  const limited = await rateLimit(req, { prefix: 'ai-initiate', max: 30, windowMs: 60_000 })
+  if (limited) return limited
   const body = await req.json()
   const { restaurant_id, assistant_name, voice, slug } = body
 
