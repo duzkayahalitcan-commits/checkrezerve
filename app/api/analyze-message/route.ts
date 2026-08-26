@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { rateLimit } from '@/lib/rate-limit'
 
 // ── Çıktı şeması ────────────────────────────────────────────────────────────
 const ExtractionSchema = z.object({
@@ -76,6 +77,8 @@ YANIT (reply) KURALLARI:
 // ── POST handler ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
+    const limited = await rateLimit(req, { prefix: 'analyze-message', max: 20, windowMs: 60_000 })
+    if (limited) return limited
     const body = await req.json()
     const message: string = body?.message
 

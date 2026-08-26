@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs'
+import { cookies } from 'next/headers'
+import { createHmac } from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { saveToCache, textToSlug } from '@/lib/audio-cache'
 import { resolveVoiceKey, getVoice, DEFAULT_VOICE_KEY } from '@/lib/voice-catalog'
@@ -10,8 +11,26 @@ import { resolveVoiceKey, getVoice, DEFAULT_VOICE_KEY } from '@/lib/voice-catalo
 // BUG 2 FİX: cache per-voice yazılır (voice_id KEY ya da ElevenLabs ID olabilir;
 // resolveVoiceKey ile çözülür) — lisa/mert collision'ı giderilir.
 
+// GÜVENLİK: Bu uç, ücretli ElevenLabs çağrısı yapar ve service_role ile
+// conversations tablosunu günceller. Anonim erişim maliyet istismarı ve
+// yetkisiz DB yazımı demektir — diğer /admin uçlarıyla aynı HMAC kapısını kullan.
+async function checkAdmin() {
+  const adminSecret   = process.env.ADMIN_SECRET ?? ''
+  const adminPassword = process.env.ADMIN_PASSWORD ?? ''
+  if (!adminSecret || !adminPassword) return false
+  const jar = await cookies()
+  const token = jar.get('cr_admin')?.value ?? ''
+  if (!token) return false
+  const expected = createHmac('sha256', adminSecret).update(adminPassword).digest('base64')
+  return token === expected
+}
+
 export async function POST(req: NextRequest) {
   try {
+    if (!await checkAdmin()) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await req.json()
     const { conversation_id, text, voice_id } = body
 
