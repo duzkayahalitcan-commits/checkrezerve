@@ -62,6 +62,8 @@ interface Props {
   krokiZones:       Record<string, unknown>[]
   // DB format: { monday: { start: string; end: string; open: boolean }, ... }
   workingHours:     Record<string, Record<string, unknown>> | null
+  // calisan_id → dayKey → { start, end, open } — çalışan bazlı çalışma saatleri
+  staffHours:       Record<string, Record<string, Record<string, unknown>>> | null
   occupiedZoneIds:  string[]
 }
 
@@ -74,6 +76,37 @@ function makeDefaultSlots(): string[] {
   return slots
 }
 const DEFAULT_SLOTS = makeDefaultSlots()
+
+// "HH:MM" → dakika; 24:00 = 1440 (gece yarısı kapanış). Geçersiz girdi → null.
+function parseTime(s: unknown): number | null {
+  if (typeof s !== 'string') return null
+  const m = s.match(/^(\d{1,2}):(\d{2})$/)
+  if (!m) return null
+  return Number(m[1]) * 60 + Number(m[2])
+}
+function fmtTime(min: number): string {
+  if (min >= 24 * 60) return '24:00'
+  return `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`
+}
+// start/end + buffer → 30dk slot listesi. Geçersiz/çakışan aralık → [] (kapalı).
+function buildSlots(startStr: string, endStr: string, bufferMinutes: number): string[] {
+  const [openH, openM] = startStr.split(':').map(Number)
+  const [closeH, closeM] = endStr.split(':').map(Number)
+  const openTotal = openH * 60 + (openM ?? 0)
+  let closeTotal = closeH * 60 + (closeM ?? 0)
+  if (closeTotal === 0) closeTotal = 24 * 60
+  if (closeTotal > 0 && closeTotal <= openTotal) closeTotal += 24 * 60
+  if (closeTotal <= openTotal) return []
+  const slots: string[] = []
+  for (let m = openTotal; m <= closeTotal - bufferMinutes; m += 30) {
+    const h = Math.floor(m / 60) % 24
+    const mm = m % 60
+    // 00:00 (gece yarısı) slotu atla — son slot 23:30
+    if (h === 0 && mm === 0) continue
+    slots.push(`${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`)
+  }
+  return slots
+}
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -96,7 +129,7 @@ export default function BookingForm({
   businessId, businessName, businessType, businessAddress,
   hizmetler, calisanlar,
   floorPlanEnabled, floorTables, specialAreas,
-  krokiMode, krokiZones, workingHours, occupiedZoneIds,
+  krokiMode, krokiZones, workingHours, staffHours, occupiedZoneIds,
 }: Props) {
   const router = useRouter()
   const t = useTranslations('bookingForm')
@@ -129,47 +162,80 @@ export default function BookingForm({
     0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday',
     4: 'thursday', 5: 'friday', 6: 'saturday',
   }
+  const [selectedStaff, setSelectedStaff] = useState<string | null>('__any__')
+
+  // Seçili çalışan seçimine göre günün etkin çalışma saatleri.
+  // Dönüş: { open: true, start, end } | { open: false } | null
+  //   null = şema bilgisi yok → işletme working_hours / varsayılan fallback kullanılır.
+  // Kurallar:
+  //   • Belirli çalışan seçildiyse → çalışanın calisan_saatler kaydı; o gün kayıt yoksa izinli.
+  //   • 'Fark etmez' + TÜM aktif çalışanların şeması tanımlıysa → çalışan saatlerinin birleşimi,
+  //     işletme working_hours ile kesiştirilir. Eksik şema varsa (kısmi) fallback'e düşülür.
+  const staffCoverageComplete =
+    staffHours != null &&
+    calisanlar.length > 0 &&
+    Object.keys(staffHours).length === calisanlar.length
+  const dayAvailability = useCallback(
+    (dayKey: string): Record<string, unknown> | null => {
+      const isSpecific = !!selectedStaff && selectedStaff !== '__any__'
+      if (isSpecific) {
+        const staff = staffHours?.[selectedStaff]
+        if (!staff) return null
+        return staff[dayKey] ?? { open: false }
+      }
+      if (!staffHours || !staffCoverageComplete) return null
+      let earliest: number | null = null
+      let latest: number | null = null
+      for (const staff of Object.values(staffHours)) {
+        const day = staff?.[dayKey]
+        if (!day || day.open === false) continue
+        let s = parseTime(day.start)
+        let e = parseTime(day.end)
+        if (s == null || e == null) continue
+        if (e === 0) e = 24 * 60 // gece yarısı kapanış = 24:00
+        if (e <= s) e += 24 * 60 // ertesi güne sarkan kapanış
+        if (earliest == null || s < earliest) earliest = s
+        if (latest == null || e > latest) latest = e
+      }
+      if (earliest == null || latest == null) return { open: false }
+      let start = earliest
+      let end = latest
+      const biz = workingHours?.[dayKey]
+      if (biz) {
+        if (biz.open === false) return { open: false }
+        const bs = parseTime(biz.start)
+        let be = parseTime(biz.end)
+        if (bs != null && be != null) {
+          if (be === 0) be = 24 * 60
+          start = Math.max(start, bs)
+          end = Math.min(end, be)
+          if (end <= start) return { open: false }
+        }
+      }
+      return { open: true, start: fmtTime(start), end: fmtTime(end) }
+    },
+    [selectedStaff, staffHours, workingHours, staffCoverageComplete]
+  )
+
   const TIME_SLOTS = useMemo<string[]>(() => {
-    if (!workingHours || !selectedDate) return DEFAULT_SLOTS
-    const dow = new Date(selectedDate + 'T12:00:00').getDay()
-    const dayKey = DAY_KEY_MAP[dow]
-    const wh = workingHours[dayKey]
-    // Gün tanımlanmamışsa veya açıkça open===false ise
-    // wh yoksa (working_hours boş/gün eksik) → fallback varsayılan slot'lar
-    if (!wh) return DEFAULT_SLOTS
-    if (wh.open === false) return []  // kapalı gün → boş array, UI mesaj gösterir
+    if (!selectedDate) return DEFAULT_SLOTS
+    const dayKey = DAY_KEY_MAP[new Date(selectedDate + 'T12:00:00').getDay()]
+    // Çalışan şeması varsa onu kullan; yoksa işletme working_hours; o da yoksa varsayılan slot'lar.
+    const av = dayAvailability(dayKey)
+    const rec = av ?? workingHours?.[dayKey]
+    if (!rec) return DEFAULT_SLOTS
+    if (rec.open === false) return []  // kapalı gün / çalışan izinli → boş array, UI mesaj gösterir
     // Alan adları: DB'de start/end olarak, eski formatta open/close olabilir
-    const rec = wh as Record<string, unknown>
-    const startStr = typeof rec.start === 'string' ? rec.start : typeof wh.open === 'string' ? wh.open : null
-    const endStr = typeof rec.end === 'string' ? rec.end : typeof wh.close === 'string' ? wh.close : null
+    const startStr = typeof rec.start === 'string' ? rec.start : (typeof rec.open === 'string' ? rec.open : null)
+    const endStr = typeof rec.end === 'string' ? rec.end : (typeof rec.close === 'string' ? rec.close : null)
     if (!startStr || !endStr) return DEFAULT_SLOTS
-    const [openH, openM] = startStr.split(':').map(Number)
-    const [closeH, closeM] = endStr.split(':').map(Number)
-    const openTotal = openH * 60 + (openM ?? 0)
-    let closeTotal = closeH * 60 + (closeM ?? 0)
-    // Gece yarısı: 00:00 = 24:00 (ertesi güne sarkan kapanış)
-    if (closeTotal === 0) closeTotal = 24 * 60
-    // Diğer gece yarısı geçişleri (ör: 02:00 → ertesi gün)
-    if (closeTotal > 0 && closeTotal <= openTotal) closeTotal += 24 * 60
-    if (closeTotal <= openTotal) return DEFAULT_SLOTS
-    // Buffer mantığı: restoran/kafe (masa rezervasyonu) kapanış saatini dahil eder
-    // Restoran/kafe (masa rezervasyonu): kapanış saatinin son dakikasına kadar slot üret
-    // Randevu bazlı işletmeler (kuaför, berber, pilates, spa, klinik): kapanıştan 30 dk önce kes
-    const bufferMinutes = isRestaurant ? 0 : 30
-    const slots: string[] = []
-    for (let m = openTotal; m <= closeTotal - bufferMinutes; m += 30) {
-      const h = Math.floor(m / 60) % 24
-      const mm = m % 60
-      // 00:00 (gece yarısı) slotu atla — son slot 23:30
-      if (h === 0 && mm === 0) continue
-      slots.push(`${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`)
-    }
-    return slots
-  }, [workingHours, selectedDate, businessType])
+    // Restoran/kafe (masa rezervasyonu): kapanışa kadar slot üret.
+    // Randevu bazlı işletmeler: kapanıştan 30 dk önce kes.
+    return buildSlots(startStr, endStr, isRestaurant ? 0 : 30)
+  }, [selectedDate, dayAvailability, workingHours, isRestaurant])
 
   const [selectedTable, setSelectedTable] = useState<string | null>(null)
   const [selectedService, setSelectedService] = useState<string | null>(null)
-  const [selectedStaff, setSelectedStaff] = useState<string | null>('__any__')
   const [selectedArea, setSelectedArea] = useState<string | null>(
     specialAreas.length > 0 ? specialAreas[0].id : null
   )
@@ -251,8 +317,14 @@ export default function BookingForm({
 
   const isDateDisabled = useCallback((date: Date) => {
     const time = date.getTime()
-    return time < today.getTime() || time > maxDate.getTime()
-  }, [today, maxDate])
+    if (time < today.getTime() || time > maxDate.getTime()) return true
+    // Çalışan saatleri bağlı: seçili çalışanın (veya tam kapsamda tüm çalışanların)
+    // o gün çalışmadığı günleri takvimde kapat. Şema bilgisi yoksa işletme saatlerine bırak.
+    if (!staffHours) return false
+    const dayKey = DAY_KEY_MAP[date.getDay()]
+    const av = dayAvailability(dayKey)
+    return av === null ? false : av.open === false
+  }, [today, maxDate, staffHours, dayAvailability])
 
   const dateStr = (date: Date) => {
     const y = date.getFullYear()
@@ -783,7 +855,7 @@ export default function BookingForm({
   const renderCalisanSelect = () => (
     <div className="space-y-3">
       <button
-        onClick={() => setSelectedStaff(selectedStaff === null ? '__any__' : null)}
+        onClick={() => setSelectedStaff('__any__')}
         className={`w-full flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all ${
           selectedStaff === '__any__'
             ? 'border-[#E53935] bg-red-50 shadow-md shadow-red-100'
@@ -806,7 +878,7 @@ export default function BookingForm({
         return (
           <motion.button
             key={c.id}
-            onClick={() => setSelectedStaff(sel ? null : c.id)}
+            onClick={() => setSelectedStaff(sel ? '__any__' : c.id)}
             whileHover={{ y: -2, scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
             className={`w-full flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all

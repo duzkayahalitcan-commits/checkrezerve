@@ -59,6 +59,34 @@ export default async function BusinessDetailPage({ params }: Props) {
 
   if (!biz) notFound()
 
+  // Çalışan çalışma saatleri (calisan_saatler) — booking'te slot aralığını
+  // çalışan bazlı kısıtlamak için. RLS super_admin_only olduğundan anon/authenticated
+  // istemci okuyamaz; burada service role (admin, RLS bypass) kullanılır.
+  // Normalize: gun 0=Pazartesi..6=Pazar → workingHours dayKey (monday..sunday).
+  const DAY_INDEX_MAP = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+  const staffIds = (rawStaff ?? []).map((c: Record<string, unknown>) => c.id as string)
+  let staffHours: Record<string, Record<string, Record<string, unknown>>> | null = null
+  if (staffIds.length > 0) {
+    const { data: rawStaffHours } = await supabase
+      .from('calisan_saatler')
+      .select('calisan_id, gun, acik, baslangic, bitis')
+      .in('calisan_id', staffIds)
+    if (rawStaffHours && rawStaffHours.length > 0) {
+      staffHours = {}
+      for (const row of rawStaffHours as Array<Record<string, unknown>>) {
+        const cid = row.calisan_id as string
+        const dayKey = DAY_INDEX_MAP[row.gun as number]
+        if (!cid || !dayKey) continue
+        const rec = (staffHours[cid] ??= {})
+        rec[dayKey] = {
+          start: String(row.baslangic ?? '').slice(0, 5),
+          end:   String(row.bitis ?? '').slice(0, 5),
+          open:  row.acik !== false,
+        }
+      }
+    }
+  }
+
   // S4-Sprint: Sesli asistan (FloatingAIAssistant) yalnızca ai_voice_search
   // feature flag'i açıksa göster. speak endpoint'i bu flag'i zorunlu kılıyor;
   // flag kapalıyken buton gösterilirse sessizce hata alır. Uygulama /api/voice
@@ -201,6 +229,7 @@ export default async function BusinessDetailPage({ params }: Props) {
               krokiMode={krokiMode ?? 'tables'}
               krokiZones={krokiZones as Record<string, unknown>[] ?? []}
               workingHours={workingHours ?? null}
+              staffHours={staffHours}
               occupiedZoneIds={Array.from(occupiedZoneIds)}
             />
           </div>
