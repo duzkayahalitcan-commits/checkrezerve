@@ -80,6 +80,9 @@ export default function KrokiEditor({
   const snap = (v: number, grid: number, free: boolean) =>
     free ? Math.round(v) : Math.round(v / grid) * grid
 
+  // İlk yükleme: fitZoom kullan, sonra kullanıcı zoom yapınca manuele geç
+  const [hasUserZoomed, setHasUserZoomed] = useState(false)
+
   const zoomAt = useCallback((delta: number, cx: number, cy: number) => {
     setHasUserZoomed(true)
     setZoom(z => {
@@ -326,15 +329,10 @@ export default function KrokiEditor({
   }, [])
 
   // Auto-fit zoom: container'a ilk yüklendiğinde floor canvas sığacak zoom'u hesapla
-  const fitZoom = useMemo(() => {
-    if (!floor || !containerSize.w || !containerSize.h) return 0.75
-    const scaleX = containerSize.w / floor.canvasW
-    const scaleY = containerSize.h / floor.canvasH
-    return Math.min(scaleX, scaleY) * 0.9 // W-100: %90 padding — canvas container'ı doldursun
-  }, [floor?.canvasW, floor?.canvasH, containerSize])
+  const fitZoom = !floor || !containerSize.w || !containerSize.h
+    ? 0.75
+    : Math.min(containerSize.w / floor.canvasW, containerSize.h / floor.canvasH) * 0.9 // W-100: %90 padding
 
-  // İlk yükleme: fitZoom kullan, sonra kullanıcı zoom yapınca manuele geç
-  const [hasUserZoomed, setHasUserZoomed] = useState(false)
   const effectiveZoom = hasUserZoomed ? zoom : fitZoom
 
   // W-100 B2: Boş kat için varsayılan viewBox — 12m×10m = 720×600px (PX=60)

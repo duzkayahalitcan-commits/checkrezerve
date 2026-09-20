@@ -213,12 +213,12 @@ export default function InteractiveFloorMap({
   const [activeZone, setActiveZone] = useState<string>(allZoneKeys[0] ?? 'salon')
   const [hoveredId, setHoveredId] = useState<string | null>(null)
 
-  // Sadece restoran
-  if (businessType !== 'restaurant') return null
-
   const zoneTables = useMemo(() => tables.filter(t => t.zone === activeZone), [tables, activeZone])
   const zoneOccupied = useMemo(() => zoneTables.filter(t => t.status === 'occupied').length, [zoneTables])
   const zoneAvailable = useMemo(() => zoneTables.filter(t => t.status === 'available').length, [zoneTables])
+
+  // Sadece restoran
+  if (businessType !== 'restaurant') return null
 
   return (
     <div className="flex flex-col gap-4">
