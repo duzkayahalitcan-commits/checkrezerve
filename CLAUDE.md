@@ -11,6 +11,12 @@ Builder: Halitcan (solo)
 - Auth: Supabase JWKS
 - Panel yazma işlemleri: getSupabaseAdmin() (RLS bypass), API route üzerinden
 
+## Öğrenilmiş Kurallar
+
+Görev başında `.agents/learned.md`'yi oku, ilgili kurallar varsa uygula. Bir kural gerçekten bir
+iş problemini önlediyse `wins`'i, uygulandı ama fark etmediyse `applied`'i, bilerek atlandıysa
+`skipped`'i 1 artır.
+
 ---
 
 ## Ekosistem — Aktif Araçlar
