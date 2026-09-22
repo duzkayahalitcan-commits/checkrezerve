@@ -14,6 +14,9 @@ export async function GET(req: NextRequest) {
 
   const restaurantId = req.nextUrl.searchParams.get('restaurant_id')
   if (!restaurantId) return NextResponse.json({ error: 'restaurant_id required' }, { status: 400 })
+  if (restaurantId !== session.restaurantId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const db = getSupabaseAdmin()
   const { data, error } = await db
@@ -67,10 +70,13 @@ export async function POST(req: NextRequest) {
   if (!restaurant_id || !paket_id || !musteri_id) {
     return NextResponse.json({ error: 'restaurant_id, paket_id, musteri_id required' }, { status: 400 })
   }
+  if (restaurant_id !== session.restaurantId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const db = getSupabaseAdmin()
 
-  const { data: paket } = await db.from('paketler').select('toplam_seans, gecerlilik_gun').eq('id', paket_id).single()
+  const { data: paket } = await db.from('paketler').select('toplam_seans, gecerlilik_gun').eq('id', paket_id).eq('restaurant_id', restaurant_id).single()
   if (!paket) return NextResponse.json({ error: 'Paket bulunamadi' }, { status: 404 })
 
   const now = new Date()
@@ -108,7 +114,7 @@ export async function PATCH(req: NextRequest) {
   const db = getSupabaseAdmin()
 
   if (action === 'yenile') {
-    const { data: old } = await db.from('musteri_paketleri').select('id, restaurant_id, paket_id, musteri_id, calisan_id').eq('id', id).single()
+    const { data: old } = await db.from('musteri_paketleri').select('id, restaurant_id, paket_id, musteri_id, calisan_id').eq('id', id).eq('restaurant_id', session.restaurantId).single()
     if (!old) return NextResponse.json({ error: 'Kayit bulunamadi' }, { status: 404 })
 
     // Eski kaydi kapat

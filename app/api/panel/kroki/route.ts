@@ -111,6 +111,9 @@ export async function POST(req: NextRequest) {
   if (!restaurant_id) {
     return NextResponse.json({ error: 'restaurant_id required' }, { status: 400 })
   }
+  if (restaurant_id !== session.restaurantId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const db = getSupabaseAdmin()
   const floors = Array.isArray(floor_data) ? floor_data : []

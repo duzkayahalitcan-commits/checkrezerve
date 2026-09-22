@@ -39,6 +39,7 @@ export async function PUT(
         .from('reservations')
         .select('guest_name, guest_phone, reserved_date, reserved_time, restaurant_id')
         .eq('id', id)
+        .eq('restaurant_id', session.restaurantId)
         .single()
 
       if (reservation?.guest_phone) {
@@ -55,12 +56,16 @@ export async function PUT(
     })()
   }
 
-  const { error } = await db
+  // Sadece oturumdaki işletmenin rezervasyonu güncellenebilir
+  const { data: updated, error } = await db
     .from('reservations')
     .update({ status, updated_at: new Date().toISOString() })
     .eq('id', id)
+    .eq('restaurant_id', session.restaurantId)
+    .select('id')
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!updated?.length) return NextResponse.json({ error: 'Rezervasyon bulunamadı' }, { status: 404 })
 
   return NextResponse.json({ success: true, status })
 }

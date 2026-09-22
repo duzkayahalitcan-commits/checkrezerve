@@ -14,6 +14,9 @@ export async function POST(req: NextRequest) {
   if (!restaurant_id || !kroki_mode || !['tables', 'zones'].includes(kroki_mode)) {
     return NextResponse.json({ error: 'restaurant_id and kroki_mode (tables|zones) required' }, { status: 400 })
   }
+  if (restaurant_id !== session.restaurantId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const db = getSupabaseAdmin()
   const { error } = await db

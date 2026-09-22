@@ -18,6 +18,9 @@ export async function GET(req: NextRequest) {
 
   const restaurantId = req.nextUrl.searchParams.get('restaurant_id')
   if (!restaurantId) return NextResponse.json({ error: 'restaurant_id required' }, { status: 400 })
+  if (restaurantId !== session.restaurantId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const db = getSupabaseAdmin()
   const { data, error } = await db
@@ -38,6 +41,9 @@ export async function POST(req: NextRequest) {
   const { restaurant_id, ad, toplam_seans, gecerlilik_gun, fiyat, hizmet_id } = body
   if (!restaurant_id || !ad || !toplam_seans || !gecerlilik_gun) {
     return NextResponse.json({ error: 'restaurant_id, ad, toplam_seans, gecerlilik_gun required' }, { status: 400 })
+  }
+  if (restaurant_id !== session.restaurantId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   const db = getSupabaseAdmin()
@@ -73,7 +79,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   const db = getSupabaseAdmin()
-  const { data, error } = await db.from('paketler').update(setData).eq('id', id).select().single()
+  const { data, error } = await db.from('paketler').update(setData).eq('id', id).eq('restaurant_id', session.restaurantId).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
 }
@@ -87,7 +93,7 @@ export async function DELETE(req: NextRequest) {
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
   const db = getSupabaseAdmin()
-  const { error } = await db.from('paketler').update({ aktif: false, updated_at: new Date().toISOString() }).eq('id', id)
+  const { error } = await db.from('paketler').update({ aktif: false, updated_at: new Date().toISOString() }).eq('id', id).eq('restaurant_id', session.restaurantId)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true })
 }
