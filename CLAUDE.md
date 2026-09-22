@@ -10,6 +10,10 @@ Builder: Halitcan (solo)
 - Deploy: VPS'te Docker (docker-compose), nginx reverse proxy
 - Auth: Supabase JWKS
 - Panel yazma işlemleri: getSupabaseAdmin() (RLS bypass), API route üzerinden
+- Roller: `super_admin`, `isletme_admin`, `isletme_calisan`
+
+Bu repo: `~/Desktop/checkrezerve` → checkrezerve.com (VPS'te Docker).
+Mobil uygulama AYRI repo: `~/Desktop/checkrezerve-app`. `~/Desktop/phoebix` tamamen ayrı proje — dokunma, bahsetme.
 
 ## Öğrenilmiş Kurallar
 
@@ -32,13 +36,15 @@ için wins/applied/skipped sayacını güncelle" — kural gerçekten bir iş pr
 | `web` | `~/Desktop/checkrezerve` | Next.js web — `npm run dev` (port 3001/3002), **fix uygulayan tek oturum** |
 | `app` | `~/Desktop/checkrezerve-app` | Expo mobil — `npx expo start` (port 8081), **fix uygulayan tek oturum** |
 | `genel` | `~/` | Genel terminal, vault, araç yönetimi |
-| `web2` | `~/Desktop/checkrezerve` | Web için paralel keşif/analiz — **sadece rapor üretir, yazmaz** |
-| `app2` | `~/Desktop/checkrezerve-app` | Mobil için paralel keşif/analiz — **sadece rapor üretir, yazmaz** |
+| `web2` | `~/Desktop/checkrezerve` | **Kapalı** (aynı anda 5 oturum Mac'i donduruyor). Açılırsa: web için paralel keşif/analiz — **sadece rapor üretir, yazmaz** |
+| `app2` | `~/Desktop/checkrezerve-app` | **Kapalı** (aynı anda 5 oturum Mac'i donduruyor). Açılırsa: mobil için paralel keşif/analiz — **sadece rapor üretir, yazmaz** |
 | `video` | `~/Desktop/checkrezerve` | Medya/video üretimi için ayrılmış oturum |
 
 **Kurallar:**
 - `web` ve `app` terminallerini asla karıştırma. Her oturumda aktif süreç var.
-- **Paralel oturum kuralı:** `web2`/`app2` sadece rapor/inceleme yapar. Fix'i her zaman `web` veya `app` uygular. İki oturumun aynı dosyaya yazması race condition + kayıp değişiklik demektir.
+- **Paralel oturum kuralı:** `web2`/`app2` şu an kapalı; açılırlarsa sadece rapor/inceleme yaparlar. Fix'i her zaman `web` veya `app` uygular. İki oturumun aynı dosyaya yazması race condition + kayıp değişiklik demektir.
+- Durum kontrolü: `tmux capture-pane -t <oturum> -p | tail -30`. IDLE görmeden "bitti" deme.
+- `send-keys` göndermeden önce pane'in düz zsh prompt'unda olduğunu doğrula (jcode TUI'deyse komut sohbete yazı olarak düşer).
 
 ### Araçlar
 
@@ -172,12 +178,49 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı `database`, UI tarafı `
 ## Kritik Proje Kuralları (Her Ajan İçin Geçerli)
 
 1. **Terminal karışıklığı:** Web için `~/Desktop/checkrezerve`, mobile için `~/Desktop/checkrezerve-app`. Asla karıştırma.
-2. **Deploy:** Claude Code sadece yazar ve push eder. Deploy komutlarını Halitcan çalıştırır.
+2. **Deploy:** Deploy'u Claude yapar ama her seferinde önce açık onay alır; sonra `docker ps` + `docker logs --tail 50` ile doğrular. Migration her zaman Halitcan'da.
 3. **ENV:** `NEXT_PUBLIC_` → build-time (--build-arg). Runtime secret'lar → --env-file.
 4. **Roller:** business_manager = sahibi gibi hissetmeli. Staff gibi gösterme.
 5. **Dil:** UI her zaman Türkçe.
 6. **Token:** Minimal. Keşfetmeden önce sor. Gereksiz dosya okuma yapma.
 7. **Kritik Docker rule:** `docker rm -f` ile isim bazlı silme bazen çalışmaz; yarım kalmış `docker-compose recreate` denemeleri container'ları `<hash>_isim` formatında yeniden adlandırır. `ContainerConfig KeyError` alınırsa önce `docker ps -a --format '{{.Names}}' | grep -iE "checkrezerve|nginx|whisper|certbot"` ile gerçek isimleri kontrol et, hash önekli olanları da sil, sonra `docker-compose up -d --build`.
+
+---
+
+## Kod Kuralları
+- Env değerlerini hardcode etme, `.env`'den oku.
+- Over-engineering yok, basit tut. Her route tek bir domain'e ait.
+- Bir şeyi silmeden önce "bu neden var?" diye sor (ör. hizmet tekrarı bilinçli veri tasarımı).
+- Görseller: `loading="lazy"` + Framer Motion `initial={{opacity:0}}` görseli görünmez yapar → `loading="eager"` kullan, sadece container'ı animate et.
+- TypeScript içinde `!` olan heredoc zsh'de patlar → dosyayı Python `open().write()` ile yaz.
+
+## Migration (KESİN KURAL)
+- Migration'ı ASLA kendin uygulama. Alembic yok.
+- Akış: SQL'i hazırla → `pbcopy` ile panoya koy → Halitcan Supabase SQL Editor'e yapıştırıp çalıştırır → doğrulama sonucunu geri yapıştırır.
+- Doğrulama sorgusunu da hazırla. Sonucu gelmeden "tamam" deme.
+- Büyük migration / mimari değişiklikten önce premortem yap (`~/.claude/skills/premortem`).
+
+## Deploy Detayları
+- VPS klasörü `/opt/checkrezerve`. Akış: yerelden rsync → VPS'te:
+  ```
+  docker ps -a --format '{{.Names}}' | grep -iE "checkrezerve|nginx|whisper|certbot" | xargs -r docker rm -f
+  docker-compose up -d --build
+  ```
+- `docker-compose down` ASLA (compose 1.29.2, ContainerConfig hatası). Hash önekli (`<hash>_isim`) container'lar kalırsa onları da sil.
+- nginx.conf host'ta `cat >` ile yazılır; container içinde `sed -i` YASAK (bind-mount inode bozulur).
+- Yeni `server_name` → `docker restart checkrezerve-nginx` (`nginx -s reload` yetmez).
+- SSL: symlink değil archive yolu (`/etc/letsencrypt/archive/checkrezerve.com/fullchain1.pem`).
+
+## Doğrulama ve Hijyen
+- Kendi iddialarını DB/dosya üzerinden doğrula; "bulunamadı" demeden önce kontrol et.
+- grep sonuna `echo "exit: $?"` ekle (ENOSPC çıktıyı sessizce yutar; boş sonuç = eşleşme yok demek değil).
+- Commit'ler konu bazlı ve izole olsun; karışık commit yok. Commit'ten önce Halitcan diff'i görür.
+
+## Test Kullanıcıları
+- ceviz@checkrezerve.com → isletme_admin
+- ceviz.manager@checkrezerve.com → isletme_calisan
+- checkrezerve@proton.me → super_admin
+(Şifreler `.env.test` / Halitcan'da; buraya yazma.)
 
 ---
 
