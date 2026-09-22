@@ -12,6 +12,47 @@ function verifySession(raw: string): { userId: string; restaurantId: string; rol
   return { userId: session.userId, restaurantId: session.restaurantId, role: session.role ?? '' }
 }
 
+// BUG FİX (export_logs FK): session.userId iki farklı kimlik sisteminden gelebilir:
+//   1. Legacy panel login → session.userId zaten restaurant_users.id'dir (FK'e uyar)
+//   2. Supabase Auth login (owner/manager) → session.userId auth.users.id'dir,
+//      restaurant_users tablosunda KARŞILIĞI YOKTUR → önceden export_logs insert'i
+//      sessizce FK ihlaliyle başarısız oluyordu.
+// Çözüm: önce id eşleşmesi dene (legacy), sonra user_id kolonuyla dene (auth — kolon
+// migration uygulanınca aktif olur), ikisi de yoksa null'a düş (kolon nullable,
+// denetim izi restaurant_id ile korunur) ve hatayı asla sessizce yutma.
+async function resolveExportUserId(
+  db: ReturnType<typeof getSupabaseAdmin>,
+  session: { userId: string; restaurantId: string },
+): Promise<string | null> {
+  const { data: byId, error: byIdErr } = await db
+    .from('restaurant_users')
+    .select('id')
+    .eq('id', session.userId)
+    .maybeSingle()
+  if (byIdErr) console.error('[panel-export] restaurant_users id sorgu hatası:', byIdErr)
+  if (byId) return byId.id
+
+  try {
+    const { data: byUserId, error } = await db
+      .from('restaurant_users')
+      .select('id')
+      .eq('user_id', session.userId)
+      .eq('restaurant_id', session.restaurantId)
+      .maybeSingle()
+    if (error) {
+      // 42703 = kolon henüz yok (migration uygulanmadı) — beklenen durum, sessizce null'a düş
+      if (error.code !== '42703') {
+        console.error('[panel-export] restaurant_users.user_id sorgu hatası:', error)
+      }
+      return null
+    }
+    return byUserId?.id ?? null
+  } catch (e) {
+    console.error('[panel-export] restaurant_users lookup istisnası:', e)
+    return null
+  }
+}
+
 // CSV satırı: özel karakter escape + formül injection koruması
 // (=, +, -, @, \t, \r ile başlayan değerler Excel'de formül olarak çalışabilir)
 function csvEscape(val: string | number | null | undefined): string {
@@ -69,14 +110,24 @@ export async function GET(req: NextRequest) {
   if (error) return NextResponse.json({ error: 'Veri çekilemedi.' }, { status: 500 })
 
   // ─── Export log kaydet ────────────────────────────────────────────────────
-  await db.from('export_logs').insert({
-    restaurant_user_id: session.userId,
+  // FİX: session.userId ham haliyle FK'e uymayabilir (bkz. resolveExportUserId).
+  // Doğru id bulunamazsa null yazıyoruz (kolon nullable) ama hatayı asla yutmuyoruz.
+  const exportUserId = await resolveExportUserId(db, session)
+  const { error: logError } = await db.from('export_logs').insert({
+    restaurant_user_id: exportUserId,
     restaurant_id:      restaurantId,
     export_type:        'weekly_csv',
     week_start:         weekStart,
     week_end:           weekEnd,
     row_count:          rows?.length ?? 0,
   })
+  if (logError) {
+    console.error('[panel-export] export_logs insert hatası:', logError, {
+      sessionUserId: session.userId,
+      resolvedUserId: exportUserId,
+      restaurantId,
+    })
+  }
 
   // ─── CSV oluştur ──────────────────────────────────────────────────────────
   const headers = ['Ad Soyad', 'Telefon', 'Tarih', 'Saat', 'Kişi Sayısı', 'Durum', 'Notlar', 'Kaynak']
