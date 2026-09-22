@@ -106,6 +106,15 @@ Ek: `guest_email` var (opsiyonel), email_logs trigger'ı bu kolona bakar.
 
 **calisanlar.profile_id — eklendi ama backfill YAPILMADI.** Kolon nullable uuid olarak eklendi, mevcut satırlarda dolu değil. Panel girişleri `restaurant_users` tablosunda (username/password_hash/role) tutuluyor; `calisanlar.profile_id` üzerinden auth şu an çalışmıyor. profiles-bağlı bir akış yazmadan önce backfill migration'ı çalıştır.
 
+### Şema Tuzakları (information_schema ile doğrulandı, 2026-09-23)
+
+| Tablo | Doğru kolon | Yanlış varsayım (YOK) |
+|---|---|---|
+| `hizmetler` | `sure_dakika` (integer), `fiyat` (numeric) | `duration_minutes`, `price` |
+| `masa_tipleri` | `isletme_id` (uuid), `ad`, `kapasite`, `aktif` | `restaurant_id`, `label`, `capacity`, `is_active` |
+| `restaurants` | `working_hours` (jsonb) | `day_mon_open` vb. `day_*` kolonları |
+| `restaurants` | `kroki_zones` (jsonb), `kroki_mode` (text) | `kroki_data`, `kroki_enabled` |
+
 ---
 
 ## Hızlı Başvuru
@@ -149,6 +158,7 @@ Halitcan sana ajan ismi söylemek zorunda değil. Sen karar verirsin.
 | deploy, VPS, Docker, sunucu | deploy |
 | tablo, migration, SQL, Supabase | database |
 | giriş, login, OAuth, rol, yetki | auth + database |
+| RLS policy | database + auth |
 | rezervasyon, müsaitlik, takvim | reservations + database |
 | işletme paneli, masa planı | business + web |
 | müşteri, arama, profil | customer + web |
@@ -172,6 +182,17 @@ Halitcan sana ajan ismi söylemek zorunda değil. Sen karar verirsin.
 
 ### Emin olamazsan
 Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı `database`, UI tarafı `web`/`mobile`.
+
+### Hangi Ajan Ne Zaman KULLANILMAZ
+
+| Durum | Yanlış ajan | Doğru ajan |
+|---|---|---|
+| Supabase migration yazıyorum | web | database |
+| Docker config değiştiriyorum | web | deploy |
+| Rol sistemi güncelliyorum | web | auth + database |
+| Mobil animasyon yapıyorum | web | mobile |
+| Landing page copy yazıyorum | product | content |
+| Feature karar veriyorum | web | product |
 
 ---
 
