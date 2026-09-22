@@ -112,7 +112,12 @@ export async function PATCH(req: NextRequest) {
     if (!old) return NextResponse.json({ error: 'Kayit bulunamadi' }, { status: 404 })
 
     // Eski kaydi kapat
-    await db.from('musteri_paketleri').update({ aktif: false, updated_at: new Date().toISOString() }).eq('id', id)
+    const { error: closeError } = await db.from('musteri_paketleri').update({ aktif: false, updated_at: new Date().toISOString() }).eq('id', id)
+    // Eski paket kapanmadan yenisi açılırsa müşteride iki aktif paket olur
+    if (closeError) {
+      console.error('[musteri-paketleri] eski paket kapatma hatası:', closeError, { id })
+      return NextResponse.json({ error: 'Eski paket kapatılamadı' }, { status: 500 })
+    }
 
     const { data: paket } = await db.from('paketler').select('toplam_seans, gecerlilik_gun').eq('id', old.paket_id).single()
     if (!paket) return NextResponse.json({ error: 'Paket bulunamadi' }, { status: 404 })
