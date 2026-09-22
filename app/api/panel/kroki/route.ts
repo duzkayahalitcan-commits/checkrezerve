@@ -132,7 +132,12 @@ export async function POST(req: NextRequest) {
   if (incomingIds.length > 0) {
     deactivateQuery = deactivateQuery.not('id', 'in', `(${incomingIds.join(',')})`)
   }
-  await deactivateQuery
+  const { error: deactivateError } = await deactivateQuery
+  // Silinen masalar pasifleşmezse rezervasyon formunda görünmeye devam eder
+  if (deactivateError) {
+    console.error('[Kroki POST] masa pasifleştirme hatası:', deactivateError.message)
+    return NextResponse.json({ error: deactivateError.message }, { status: 500 })
+  }
 
   if (allTables.length > 0) {
     const rows = allTables.map((t: any) => {
