@@ -48,3 +48,6 @@ __pycache__/
 
 # tesseract.js OCR cache
 *.traineddata
+
+# codegraph index
+.codegraph/
