@@ -9,8 +9,8 @@ function getBaseUrl(): string {
   if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')
   // 2. Tarayıcıdan origin al (her zaman admin path'i içermez)
   if (typeof window !== 'undefined') return window.location.origin
-  // 3. Railway fallback
-  return 'https://checkrezerve-app-production.up.railway.app'
+  // 3. Canlı domain fallback (eski Railway URL'si kaldırıldı — QR kodlar ölü adrese gitmesin)
+  return 'https://checkrezerve.com'
 }
 
 export function QRCodeButton({ slug, name }: { slug: string; name: string }) {
