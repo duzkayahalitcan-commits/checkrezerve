@@ -27,7 +27,8 @@ export async function GET(req: NextRequest) {
   const db = getSupabaseAdmin()
 
   // Trialing kaydı bul ve İyzico referanslarıyla güncelle
-  await db
+  // Hata okunmazsa ödeme alınmış ama abonelik aktifleşmemişken kullanıcıya "success" gösteriliyordu.
+  const { data: updated, error } = await db
     .from('subscriptions')
     .update({
       status:                  'active',
@@ -37,6 +38,20 @@ export async function GET(req: NextRequest) {
     })
     .eq('restaurant_id', restaurantId)
     .eq('status', 'trialing')
+    .select('id')
+
+  if (error) {
+    console.error('[subscriptions/callback] abonelik güncelleme hatası:', error, {
+      restaurantId, subscriptionRef: result.subscriptionReferenceCode,
+    })
+    return NextResponse.redirect(`${appUrl}/panel?subscription=error`)
+  }
+  if (!updated?.length) {
+    // Trialing kayıt yoksa iyzico ref'i hiçbir yere yazılmadı → webhook'lar aboneliği bulamaz.
+    console.error('[subscriptions/callback] güncellenecek trialing abonelik yok', {
+      restaurantId, subscriptionRef: result.subscriptionReferenceCode,
+    })
+  }
 
   return NextResponse.redirect(`${appUrl}/panel?subscription=success`)
 }
