@@ -63,11 +63,19 @@ export default function KanalTercihi() {
     if (!session) return
     const it = items.find(x => x.restaurant_id === bizId)
     const kanallar = it?.kanallar.map(k => k.kanal === kanal ? { ...k, aktif: !k.aktif } : k) ?? []
-    await fetch('/api/musteri/kanal-tercihleri', {
+    const res = await fetch('/api/musteri/kanal-tercihleri', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
       body: JSON.stringify({ restaurant_id: bizId, kanallar }),
-    })
+    }).catch(() => null)
+    // Kayıt başarısızsa iyimser değişikliği geri al (kullanıcı kaydedildi sanmasın)
+    if (!res?.ok) {
+      setItems(prev => prev.map(x =>
+        x.restaurant_id === bizId
+          ? { ...x, kanallar: x.kanallar.map(k => k.kanal === kanal ? { ...k, aktif: !k.aktif } : k) }
+          : x
+      ))
+    }
   }
 
   if (loading) return <div className="text-zinc-400 text-sm py-4">Yükleniyor...</div>

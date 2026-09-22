@@ -50,9 +50,13 @@ export async function PUT(req: NextRequest) {
     const kanal = String(k.kanal ?? '')
     if (!KANALLAR.includes(kanal as never)) continue
     const aktif = !!k.aktif
-    await db
+    const { error } = await db
       .from('bildirim_kanal_ayarlari')
       .upsert({ restaurant_id: session.restaurantId, kanal, aktif, updated_at: new Date().toISOString() }, { onConflict: 'restaurant_id,kanal' })
+    if (error) {
+      console.error('[bildirim-kanallari] upsert hatası:', error, { kanal })
+      return NextResponse.json({ error: 'Kanal ayarı kaydedilemedi.' }, { status: 500 })
+    }
   }
 
   return NextResponse.json({ ok: true })
