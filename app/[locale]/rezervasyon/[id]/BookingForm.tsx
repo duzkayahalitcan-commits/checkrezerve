@@ -65,6 +65,12 @@ interface Props {
   // calisan_id → dayKey → { start, end, open } — çalışan bazlı çalışma saatleri
   staffHours:       Record<string, Record<string, Record<string, unknown>>> | null
   occupiedZoneIds:  string[]
+  // deposit_required feature flag açık ve tutar ayarlanmışsa dolu gelir; aksi halde null.
+  // null ise müşteriye hiçbir ön ödeme bilgisi gösterilmez.
+  prepaymentAmount?: number | null
+  // waitlist feature flag açıksa, günün tüm saatleri doluyken bekleme listesi
+  // CTA'sı gösterilir. Kapalıysa dolu saatler öncekiyle aynı şekilde (çizili/kırmızı) kalır.
+  waitlistEnabled?: boolean
 }
 
 // Fallback slot listesi (working_hours yoksa 09:00-22:00)
@@ -130,6 +136,8 @@ export default function BookingForm({
   hizmetler, calisanlar,
   floorPlanEnabled, floorTables, specialAreas,
   krokiMode, krokiZones, workingHours, staffHours, occupiedZoneIds,
+  prepaymentAmount = null,
+  waitlistEnabled = false,
 }: Props) {
   const router = useRouter()
   const t = useTranslations('bookingForm')
@@ -584,6 +592,8 @@ export default function BookingForm({
 
   const renderTimeSlots = () => {
     const isClosed = TIME_SLOTS.length === 0
+    // waitlist feature flag açıksa ve günün tüm saatleri doluysa bekleme listesi CTA'sı göster.
+    const allSlotsFull = !isClosed && TIME_SLOTS.every(s => occupiedSlots.has(s))
     return (
       <div>
         {isClosed ? (
@@ -615,6 +625,19 @@ export default function BookingForm({
                 </motion.button>
               )
             })}
+          </div>
+        )}
+
+        {/* waitlist feature flag: tüm saatler doluyken işletmeyi telefonla aramaya yönlendiren
+            bekleme listesi CTA'sı. Gerçek bir bekleme listesi kaydı tutulmuyor (henüz inşa
+            edilmedi); flag açıkken en azından tutarlı bir "bekleme listesi" mesajı gösterilir,
+            flag kapalıyken hiçbir ek UI görünmez (önceki davranış — dolu saatler sadece çizili). */}
+        {!isClosed && allSlotsFull && waitlistEnabled && (
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <span className="font-semibold">⏳ Bu gün için tüm saatler dolu.</span>
+            <p className="mt-1 text-xs text-amber-700">
+              Bekleme listesine eklenmek için işletmeyi arayabilirsiniz; bir yer boşalırsa size dönüş yapılır.
+            </p>
           </div>
         )}
       </div>
@@ -995,6 +1018,17 @@ export default function BookingForm({
           <div className="text-sm text-zinc-500 bg-amber-50 rounded-xl p-4 border border-amber-100">
             <span className="font-semibold text-amber-700">📝 {r('adim.bilgi.ozelNot')}:</span>
             <p className="mt-1">{specialNotes}</p>
+          </div>
+        )}
+
+        {/* deposit_required feature flag açık ve tutar > 0 ise göster */}
+        {!!prepaymentAmount && prepaymentAmount > 0 && (
+          <div className="text-sm text-amber-800 bg-amber-50 rounded-xl p-4 border border-amber-200">
+            <span className="font-semibold">💳 Ön ödeme gerekli:</span>{' '}
+            <span>{prepaymentAmount.toLocaleString('tr-TR')} ₺</span>
+            <p className="mt-1 text-xs text-amber-700">
+              Rezervasyonunuzun onaylanması için ön ödeme yapmanız gerekir. Ödeme koşulları rezervasyon onay mesajında belirtilir.
+            </p>
           </div>
         )}
 
