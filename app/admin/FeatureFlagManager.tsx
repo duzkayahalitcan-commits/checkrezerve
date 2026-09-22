@@ -81,7 +81,7 @@ export default function FeatureFlagManager({
       }
 
       setFlags(prev => {
-        let updated = [...prev]
+        const updated = [...prev]
         const updateFlag = (f: string, e: boolean) => {
           const idx = updated.findIndex(fl => fl.restaurant_id === restaurantId && fl.feature === f)
           if (idx >= 0) {

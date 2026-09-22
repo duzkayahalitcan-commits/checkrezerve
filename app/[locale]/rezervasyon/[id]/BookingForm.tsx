@@ -197,7 +197,7 @@ export default function BookingForm({
       for (const staff of Object.values(staffHours)) {
         const day = staff?.[dayKey]
         if (!day || day.open === false) continue
-        let s = parseTime(day.start)
+        const s = parseTime(day.start)
         let e = parseTime(day.end)
         if (s == null || e == null) continue
         if (e === 0) e = 24 * 60 // gece yarısı kapanış = 24:00
