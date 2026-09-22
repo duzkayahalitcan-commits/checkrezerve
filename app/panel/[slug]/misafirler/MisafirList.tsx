@@ -107,10 +107,13 @@ export default function MisafirList({
       )
 
       if (hasTag) {
-        await client.from('guest_tag_assignments').delete().match({ guest_id: guestId, tag_id: tag.id })
+        // RLS izin vermezse delete hata vermeden 0 satır siler → satır sayısını da kontrol et
+        const { data, error } = await client.from('guest_tag_assignments').delete().match({ guest_id: guestId, tag_id: tag.id }).select('tag_id')
+        if (error || !data?.length) throw error ?? new Error('etiket silinmedi')
         setGuestTags(prev => ({ ...prev, [guestId]: current.filter(t => t !== tagName) }))
       } else {
-        await client.from('guest_tag_assignments').insert({ guest_id: guestId, tag_id: tag.id })
+        const { error } = await client.from('guest_tag_assignments').insert({ guest_id: guestId, tag_id: tag.id })
+        if (error) throw error
         setGuestTags(prev => ({ ...prev, [guestId]: [...current, tagName] }))
       }
       void logActivity(guestId, 'tag_change', `${hasTag ? 'Etiket kaldırıldı' : 'Etiket eklendi'}: ${tagName}`)
