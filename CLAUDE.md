@@ -13,9 +13,11 @@ Builder: Halitcan (solo)
 
 ## Öğrenilmiş Kurallar
 
-Görev başında `.agents/learned.md`'yi oku, ilgili kurallar varsa uygula. Bir kural gerçekten bir
-iş problemini önlediyse `wins`'i, uygulandı ama fark etmediyse `applied`'i, bilerek atlandıysa
-`skipped`'i 1 artır.
+Görev başında `.agents/learned.md`'yi oku. İlgili bir kural varsa, görevin
+YAPILACAKLAR/todo listesine son madde olarak şunu ekle: "learned.md: <kural adı>
+için wins/applied/skipped sayacını güncelle" — kural gerçekten bir iş problemini
+önlediyse `wins`'i, uygulandı ama fark etmediyse `applied`'i, bilerek atlandıysa
+`skipped`'i 1 artır. Bu madde tamamlanmadan görevi/review'u bitirme.
 
 ---
 
