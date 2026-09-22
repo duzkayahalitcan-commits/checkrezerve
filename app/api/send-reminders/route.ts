@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
         ? `https://checkrezerve.com/tr/rezervasyon/iptal/${cancelToken}`
         : undefined
 
-      await sendReservationReminder({
+      const result = await sendReservationReminder({
         to:                 r.guest_phone,
         customerName:       r.guest_name,
         restaurantName:     restaurant?.name,
@@ -73,6 +73,15 @@ export async function POST(req: NextRequest) {
         partySize:          r.party_size,
         cancelUrl,
       })
+
+      // BUG FİX: sendSms hata durumunda throw etmez, {success:false, error} döner.
+      // Önceden burada sonuç kontrol edilmediği için Twilio hatası (örn. E.164
+      // formatı yanlış → 21211) olsa bile rezervasyon "sent" sayılıyordu.
+      // Artık başarısız sonuç açıkça throw ediliyor ki Promise.allSettled
+      // doğru rejected/fulfilled ayrımını yapabilsin ve hata loglansın.
+      if (!result.success) {
+        throw new Error(result.error ?? 'Bilinmeyen SMS/WhatsApp hatası')
+      }
 
       return r.id
     })

@@ -3,7 +3,7 @@
 import { createHash, randomBytes } from 'crypto'
 import { supabase } from '@/lib/supabase'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import { sendReservationConfirmation } from '@/lib/notification-service'
+import { sendReservationConfirmation, normalizePhoneE164 } from '@/lib/notification-service'
 import { triggerN8nReservation } from '@/lib/n8n'
 
 function generateCancellationToken(): string {
@@ -98,9 +98,9 @@ export async function createReservation(
     return { success: false, error: 'Bir hata oluştu. Lütfen tekrar deneyin.', guestName: null }
   }
 
-  // WhatsApp / SMS onayı
-  const phone = guestPhone.replace(/\D/g, '')
-  const e164  = phone.startsWith('0') ? `+9${phone}` : `+${phone}`
+  // WhatsApp / SMS onayı (sendSms zaten normalizePhoneE164 uygular; e164 burada
+  // yalnızca n8n webhook payload'ı için ayrıca hesaplanıyor)
+  const e164 = normalizePhoneE164(guestPhone)
 
   sendReservationConfirmation({
     to:             e164,
