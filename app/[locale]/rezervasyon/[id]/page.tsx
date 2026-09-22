@@ -60,8 +60,8 @@ export default async function BusinessDetailPage({ params }: Props) {
   if (!biz) notFound()
 
   // Çalışan çalışma saatleri (calisan_saatler) — booking'te slot aralığını
-  // çalışan bazlı kısıtlamak için. RLS super_admin_only olduğundan anon/authenticated
-  // istemci okuyamaz; burada service role (admin, RLS bypass) kullanılır.
+  // çalışan bazlı kısıtlamak için. RLS'te public SELECT policy'si var (anon da okuyabilir);
+  // burada sayfanın geri kalanıyla aynı admin istemcisi kullanılıyor.
   // Normalize: gun 0=Pazartesi..6=Pazar → workingHours dayKey (monday..sunday).
   const DAY_INDEX_MAP = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
   const staffIds = (rawStaff ?? []).map((c: Record<string, unknown>) => c.id as string)
