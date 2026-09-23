@@ -13,7 +13,7 @@ function getBaseUrl(): string {
   return 'https://checkrezerve.com'
 }
 
-export function QRCodeButton({ slug, name }: { slug: string; name: string }) {
+export function QRCodeButton({ slug, name, label = 'QR', className }: { slug: string; name: string; label?: string; className?: string }) {
   const [open, setOpen] = useState(false)
   const canvasRef       = useRef<HTMLCanvasElement>(null)
 
@@ -38,14 +38,33 @@ export function QRCodeButton({ slug, name }: { slug: string; name: string }) {
     link.click()
   }
 
+  // CH-03: Masaya/vitrine basılabilir kart — tarayıcının yazdır penceresi ("PDF olarak kaydet")
+  function printCard() {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const img = canvas.toDataURL('image/png')
+    const w = window.open('', '_blank', 'width=600,height=800')
+    if (!w) return
+    const esc = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!))
+    w.document.write(`<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>${esc(name)} – QR</title>
+      <style>body{font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:40px}
+      .kart{border:2px solid #18181b;border-radius:24px;padding:32px;text-align:center;width:320px}
+      h1{font-size:22px;margin:0 0 6px}p{margin:6px 0;color:#52525b;font-size:13px}img{width:240px;height:240px;margin:16px auto}
+      .url{font-family:monospace;font-size:11px;word-break:break-all}@media print{body{padding:0}}</style></head>
+      <body><div class="kart"><h1>${esc(name)}</h1><p>Rezervasyon için okutun</p><img src="${img}" alt="QR kod">
+      <p class="url">${esc(reservationUrl)}</p><p>CheckRezerve</p></div>
+      <script>window.onload=()=>{window.print()}</script></body></html>`)
+    w.document.close()
+  }
+
   return (
     <>
       <button
         onClick={() => setOpen(true)}
         title="QR Kod Oluştur"
-        className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-stone-400 hover:border-amber-500/30 hover:text-amber-400 transition-colors"
+        className={className ?? 'flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-stone-400 hover:border-amber-500/30 hover:text-amber-400 transition-colors'}
       >
-        QR
+        {label}
       </button>
 
       {open && (
@@ -85,6 +104,12 @@ export function QRCodeButton({ slug, name }: { slug: string; name: string }) {
                 className="flex-1 rounded-xl bg-amber-500 py-2.5 text-sm font-bold text-white hover:bg-amber-400 transition-colors"
               >
                 PNG İndir
+              </button>
+              <button
+                onClick={printCard}
+                className="flex-1 rounded-xl bg-stone-700 py-2.5 text-sm font-bold text-white hover:bg-stone-600 transition-colors"
+              >
+                Yazdır / PDF
               </button>
               <button
                 onClick={() => setOpen(false)}

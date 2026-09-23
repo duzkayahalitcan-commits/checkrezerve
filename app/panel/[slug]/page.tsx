@@ -10,6 +10,7 @@ import ExportButton   from './ExportButton'
 import CountUp        from '@/components/CountUp'
 import ReservationChart from '@/components/ui/ReservationChart'
 import type { Reservation, SpecialArea } from '@/types'
+import { QRCodeButton } from '@/app/admin/restaurants/QRCodeButton'
 
 const CiroDashboard = nextDynamic(() => import('./dashboard/CiroDashboard'))
 
@@ -160,7 +161,7 @@ export default async function PanelDashboardPage({
         </section>
 
         {/* Quick action — tek birleşik CTA (A3) */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <Link href={`/panel/${slug}/rezervasyonlar?yeni=1`}
             className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white rounded-xl px-4 py-3.5 text-sm font-semibold transition-colors">
             <Plus size={16} /> Yeni Rezervasyon
@@ -173,6 +174,9 @@ export default async function PanelDashboardPage({
             className="flex items-center justify-center gap-2 bg-stone-900 border border-stone-800 hover:border-stone-700 text-stone-300 rounded-xl px-4 py-3.5 text-sm font-medium transition-colors">
             <Users size={15} /> Misafirler
           </Link>
+          {/* CH-03: rezervasyon sayfası QR kodu (PNG / yazdırılabilir kart) */}
+          <QRCodeButton slug={restaurant.slug} name={restaurant.name} label="QR kod (masa kartı)"
+            className="flex items-center justify-center gap-2 bg-stone-900 border border-stone-800 hover:border-stone-700 text-stone-300 rounded-xl px-4 py-3.5 text-sm font-medium transition-colors" />
         </section>
 
         {/* Ciro Dashboard Widget */}
