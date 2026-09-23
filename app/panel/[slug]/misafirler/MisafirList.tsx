@@ -17,7 +17,10 @@ type Guest = {
   last_visit_date?: string | null
   visits?: number
   lastVisit?: string
+  history?: { date: string; time: string; status: string; hizmet: string | null; calisan: string | null }[]
 }
+
+const STATUS_TR: Record<string, string> = { pending: 'Beklemede', confirmed: 'Onaylı', completed: 'Tamamlandı', cancelled: 'İptal' }
 
 type Tag = {
   id: string
@@ -215,7 +218,7 @@ export default function MisafirList({
 
                 {/* Expanded: guest detail + tags + notes */}
                 <AnimatePresence>
-                  {isSelected && guest.id && (
+                  {isSelected && !!(guest.id || guest.history?.length) && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
@@ -224,6 +227,24 @@ export default function MisafirList({
                       className="overflow-hidden"
                     >
                       <div className="mt-4 pt-4 border-t border-stone-800 space-y-4">
+                        {/* CR-01/CR-06: iletişim + ziyaret geçmişi */}
+                        {guest.email && <p className="text-xs text-stone-400">✉️ {guest.email}</p>}
+                        {!!guest.history?.length && (
+                          <div>
+                            <p className="text-[11px] text-stone-500 font-semibold uppercase tracking-wider mb-2">Ziyaret geçmişi</p>
+                            <ul className="space-y-1">
+                              {guest.history.map((h, hi) => (
+                                <li key={hi} className="text-xs text-stone-300 flex flex-wrap gap-x-3">
+                                  <span className="text-stone-400">{h.date} {h.time}</span>
+                                  {h.hizmet && <span>{h.hizmet}</span>}
+                                  {h.calisan && <span className="text-stone-500">· {h.calisan}</span>}
+                                  <span className="text-stone-500">{STATUS_TR[h.status] ?? h.status}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {guest.id && (<>
                         {/* Tag management */}
                         <div>
                           <p className="text-[11px] text-stone-500 font-semibold uppercase tracking-wider mb-2">Segmentasyon</p>
@@ -284,6 +305,7 @@ export default function MisafirList({
                             {savingNote ? 'Kaydediliyor...' : 'Kaydet'}
                           </button>
                         </div>
+                        </>)}
                       </div>
                     </motion.div>
                   )}
