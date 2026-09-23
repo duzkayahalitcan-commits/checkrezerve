@@ -17,7 +17,14 @@
 --   Mobil 'pending' dışında status yazıyorsa ADIM 1 mobil rezervasyonu KIRAR.
 --   Mobil repoda: grep -rn "from('reservations')" -A5 | grep -E "insert|status"
 --
--- RİSK: ADIM 1 orta (mobil akışa bağlı), ADIM 2 düşük-orta (istemci tarafında calisanlar'dan
+-- ✅ ÖN KONTROL YAPILDI (2026-09-23 sabah, checkrezerve-app f9f3a52 okundu):
+--   - Mobil müşteri akışı (ReservationFlowScreen.tsx:559) status='pending' ile insert → ADIM 1'i geçer.
+--   - Mobil panel (NewReservationScreen.tsx:72) status='confirmed' ile insert; DB'deki panel rolleri
+--     business_owner / business_manager / super_admin → reservations_owner / reservations_manager_insert /
+--     reservations_super_admin policy'lerinden geçer (anon_insert'e ihtiyaç yok).
+--   - Web /api/rezervasyon ve /api/panel/reservations admin client (RLS bypass) → etkilenmez.
+--   Sonuç: ADIM 1 mevcut akışları kırmaz.
+-- RİSK: ADIM 1 düşük (yukarıdaki kontrol), ADIM 2 düşük-orta (istemci tarafında calisanlar'dan
 --   telefon/email okuyan ekran varsa boş gelir; web'de panel yazmaları admin client ile).
 --
 -- GERİ DÖNÜŞ: dosyanın sonunda.
