@@ -23,7 +23,7 @@ verisinin hâlâ veritabanında durduğu fark edilmeden kapatılabilecek bir bug
 `guest_name` / `guest_phone` olduğunu doğrula. `customer_name` / `phone` görürsen legacy kabul et,
 kullanma. Migration/schema dosyasını kontrol etmeden PII kolon ismi varsayma.
 
-<!-- learned-stamp: category=database; capturedAt=2026-09-21; applied=2; wins=1; skipped=0 -->
+<!-- learned-stamp: category=database; capturedAt=2026-09-21; applied=3; wins=2; skipped=0 -->
 
 ---
 
@@ -55,7 +55,7 @@ dönüşümleri bu riski artırır.
 `rg -i` kullan. Türkçe karakterli ifadelerde ayrıca harf varyantlarını (`[İi]`, `[Iı]`) dene.
 Boş sonuçtan sonra `echo "exit: $?"` ile grep'in gerçekten çalıştığını doğrula.
 
-<!-- learned-stamp: category=tooling; capturedAt=2026-09-23; applied=0; wins=0; skipped=0 -->
+<!-- learned-stamp: category=tooling; capturedAt=2026-09-23; applied=1; wins=0; skipped=0 -->
 
 ---
 
@@ -71,7 +71,7 @@ kodda hiçbir yorumdan anlaşılmıyordu.
 `pg_policies`, `pg_constraint` veya `information_schema.columns` ile SELECT yap. Yorum ile DB
 çelişirse DB doğrudur; yorumu düzelt.
 
-<!-- learned-stamp: category=database; capturedAt=2026-09-23; applied=0; wins=0; skipped=0 -->
+<!-- learned-stamp: category=database; capturedAt=2026-09-23; applied=1; wins=1; skipped=0 -->
 
 ---
 
@@ -87,4 +87,21 @@ raporlar web rezervasyonlarının hizmetini hiç görmüyor.
 `SELECT table_name, column_name FROM information_schema.columns WHERE column_name ILIKE '%hizmet%' OR column_name ILIKE '%service%';`
 Varsa onu kullan; yoksa yenisini ekle ve CLAUDE.md "Şema Tuzakları"na yaz.
 
-<!-- learned-stamp: category=database; capturedAt=2026-09-23; applied=0; wins=0; skipped=0 -->
+<!-- learned-stamp: category=database; capturedAt=2026-09-23; applied=1; wins=0; skipped=0 -->
+
+---
+
+### 6. İstemcide anon client ile yazma/okuma yapan panel/müşteri akışlarını RLS'e karşı doğrula
+
+Aynı gece dört ayrı yerde aynı desen çıktı: tarayıcıda `createClient(URL, ANON_KEY)` ile
+`reservations`/`guest_tag_assignments` üzerinde update/delete/select. RLS anon'a izin vermediğinde
+**update/delete hata vermez, 0 satır etkiler**; select boş döner. Sonuç: misafir iptal linki hiç
+iptal etmiyordu, onay sayfası hep "bulunamadı" diyordu, etiket "eklendi" deyip eklemiyordu.
+Ayrıca server action'lar (`'use server'`) herkese açık POST uç noktasıdır; API route'larla aynı
+tenant/rol kontrolünü ister (takvim action'ları başka işletmenin rezervasyonunu güncelleyebiliyordu).
+
+**Kural:** Yazma işlemi API route/server action + `getSupabaseAdmin()` + oturumdan gelen
+`restaurantId` filtresiyle yapılır. İstemciden yazma kalmışsa `.select()` ile etkilenen satır
+sayısını kontrol et. Güvenlik taramasında `app/api` ile birlikte tüm `'use server'` dosyalarını da tara.
+
+<!-- learned-stamp: category=security; capturedAt=2026-09-23; applied=0; wins=0; skipped=0 -->
