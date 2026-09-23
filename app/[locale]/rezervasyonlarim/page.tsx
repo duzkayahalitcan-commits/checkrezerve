@@ -50,15 +50,24 @@ export default function RezervasyonlarimPage() {
 
   const active = tab === 'upcoming' ? upcoming : tab === 'past' ? past : cancelled
 
+  const [cancelError, setCancelError] = useState<string | null>(null)
+  // #3: önceden PATCH /api/rezervasyon (405) çağrılıyor, hata yutulup "iptal edildi" gösteriliyordu
   const cancelReservation = async (id: string) => {
     setCancelling(id)
-    await fetch('/api/rezervasyon', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, status: 'cancelled' }),
-    }).catch(() => {})
-    setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'cancelled' } : r))
+    setCancelError(null)
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = session ? await fetch('/api/musteri/rezervasyonlar/iptal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ id }),
+    }).catch(() => null) : null
     setCancelling(null)
+    if (!res?.ok) {
+      const json = await res?.json().catch(() => null)
+      setCancelError(json?.error ?? 'İptal edilemedi. Lütfen tekrar deneyin.')
+      return
+    }
+    setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'cancelled' } : r))
     setSelected(null)
   }
 
@@ -108,6 +117,10 @@ export default function RezervasyonlarimPage() {
             </button>
           ))}
         </div>
+
+        {cancelError && (
+          <div role="alert" className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{cancelError}</div>
+        )}
 
         {active.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-zinc-200">
