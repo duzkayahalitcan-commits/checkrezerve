@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { timingSafeEqual } from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
 /**
@@ -13,7 +14,8 @@ import { getSupabaseAdmin } from '@/lib/supabase'
  *   total          number   — ödeme tutarı (opsiyonel, log için)
  *   closed_at      string   — ISO 8601 zaman damgası
  *
- * Header: X-Webhook-Secret — restaurants.webhook_secret ile eşleşmeli
+ * Header: X-Webhook-Secret — restaurant_secrets.webhook_secret ile eşleşmeli
+ *   (restaurants.webhook_secret anon'a açıktı; sırlar service_role-only tabloya taşındı — SQL 04-SC-02)
  */
 export async function POST(req: NextRequest) {
   const db = getSupabaseAdmin()
@@ -38,23 +40,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'table_name and restaurant_id required' }, { status: 400 })
   }
 
-  // ─── 3) Restoran kontrolü + webhook_secret doğrulama ──────────────────
-  const { data: restaurant, error: restErr } = await db
-    .from('restaurants')
-    .select('id, webhook_secret, name')
-    .eq('id', restaurant_id)
-    .single()
+  // ─── 3) Sır doğrulama (restaurant_secrets, sadece service_role) ────────
+  const { data: secretRow, error: secErr } = await db
+    .from('restaurant_secrets')
+    .select('webhook_secret')
+    .eq('restaurant_id', restaurant_id)
+    .maybeSingle()
+  if (secErr) console.error('[pos-webhook] restaurant_secrets okunamadı:', secErr.message)
 
-  if (restErr || !restaurant) {
-    return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
+  // Geçiş dönemi: tablo boş/erişilemezse eski kolona düş (SQL 08 eski kolonu boşaltınca devre dışı kalır)
+  let dbSecret = secretRow?.webhook_secret ?? null
+  if (!dbSecret) {
+    const { data: legacy } = await db.from('restaurants').select('webhook_secret').eq('id', restaurant_id).maybeSingle()
+    dbSecret = legacy?.webhook_secret ?? null
   }
+  if (dbSecret?.startsWith('\\x')) dbSecret = dbSecret.slice(2) // bytea hex öneki
 
-  // Supabase bytea tipini hex string'e çevir (\x prefix varsa kırp)
-  const dbSecret = restaurant.webhook_secret?.startsWith('\\x')
-    ? restaurant.webhook_secret.slice(2)
-    : restaurant.webhook_secret
-
-  if (!dbSecret || dbSecret !== headerSecret) {
+  // İşletme yoksa da 401 (varlığı sızdırma); karşılaştırma sabit zamanlı
+  const a = Buffer.from(dbSecret ?? '')
+  const b = Buffer.from(headerSecret)
+  if (!dbSecret || a.length !== b.length || !timingSafeEqual(a, b)) {
     return NextResponse.json({ error: 'Invalid webhook secret' }, { status: 401 })
   }
 
@@ -72,14 +77,15 @@ export async function POST(req: NextRequest) {
   }
 
   // ─── 5) Bugünkü confirmed rezervasyonu bul ────────────────────────────
-  const today = new Date().toISOString().split('T')[0]
+  // Türkiye tarihi (UTC 21:00 sonrası ertesi gün) — toISOString UTC gününü veriyordu
+  const today = new Date(Date.now() + 3 * 3600_000).toISOString().split('T')[0]
 
   const { data: reservation, error: resErr } = await db
     .from('reservations')
-    .select('id, guest_name, reserved_time')
+    .select('id, guest_name, reserved_time, special_requests')
     .eq('restaurant_id', restaurant_id)
     .eq('table_id', table.id)
-    .eq('date', today)
+    .eq('reserved_date', today)   // legacy `date` kolonu yeni kayıtlarda boş
     .eq('status', 'confirmed')
     .order('reserved_time', { ascending: false })
     .limit(1)
@@ -95,17 +101,19 @@ export async function POST(req: NextRequest) {
   }
 
   // ─── 6) Rezervasyonu completed yap ─────────────────────────────────────
+  // `completed_at` kolonu DB'de yok → update her zaman 500 dönüyordu. Kapanış zamanı yanıtta döner.
   const completedAt = closed_at ?? new Date().toISOString()
+  const posNote = typeof total === 'number' ? `POS ödeme: ${total.toFixed(2)} TL` : null
 
   const { error: updateErr } = await db
     .from('reservations')
     .update({
       status: 'completed',
-      completed_at: completedAt,
-      // total varsa metadata'ya ekle
-      ...(total ? { special_requests: `POS ödeme: ${total.toFixed(2)} TL` } : {}),
+      // Müşteri notunu ezme, POS bilgisini ekle
+      ...(posNote ? { special_requests: [reservation.special_requests, posNote].filter(Boolean).join(' | ') } : {}),
     })
     .eq('id', reservation.id)
+    .eq('restaurant_id', restaurant_id)
 
   if (updateErr) {
     console.error('[pos-webhook] update error:', updateErr)
