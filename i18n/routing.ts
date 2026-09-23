@@ -168,5 +168,6 @@ export const routing = defineRouting({
     '/sss': '/sss',
     '/yasal/basvuru-formu-aydinlatma': '/yasal/basvuru-formu-aydinlatma',
     '/yasal/mesafeli-satis': '/yasal/mesafeli-satis',
+    '/yasal/iptal-iade': '/yasal/iptal-iade',
   },
 })
