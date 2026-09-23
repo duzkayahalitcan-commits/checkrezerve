@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { Plus, Pencil, Trash2, X, Check, DollarSign, Clock, ToggleLeft, ToggleRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/Toast'
+import { formatTL } from '@/lib/format'
 
 type Service = {
   id: string; ad: string; fiyat: number; sure_dakika?: number | null
@@ -158,7 +159,7 @@ export default function ServiceManager({ services: initial, restaurantId }: { se
                         {s.kategori && <span className="text-[10px] text-stone-500 bg-stone-800 px-2 py-0.5 rounded-full">{s.kategori}</span>}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-stone-500">
-                        <span className="flex items-center gap-1"><DollarSign size={10} />{s.fiyat.toLocaleString()} ₺</span>
+                        <span className="flex items-center gap-1"><DollarSign size={10} />{formatTL(s.fiyat)}</span>
                         {s.sure_dakika && <span className="flex items-center gap-1"><Clock size={10} />{s.sure_dakika} dk</span>}
                       </div>
                     </div>

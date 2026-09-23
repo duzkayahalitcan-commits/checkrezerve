@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { Package, Plus, Pencil, Check, X } from 'lucide-react'
+import { formatTL } from '@/lib/format'
 
 type Paket = {
   id: string
@@ -123,7 +124,7 @@ export default function PaketlerManager({ paketler: initial, services, restauran
               <div className="font-semibold text-white text-sm">{p.ad}</div>
               <div className="text-xs text-stone-400 mt-0.5">
                 {p.toplam_seans} seans · {p.gecerlilik_gun} gün
-                {p.fiyat ? ` · ₺${p.fiyat}` : ''}
+                {p.fiyat ? ` · ${formatTL(p.fiyat)}` : ''}
                 {p.hizmet_id ? ` · ${services.find(s => s.id === p.hizmet_id)?.name ?? '?'}` : ''}
               </div>
             </div>

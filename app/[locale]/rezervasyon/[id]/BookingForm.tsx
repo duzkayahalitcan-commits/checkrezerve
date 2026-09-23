@@ -14,6 +14,7 @@ import InteractiveFloorMap from '@/components/InteractiveFloorMap'
 import type { TableLayout } from '@/components/InteractiveFloorMap'
 import { ZONE_THEME_LABELS, ZONE_THEME_BG } from '@/src/types/kroki-zone'
 import type { ZoneTheme, ZonePoint } from '@/src/types/kroki-zone'
+import { formatTL } from '@/lib/format'
 
 type Hizmet     = { id: string; name: string; duration_minutes: number; price: number | null }
 type Calisan    = { id: string; name: string; title: string | null }
@@ -856,7 +857,7 @@ export default function BookingForm({
                   <div className="flex items-center gap-3 mt-1">
                     {h.price != null && (
                       <span className="text-xs font-semibold text-zinc-500">
-                        {r('adim.hizmet.fiyat')}: {h.price} ₺
+                        {r('adim.hizmet.fiyat')}: {formatTL(h.price)}
                       </span>
                     )}
                     <span className="text-xs text-zinc-400">
@@ -1027,7 +1028,7 @@ export default function BookingForm({
         {!!prepaymentAmount && prepaymentAmount > 0 && (
           <div className="text-sm text-amber-800 bg-amber-50 rounded-xl p-4 border border-amber-200">
             <span className="font-semibold">💳 Ön ödeme gerekli:</span>{' '}
-            <span>{prepaymentAmount.toLocaleString('tr-TR')} ₺</span>
+            <span>{formatTL(prepaymentAmount)}</span>
             <p className="mt-1 text-xs text-amber-700">
               Rezervasyonunuzun onaylanması için ön ödeme yapmanız gerekir. Ödeme koşulları rezervasyon onay mesajında belirtilir.
             </p>

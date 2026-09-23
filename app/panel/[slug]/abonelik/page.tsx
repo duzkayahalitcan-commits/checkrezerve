@@ -3,6 +3,7 @@ import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { Check, Ban, ShieldCheck, Undo2, Phone, Lock, Flag } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
+import { formatTL } from '@/lib/format'
 
 export const dynamic = 'force-dynamic'
 
@@ -122,7 +123,7 @@ export default async function AbonelikPage({
                     </span>
                   </div>
                   <span className="text-sm font-semibold text-white">
-                    {Number(p.amount).toLocaleString()} ₺
+                    {formatTL(p.amount)}
                   </span>
                 </div>
               ))}

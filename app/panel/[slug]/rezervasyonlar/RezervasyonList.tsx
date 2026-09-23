@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { Search, X, ChevronDown, Clock, Users, Phone, Filter } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/Toast'
+import { formatTL } from '@/lib/format'
 
 type Reservation = {
   id: string
@@ -337,7 +338,7 @@ export default function RezervasyonList({
                   { label: 'Kişi Sayısı', value: selectedRes.party_size ? `${selectedRes.party_size} kişi` : '—' },
                   selectedRes.special_areas?.name ? { label: 'Alan', value: selectedRes.special_areas.name } : null,
                   selectedRes.calisanlar?.ad ? { label: 'Çalışan', value: selectedRes.calisanlar.ad } : null,
-                  selectedRes.hizmetler?.ad ? { label: 'Hizmet', value: selectedRes.hizmetler.ad + (selectedRes.hizmetler.fiyat ? ` — ${selectedRes.hizmetler.fiyat} ₺` : '') } : null,
+                  selectedRes.hizmetler?.ad ? { label: 'Hizmet', value: selectedRes.hizmetler.ad + (selectedRes.hizmetler.fiyat ? ` — ${formatTL(selectedRes.hizmetler.fiyat)}` : '') } : null,
                   selectedRes.special_requests ? { label: 'Notlar', value: selectedRes.special_requests } : null,
                 ].filter(Boolean).map(f => f && (
                   <div key={f.label} className="flex gap-3">

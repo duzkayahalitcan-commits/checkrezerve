@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/Toast'
 import { addService, deleteService } from './actions'
+import { formatTL } from '@/lib/format'
 
 // NOT: DB kolon adları sure_dakika / fiyat
 type Service = { id: string; ad: string; sure_dakika: number; fiyat: number | null }
@@ -78,7 +79,7 @@ export default function Step2Services({
                 <div>
                   <span className="text-sm font-medium text-white">{s.ad}</span>
                   <span className="text-xs text-stone-400 ml-2">{s.sure_dakika} dk</span>
-                  {s.fiyat != null && <span className="text-xs text-[#D4A373] ml-2">{s.fiyat} ₺</span>}
+                  {s.fiyat != null && <span className="text-xs text-[#D4A373] ml-2">{formatTL(s.fiyat)}</span>}
                 </div>
                 <button
                   type="button"
@@ -157,7 +158,7 @@ export default function Step2Services({
               <div>
                 <span className="text-sm font-medium text-white">{s.ad}</span>
                 <span className="text-xs text-stone-400 ml-2">{s.sure_dakika} dk</span>
-                {s.fiyat != null && <span className="text-xs text-[#D4A373] ml-2">{s.fiyat} ₺</span>}
+                {s.fiyat != null && <span className="text-xs text-[#D4A373] ml-2">{formatTL(s.fiyat)}</span>}
               </div>
               <button
                 type="button"

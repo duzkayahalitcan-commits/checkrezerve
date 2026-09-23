@@ -7,6 +7,7 @@ import { tr } from 'date-fns/locale/tr'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import { supabase } from '@/lib/supabase'
 import { X, Phone, User, Clock, Tag, DollarSign } from 'lucide-react'
+import { formatTL } from '@/lib/format'
 
 const localizer = dateFnsLocalizer({
   format,
@@ -290,7 +291,7 @@ export default function CalendarView({ restaurantId, businessType, slug }: Props
               </div>
               {selectedEvent.price_paid != null && (
                 <div className="flex items-center gap-2 text-stone-400">
-                  <DollarSign size={14} /> ₺{selectedEvent.price_paid}
+                  <DollarSign size={14} /> {formatTL(selectedEvent.price_paid)}
                 </div>
               )}
             </div>

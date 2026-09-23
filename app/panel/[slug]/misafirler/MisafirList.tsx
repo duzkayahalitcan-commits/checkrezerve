@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { Search, X, Phone, Calendar, ChevronDown, Tag, Star, Save } from 'lucide-react'
 import { useToast } from '@/components/ui/Toast'
+import { formatTL } from '@/lib/format'
 
 type Guest = {
   id?: string
@@ -204,7 +205,7 @@ export default function MisafirList({
                           <span>Son: {new Date((guest.last_visit_date ?? guest.lastVisit)! + 'T12:00').toLocaleDateString(locale, { day: 'numeric', month: 'short' })}</span>
                         )}
                         {(guest.total_spent ?? 0) > 0 && (
-                          <span className="text-emerald-400 font-medium">{Number(guest.total_spent).toLocaleString(locale)} ₺</span>
+                          <span className="text-emerald-400 font-medium">{formatTL(guest.total_spent)}</span>
                         )}
                       </div>
                     </div>

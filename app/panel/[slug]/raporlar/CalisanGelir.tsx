@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, Download } from 'lucide-react'
+import { formatTL } from '@/lib/format'
 
 type CalisanRow = {
   calisan_adi: string
@@ -92,8 +93,8 @@ export default function CalisanGelir({ restaurantId }: { restaurantId: string })
                     <div className="font-medium text-white">{r.calisan_adi}</div>
                   </td>
                   <td className="py-3 px-3 text-right text-stone-300">{r.toplam_seans}</td>
-                  <td className="py-3 px-3 text-right text-amber-400 font-semibold">₺{r.toplam_gelir.toLocaleString()}</td>
-                  <td className="py-3 px-3 text-right text-stone-400">₺{r.ortalama_gelir.toLocaleString()}</td>
+                  <td className="py-3 px-3 text-right text-amber-400 font-semibold">{formatTL(r.toplam_gelir)}</td>
+                  <td className="py-3 px-3 text-right text-stone-400">{formatTL(r.ortalama_gelir)}</td>
                   <td className="py-3 px-3">
                     <div className="h-2 bg-stone-800 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-amber-500" style={{ width: `${(r.toplam_gelir / maxGelir) * 100}%` }} />

@@ -7,6 +7,7 @@ import {
   PieChart, Pie, Cell,
   AreaChart, Area,
 } from 'recharts'
+import { formatTL } from '@/lib/format'
 
 const GOLD = '#D4A373'
 const GREEN = '#22c55e'
@@ -298,7 +299,7 @@ function KpiCard({ label, value, diff, diffPct, suffix, progress }: {
     <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
       <p className="text-[11px] text-stone-500 uppercase tracking-wider mb-2">{label}</p>
       <p className={`text-2xl font-bold text-white ${suffix === '₺' ? '' : ''}`}>
-        {suffix === '₺' ? `${value.toLocaleString()} ₺` : `${value}${suffix}`}
+        {suffix === '₺' ? formatTL(value) : `${value}${suffix}`}
       </p>
       {diff !== 0 && (
         <p className={`text-xs mt-1 font-semibold flex items-center gap-1 ${diff >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>

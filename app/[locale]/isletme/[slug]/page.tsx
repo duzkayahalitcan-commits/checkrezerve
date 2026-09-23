@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { BUSINESS_TYPE_ICONS, BUSINESS_TYPE_LABELS, type BusinessType } from '@/types'
 import FavoriteToggle from '@/app/[locale]/rezervasyon/[id]/FavoriteToggle'
+import { formatTL } from '@/lib/format'
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>
@@ -170,7 +171,7 @@ export default async function IsletmePage({ params }: Props) {
                     )}
                   </div>
                   {h.fiyat != null && (
-                    <span className="text-sm font-bold text-[#E53935]">{h.fiyat} ₺</span>
+                    <span className="text-sm font-bold text-[#E53935]">{formatTL(h.fiyat)}</span>
                   )}
                 </div>
               ))}
