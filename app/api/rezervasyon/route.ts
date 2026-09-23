@@ -124,7 +124,11 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('[rezervasyon]', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      // PX-03: DB hata metni (FK/constraint) müşteriye gösterilmez; ayrıntı yukarıda loglanıyor
+      return NextResponse.json(
+        { error: 'Rezervasyonunuz kaydedilemedi. Bilgileriniz duruyor, lütfen tekrar deneyin; sorun sürerse işletmeyi arayın.' },
+        { status: 500 },
+      )
     }
 
     // ── S4-T2: Misafir aktivite kaydı (reservation) — async, engellemez ──
@@ -171,6 +175,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, id: data.id })
   } catch (err) {
     console.error('[rezervasyon]', err)
-    return NextResponse.json({ error: 'Sunucu hatası' }, { status: 500 })
+    return NextResponse.json({ error: 'Beklenmeyen bir sorun oluştu. Lütfen tekrar deneyin.' }, { status: 500 })
   }
 }
