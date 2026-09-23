@@ -33,14 +33,12 @@ export default function RezervasyonlarimPage() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.replace('/giris'); return }
 
-      const { data } = await supabase
-        .from('reservations')
-        .select('id, guest_name, reserved_date, reserved_time, party_size, status, created_at, restaurants(name, slug)')
-        .eq('guest_email', session.user.email ?? '')
-        .order('reserved_date', { ascending: false })
-        .limit(50)
-
-      setReservations((data ?? []) as unknown as ReservationRow[])
+      // #4: RLS anon/müşteri okumasına izin vermiyordu → liste hep boştu; sunucu API'si eşleştiriyor
+      const res = await fetch('/api/musteri/rezervasyonlar?limit=50', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      }).catch(() => null)
+      const json = await res?.json().catch(() => null)
+      setReservations((json?.reservations ?? []) as ReservationRow[])
       setLoading(false)
     })
   }, [router])
@@ -52,15 +50,24 @@ export default function RezervasyonlarimPage() {
 
   const active = tab === 'upcoming' ? upcoming : tab === 'past' ? past : cancelled
 
+  const [cancelError, setCancelError] = useState<string | null>(null)
+  // #3: önceden PATCH /api/rezervasyon (405) çağrılıyor, hata yutulup "iptal edildi" gösteriliyordu
   const cancelReservation = async (id: string) => {
     setCancelling(id)
-    await fetch('/api/rezervasyon', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, status: 'cancelled' }),
-    }).catch(() => {})
-    setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'cancelled' } : r))
+    setCancelError(null)
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = session ? await fetch('/api/musteri/rezervasyonlar/iptal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ id }),
+    }).catch(() => null) : null
     setCancelling(null)
+    if (!res?.ok) {
+      const json = await res?.json().catch(() => null)
+      setCancelError(json?.error ?? 'İptal edilemedi. Lütfen tekrar deneyin.')
+      return
+    }
+    setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'cancelled' } : r))
     setSelected(null)
   }
 
@@ -110,6 +117,10 @@ export default function RezervasyonlarimPage() {
             </button>
           ))}
         </div>
+
+        {cancelError && (
+          <div role="alert" className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{cancelError}</div>
+        )}
 
         {active.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-zinc-200">

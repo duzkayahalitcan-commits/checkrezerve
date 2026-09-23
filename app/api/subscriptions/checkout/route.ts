@@ -94,7 +94,11 @@ export async function POST(req: NextRequest) {
     iyzico_pricing_plan_ref: pricingPlanRef,
   })
 
-  if (dbErr) console.error('[subscriptions/checkout] db insert:', dbErr)
+  // Trialing kayıt yoksa ödeme alınsa bile callback aboneliği aktifleştiremez → ödeme formunu açma
+  if (dbErr) {
+    console.error('[subscriptions/checkout] db insert:', dbErr)
+    return NextResponse.json({ error: 'Abonelik kaydı oluşturulamadı.' }, { status: 500 })
+  }
 
   // Checkout başlatma durumunu logla (audit) — hassas token/checkoutFormContent loglanmaz
   const { data: logEntry } = await db

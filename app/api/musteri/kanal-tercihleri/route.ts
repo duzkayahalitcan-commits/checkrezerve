@@ -96,9 +96,14 @@ export async function PUT(req: NextRequest) {
     const aktif = !!k.aktif
     // Müşteri yalnızca işletmenin açtığı kanalı seçebilir; kapalı kanal AÇILAMAZ
     if (aktif && !acikKanallar.has(kanal)) continue
-    await db
+    const { error } = await db
       .from('musteri_kanal_tercihleri')
       .upsert({ musteri_id: musteriId, restaurant_id: restaurantId, kanal, aktif, updated_at: new Date().toISOString() }, { onConflict: 'musteri_id,restaurant_id,kanal' })
+    if (error) {
+      // Opt-out kaydı düşerse müşteri istemediği kanaldan mesaj almaya devam eder
+      console.error('[kanal-tercihleri] upsert hatası:', error, { kanal })
+      return NextResponse.json({ error: 'Tercih kaydedilemedi.' }, { status: 500 })
+    }
   }
 
   return NextResponse.json({ ok: true })

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { DollarSign, X, Check } from 'lucide-react'
+import { formatTL } from '@/lib/format'
 
 type BekleyenOdeme = {
   id: string
@@ -104,9 +105,9 @@ export default function OdemeTakip({ restaurantId }: { restaurantId: string }) {
                   <tr key={r.id} className={`border-b border-stone-800/50 hover:bg-white/[0.02] transition-colors ${vade ? 'bg-red-500/5' : ''}`}>
                     <td className="py-3 px-3 font-medium text-white">{r.musteri_adi}</td>
                     <td className="py-3 px-3 text-stone-300">{r.paket_adi}</td>
-                    <td className="py-3 px-3 text-right text-stone-300">₺{r.toplam_tutar?.toLocaleString() ?? '-'}</td>
-                    <td className="py-3 px-3 text-right text-stone-400">₺{r.odenen_tutar.toLocaleString()}</td>
-                    <td className="py-3 px-3 text-right font-semibold text-amber-400">₺{r.kalan_tutar.toLocaleString()}</td>
+                    <td className="py-3 px-3 text-right text-stone-300">{formatTL(r.toplam_tutar)}</td>
+                    <td className="py-3 px-3 text-right text-stone-400">{formatTL(r.odenen_tutar)}</td>
+                    <td className="py-3 px-3 text-right font-semibold text-amber-400">{formatTL(r.kalan_tutar)}</td>
                     <td className="py-3 px-3 text-stone-400 text-xs">{r.son_odeme_tarihi ?? '-'}</td>
                     <td className="py-3 px-3">
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
@@ -140,7 +141,7 @@ export default function OdemeTakip({ restaurantId }: { restaurantId: string }) {
               <h3 className="font-bold text-white text-sm">Ödeme Al</h3>
               <button onClick={() => setOdemeModal(null)} aria-label="Kapat" className="text-stone-500 hover:text-white"><X size={18} /></button>
             </div>
-            <p className="text-xs text-stone-400 mb-4">{odemeliModal.ad} - Kalan: ₺{odemeliModal.kalan.toLocaleString()}</p>
+            <p className="text-xs text-stone-400 mb-4">{odemeliModal.ad} - Kalan: {formatTL(odemeliModal.kalan)}</p>
             <input
               type="number"
               step="0.01"

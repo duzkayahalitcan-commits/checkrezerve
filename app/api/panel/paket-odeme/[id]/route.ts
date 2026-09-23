@@ -25,6 +25,7 @@ export async function PUT(
     .from('musteri_paketleri')
     .select('odenen_tutar, toplam_tutar, odeme_durumu')
     .eq('id', id)
+    .eq('restaurant_id', session.restaurantId)
     .single()
 
   if (!mp) return NextResponse.json({ error: 'Kayit bulunamadi' }, { status: 404 })
@@ -41,6 +42,7 @@ export async function PUT(
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
+    .eq('restaurant_id', session.restaurantId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true, odenen_tutar: yeniOdenen, odeme_durumu: yeniDurum })

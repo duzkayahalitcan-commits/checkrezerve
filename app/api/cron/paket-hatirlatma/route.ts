@@ -64,9 +64,13 @@ export async function GET(req: NextRequest) {
   const n8nBase = process.env.N8N_BASE_URL
 
   // Kalan seansı 0..3 olan aktif paketler
-  const { data: items } = await db
+  const { data: items, error: itemsError } = await db
     .from('bitmek_uzere_paketler')
     .select('id, musteri_id, musteri_email, musteri_telefon, paket_adi, kalan_seans, restaurant_id, isletme_adi, business_type, hatirlatma_gonderilen_esikler')
+  if (itemsError) {
+    console.error('[paket-hatirlatma] paket listesi okunamadı:', itemsError)
+    return NextResponse.json({ error: 'Paket listesi okunamadı' }, { status: 500 })
+  }
 
   let processed = 0
   const log: Record<string, number> = {}
@@ -130,7 +134,7 @@ export async function GET(req: NextRequest) {
 
       // Bu eşiği işaretle (tekrar gönderilmez)
       const yeniEsikler = { ...gonderilen, [esikKey]: true }
-      await db
+      const { error: markError } = await db
         .from('musteri_paketleri')
         .update({
           hatirlatma_gonderilen_esikler: yeniEsikler,
@@ -139,6 +143,11 @@ export async function GET(req: NextRequest) {
           hatirlatma_gonderildi: true,
         })
         .eq('id', id)
+      // İşaretlenemezse ertesi gün aynı hatırlatma tekrar gider — en azından görünür olsun
+      if (markError) {
+        console.error('[paket-hatirlatma] eşik işaretleme hatası:', markError, { id, esikKey })
+        continue
+      }
 
       log[esikKey] = (log[esikKey] ?? 0) + 1
       processed++

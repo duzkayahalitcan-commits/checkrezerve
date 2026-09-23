@@ -90,5 +90,14 @@ export async function POST(req: NextRequest) {
   const sent   = results.filter(r => r.status === 'fulfilled').length
   const failed = results.filter(r => r.status === 'rejected').length
 
-  return NextResponse.json({ date: today, sent, failed })
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') {
+      console.error('[send-reminders] gönderilemedi:', (reservations ?? [])[i]?.id, r.reason instanceof Error ? r.reason.message : r.reason)
+    }
+  })
+
+  // OB-04: Başarısız gönderim varsa 200 dönme — GitHub Actions (daily-reminders.yml)
+  // HTTP != 200'de job'u fail eder ve e-posta alarmı düşer. Önceden hepsi başarısız
+  // olsa bile 200 dönüyor, arıza günlerce fark edilmiyordu.
+  return NextResponse.json({ date: today, sent, failed }, { status: failed > 0 ? 500 : 200 })
 }

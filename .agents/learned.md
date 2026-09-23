@@ -23,7 +23,7 @@ verisinin hâlâ veritabanında durduğu fark edilmeden kapatılabilecek bir bug
 `guest_name` / `guest_phone` olduğunu doğrula. `customer_name` / `phone` görürsen legacy kabul et,
 kullanma. Migration/schema dosyasını kontrol etmeden PII kolon ismi varsayma.
 
-<!-- learned-stamp: category=database; capturedAt=2026-09-21; applied=1; wins=1; skipped=0 -->
+<!-- learned-stamp: category=database; capturedAt=2026-09-21; applied=3; wins=2; skipped=0 -->
 
 ---
 
@@ -42,3 +42,66 @@ vb.) en üstte, herhangi bir koşullu return'den önce olmalı. Erken çıkışl
 gibi) sadece tüm hook'lar çağrıldıktan SONRA yazılabilir.
 
 <!-- learned-stamp: category=web; capturedAt=2026-09-21; applied=1; wins=1; skipped=0 -->
+
+---
+
+### 3. UI metni ararken grep/rg'yi büyük/küçük harf duyarsız (`-i`) çalıştır
+
+UI metinleri aynı ifadeyi farklı büyük/küçük harflerle taşır. "Fark Etmez" araması "Fark etmez"
+yazılmış yerleri kaçırdı; eksik sonuçla "başka yerde yok" sonucuna varıldı. Türkçe'de İ/ı, I/i
+dönüşümleri bu riski artırır.
+
+**Kural:** Kullanıcıya görünen metin (etiket, buton, toast, placeholder) ararken `grep -rni` /
+`rg -i` kullan. Türkçe karakterli ifadelerde ayrıca harf varyantlarını (`[İi]`, `[Iı]`) dene.
+Boş sonuçtan sonra `echo "exit: $?"` ile grep'in gerçekten çalıştığını doğrula.
+
+<!-- learned-stamp: category=tooling; capturedAt=2026-09-23; applied=1; wins=0; skipped=0 -->
+
+---
+
+### 4. Kod yorumlarına güvenme — DB'den doğrula
+
+`app/[locale]/rezervasyon/[id]/page.tsx`'teki yorum `calisan_saatler` için "RLS super_admin_only,
+istemci okuyamaz" diyordu. `pg_policies` sorgusu `calisan_saatler_public_read` (SELECT, `true`)
+policy'sinin olduğunu gösterdi — yorum yanlıştı ve admin client kullanımı yanlış bir gerekçeye
+dayanıyordu. Aynı gece: `reservations.service_id`'nin `hizmetler`'e değil `services`'e FK verdiği,
+kodda hiçbir yorumdan anlaşılmıyordu.
+
+**Kural:** RLS, FK, kolon varlığı veya tip hakkında bir yorum/varsayım üzerine karar vermeden önce
+`pg_policies`, `pg_constraint` veya `information_schema.columns` ile SELECT yap. Yorum ile DB
+çelişirse DB doğrudur; yorumu düzelt.
+
+<!-- learned-stamp: category=database; capturedAt=2026-09-23; applied=1; wins=1; skipped=0 -->
+
+---
+
+### 5. Aynı kavram için yeni kolon eklemeden önce var olanı ara
+
+`reservations` tablosunda hizmet için iki kolon var: `service_id` (FK → `services`, web yazıyor)
+ve `hizmet_id` (FK → `hizmetler`, mobil yazıyor, panel/raporlar/e-posta trigger'ı okuyor). Web'in
+yazdığı değer yanlış tabloya FK verdiği için hizmetli web rezervasyonları FK ihlaline düşüyor;
+raporlar web rezervasyonlarının hizmetini hiç görmüyor.
+
+**Kural:** Yeni kolon/tablo eklemeden önce aynı kavramı taşıyan Türkçe/İngilizce karşılığı ara
+(`service/hizmet`, `staff/calisan`, `table/masa`, `restaurant/isletme`):
+`SELECT table_name, column_name FROM information_schema.columns WHERE column_name ILIKE '%hizmet%' OR column_name ILIKE '%service%';`
+Varsa onu kullan; yoksa yenisini ekle ve CLAUDE.md "Şema Tuzakları"na yaz.
+
+<!-- learned-stamp: category=database; capturedAt=2026-09-23; applied=1; wins=0; skipped=0 -->
+
+---
+
+### 6. İstemcide anon client ile yazma/okuma yapan panel/müşteri akışlarını RLS'e karşı doğrula
+
+Aynı gece dört ayrı yerde aynı desen çıktı: tarayıcıda `createClient(URL, ANON_KEY)` ile
+`reservations`/`guest_tag_assignments` üzerinde update/delete/select. RLS anon'a izin vermediğinde
+**update/delete hata vermez, 0 satır etkiler**; select boş döner. Sonuç: misafir iptal linki hiç
+iptal etmiyordu, onay sayfası hep "bulunamadı" diyordu, etiket "eklendi" deyip eklemiyordu.
+Ayrıca server action'lar (`'use server'`) herkese açık POST uç noktasıdır; API route'larla aynı
+tenant/rol kontrolünü ister (takvim action'ları başka işletmenin rezervasyonunu güncelleyebiliyordu).
+
+**Kural:** Yazma işlemi API route/server action + `getSupabaseAdmin()` + oturumdan gelen
+`restaurantId` filtresiyle yapılır. İstemciden yazma kalmışsa `.select()` ile etkilenen satır
+sayısını kontrol et. Güvenlik taramasında `app/api` ile birlikte tüm `'use server'` dosyalarını da tara.
+
+<!-- learned-stamp: category=security; capturedAt=2026-09-23; applied=0; wins=0; skipped=0 -->

@@ -1,4 +1,4 @@
-import { createHmac, randomBytes } from 'crypto'
+import { createHmac, randomBytes, timingSafeEqual } from 'crypto'
 
 const BASE_URL = process.env.IYZICO_BASE_URL    ?? 'https://sandbox.iyzipay.com'
 const API_KEY  = process.env.IYZICO_API_KEY     ?? ''
@@ -81,10 +81,14 @@ export function verifyWebhookSignature(
   referenceCode:  string,
   received:       string,
 ): boolean {
+  // Secret tanımsızsa boş anahtarla HMAC herkesçe üretilebilir → sahte webhook kabul edilirdi
+  if (!SECRET || !received) return false
   const expected = createHmac('sha256', SECRET)
     .update(`${eventType}${conversationId}${referenceCode}`)
     .digest('base64')
-  return expected === received
+  const a = Buffer.from(expected)
+  const b = Buffer.from(received)
+  return a.length === b.length && timingSafeEqual(a, b)
 }
 
 // ── Plan referans kodu yardımcısı ─────────────────────────────────

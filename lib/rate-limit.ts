@@ -33,6 +33,23 @@ function getRedis(): Redis | null {
   return redis
 }
 
+// OB-03: health endpoint için Redis durumu. Bir kez hata alınınca `redisError` kalıcı
+// olarak true olur ve rate-limit sessizce in-memory'ye düşer — bu fonksiyon onu görünür kılar.
+export async function redisHealth(): Promise<'disabled' | 'ok' | 'error'> {
+  if (!process.env.REDIS_URL) return 'disabled'
+  const client = getRedis()
+  if (!client) return 'error'
+  try {
+    const pong = await Promise.race([
+      client.ping(),
+      new Promise<string>((_, rej) => setTimeout(() => rej(new Error('timeout')), 1500)),
+    ])
+    return pong === 'PONG' ? 'ok' : 'error'
+  } catch {
+    return 'error'
+  }
+}
+
 // ── In-memory fallback store ──────────────────────────────────────
 const store = new Map<string, RateLimitEntry>()
 

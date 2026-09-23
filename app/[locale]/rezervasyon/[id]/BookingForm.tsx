@@ -14,6 +14,8 @@ import InteractiveFloorMap from '@/components/InteractiveFloorMap'
 import type { TableLayout } from '@/components/InteractiveFloorMap'
 import { ZONE_THEME_LABELS, ZONE_THEME_BG } from '@/src/types/kroki-zone'
 import type { ZoneTheme, ZonePoint } from '@/src/types/kroki-zone'
+import { formatTL } from '@/lib/format'
+import { buildReservationIcs } from '@/lib/ics'
 
 type Hizmet     = { id: string; name: string; duration_minutes: number; price: number | null }
 type Calisan    = { id: string; name: string; title: string | null }
@@ -71,6 +73,8 @@ interface Props {
   // waitlist feature flag açıksa, günün tüm saatleri doluyken bekleme listesi
   // CTA'sı gösterilir. Kapalıysa dolu saatler öncekiyle aynı şekilde (çizili/kırmızı) kalır.
   waitlistEnabled?: boolean
+  // OP-11: işletmenin panelde kapattığı tarihler (YYYY-MM-DD)
+  closedDates?:     string[]
 }
 
 // Fallback slot listesi (working_hours yoksa 09:00-22:00)
@@ -138,6 +142,7 @@ export default function BookingForm({
   krokiMode, krokiZones, workingHours, staffHours, occupiedZoneIds,
   prepaymentAmount = null,
   waitlistEnabled = false,
+  closedDates = [],
 }: Props) {
   const router = useRouter()
   const t = useTranslations('bookingForm')
@@ -197,7 +202,7 @@ export default function BookingForm({
       for (const staff of Object.values(staffHours)) {
         const day = staff?.[dayKey]
         if (!day || day.open === false) continue
-        let s = parseTime(day.start)
+        const s = parseTime(day.start)
         let e = parseTime(day.end)
         if (s == null || e == null) continue
         if (e === 0) e = 24 * 60 // gece yarısı kapanış = 24:00
@@ -227,6 +232,7 @@ export default function BookingForm({
 
   const TIME_SLOTS = useMemo<string[]>(() => {
     if (!selectedDate) return DEFAULT_SLOTS
+    if (closedDates.includes(selectedDate)) return []  // OP-11: kapalı gün
     const dayKey = DAY_KEY_MAP[new Date(selectedDate + 'T12:00:00').getDay()]
     // Çalışan şeması varsa onu kullan; yoksa işletme working_hours; o da yoksa varsayılan slot'lar.
     const av = dayAvailability(dayKey)
@@ -240,7 +246,7 @@ export default function BookingForm({
     // Restoran/kafe (masa rezervasyonu): kapanışa kadar slot üret.
     // Randevu bazlı işletmeler: kapanıştan 30 dk önce kes.
     return buildSlots(startStr, endStr, isRestaurant ? 0 : 30)
-  }, [selectedDate, dayAvailability, workingHours, isRestaurant])
+  }, [selectedDate, dayAvailability, workingHours, isRestaurant, closedDates])
 
   const [selectedTable, setSelectedTable] = useState<string | null>(null)
   const [selectedService, setSelectedService] = useState<string | null>(null)
@@ -264,6 +270,7 @@ export default function BookingForm({
   const [privacyAccepted, setPrivacyAccepted] = useState(false)
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false)
   const [privacyError, setPrivacyError] = useState(false)
+  const [marketingConsent, setMarketingConsent] = useState(false) // LG-02: ön işaretsiz
 
   // Calendar state
   const today = useMemo(() => {
@@ -326,13 +333,16 @@ export default function BookingForm({
   const isDateDisabled = useCallback((date: Date) => {
     const time = date.getTime()
     if (time < today.getTime() || time > maxDate.getTime()) return true
+    // OP-11: panelde kapalı işaretlenen tarih
+    const ds = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    if (closedDates.includes(ds)) return true
     // Çalışan saatleri bağlı: seçili çalışanın (veya tam kapsamda tüm çalışanların)
     // o gün çalışmadığı günleri takvimde kapat. Şema bilgisi yoksa işletme saatlerine bırak.
     if (!staffHours) return false
     const dayKey = DAY_KEY_MAP[date.getDay()]
     const av = dayAvailability(dayKey)
     return av === null ? false : av.open === false
-  }, [today, maxDate, staffHours, dayAvailability])
+  }, [today, maxDate, staffHours, dayAvailability, closedDates])
 
   const dateStr = (date: Date) => {
     const y = date.getFullYear()
@@ -393,13 +403,15 @@ export default function BookingForm({
         customer_name:    name,
         phone,
         email:            email || undefined,
-        party_size:       partySize,
+        // #5: randevu akışında kişi adımı yok; state varsayılanı (2) yazılıyordu → mobil gibi 1
+        party_size:       isServiceBased ? 1 : partySize,
         date:             selectedDate,
         time:             selectedTime,
         table_id:         safeTableId,
         service_id:       selectedService ?? undefined,
         staff_id:         (selectedStaff && selectedStaff !== '__any__') ? selectedStaff : undefined,
         special_requests: specialNotes || undefined,
+        sms_consent:      marketingConsent,
         zone_id:          krokiMode === 'zones' ? (selectedArea ?? undefined) : undefined,
         zone_name:        selectedZoneName,
       }),
@@ -854,7 +866,7 @@ export default function BookingForm({
                   <div className="flex items-center gap-3 mt-1">
                     {h.price != null && (
                       <span className="text-xs font-semibold text-zinc-500">
-                        {r('adim.hizmet.fiyat')}: {h.price} ₺
+                        {r('adim.hizmet.fiyat')}: {formatTL(h.price)}
                       </span>
                     )}
                     <span className="text-xs text-zinc-400">
@@ -1025,7 +1037,7 @@ export default function BookingForm({
         {!!prepaymentAmount && prepaymentAmount > 0 && (
           <div className="text-sm text-amber-800 bg-amber-50 rounded-xl p-4 border border-amber-200">
             <span className="font-semibold">💳 Ön ödeme gerekli:</span>{' '}
-            <span>{prepaymentAmount.toLocaleString('tr-TR')} ₺</span>
+            <span>{formatTL(prepaymentAmount)}</span>
             <p className="mt-1 text-xs text-amber-700">
               Rezervasyonunuzun onaylanması için ön ödeme yapmanız gerekir. Ödeme koşulları rezervasyon onay mesajında belirtilir.
             </p>
@@ -1052,6 +1064,20 @@ export default function BookingForm({
           <p className="text-sm text-red-600">{r('gizlilik.hata')}</p>
         )}
 
+        {/* LG-02: Pazarlama izni — zorunlu onaydan ayrı, ön işaretsiz, isteğe bağlı */}
+        <div className="flex items-start gap-3 p-4 rounded-xl border border-zinc-200 bg-zinc-50">
+          <input
+            type="checkbox"
+            id="marketing-consent"
+            checked={marketingConsent}
+            onChange={e => setMarketingConsent(e.target.checked)}
+            className="mt-0.5 accent-[#E53935] w-4 h-4 shrink-0 cursor-pointer"
+          />
+          <label htmlFor="marketing-consent" className="text-sm text-zinc-700 cursor-pointer leading-relaxed">
+            Kampanya ve fırsatlardan SMS/e-posta ile haberdar olmak istiyorum (isteğe bağlı, ticari ileti onayı).
+          </label>
+        </div>
+
         {error && (
           <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{error}</div>
         )}
@@ -1067,6 +1093,27 @@ export default function BookingForm({
     const mapsUrl = businessAddress
       ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(businessAddress)}`
       : null
+
+    // CU-06: .ics indir (iOS/Android/Outlook takvimleri açar)
+    const downloadIcs = () => {
+      const svc = hizmetler.find(h => h.id === selectedService)
+      const ics = buildReservationIcs({
+        uid: rezId,
+        title: `${businessName} rezervasyonu${svc ? ` – ${svc.name}` : ''}`,
+        date: selectedDate ?? '',
+        time: selectedTime ?? '',
+        durationMinutes: svc?.duration_minutes ?? (isRestaurant ? 90 : 60),
+        location: businessAddress,
+        description: `Rezervasyon no: ${rezId}`,
+      })
+      if (!ics) return
+      const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'rezervasyon.ics'
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    }
 
     return (
       <div className="text-center py-8 px-4 rounded-2xl bg-gradient-to-b from-red-50 via-white to-white">
@@ -1141,6 +1188,12 @@ export default function BookingForm({
               className="rounded-full bg-zinc-900 text-white px-6 py-2.5 text-sm font-bold hover:bg-zinc-700 transition-colors"
             >
               {r('adim.basari.rezervasyonlarim')}
+            </button>
+            <button
+              onClick={downloadIcs}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-300 text-zinc-700 px-6 py-2.5 text-sm font-bold hover:bg-zinc-50 transition-colors"
+            >
+              📅 Takvime ekle
             </button>
             {mapsUrl && (
               <a

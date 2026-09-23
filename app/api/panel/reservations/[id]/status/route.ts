@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { verifySession } from '@/lib/panel-auth'
 import { canDeleteReservation } from '@/lib/roles'
 import { logGuestActivity, resolveGuestByPhone } from '@/lib/guest-activities'
+import { notifyStatusChange } from '@/lib/notification-orchestrator'
 
 const VALID_STATUSES = ['cancelled', 'completed', 'confirmed', 'pending']
 
@@ -31,6 +32,8 @@ export async function PUT(
   }
 
   const db = getSupabaseAdmin()
+  const { data: prev } = await db.from('reservations').select('status')
+    .eq('id', id).eq('restaurant_id', session.restaurantId).maybeSingle()
 
   // ── S4-T2: İptal durumunda misafir aktivite kaydı düş (async, engellemez) ──
   if (status === 'cancelled') {
@@ -39,6 +42,7 @@ export async function PUT(
         .from('reservations')
         .select('guest_name, guest_phone, reserved_date, reserved_time, restaurant_id')
         .eq('id', id)
+        .eq('restaurant_id', session.restaurantId)
         .single()
 
       if (reservation?.guest_phone) {
@@ -55,12 +59,18 @@ export async function PUT(
     })()
   }
 
-  const { error } = await db
+  // Sadece oturumdaki işletmenin rezervasyonu güncellenebilir
+  const { data: updated, error } = await db
     .from('reservations')
     .update({ status, updated_at: new Date().toISOString() })
     .eq('id', id)
+    .eq('restaurant_id', session.restaurantId)
+    .select('id')
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!updated?.length) return NextResponse.json({ error: 'Rezervasyon bulunamadı' }, { status: 404 })
+  // #7: gerçekten değiştiyse müşteriye onay/iptal bildirimi (akışı bekletmez)
+  if (prev && prev.status !== status) void notifyStatusChange(id, status).catch(e => console.error('[status] bildirim:', e))
 
   return NextResponse.json({ success: true, status })
 }

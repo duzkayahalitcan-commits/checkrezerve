@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { rateLimit } from '@/lib/rate-limit'
 import { notifyReservationEvent } from '@/lib/notification-orchestrator'
 import { logGuestActivity, resolveGuestByPhone } from '@/lib/guest-activities'
+import { isValidPhone } from '@/lib/phone'
 
 function generateCancellationToken(): string {
   return createHash('sha256').update(randomBytes(32)).digest('hex').slice(0, 32)
@@ -18,17 +19,40 @@ export async function POST(request: NextRequest) {
     const {
       restaurant_id, customer_name, phone, email, party_size,
       date, time, table_id, service_id, staff_id, masa_tipi_id,
-      zone_id, special_requests,
+      zone_id, zone_name, special_requests, sms_consent,
     } = body
 
     if (!restaurant_id || !customer_name || !phone || !date || !time) {
       return NextResponse.json({ error: 'Zorunlu alanlar eksik' }, { status: 400 })
+    }
+    // PX-12: harf/eksik haneli numara kaydedilip SMS'te sessizce düşmesin
+    if (!isValidPhone(phone)) {
+      return NextResponse.json({ error: 'Telefon numarası geçersiz. Örnek: 0 5XX XXX XX XX' }, { status: 400 })
+    }
+
+    // OP-11: işletmenin kapalı günü (panel → Ayarlar → Kapalı günler)
+    const { data: restClosed } = await getSupabaseAdmin()
+      .from('restaurants')
+      .select('closed_dates')
+      .eq('id', restaurant_id)
+      .maybeSingle()
+    if (Array.isArray(restClosed?.closed_dates) && restClosed.closed_dates.includes(date)) {
+      return NextResponse.json({ error: 'İşletme bu tarihte kapalı. Lütfen başka bir gün seçin.' }, { status: 409 })
     }
 
     const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     const safeMasaTipiId = masa_tipi_id && UUID_RE.test(masa_tipi_id) ? masa_tipi_id : null
     const safeTableId = table_id && UUID_RE.test(table_id) ? table_id : null
     const safeZoneId = zone_id && UUID_RE.test(zone_id) ? zone_id : null
+    // K2 (gece G2): form `hizmetler.id` gönderiyor (body alanı adı geriye uyum için service_id kaldı).
+    // service_id kolonu `services` tablosuna FK verdiği için her hizmetli rezervasyon 23503 ile düşüyordu;
+    // kanonik kolon hizmet_id (→ hizmetler). Hizmet bu işletmeye ait değilse yazılmaz.
+    let safeHizmetId: string | null = null
+    if (service_id && UUID_RE.test(service_id)) {
+      const { data: hz } = await getSupabaseAdmin()
+        .from('hizmetler').select('id').eq('id', service_id).eq('restaurant_id', restaurant_id).maybeSingle()
+      safeHizmetId = hz?.id ?? null
+    }
 
     const { data: phoneConflict } = await getSupabaseAdmin()
       .from('reservations')
@@ -105,12 +129,15 @@ export async function POST(request: NextRequest) {
       party_size:       parseInt(party_size, 10) || 1,
       reserved_date:    date,
       reserved_time:    time,
-      service_id:       service_id      || null,
+      hizmet_id:        safeHizmetId,
       calisan_id:       (staff_id && staff_id !== '__any__') ? staff_id : null,
       masa_tipi_id:     safeMasaTipiId  || null,
       table_id:         safeTableId     || null,
       zone_id:          safeZoneId      || null,
+      // #6: form gönderiyordu ama kaydedilmiyordu; mobil sadece zone_name yazıyor → iki kanal tutarlı
+      zone_name:        typeof zone_name === 'string' && zone_name.trim() ? zone_name.trim().slice(0, 100) : null,
       special_requests: special_requests?.trim() || null,
+      sms_consent:      sms_consent === true, // LG-02: sadece ayrı pazarlama kutusu
       cancellation_token: generateCancellationToken(),
       status: 'pending',
       source: 'form',
@@ -124,7 +151,11 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('[rezervasyon]', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      // PX-03: DB hata metni (FK/constraint) müşteriye gösterilmez; ayrıntı yukarıda loglanıyor
+      return NextResponse.json(
+        { error: 'Rezervasyonunuz kaydedilemedi. Bilgileriniz duruyor, lütfen tekrar deneyin; sorun sürerse işletmeyi arayın.' },
+        { status: 500 },
+      )
     }
 
     // ── S4-T2: Misafir aktivite kaydı (reservation) — async, engellemez ──
@@ -171,6 +202,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, id: data.id })
   } catch (err) {
     console.error('[rezervasyon]', err)
-    return NextResponse.json({ error: 'Sunucu hatası' }, { status: 500 })
+    return NextResponse.json({ error: 'Beklenmeyen bir sorun oluştu. Lütfen tekrar deneyin.' }, { status: 500 })
   }
 }

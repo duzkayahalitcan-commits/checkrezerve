@@ -3,6 +3,7 @@ import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { getLocale } from 'next-intl/server'
 import RezervasyonList from './RezervasyonList'
+import YeniRezervasyon from '@/app/panel/_components/YeniRezervasyon'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,7 +12,7 @@ export default async function RezervasyonlarPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ durum?: string; tarih?: string; ara?: string }>
+  searchParams: Promise<{ durum?: string; tarih?: string; ara?: string; yeni?: string }>
 }) {
   const session = await getPanelSession()
   if (!session) redirect('/panel/login')
@@ -86,7 +87,10 @@ export default async function RezervasyonlarPage({
   return (
     <div>
       <div className="px-6 pt-6 pb-5 border-b border-white/5">
-        <h1 className="text-lg font-bold text-white mt-0.5">Rezervasyonlar</h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-lg font-bold text-white mt-0.5">Rezervasyonlar</h1>
+          <YeniRezervasyon calisanlar={calisanlar ?? []} hizmetler={hizmetler ?? []} defaultOpen={filters.yeni === '1'} />
+        </div>
       </div>
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-6">
         <RezervasyonList

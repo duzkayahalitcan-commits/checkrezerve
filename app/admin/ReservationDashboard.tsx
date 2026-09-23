@@ -69,7 +69,12 @@ export function ReservationDashboard({
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     const client = createClient(url, key)
-    await client.from('reservations').update({ status }).eq('id', id)
+    // RLS izin vermezse update hata vermeden 0 satır etkiler → satır sayısını da kontrol et
+    const { data, error } = await client.from('reservations').update({ status }).eq('id', id).select('id')
+    if (error || !data?.length) {
+      console.error('[admin] rezervasyon durum güncellenemedi:', error ?? 'etkilenen satır yok', { id, status })
+      alert('Durum güncellenemedi.')
+    }
     setUpdating(null)
   }
 

@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
     .from('reservations')
     .select('musteri_paket_id, seans_dusuldu')
     .eq('id', reservation_id)
+    .eq('restaurant_id', session.restaurantId)
     .single()
 
   if (!reservation) return NextResponse.json({ error: 'Reservation not found' }, { status: 404 })
@@ -38,6 +39,7 @@ export async function POST(req: NextRequest) {
     .from('musteri_paketleri')
     .select('toplam_seans, kullanilan_seans, aktif')
     .eq('id', reservation.musteri_paket_id)
+    .eq('restaurant_id', session.restaurantId)
     .single()
 
   if (!mp) return NextResponse.json({ error: 'Musteri paketi bulunamadi' }, { status: 404 })

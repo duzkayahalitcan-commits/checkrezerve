@@ -59,7 +59,7 @@ export default async function RezervasyonPage({ params, searchParams }: Props) {
     const { data: businesses } = await q.order('name')
 
     // Fetch review aggregates with silent fallback (reviews table may not exist yet)
-    let ratingMap: Map<string, { avg: number; count: number }> = new Map()
+    const ratingMap: Map<string, { avg: number; count: number }> = new Map()
     try {
       const { data: reviews } = await db
         .from('reviews')

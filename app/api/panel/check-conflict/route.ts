@@ -14,6 +14,9 @@ export async function POST(req: NextRequest) {
   if (!restaurant_id || !staff_id || !date || !start_time) {
     return NextResponse.json({ error: 'restaurant_id, staff_id, date, start_time required' }, { status: 400 })
   }
+  if (restaurant_id !== session.restaurantId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const dur = duration_minutes ?? 60
   const startMinutes = timeToMinutes(start_time)

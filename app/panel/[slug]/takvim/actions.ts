@@ -35,6 +35,7 @@ export async function updateReservation(
     .from('reservations')
     .update(patch)
     .eq('id', id)
+    .eq('restaurant_id', session.restaurantId)
 
   if (error) return { success: false, error: error.message }
   revalidatePath('/panel/[slug]/takvim')
@@ -50,6 +51,7 @@ export async function softDeleteReservation(id: string) {
     .from('reservations')
     .update({ is_deleted: true })
     .eq('id', id)
+    .eq('restaurant_id', session.restaurantId)
 
   if (error) return { success: false, error: error.message }
   revalidatePath('/panel/[slug]/takvim')
@@ -65,6 +67,7 @@ export async function undoDeleteReservation(id: string) {
     .from('reservations')
     .update({ is_deleted: false })
     .eq('id', id)
+    .eq('restaurant_id', session.restaurantId)
 
   if (error) return { success: false, error: error.message }
   revalidatePath('/panel/[slug]/takvim')

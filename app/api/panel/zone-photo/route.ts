@@ -17,6 +17,9 @@ export async function POST(req: NextRequest) {
   if (!file || !zoneId || !restaurantId) {
     return NextResponse.json({ error: 'photo, zone_id, and restaurant_id required' }, { status: 400 })
   }
+  if (restaurantId !== session.restaurantId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   if (file.size > 5 * 1024 * 1024) {
     return NextResponse.json({ error: 'Fotoğraf en fazla 5MB olabilir' }, { status: 400 })

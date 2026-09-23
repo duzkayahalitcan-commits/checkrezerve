@@ -5,6 +5,7 @@ import { motion } from 'motion/react'
 import { useRouter, usePathname } from 'next/navigation'
 import { ChevronLeft, ChevronRight, Clock, Users, Phone, List, LayoutGrid } from 'lucide-react'
 import { useToast } from '@/components/ui/Toast'
+import { formatTL } from '@/lib/format'
 
 type Reservation = {
   id: string
@@ -413,7 +414,7 @@ function ReservationCard({
             {isBeauty ? (
               <>
                 <span>💆 {r.calisanlar?.ad ?? '—'}</span>
-                {r.hizmetler && <span>✨ {r.hizmetler.ad} {r.hizmetler.fiyat > 0 && `(${r.hizmetler.fiyat} ₺)`}</span>}
+                {r.hizmetler && <span>✨ {r.hizmetler.ad} {r.hizmetler.fiyat > 0 && `(${formatTL(r.hizmetler.fiyat)})`}</span>}
               </>
             ) : (
               <span className="flex items-center gap-1"><Users size={11} /> {r.party_size ?? '—'} kişi</span>

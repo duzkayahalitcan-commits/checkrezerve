@@ -3,6 +3,7 @@ import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { getLocale } from 'next-intl/server'
 import MisafirList from './MisafirList'
+import { phoneKey } from '@/lib/phone'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,20 +31,31 @@ export default async function MisafirlerPage({
   // Fetch guests from reservations (group by phone)
   const { data: reservations } = await db
     .from('reservations')
-    .select('guest_name, guest_phone, reserved_date, status')
+    .select('guest_name, guest_phone, guest_email, reserved_date, reserved_time, status, hizmetler(ad, fiyat), calisanlar(ad)')
     .eq('restaurant_id', restaurant.id)
     .neq('status', 'cancelled')
     .not('guest_phone', 'is', null)
     .order('reserved_date', { ascending: false })
 
   // Aggregate unique guests
-  const phoneMap = new Map<string, { name: string; phone: string; visits: number; lastVisit: string; statuses: string[] }>()
+  // CR-01/CR-06: e-posta, harcama (tamamlanan rezervasyonların hizmet fiyatı) ve ziyaret geçmişi
+  type Visit = { date: string; time: string; status: string; hizmet: string | null; calisan: string | null }
+  const phoneMap = new Map<string, { name: string; phone: string; email: string | null; visits: number; lastVisit: string; statuses: string[]; total_spent: number; history: Visit[] }>()
   for (const r of reservations ?? []) {
     const phone = r.guest_phone!
-    if (!phoneMap.has(phone)) {
-      phoneMap.set(phone, { name: r.guest_name ?? 'Misafir', phone, visits: 0, lastVisit: '', statuses: [] })
+    // PX-12: aynı numaranın farklı yazımları (05.., 5.., boşluklu) tek misafir sayılsın
+    const key = phoneKey(phone) || phone
+    if (!phoneMap.has(key)) {
+      phoneMap.set(key, { name: r.guest_name ?? 'Misafir', phone, email: null, visits: 0, lastVisit: '', statuses: [], total_spent: 0, history: [] })
     }
-    const entry = phoneMap.get(phone)!
+    const entry = phoneMap.get(key)!
+    const hz = (Array.isArray(r.hizmetler) ? r.hizmetler[0] : r.hizmetler) as { ad: string; fiyat: number | null } | null
+    const cl = (Array.isArray(r.calisanlar) ? r.calisanlar[0] : r.calisanlar) as { ad: string } | null
+    if (!entry.email && r.guest_email) entry.email = r.guest_email
+    if (r.status === 'completed' && hz?.fiyat) entry.total_spent += Number(hz.fiyat)
+    if (entry.history.length < 20) {
+      entry.history.push({ date: r.reserved_date, time: String(r.reserved_time ?? '').slice(0, 5), status: r.status, hizmet: hz?.ad ?? null, calisan: cl?.ad ?? null })
+    }
     entry.visits++
     if (r.reserved_date > entry.lastVisit) entry.lastVisit = r.reserved_date
     entry.statuses.push(r.status)
@@ -90,7 +102,8 @@ export default async function MisafirlerPage({
       </div>
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-6">
         <MisafirList
-          guests={guestRecords ?? guests}
+          // guests tablosu boşken `[] ?? guests` boş liste veriyordu → rezervasyonlardan türetilen liste
+          guests={guestRecords?.length ? guestRecords : guests}
           tags={allTags ?? []}
           guestTagsMap={Object.fromEntries(guestTagsMap)}
           locale={locale}

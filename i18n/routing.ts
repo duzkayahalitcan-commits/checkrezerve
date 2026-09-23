@@ -167,5 +167,8 @@ export const routing = defineRouting({
     '/offline': '/offline',
     '/sss': '/sss',
     '/yasal/basvuru-formu-aydinlatma': '/yasal/basvuru-formu-aydinlatma',
+    '/yasal/mesafeli-satis': '/yasal/mesafeli-satis',
+    '/yasal/iptal-iade': '/yasal/iptal-iade',
+    '/yasal/kunye': '/yasal/kunye',
   },
 })

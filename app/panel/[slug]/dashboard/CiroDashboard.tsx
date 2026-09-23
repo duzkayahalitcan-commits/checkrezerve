@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { DollarSign, Calendar, TrendingUp, TrendingDown } from 'lucide-react'
+import { formatTL } from '@/lib/format'
 
 interface CiroData {
   bugun_ciro: number
@@ -38,19 +39,19 @@ export default function CiroDashboard({ restaurantId }: { restaurantId: string }
   const cards = [
     {
       label: 'Bugün',
-      value: `₺${data.bugun_ciro.toLocaleString()}`,
+      value: formatTL(data.bugun_ciro),
       icon: DollarSign,
       color: '#E53935',
     },
     {
       label: 'Bu Hafta',
-      value: `₺${data.bu_hafta_ciro.toLocaleString()}`,
+      value: formatTL(data.bu_hafta_ciro),
       icon: TrendingUp,
       color: '#F59E0B',
     },
     {
       label: 'Bu Ay',
-      value: `₺${data.bu_ay_ciro.toLocaleString()}`,
+      value: formatTL(data.bu_ay_ciro),
       icon: Calendar,
       color: '#10B981',
       degisim: data.degisim_yuzde,

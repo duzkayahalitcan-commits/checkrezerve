@@ -14,7 +14,8 @@ export async function GET(
   const { slug } = await params
   const jar = await cookies()
   const secret = process.env.ADMIN_SECRET
-  if (!secret || !verifyPanelToken(jar.get('cr_panel')?.value ?? '', secret)) {
+  const session = secret ? verifyPanelToken(jar.get('cr_panel')?.value ?? '', secret) : null
+  if (!session) {
     return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 })
   }
 
@@ -33,6 +34,10 @@ export async function GET(
     .eq('slug', slug)
     .maybeSingle()
   if (!restaurant) return NextResponse.json({ error: 'İşletme bulunamadı.' }, { status: 404 })
+  // Başka işletmenin raporu (ciro) indirilemesin
+  if (restaurant.id !== session.restaurantId) {
+    return NextResponse.json({ error: 'Bu işletmeye erişim yetkiniz yok.' }, { status: 403 })
+  }
 
   const term = sectorTerm(restaurant.business_type as string | null)
 
