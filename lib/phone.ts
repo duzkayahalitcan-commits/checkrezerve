@@ -37,3 +37,11 @@ export function formatPhoneTR(raw: string | null | undefined): string {
   const m = e164.match(/^\+90(\d{3})(\d{3})(\d{2})(\d{2})$/)
   return m ? `0 ${m[1]} ${m[2]} ${m[3]} ${m[4]}` : e164
 }
+
+/** DB'de karışık biçimde tutulan bir numaranın olası yazımları (IN sorgusu için). */
+export function phoneVariants(raw: string | null | undefined): string[] {
+  const digits = String(raw ?? '').replace(/\D/g, '')
+  if (digits.length < 10) return []
+  const local = digits.slice(-10)
+  return [`0${local}`, `+90${local}`, `90${local}`, local]
+}

@@ -62,14 +62,13 @@ export default function ProfilPage() {
     setFavs(list)
   }, [])
 
-  const loadReservations = useCallback(async (email: string) => {
-    const { data } = await supabase
-      .from('reservations')
-      .select('id, reserved_date, reserved_time, party_size, status, restaurants(name)')
-      .eq('guest_email', email)
-      .order('reserved_date', { ascending: false })
-      .limit(5)
-    setReservations((data ?? []) as unknown as UserReservation[])
+  // #4: anon/müşteri RLS okumasına izin vermiyordu → sunucu API'si (e-posta + telefon eşleşmesi)
+  const loadReservations = useCallback(async (accessToken: string) => {
+    const res = await fetch('/api/musteri/rezervasyonlar?limit=5', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }).catch(() => null)
+    const json = await res?.json().catch(() => null)
+    setReservations((json?.reservations ?? []) as UserReservation[])
   }, [])
 
   useEffect(() => {
@@ -78,7 +77,7 @@ export default function ProfilPage() {
       setUser(session.user)
       await Promise.all([
         loadFavs(session.user.id),
-        session.user.email ? loadReservations(session.user.email) : Promise.resolve(),
+        loadReservations(session.access_token),
       ])
       setLoading(false)
     })

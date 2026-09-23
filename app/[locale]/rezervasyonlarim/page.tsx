@@ -33,14 +33,12 @@ export default function RezervasyonlarimPage() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.replace('/giris'); return }
 
-      const { data } = await supabase
-        .from('reservations')
-        .select('id, guest_name, reserved_date, reserved_time, party_size, status, created_at, restaurants(name, slug)')
-        .eq('guest_email', session.user.email ?? '')
-        .order('reserved_date', { ascending: false })
-        .limit(50)
-
-      setReservations((data ?? []) as unknown as ReservationRow[])
+      // #4: RLS anon/müşteri okumasına izin vermiyordu → liste hep boştu; sunucu API'si eşleştiriyor
+      const res = await fetch('/api/musteri/rezervasyonlar?limit=50', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      }).catch(() => null)
+      const json = await res?.json().catch(() => null)
+      setReservations((json?.reservations ?? []) as ReservationRow[])
       setLoading(false)
     })
   }, [router])
