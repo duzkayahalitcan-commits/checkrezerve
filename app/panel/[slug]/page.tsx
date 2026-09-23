@@ -161,7 +161,7 @@ export default async function PanelDashboardPage({
 
         {/* Quick action — tek birleşik CTA (A3) */}
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Link href={`/panel/${slug}/takvim?view=gunluk`}
+          <Link href={`/panel/${slug}/rezervasyonlar?yeni=1`}
             className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white rounded-xl px-4 py-3.5 text-sm font-semibold transition-colors">
             <Plus size={16} /> Yeni Rezervasyon
           </Link>

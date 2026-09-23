@@ -21,3 +21,11 @@
 
 ## GET /api/health  (alan eklendi — OB-03)
 - `{ status: "ok" | "degraded", db, redis: "ok"|"error"|"disabled", sms: { provider, configured }, latency_ms, ts }`. DB hatasında 503 (değişmedi).
+
+## GET/POST /api/panel/reservations  (yeni — OP-03)
+- **Auth:** panel oturumu (`cr_panel` cookie). İşletme = oturumdaki `restaurantId` (body'den alınmaz).
+- **GET `?phone=05321234567`** → `{ guest: { name, email, visits, lastVisit } | null }` (aynı işletmede bu numaranın son kaydı; biçim farkları `phoneKey` ile eşleşir).
+- **POST** body: `{ guest_name, guest_phone, reserved_date: "YYYY-MM-DD", reserved_time: "HH:MM", party_size?, calisan_id?, hizmet_id?, notes? }`
+  - Kayıt `status: "confirmed"`, `source: "phone"`, `hizmet_id` (kanonik kolon) ile yazılır.
+  - **200** `{ success: true, id }` · **400** eksik/geçersiz alan, başka işletmenin çalışanı/hizmeti · **409** aynı çalışan aynı saatte dolu · **401** oturum yok · **500** `{ error }` (Türkçe).
+  - Not: müşteriye onay SMS'i **gönderilmez** (bilinçli; telefonda zaten konuşuldu). İstenirse sabah karar.
