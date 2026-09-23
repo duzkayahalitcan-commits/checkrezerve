@@ -36,14 +36,20 @@ export default function YeniRezervasyon({ calisanlar, hizmetler, defaultOpen = f
     }
   }
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: React.SyntheticEvent, walkIn = false) {
     e.preventDefault()
     setBusy(true)
     setError(null)
+    // OP-04: walk-in → tarih/saat "şimdi" (5 dk'ya yuvarlanmış)
+    const now = new Date()
+    now.setMinutes(Math.floor(now.getMinutes() / 5) * 5)
+    const payload = walkIn
+      ? { ...form, walk_in: true, reserved_date: today, reserved_time: now.toTimeString().slice(0, 5) }
+      : form
     const res = await fetch('/api/panel/reservations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     }).catch(() => null)
     const json = await res?.json().catch(() => ({})) ?? {}
     setBusy(false)
@@ -53,6 +59,12 @@ export default function YeniRezervasyon({ calisanlar, hizmetler, defaultOpen = f
     setForm(empty)
     setKnown(null)
     router.refresh()
+  }
+
+  // Walk-in için sadece ad + telefon zorunlu (tarih/saat otomatik)
+  function checkWalkIn() {
+    if (!form.guest_name.trim() || !form.guest_phone.trim()) { setError('Walk-in için ad ve telefon yeterli.'); return false }
+    return true
   }
 
   const input = 'w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500 [color-scheme:dark]'
@@ -124,6 +136,11 @@ export default function YeniRezervasyon({ calisanlar, hizmetler, defaultOpen = f
             <button type="submit" disabled={busy}
               className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white rounded-xl py-2.5 text-sm font-semibold">
               {busy ? 'Kaydediliyor…' : 'Kaydet (onaylı)'}
+            </button>
+            <button type="button" disabled={busy}
+              onClick={e => { if (checkWalkIn()) submit(e, true) }}
+              className="w-full bg-stone-800 hover:bg-stone-700 disabled:opacity-50 text-stone-200 rounded-xl py-2.5 text-sm font-semibold border border-stone-700">
+              Şimdi geldi (walk-in)
             </button>
           </form>
         </div>

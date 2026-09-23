@@ -81,7 +81,11 @@ export async function POST(req: NextRequest) {
     if (!data) return NextResponse.json({ error: 'Hizmet bulunamadı.' }, { status: 400 })
   }
 
-  const { data, error } = await db
+  // OP-04: walk-in = kapıdan gelen. source CHECK'i 'walk_in'i ancak SQL 06 sonrası kabul eder;
+  // öncesinde 'phone' + not önekiyle yazılır (23514 = check_violation).
+  const walkIn = body.walk_in === true
+  const notes = String(body.notes ?? '').trim()
+  const insertRow = (source: string, noteText: string | null) => db
     .from('reservations')
     .insert({
       restaurant_id:      session.restaurantId,
@@ -92,17 +96,22 @@ export async function POST(req: NextRequest) {
       reserved_time:      time,
       calisan_id:         calisanId,
       hizmet_id:          hizmetId,
-      special_requests:   String(body.notes ?? '').trim() || null,
+      special_requests:   noteText,
       status:             'confirmed',
-      source:             'phone',
+      source,
       cancellation_token: createHash('sha256').update(randomBytes(32)).digest('hex').slice(0, 32),
     })
     .select('id')
     .single()
 
+  let { data, error } = await insertRow(walkIn ? 'walk_in' : 'phone', notes || null)
+  if (walkIn && error?.code === '23514') {
+    ;({ data, error } = await insertRow('phone', `[Walk-in]${notes ? ' ' + notes : ''}`))
+  }
+
   if (error) {
     console.error('[panel/reservations POST]', error)
     return NextResponse.json({ error: 'Rezervasyon kaydedilemedi. Lütfen tekrar deneyin.' }, { status: 500 })
   }
-  return NextResponse.json({ success: true, id: data.id })
+  return NextResponse.json({ success: true, id: data!.id })
 }
