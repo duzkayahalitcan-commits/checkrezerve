@@ -39,7 +39,29 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ times: [] })
   }
 
-  const times = [...new Set((data ?? []).map(r => r.reserved_time).filter(Boolean))]
+  // 10a: DB "15:30:00" döndürüyor, form "15:30" ile karşılaştırıyor → hiç eşleşmiyordu (dolu saat görünmüyordu)
+  const counts = new Map<string, number>()
+  for (const r of data ?? []) {
+    const t = String(r.reserved_time ?? '').slice(0, 5)
+    if (t) counts.set(t, (counts.get(t) ?? 0) + 1)
+  }
+
+  let times: string[]
+  if (staffId) {
+    times = [...counts.keys()]
+  } else {
+    // Çalışan seçilmemiş: tek rezervasyon saati herkese kapatmasın.
+    // Çalışanı olan işletmede saat, rezervasyon sayısı aktif çalışan sayısına ulaşınca dolu;
+    // çalışanı olmayan (restoran) işletmede kapasite masa/bölge kontrolleriyle yönetilir → burada kapatılmaz.
+    const { count: staffCount } = await getSupabaseAdmin()
+      .from('calisanlar')
+      .select('id', { count: 'exact', head: true })
+      .eq('restaurant_id', businessId)
+      .eq('aktif', true)
+    const n = staffCount ?? 0
+    times = n > 0 ? [...counts.entries()].filter(([, c]) => c >= n).map(([t]) => t) : []
+  }
+
   return NextResponse.json(
     { times },
     { headers: { 'Cache-Control': 'no-store' } }
