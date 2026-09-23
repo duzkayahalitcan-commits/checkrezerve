@@ -10,6 +10,7 @@
  *
  * Ortam değişkeni: SMS_PROVIDER=whatsapp|twilio|netgsm|mock|disabled
  */
+import { getSupabaseAdmin } from '@/lib/supabase'
 
 // ── Tip tanımları ─────────────────────────────────────────────────────────────
 export interface SmsPayload {
@@ -204,7 +205,37 @@ export function normalizePhoneE164(raw: string): string {
 
 // ── Public API ────────────────────────────────────────────────────────────────
 export async function sendSms(payload: SmsPayload): Promise<SmsResult> {
-  return createProvider().send({ ...payload, to: normalizePhoneE164(payload.to) })
+  const provider = process.env.SMS_PROVIDER ?? 'disabled'
+  const to = normalizePhoneE164(payload.to)
+  const result = await createProvider().send({ ...payload, to })
+  // mock sağlayıcı kendi kaydını zaten yazıyor
+  if (provider !== 'mock') await logSend(provider, to, payload.body, result)
+  return result
+}
+
+// OB-05: Her gönderimin sonucu sms_logs'a yazılır (önceden sadece mock sağlayıcı
+// yazıyordu → gerçek gönderim hataları hiçbir yerde görünmüyordu).
+// error_message / provider_message_id kolonları .agents/sql-taslak/05-OB-05.sql ile
+// eklenir; kolonlar yoksa temel alanlarla tekrar denenir. Log hatası gönderimi etkilemez.
+async function logSend(provider: string, to: string, body: string, result: SmsResult) {
+  try {
+    const db = getSupabaseAdmin()
+    const base = { provider, to_number: to, body, status: result.success ? 'sent' : 'failed' }
+    const { error } = await db.from('sms_logs').insert({
+      ...base,
+      provider_message_id: result.messageId ?? null,
+      error_message:       result.error ?? null,
+    })
+    if (error && (error.code === 'PGRST204' || error.code === '42703')) {
+      const { error: e2 } = await db.from('sms_logs').insert(base)
+      if (e2) console.error('[sms_logs] insert hatası:', e2)
+    } else if (error) {
+      console.error('[sms_logs] insert hatası:', error)
+    }
+    if (!result.success) console.error('[sendSms] gönderim başarısız:', provider, result.error)
+  } catch (e) {
+    console.error('[sms_logs] log istisnası:', e)
+  }
 }
 
 export interface ReservationNotificationParams {
