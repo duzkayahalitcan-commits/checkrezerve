@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 
-export default function CancelForm({ reservationId, token }: { reservationId: string; token: string }) {
+export default function CancelForm({ token }: { reservationId: string; token: string }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -13,14 +12,16 @@ export default function CancelForm({ reservationId, token }: { reservationId: st
     setLoading(true)
     setError(null)
 
-    const { error: err } = await supabase
-      .from('reservations')
-      .update({ status: 'cancelled', cancellation_token: null })
-      .eq('id', reservationId)
-      .eq('cancellation_token', token)
+    // CM-04: iptal sunucuda yapılır (anon client'ın UPDATE yetkisi yok → önceden sessizce başarısızdı)
+    const res = await fetch('/api/rezervasyon/iptal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    }).catch(() => null)
 
-    if (err) {
-      setError('İptal sırasında bir hata oluştu. Lütfen tekrar deneyin.')
+    if (!res?.ok) {
+      const json = await res?.json().catch(() => ({})) ?? {}
+      setError(json.error ?? 'İptal sırasında bir hata oluştu. Lütfen tekrar deneyin.')
       setLoading(false)
       return
     }
