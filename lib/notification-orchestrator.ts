@@ -79,7 +79,7 @@ export async function notifyReservationEvent(
     time: reservation.reserved_time ?? '',
     partySize: reservation.party_size ?? 1,
     cancelUrl: reservation.cancellation_token
-      ? `https://checkrezerve.com/iptal/${reservation.cancellation_token}`
+      ? `https://checkrezerve.com/tr/rezervasyon/iptal/${reservation.cancellation_token}` // CM-01: /iptal/ yolu 404'tü
       : undefined,
   }
 
