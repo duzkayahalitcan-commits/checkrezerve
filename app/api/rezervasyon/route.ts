@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { rateLimit } from '@/lib/rate-limit'
 import { notifyReservationEvent } from '@/lib/notification-orchestrator'
 import { logGuestActivity, resolveGuestByPhone } from '@/lib/guest-activities'
+import { isValidPhone } from '@/lib/phone'
 
 function generateCancellationToken(): string {
   return createHash('sha256').update(randomBytes(32)).digest('hex').slice(0, 32)
@@ -23,6 +24,10 @@ export async function POST(request: NextRequest) {
 
     if (!restaurant_id || !customer_name || !phone || !date || !time) {
       return NextResponse.json({ error: 'Zorunlu alanlar eksik' }, { status: 400 })
+    }
+    // PX-12: harf/eksik haneli numara kaydedilip SMS'te sessizce düşmesin
+    if (!isValidPhone(phone)) {
+      return NextResponse.json({ error: 'Telefon numarası geçersiz. Örnek: 0 5XX XXX XX XX' }, { status: 400 })
     }
 
     const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i

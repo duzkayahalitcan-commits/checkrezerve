@@ -11,6 +11,7 @@
  * Ortam değişkeni: SMS_PROVIDER=whatsapp|twilio|netgsm|mock|disabled
  */
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { normalizePhoneE164 } from '@/lib/phone'
 
 // ── Tip tanımları ─────────────────────────────────────────────────────────────
 export interface SmsPayload {
@@ -187,21 +188,8 @@ function createProvider(): SmsProvider {
   }
 }
 
-// ── Telefon normalizasyonu (E.164) ────────────────────────────────────────────
-// Twilio (SMS + WhatsApp) E.164 formatı zorunlu kılar (+905XXXXXXXXX).
-// guest_phone DB'de çoğunlukla yerel formatta tutulur (05XX XXX XX XX, 05XXXXXXXXX
-// vb.) — bu fonksiyon olmadan Twilio "21211: not a valid phone number" hatasıyla
-// sessizce reddediyordu (bkz. send-reminders reminder bug'ı, 2026-09-22).
-// Zaten E.164 olan numaraları (+ ile başlayan) olduğu gibi bırakır (idempotent).
-export function normalizePhoneE164(raw: string): string {
-  const trimmed = raw.trim()
-  if (trimmed.startsWith('+')) return `+${trimmed.slice(1).replace(/\D/g, '')}`
-  const digits = trimmed.replace(/\D/g, '')
-  if (!digits) return trimmed
-  if (digits.startsWith('0')) return `+90${digits.slice(1)}`      // 05XX... → +905XX...
-  if (digits.startsWith('90') && digits.length >= 12) return `+${digits}` // 905XX... → +905XX...
-  return `+90${digits}` // varsayılan: başında 0 olmayan yerel numara (5XX...)
-}
+// Telefon normalizasyonu lib/phone.ts'e taşındı (PX-12); geriye uyumluluk için yeniden dışa aktarılır.
+export { normalizePhoneE164 } from '@/lib/phone'
 
 // ── Public API ────────────────────────────────────────────────────────────────
 export async function sendSms(payload: SmsPayload): Promise<SmsResult> {

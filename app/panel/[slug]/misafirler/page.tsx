@@ -3,6 +3,7 @@ import { getPanelSession } from '@/app/panel/login/actions'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { getLocale } from 'next-intl/server'
 import MisafirList from './MisafirList'
+import { phoneKey } from '@/lib/phone'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,10 +41,12 @@ export default async function MisafirlerPage({
   const phoneMap = new Map<string, { name: string; phone: string; visits: number; lastVisit: string; statuses: string[] }>()
   for (const r of reservations ?? []) {
     const phone = r.guest_phone!
-    if (!phoneMap.has(phone)) {
-      phoneMap.set(phone, { name: r.guest_name ?? 'Misafir', phone, visits: 0, lastVisit: '', statuses: [] })
+    // PX-12: aynı numaranın farklı yazımları (05.., 5.., boşluklu) tek misafir sayılsın
+    const key = phoneKey(phone) || phone
+    if (!phoneMap.has(key)) {
+      phoneMap.set(key, { name: r.guest_name ?? 'Misafir', phone, visits: 0, lastVisit: '', statuses: [] })
     }
-    const entry = phoneMap.get(phone)!
+    const entry = phoneMap.get(key)!
     entry.visits++
     if (r.reserved_date > entry.lastVisit) entry.lastVisit = r.reserved_date
     entry.statuses.push(r.status)
