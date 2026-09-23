@@ -403,7 +403,8 @@ export default function BookingForm({
         customer_name:    name,
         phone,
         email:            email || undefined,
-        party_size:       partySize,
+        // #5: randevu akışında kişi adımı yok; state varsayılanı (2) yazılıyordu → mobil gibi 1
+        party_size:       isServiceBased ? 1 : partySize,
         date:             selectedDate,
         time:             selectedTime,
         table_id:         safeTableId,
