@@ -81,7 +81,8 @@ export async function createReservation(
     party_size:       isNaN(partySize) ? 1 : partySize,
     special_requests: notes,
     cancellation_token: generateCancellationToken(),
-    sms_consent:      smsConsent || kvkkConsent,
+    // LG-02: zorunlu KVKK/bilgilendirme onayı pazarlama izni DEĞİLDİR; sadece ayrı kutu
+    sms_consent:      smsConsent,
     status:           'confirmed',
     source:           'form',
   })

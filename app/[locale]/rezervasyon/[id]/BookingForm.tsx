@@ -264,6 +264,7 @@ export default function BookingForm({
   const [privacyAccepted, setPrivacyAccepted] = useState(false)
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false)
   const [privacyError, setPrivacyError] = useState(false)
+  const [marketingConsent, setMarketingConsent] = useState(false) // LG-02: ön işaretsiz
 
   // Calendar state
   const today = useMemo(() => {
@@ -400,6 +401,7 @@ export default function BookingForm({
         service_id:       selectedService ?? undefined,
         staff_id:         (selectedStaff && selectedStaff !== '__any__') ? selectedStaff : undefined,
         special_requests: specialNotes || undefined,
+        sms_consent:      marketingConsent,
         zone_id:          krokiMode === 'zones' ? (selectedArea ?? undefined) : undefined,
         zone_name:        selectedZoneName,
       }),
@@ -1051,6 +1053,20 @@ export default function BookingForm({
         {privacyError && !privacyAccepted && (
           <p className="text-sm text-red-600">{r('gizlilik.hata')}</p>
         )}
+
+        {/* LG-02: Pazarlama izni — zorunlu onaydan ayrı, ön işaretsiz, isteğe bağlı */}
+        <div className="flex items-start gap-3 p-4 rounded-xl border border-zinc-200 bg-zinc-50">
+          <input
+            type="checkbox"
+            id="marketing-consent"
+            checked={marketingConsent}
+            onChange={e => setMarketingConsent(e.target.checked)}
+            className="mt-0.5 accent-[#E53935] w-4 h-4 shrink-0 cursor-pointer"
+          />
+          <label htmlFor="marketing-consent" className="text-sm text-zinc-700 cursor-pointer leading-relaxed">
+            Kampanya ve fırsatlardan SMS/e-posta ile haberdar olmak istiyorum (isteğe bağlı, ticari ileti onayı).
+          </label>
+        </div>
 
         {error && (
           <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{error}</div>

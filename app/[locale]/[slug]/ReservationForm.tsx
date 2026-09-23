@@ -395,6 +395,19 @@ export function ReservationForm({
         </label>
       </div>
 
+      {/* LG-02: Pazarlama izni — ayrı, ön işaretsiz, isteğe bağlı */}
+      <div className="flex items-start gap-3">
+        <input
+          id="sms_consent"
+          name="sms_consent"
+          type="checkbox"
+          className="mt-0.5 w-4 h-4 rounded border-stone-300 text-amber-500 focus:ring-amber-400 focus:ring-2 shrink-0 cursor-pointer"
+        />
+        <label htmlFor="sms_consent" className="text-xs text-stone-500 leading-relaxed cursor-pointer select-none">
+          Kampanya ve fırsatlardan SMS/e-posta ile haberdar olmak istiyorum (isteğe bağlı, ticari ileti onayı).
+        </label>
+      </div>
+
       {/* Hata */}
       {state.error && (
         <div className="flex items-start gap-2.5 rounded-xl bg-red-50 border border-red-100 px-4 py-3">

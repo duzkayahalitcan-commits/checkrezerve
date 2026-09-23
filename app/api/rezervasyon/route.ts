@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const {
       restaurant_id, customer_name, phone, email, party_size,
       date, time, table_id, service_id, staff_id, masa_tipi_id,
-      zone_id, special_requests,
+      zone_id, special_requests, sms_consent,
     } = body
 
     if (!restaurant_id || !customer_name || !phone || !date || !time) {
@@ -111,6 +111,7 @@ export async function POST(request: NextRequest) {
       table_id:         safeTableId     || null,
       zone_id:          safeZoneId      || null,
       special_requests: special_requests?.trim() || null,
+      sms_consent:      sms_consent === true, // LG-02: sadece ayrı pazarlama kutusu
       cancellation_token: generateCancellationToken(),
       status: 'pending',
       source: 'form',
