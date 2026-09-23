@@ -8,6 +8,7 @@ import { Link } from '@/i18n/navigation'
 import NextLink from 'next/link'
 import NotificationToggle from './NotificationToggle'
 import KanalTercihi from './KanalTercihi'
+import HesapSil from './HesapSil'
 import type { User } from '@supabase/supabase-js'
 
 const KAT_ICON: Record<string, string> = {
@@ -219,6 +220,8 @@ export default function ProfilPage() {
             })}
           </div>
         )}
+
+        <HesapSil />
       </div>
     </div>
   )
