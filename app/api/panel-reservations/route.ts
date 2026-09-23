@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifySession } from '@/lib/panel-auth'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { notifyStatusChange } from '@/lib/notification-orchestrator'
 
 async function getSession() {
   const jar = await cookies()
@@ -19,6 +20,8 @@ export async function PATCH(req: NextRequest) {
   if (!valid.includes(status)) return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
 
   const db = getSupabaseAdmin()
+  const { data: prev } = await db.from('reservations').select('status')
+    .eq('id', id).eq('restaurant_id', session.restaurantId).maybeSingle()
   const { error } = await db
     .from('reservations')
     .update({ status })
@@ -26,5 +29,7 @@ export async function PATCH(req: NextRequest) {
     .eq('restaurant_id', session.restaurantId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  // #7: gerçekten değiştiyse müşteriye onay/iptal bildirimi (akışı bekletmez)
+  if (prev && prev.status !== status) void notifyStatusChange(id, status).catch(e => console.error('[panel-reservations] bildirim:', e))
   return NextResponse.json({ ok: true })
 }
