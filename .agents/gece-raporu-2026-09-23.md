@@ -1,7 +1,6 @@
 # Gece Raporu — 2026-09-23 (branch: `gece-2026-09-23`)
 
-> Durum: **gece-gorevi.md TAMAMLANDI** (G1–G9). Push YOK, deploy YOK, DB'ye yazma YOK (sadece SELECT).
-> Sırada: `urun-plani/2-denetim-gorevi.md` → `urun-plani/3-uygulama-kuyrugu.md` (aynı branch, aynı kurallar; bu raporun sonuna eklenecek).
+> Durum: **gece-gorevi.md (G1–G9), Görev 2 (denetim) ve Görev 3 (uygulama kuyruğu, öncelik 1–6'nın ana maddeleri) TAMAMLANDI.** Push YOK, deploy YOK, DB'ye yazma YOK (sadece SELECT). Görev 2/3 ayrıntıları raporun sonunda.
 
 ## 1. Sabah 5 dakikalık özet
 
@@ -385,6 +384,110 @@ Yöntem: `app/ lib/ src/ components/` altında `.insert( .update( .upsert( .dele
 
 ## Gece görevi sonu — `git log main..HEAD --oneline`
 ```
+d57b853 docs(learned): 3 yeni ders (grep -i, yorum yerine DB, çift kolon) + #1 sayaç
+a799963 fix(admin): QR kod fallback'inde eski Railway URL'si checkrezerve.com yapıldı
+ed57807 chore(lint): prefer-const hataları (3)
+2306a21 fix(guvenlik): iyzico webhook imzası boş secret ile doğrulanmıyor
+4f31ae5 fix(guvenlik): panel API'lerinde işletme sahipliği (tenant) kontrolü
+1a1736f fix(panel-ui): misafir etiketi ve admin durum güncellemesinde yanlış 'başarılı'
+b2f1a45 fix(kroki): kaldırılan masaları pasifleştirme hatası okunuyor
+6009ba3 fix(paket): paket yenileme ve hatırlatma cron'unda okunmayan DB hataları
+68e05ab fix(bildirim): kanal ayarı ve müşteri kanal tercihi kaydı hataları okunuyor
+b8e1cf8 fix(odeme): iyzico webhook ve abonelik akışında okunmayan DB hataları
+```
+
+---
+
+# Görev 2 — Özellik denetimi
+Rapor: `.agents/ozellik-denetimi-2026-09-23.md` (`b95e846`). Web P0: **9/59 VAR**, P1 2/53, P2 1/27. 50 P0 eksiği Bölüm B'de; denetimde bulunan yeni riskler Bölüm D'de (server action açıkları, olmayan kolonlara yazan kod, boş `guests` tablosu, kırık iptal linki).
+
+# Görev 3 — Uygulama kuyruğu
+
+## Uygulananlar
+| ID | Commit | Ne değişti | Nasıl test edilir | Şema? |
+|---|---|---|---|---|
+| SC-01 / AC-01 | `37f89b2` | Takvim server action'ları (güncelle/sil/geri al) ve şablon güncelleme sadece oturumdaki işletmenin kayıtlarını etkiler; admin işletme/kullanıcı oluşturma action'ları `cr_admin` doğrular | Panel → Takvim → rezervasyonu sürükle (kendi işletmende çalışmalı). Admin'den çıkış yapıp admin sayfasının action'ını tekrar gönder (DevTools "Resend") → "Yetkisiz." | Hayır |
+| OB-04 | `d8e17db` | `POST /api/send-reminders` herhangi bir gönderim başarısızsa **500** döner (gövde aynı: `{date, sent, failed}`), başarısız id'ler loglanır → GitHub Actions job'u fail olur, e-posta alarmı gelir | GitHub → Actions → "Günlük Randevu Hatırlatmaları" → Run workflow. SMS_PROVIDER hatalıyken job kırmızı olmalı | Hayır |
+| OB-05 | `ad52ee8` | `sendSms` her gönderimin sonucunu `sms_logs`'a yazar (sent/failed + hata) | SQL 05'i çalıştır → bir rezervasyon oluştur → `SELECT * FROM sms_logs ORDER BY created_at DESC LIMIT 5` | **Evet** — `05-OB-05.sql` (kod SQL'siz de çalışır, hata metni yazılmaz) |
+| OB-03 | `5442c10` | `/api/health` → `redis` (`ok/error/disabled`) ve `sms {provider, configured}` alanları; sorun varsa `status: "degraded"` (200) | `curl https://checkrezerve.com/api/health` | Hayır |
+| PX-03 | `df239ac` | Rezervasyon API'si DB hata metni yerine Türkçe, yönlendirici mesaj döndürür (form verisi korunur) | Hizmetli işletmede web rezervasyonu dene (G2 FK hatası hâlâ var) → toast'ta "Rezervasyonunuz kaydedilemedi…" görünmeli, teknik metin değil | Hayır |
+| MB-01 / LG-07 (API) | `e01e768` | **🔴 KRİTİK bug:** `DELETE /api/users/me` DB'de olmayan `reservations.customer_id`/`deleted_at` kolonlarını kullandığı için **her silme isteği 500 dönüyordu** (mobil dahil; mağaza zorunluluğu). Eşleşme e-posta + profil telefonu varyantlarına, anonimleştirme NOT NULL uyumlu sabit değerlere çevrildi; legacy PII (`customer_name`, `phone`) de temizleniyor; push/kanal tercihi kayıtları siliniyor | Test hesabıyla (**gerçek müşteri değil**) mobilde veya web profilinde hesabı sil → 200; `SELECT guest_name, guest_email FROM reservations WHERE guest_email ILIKE '<test e-posta>'` → 0 satır; aynı telefonla yapılmış rezervasyonlar "Silinmiş kullanıcı" | Hayır |
+| LG-07 (web UI) | `d03d9a3` | Profil sayfasının altında "Hesabı sil" bölümü: "SİL" yazarak onay → API → çıkış | Web'de test müşterisiyle giriş → Profil → "Hesabımı silmek istiyorum" → SİL → ana sayfaya döner, tekrar giriş yapılamaz | Hayır |
+| LG-02 | `9f06c14` | İki rezervasyon formuna ön işaretsiz, ayrı "ticari ileti" kutusu; API `sms_consent` kaydediyor. Eski formda zorunlu KVKK onayı pazarlama izni gibi kaydediliyordu (`smsConsent \|\| kvkkConsent`) → düzeltildi. Mevcut veride etkisi yok (26/26 false) | Web'den rezervasyon: kutu boş → `sms_consent=false`; işaretli → `true`. Panel → Bildirimler → toplu SMS hedef sayısı sadece işaretleyenleri saymalı | Hayır |
+| LG-05 | `94417c9` | `/tr/yasal/mesafeli-satis` taslak sayfası (TASLAK bandı, noindex) + ortak `components/LegalDraftPage.tsx` | Sayfayı aç → üstte sarı "TASLAK – hukuki onay bekliyor" bandı. Köşeli parantezli alanları doldur, hukukçuya gönder. Checkout'a bağlanmadı | Hayır |
+| LG-06 | `d2b7e50` | `/tr/yasal/iptal-iade` taslak | Aynı | Hayır |
+| LG-10 | `d61e060` | `/tr/yasal/kunye` taslak (unvan/vergi/MERSİS/KEP yer tutucuları) | Aynı; doldurulunca footer'a link eklenmeli (7 dil için çeviri anahtarı gerekir) | Hayır |
+| PX-12 | `53ccd16` | `lib/phone.ts` (normalize, phoneKey, isValidPhone, formatPhoneTR); rezervasyon API geçersiz numarayı 400 ile reddeder; misafir listesi farklı yazımları tek kişi sayar. **Kayıt biçimi değişmedi** (DB'de 0XXX 13, 10 hane 4, boşluklu 9 kayıt) | Web formu: "abc" → "Telefon numarası geçersiz"; "0532 123 45 67" → kabul. Panel → Misafirler: aynı numara farklı yazımlarla tek satır | Hayır |
+| LG-03 | — (atlandı) | Sitede hiç analitik/pazarlama izleyicisi yok (gtag/GTM/pixel vb. grep 0) → kategori seçimi işlevsiz olurdu. Mevcut Kabul/Reddet eşit ağırlıkta. İzleyici eklenince kategori şart | — | — |
+| PX-11 | `b31ac09` | `lib/format.ts`: `formatTL` → "1.250,00 ₺" (21 yerde: panel ciro/rapor/paket/hizmet/abonelik, booking formu, işletme sayfası); `formatTarihUzun`, `trUpper/trLower` eklendi ama yaygınlaştırılmadı | Panel → Raporlar / Paketler → Ödeme takip: tutarlar "1.250,00 ₺". Tarayıcı dili İngilizce olsa da aynı | Hayır |
+| OP-11 | `404ba7f` | Panel → Ayarlar'da kapalı işaretlenen günler müşteri takviminde seçilemez; API o güne 409 "İşletme bu tarihte kapalı" döner. Özel saat / resmi tatil hâlâ yok | Panel → Ayarlar → kapalı gün ekle (örn. yarın) → müşteri formunda o gün gri. `curl -X POST /api/rezervasyon` o tarihle → 409 | Hayır |
+| OP-13 | `36b49f2` | Rezervasyonlar → Filtrele: "Bitiş" tarihi (aralık), Çalışan, Kaynak (form/telefon/WhatsApp/AI) eklendi. Liste hâlâ son 90 günle sınırlı | Panel → Rezervasyonlar → Filtrele → başlangıç+bitiş seç, çalışan seç → sayılar tutmalı; Temizle hepsini sıfırlar | Hayır |
+| CM-04 | `2168470` | **🔴 bug:** misafir iptal sayfası anon client ile update yaptığı için iptal **hiç çalışmıyordu** (0 satır, hata yok). Yeni `POST /api/rezervasyon/iptal`: token + durum + başlama saati kontrolü, işletme/müşteri iptal bildirimi. Sözleşme `.agents/api-sozlesmeleri.md` | Test rezervasyonu oluştur → `cancellation_token`'ı al → `/tr/rezervasyon/iptal/<token>` → İptal et → sayfa "zaten iptal edilmiş" göstermeli; DB'de status=cancelled; işletmeye iptal SMS'i (SMS_PROVIDER'a bağlı). Geçmiş tarihli rezervasyonla → "Geçmiş rezervasyon iptal edilemez" | Hayır |
+| CM-01 | `5f6f0ac` | Orchestrator'ın ürettiği iptal linki `/iptal/<token>` (404) → `/tr/rezervasyon/iptal/<token>` | Yeni rezervasyon → gelen SMS'teki linke tıkla → iptal sayfası açılmalı | Hayır |
+| OP-03 | `e8205ae` | Panel → Rezervasyonlar sayfasında "Yeni Rezervasyon" modalı (ana sayfa butonu da açar): telefon → kayıtlı müşteri adı otomatik, tarih/saat/kişi/hizmet/çalışan/not → onaylı kayıt (source=phone). Aynı çalışan+saat 409. Yeni `GET/POST /api/panel/reservations` | Panel ana sayfa → Yeni Rezervasyon → daha önce rezervasyonu olan bir numara gir, alandan çık → ad dolmalı → kaydet → listede görünmeli. Aynı çalışana aynı saat tekrar → "Bu çalışanın o saatte…" | Hayır |
+| OP-04 | `40b83e5` | Yeni rezervasyon modalında "Şimdi geldi (walk-in)": ad+telefon yeterli, saat şimdi, onaylı. SQL 06 yoksa `source='phone'` + "[Walk-in]" not | Modal → ad + telefon → "Şimdi geldi" → bugünün listesinde şu anki saatle görünmeli. SQL 06 sonrası DB'de `source='walk_in'` | **Evet** — `06-OP-04-CH-06.sql` (SQL'siz de çalışır) |
+| CR-01 / CR-06 | `69c3be3` | **🔴 bug:** Misafirler listesi `guests` tablosu boş olduğu için hep boş görünüyordu (`[] ?? guests`) → düzeltildi. Kart artık e-posta, toplam harcama (tamamlanan × hizmet fiyatı) ve son 20 ziyareti (hizmet/çalışan/durum) gösteriyor | Panel → Misafirler → liste dolu olmalı (başlıktaki sayı ile aynı) → bir misafire tıkla → "Ziyaret geçmişi" | Hayır |
+| CU-06 | `51f5502` | Web rezervasyon başarı ekranında "📅 Takvime ekle" → `rezervasyon.ics` (TR saati doğru, 2 saat önce alarm). Ayrıca bulundu: `/rezervasyon/[id]/onay` sayfası anon client ile okuduğu için her zaman "bulunamadı" gösteriyor (kullanılmıyor olabilir) | Restoran (hizmetsiz) işletmede web rezervasyonu tamamla → "Takvime ekle" → telefon/Outlook takviminde doğru saat | Hayır |
+| CH-03 | `0ba5309` | Panel ana sayfasında "QR kod (masa kartı)" → PNG indir veya "Yazdır / PDF" (işletme adı + QR + URL kartı). Admin'deki QR modalına da aynı buton geldi | Panel ana sayfa → QR kod → Yazdır / PDF → tarayıcı yazdır penceresinde "PDF olarak kaydet"; telefonla okut → rezervasyon sayfası açılmalı | Hayır |
+
+## Görev 3 — Bitiş
+
+### Uygulanmadan kalan P0'lar ve nedenleri
+| ID | Neden |
+|---|---|
+| CH-01 / CU-04 (hizmetli web rezervasyonu FK kırığı, musait filtresi) | YAPMA listesi: `service_id`/`hizmet_id` birleştirmesi sabah kararı (gece G2 planı hazır, ~5 satır) |
+| OP-06 (arrived/no_show + zaman damgaları) | Status CHECK şema değişikliği + tüm durum filtreleri etkilenir |
+| OP-07 (otomatik/manuel onay) | Zaman yetmedi (S); `auto_confirm` flag'i API'de okunacak |
+| OP-08 (web formunda çalışan çakışması) | Panel API'sinde (OP-03) yapıldı; müşteri API'sine taşınmadı — zaman |
+| RS-04, RS-05, CR-02, CU-03, CU-05 (iptal politikası), CU-07, CU-11, RP-01, AC-07 | Zaman / UX kararı / şema (bkz. denetim Bölüm B) |
+| CM-02, CM-03, CM-06, CM-09 | Gerçek mesaj gönderimi / sağlayıcı değişikliği YAPMA listesinde |
+| AC-04, AC-05, LG-05'in checkout'a bağlanması | Ödeme/abonelik akışı YAPMA listesinde; fatura XL |
+| LG-03 | Sitede analitik/pazarlama izleyicisi yok → kategori seçimi işlevsiz olur |
+| LG-04 | İki ayrı "kullanım koşulları" sayfası var; birleştirmek mevcut sayfayı kaldırmak demek (YAPMA) |
+| SC-02 | DB yazma yasak → SQL 03 hazır |
+| SC-03, SC-06 | SC-06'nın telefon kısmı PX-12 ile yapıldı; zod ve login/kayıt rate-limit'i zaman |
+| SC-09, OB-01, OB-02, PF-01 | Dış hesap/altyapı (Supabase yedek, Sentry DSN, uptime servisi, Lighthouse) |
+| PF-02, PF-03 | Zaman (öncelik 7) |
+
+### Sabah önerilen merge sırası
+Hepsi `gece-2026-09-23` branch'inde, push yok. Commit'ler tek tek `git cherry-pick` ile alınabilir; bağımlılıklar:
+
+1. **Hemen, bağımsız (güvenlik/veri kaybı):** `4f31ae5` (API tenant), `2306a21` (iyzico imza), `37f89b2` (server action tenant), `e01e768` (hesap silme — **mobil de bunu kullanıyor**), `2168470` (misafir iptali), `5f6f0ac` (iptal linki), `9f06c14` (pazarlama izni).
+2. **Bağımsız hata görünürlüğü:** `b8e1cf8`, `68e05ab`, `6009ba3`, `b2f1a45`, `1a1736f`, `d8e17db` (OB-04 — GitHub Actions ilk başarısız günde kırmızı olacak), `5442c10`, `df239ac`.
+3. **Sıralı:** `ad52ee8` (OB-05) → SQL 05. `53ccd16` (PX-12, `lib/phone.ts`) → `404ba7f` (OP-11 aynı API dosyası) → `e8205ae` (OP-03, `lib/phone` kullanır) → `40b83e5` (OP-04, OP-03 üstüne) → SQL 06. `69c3be3` (CR-01/06) `53ccd16`'dan sonra (phoneKey).
+4. **UI/içerik, bağımsız:** `b31ac09` (PX-11), `36b49f2` (OP-13), `d03d9a3` (LG-07 UI, `e01e768` sonrası), `94417c9` → `d2b7e50` → `d61e060` (yasal taslaklar; routing.ts sıralı), `51f5502` (CU-06), `0ba5309` (CH-03), `a799963`, `ed57807`.
+5. **Doküman:** `80e43a4`, `b95e846`, `d57b853`, `8c43b32` ve bu raporun son commit'i.
+
+**Deploy notu:** Prod image 20 Eylül; main'deki 21–22 Eylül commit'leri de canlıda değil. Deploy öncesi en az Test listesindeki 1–4 ve Uygulananlar tablosundaki test adımları.
+**Mobil (app oturumu) için:** `DELETE /api/users/me` düzeltmesi merge+deploy edilmeden mobil hesap silme çalışmaz. Yeni endpoint'ler `.agents/api-sozlesmeleri.md`'de; app bunlara ancak deploy sonrası bağlanmalı.
+
+### `git log main..HEAD --oneline`
+```
+8c43b32 docs(learned): sayaçlar güncellendi + #6 anon client / server action RLS kuralı
+0ba5309 feat(CH-03): işletme panelinde QR kod + yazdırılabilir masa kartı
+51f5502 feat(CU-06): rezervasyon başarı ekranında 'Takvime ekle' (.ics)
+69c3be3 feat(CR-01/CR-06): misafir kartında e-posta, harcama ve ziyaret geçmişi
+40b83e5 feat(OP-04): walk-in hızlı kayıt [SQL-GEREKLİ: 06-OP-04-CH-06.sql]
+e8205ae feat(OP-03): panelden manuel (telefonla gelen) rezervasyon ekleme
+5f6f0ac fix(CM-01): onay/iptal SMS'lerindeki iptal linki doğru sayfaya gidiyor
+2168470 fix(CM-04): misafir iptal linki gerçekten iptal ediyor + geçmiş rezervasyon engeli
+36b49f2 feat(OP-13): rezervasyon listesine tarih aralığı, çalışan ve kaynak filtresi
+404ba7f feat(OP-11): panelde kapatılan günler müşteri formunda ve API'de uygulanıyor
+b31ac09 feat(PX-11): TL biçimi '1.250,00 ₺' tek yardımcıdan (lib/format.ts)
+53ccd16 feat(PX-12): ortak telefon yardımcıları (lib/phone.ts)
+d61e060 feat(LG-10): künye ve iletişim TASLAK sayfası
+d2b7e50 feat(LG-06): abonelik iptal ve iade politikası TASLAK sayfası
+94417c9 feat(LG-05): mesafeli satış sözleşmesi + ön bilgilendirme TASLAK sayfası
+9f06c14 fix(LG-02): pazarlama izni zorunlu KVKK onayından ayrıldı
+d03d9a3 feat(LG-07): profil sayfasında hesap silme
+e01e768 fix(MB-01/LG-07): hesap silme API'si olmayan kolonlar yüzünden hep 500 dönüyordu
+df239ac fix(PX-03): rezervasyon API'si müşteriye teknik DB hatası göstermiyor
+5442c10 feat(OB-03): health endpoint Redis ve SMS sağlayıcı durumunu raporluyor
+ad52ee8 feat(OB-05): her SMS/WhatsApp gönderim sonucu sms_logs'a yazılıyor [SQL-GEREKLİ: 05-OB-05.sql]
+d8e17db fix(OB-04): hatırlatma cron'u başarısız gönderimde 500 döner
+37f89b2 fix(SC-01): server action'larda işletme sahipliği ve admin yetkisi
+b95e846 docs: özellik denetimi 2026-09-23
+80e43a4 docs: gece raporu 2026-09-23 ve SQL taslakları (01-04)
 d57b853 docs(learned): 3 yeni ders (grep -i, yorum yerine DB, çift kolon) + #1 sayaç
 a799963 fix(admin): QR kod fallback'inde eski Railway URL'si checkrezerve.com yapıldı
 ed57807 chore(lint): prefer-const hataları (3)
