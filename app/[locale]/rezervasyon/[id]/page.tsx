@@ -43,7 +43,7 @@ export default async function BusinessDetailPage({ params }: Props) {
 
   const todayStr = new Date().toISOString().split('T')[0]
   const [{ data: biz }, { data: rawServices }, { data: rawStaff }, { data: rawTables }, { data: featureFlags }, { data: rawAreas }, { data: rawOccupiedZones }] = await Promise.all([
-    supabase.from('restaurants').select('id, name, slug, phone, address, description, business_type, cover_image, background_image, working_hours, kroki_mode, kroki_zones, special_notes, ai_assistant_enabled, ai_assistant_name, ai_assistant_voice, prepayment_amount').eq('id', id).single(),
+    supabase.from('restaurants').select('id, name, slug, phone, address, description, business_type, cover_image, background_image, working_hours, kroki_mode, kroki_zones, special_notes, ai_assistant_enabled, ai_assistant_name, ai_assistant_voice, prepayment_amount, closed_dates').eq('id', id).single(),
     supabase.from('hizmetler').select('id, ad, sure_dakika, fiyat, ad_en, ad_ar, ad_de, ad_da, ad_es, ad_ru').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
     supabase.from('calisanlar').select('id, ad').eq('restaurant_id', id).eq('aktif', true).order('created_at'),
     supabase.from('masa_tipleri').select('id, ad, kapasite, area_id, x, y, width, height, sekil, rotation').eq('isletme_id', id).eq('aktif', true).order('created_at'),
@@ -244,6 +244,7 @@ export default async function BusinessDetailPage({ params }: Props) {
               occupiedZoneIds={Array.from(occupiedZoneIds)}
               prepaymentAmount={prepaymentAmount}
               waitlistEnabled={waitlistEnabled}
+              closedDates={((biz as Record<string, unknown>).closed_dates as string[] | null) ?? []}
             />
           </div>
 

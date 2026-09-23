@@ -72,6 +72,8 @@ interface Props {
   // waitlist feature flag açıksa, günün tüm saatleri doluyken bekleme listesi
   // CTA'sı gösterilir. Kapalıysa dolu saatler öncekiyle aynı şekilde (çizili/kırmızı) kalır.
   waitlistEnabled?: boolean
+  // OP-11: işletmenin panelde kapattığı tarihler (YYYY-MM-DD)
+  closedDates?:     string[]
 }
 
 // Fallback slot listesi (working_hours yoksa 09:00-22:00)
@@ -139,6 +141,7 @@ export default function BookingForm({
   krokiMode, krokiZones, workingHours, staffHours, occupiedZoneIds,
   prepaymentAmount = null,
   waitlistEnabled = false,
+  closedDates = [],
 }: Props) {
   const router = useRouter()
   const t = useTranslations('bookingForm')
@@ -228,6 +231,7 @@ export default function BookingForm({
 
   const TIME_SLOTS = useMemo<string[]>(() => {
     if (!selectedDate) return DEFAULT_SLOTS
+    if (closedDates.includes(selectedDate)) return []  // OP-11: kapalı gün
     const dayKey = DAY_KEY_MAP[new Date(selectedDate + 'T12:00:00').getDay()]
     // Çalışan şeması varsa onu kullan; yoksa işletme working_hours; o da yoksa varsayılan slot'lar.
     const av = dayAvailability(dayKey)
@@ -241,7 +245,7 @@ export default function BookingForm({
     // Restoran/kafe (masa rezervasyonu): kapanışa kadar slot üret.
     // Randevu bazlı işletmeler: kapanıştan 30 dk önce kes.
     return buildSlots(startStr, endStr, isRestaurant ? 0 : 30)
-  }, [selectedDate, dayAvailability, workingHours, isRestaurant])
+  }, [selectedDate, dayAvailability, workingHours, isRestaurant, closedDates])
 
   const [selectedTable, setSelectedTable] = useState<string | null>(null)
   const [selectedService, setSelectedService] = useState<string | null>(null)
@@ -328,13 +332,16 @@ export default function BookingForm({
   const isDateDisabled = useCallback((date: Date) => {
     const time = date.getTime()
     if (time < today.getTime() || time > maxDate.getTime()) return true
+    // OP-11: panelde kapalı işaretlenen tarih
+    const ds = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    if (closedDates.includes(ds)) return true
     // Çalışan saatleri bağlı: seçili çalışanın (veya tam kapsamda tüm çalışanların)
     // o gün çalışmadığı günleri takvimde kapat. Şema bilgisi yoksa işletme saatlerine bırak.
     if (!staffHours) return false
     const dayKey = DAY_KEY_MAP[date.getDay()]
     const av = dayAvailability(dayKey)
     return av === null ? false : av.open === false
-  }, [today, maxDate, staffHours, dayAvailability])
+  }, [today, maxDate, staffHours, dayAvailability, closedDates])
 
   const dateStr = (date: Date) => {
     const y = date.getFullYear()

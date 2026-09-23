@@ -30,6 +30,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Telefon numarası geçersiz. Örnek: 0 5XX XXX XX XX' }, { status: 400 })
     }
 
+    // OP-11: işletmenin kapalı günü (panel → Ayarlar → Kapalı günler)
+    const { data: restClosed } = await getSupabaseAdmin()
+      .from('restaurants')
+      .select('closed_dates')
+      .eq('id', restaurant_id)
+      .maybeSingle()
+    if (Array.isArray(restClosed?.closed_dates) && restClosed.closed_dates.includes(date)) {
+      return NextResponse.json({ error: 'İşletme bu tarihte kapalı. Lütfen başka bir gün seçin.' }, { status: 409 })
+    }
+
     const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     const safeMasaTipiId = masa_tipi_id && UUID_RE.test(masa_tipi_id) ? masa_tipi_id : null
     const safeTableId = table_id && UUID_RE.test(table_id) ? table_id : null
