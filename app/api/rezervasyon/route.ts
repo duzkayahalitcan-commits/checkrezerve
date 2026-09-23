@@ -22,6 +22,16 @@ export async function POST(request: NextRequest) {
       zone_id, zone_name, special_requests, sms_consent,
     } = body
 
+    // Mobil: Authorization: Bearer <Supabase JWT> (giriş yapmış müşteri) veya body.source='app' → source='app'.
+    // Bearer geçerliyse ve e-posta gönderilmediyse hesabın e-postası yazılır (Rezervasyonlarım eşleşmesi için).
+    let appUserEmail: string | null = null
+    const bearer = (request.headers.get('authorization') ?? '').match(/^Bearer\s+(.+)$/)?.[1]
+    if (bearer) {
+      const { data: { user } } = await getSupabaseAdmin().auth.getUser(bearer)
+      appUserEmail = user?.email ?? null
+    }
+    const isApp = !!appUserEmail || body.source === 'app'
+
     if (!restaurant_id || !customer_name || !phone || !date || !time) {
       return NextResponse.json({ error: 'Zorunlu alanlar eksik' }, { status: 400 })
     }
@@ -125,7 +135,7 @@ export async function POST(request: NextRequest) {
       restaurant_id,
       guest_name:       customer_name.trim(),
       guest_phone:      phone.trim(),
-      guest_email:      email?.trim() || null,
+      guest_email:      email?.trim() || appUserEmail || null,
       party_size:       parseInt(party_size, 10) || 1,
       reserved_date:    date,
       reserved_time:    time,
@@ -140,14 +150,19 @@ export async function POST(request: NextRequest) {
       sms_consent:      sms_consent === true, // LG-02: sadece ayrı pazarlama kutusu
       cancellation_token: generateCancellationToken(),
       status: 'pending',
-      source: 'form',
+      source: isApp ? 'app' : 'form',
     }
 
-    const { data, error } = await getSupabaseAdmin()
+    let { data, error } = await getSupabaseAdmin()
       .from('reservations')
       .insert(insertPayload)
       .select('id')
       .single()
+    // source CHECK 'app'i SQL 09 öncesi kabul etmez (23514) → 'form' ile tekrar
+    if (error?.code === '23514' && insertPayload.source === 'app') {
+      insertPayload.source = 'form'
+      ;({ data, error } = await getSupabaseAdmin().from('reservations').insert(insertPayload).select('id').single())
+    }
 
     if (error) {
       console.error('[rezervasyon]', error)
@@ -156,6 +171,10 @@ export async function POST(request: NextRequest) {
         { error: 'Rezervasyonunuz kaydedilemedi. Bilgileriniz duruyor, lütfen tekrar deneyin; sorun sürerse işletmeyi arayın.' },
         { status: 500 },
       )
+    }
+
+    if (!data) {
+      return NextResponse.json({ error: 'Rezervasyonunuz kaydedilemedi. Lütfen tekrar deneyin.' }, { status: 500 })
     }
 
     // ── S4-T2: Misafir aktivite kaydı (reservation) — async, engellemez ──

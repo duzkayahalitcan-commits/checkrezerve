@@ -65,3 +65,15 @@
 - `cancelled` için `canDeleteReservation(role)` gerekir (owner/super_admin) → aksi 403.
 - **200** `{ success: true, status }` · **404** kayıt bu işletmede yok · **409** `no_show` henüz DB'de etkin değil (SQL 09 öncesi) · **500** `{ error }` (Türkçe).
 - Durum gerçekten değiştiyse `confirmed`/`cancelled` müşteriye bildirim (işletmeye SMS yok).
+
+## Müşteri rezervasyonu (mobil) — `POST /api/rezervasyon`
+- Auth isteğe bağlı. `Authorization: Bearer <Supabase access_token>` (giriş yapmış müşteri) **veya** body'de `"source": "app"` → kayıt `source='app'` (SQL 09 öncesi DB kabul etmezse otomatik `'form'`).
+- Bearer geçerliyse ve `email` gönderilmediyse hesabın e-postası `guest_email`'e yazılır (Rezervasyonlarım listesi e-posta/telefonla eşleşir).
+- Body (mevcut): `restaurant_id, customer_name, phone, email?, party_size, date, time, service_id? (= hizmetler.id → hizmet_id'ye yazılır), staff_id?, table_id?, zone_id?, zone_name?, special_requests?, sms_consent?`
+- Mobil şu an doğrudan Supabase insert yapıyor; bu API'ye geçmek telefon doğrulaması, kapalı gün (409), çakışma kontrolleri, bildirimler ve hata mesajlarını ortak yapar.
+- Yanıtlar: **200** `{ success, id }` · **400** eksik alan/geçersiz telefon · **409** çakışma/kapalı gün/bölge dolu · **429** rate-limit · **500** `{ error }`.
+
+## Müşteri: kendi rezervasyonları — `GET /api/musteri/rezervasyonlar?limit=50`, `POST /api/musteri/rezervasyonlar/iptal { id }`
+- Auth: `Bearer <Supabase access_token>` zorunlu. Eşleşme: hesabın e-postası (`guest_email`, büyük/küçük harf duyarsız) + profil telefonu varyantları.
+- GET → `{ reservations: [{ id, guest_name, reserved_date, reserved_time, party_size, status, created_at, restaurants: { name, slug } }] }`
+- İptal → **200** `{ success }` · **404** bulunamadı/başkasının · **409** zaten iptal / tamamlanmış / geçmiş · **401**.
