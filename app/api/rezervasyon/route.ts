@@ -44,6 +44,15 @@ export async function POST(request: NextRequest) {
     const safeMasaTipiId = masa_tipi_id && UUID_RE.test(masa_tipi_id) ? masa_tipi_id : null
     const safeTableId = table_id && UUID_RE.test(table_id) ? table_id : null
     const safeZoneId = zone_id && UUID_RE.test(zone_id) ? zone_id : null
+    // K2 (gece G2): form `hizmetler.id` gönderiyor (body alanı adı geriye uyum için service_id kaldı).
+    // service_id kolonu `services` tablosuna FK verdiği için her hizmetli rezervasyon 23503 ile düşüyordu;
+    // kanonik kolon hizmet_id (→ hizmetler). Hizmet bu işletmeye ait değilse yazılmaz.
+    let safeHizmetId: string | null = null
+    if (service_id && UUID_RE.test(service_id)) {
+      const { data: hz } = await getSupabaseAdmin()
+        .from('hizmetler').select('id').eq('id', service_id).eq('restaurant_id', restaurant_id).maybeSingle()
+      safeHizmetId = hz?.id ?? null
+    }
 
     const { data: phoneConflict } = await getSupabaseAdmin()
       .from('reservations')
@@ -120,7 +129,7 @@ export async function POST(request: NextRequest) {
       party_size:       parseInt(party_size, 10) || 1,
       reserved_date:    date,
       reserved_time:    time,
-      service_id:       service_id      || null,
+      hizmet_id:        safeHizmetId,
       calisan_id:       (staff_id && staff_id !== '__any__') ? staff_id : null,
       masa_tipi_id:     safeMasaTipiId  || null,
       table_id:         safeTableId     || null,

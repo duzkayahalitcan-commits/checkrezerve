@@ -27,10 +27,10 @@ export async function GET(req: NextRequest) {
     query = query.eq('calisan_id', staffId)
   }
 
-  // Service filtresi: sadece seçili hizmetin dolu slot'larını göster
-  if (serviceId && serviceId.length > 0) {
-    query = query.eq('service_id', serviceId)
-  }
+  // K4 (gece G2): Hizmet filtresi kaldırıldı. Doluluk hizmete değil çalışana/işletmeye bağlı;
+  // ayrıca service_id hep boş olduğundan filtre 0 satır döndürüp tüm saatleri boş gösteriyordu.
+  // service_id parametresi geriye uyum için kabul edilir ama kullanılmaz.
+  void serviceId
 
   const { data, error } = await query
 
