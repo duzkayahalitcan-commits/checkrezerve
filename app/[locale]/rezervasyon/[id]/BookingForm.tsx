@@ -15,6 +15,7 @@ import type { TableLayout } from '@/components/InteractiveFloorMap'
 import { ZONE_THEME_LABELS, ZONE_THEME_BG } from '@/src/types/kroki-zone'
 import type { ZoneTheme, ZonePoint } from '@/src/types/kroki-zone'
 import { formatTL } from '@/lib/format'
+import { buildReservationIcs } from '@/lib/ics'
 
 type Hizmet     = { id: string; name: string; duration_minutes: number; price: number | null }
 type Calisan    = { id: string; name: string; title: string | null }
@@ -1092,6 +1093,27 @@ export default function BookingForm({
       ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(businessAddress)}`
       : null
 
+    // CU-06: .ics indir (iOS/Android/Outlook takvimleri açar)
+    const downloadIcs = () => {
+      const svc = hizmetler.find(h => h.id === selectedService)
+      const ics = buildReservationIcs({
+        uid: rezId,
+        title: `${businessName} rezervasyonu${svc ? ` – ${svc.name}` : ''}`,
+        date: selectedDate ?? '',
+        time: selectedTime ?? '',
+        durationMinutes: svc?.duration_minutes ?? (isRestaurant ? 90 : 60),
+        location: businessAddress,
+        description: `Rezervasyon no: ${rezId}`,
+      })
+      if (!ics) return
+      const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'rezervasyon.ics'
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    }
+
     return (
       <div className="text-center py-8 px-4 rounded-2xl bg-gradient-to-b from-red-50 via-white to-white">
         <motion.div
@@ -1165,6 +1187,12 @@ export default function BookingForm({
               className="rounded-full bg-zinc-900 text-white px-6 py-2.5 text-sm font-bold hover:bg-zinc-700 transition-colors"
             >
               {r('adim.basari.rezervasyonlarim')}
+            </button>
+            <button
+              onClick={downloadIcs}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-300 text-zinc-700 px-6 py-2.5 text-sm font-bold hover:bg-zinc-50 transition-colors"
+            >
+              📅 Takvime ekle
             </button>
             {mapsUrl && (
               <a
