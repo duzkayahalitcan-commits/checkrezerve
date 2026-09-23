@@ -69,6 +69,11 @@ export default function RezervasyonList({
   const [statusFilter, setStatusFilter] = useState(filters.durum ?? 'all')
   const [dateFilter, setDateFilter] = useState(filters.tarih ?? '')
   const [areaFilter, setAreaFilter] = useState('all')
+  // OP-13: tarih aralığı, çalışan ve kaynak kanal filtreleri
+  const [dateToFilter, setDateToFilter] = useState('')
+  const [staffFilter, setStaffFilter] = useState('all')
+  const [sourceFilter, setSourceFilter] = useState('all')
+  const anyFilter = statusFilter !== 'all' || !!dateFilter || !!dateToFilter || areaFilter !== 'all' || staffFilter !== 'all' || sourceFilter !== 'all'
   const [updating, setUpdating] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -83,10 +88,15 @@ export default function RezervasyonList({
       )
     }
     if (statusFilter !== 'all') list = list.filter(r => r.status === statusFilter)
-    if (dateFilter) list = list.filter(r => r.reserved_date === dateFilter)
+    // Sadece başlangıç seçiliyse o gün (önceki davranış); bitiş de seçiliyse aralık
+    if (dateFilter && !dateToFilter) list = list.filter(r => r.reserved_date === dateFilter)
+    if (dateFilter && dateToFilter) list = list.filter(r => r.reserved_date >= dateFilter && r.reserved_date <= dateToFilter)
+    if (!dateFilter && dateToFilter) list = list.filter(r => r.reserved_date <= dateToFilter)
     if (areaFilter !== 'all') list = list.filter(r => r.special_area_id === areaFilter)
+    if (staffFilter !== 'all') list = list.filter(r => r.calisan_id === staffFilter)
+    if (sourceFilter !== 'all') list = list.filter(r => (r.source ?? 'form') === sourceFilter)
     return list
-  }, [reservations, search, statusFilter, dateFilter, areaFilter])
+  }, [reservations, search, statusFilter, dateFilter, dateToFilter, areaFilter, staffFilter, sourceFilter])
 
   const selectedRes = selectedId ? (filtered.find(r => r.id === selectedId) ?? null) : null
 
@@ -130,14 +140,14 @@ export default function RezervasyonList({
         <button
           onClick={() => setShowFilters(v => !v)}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-            showFilters || statusFilter !== 'all' || dateFilter || areaFilter !== 'all'
+            showFilters || anyFilter
               ? 'bg-amber-500/15 text-amber-400 border border-amber-500/25'
               : 'bg-stone-900 text-stone-400 border border-stone-700 hover:border-stone-500'
           }`}
         >
           <Filter size={14} />
           Filtrele
-          {(statusFilter !== 'all' || dateFilter || areaFilter !== 'all') && (
+          {anyFilter && (
             <span className="w-2 h-2 rounded-full bg-amber-400" />
           )}
         </button>
@@ -169,13 +179,42 @@ export default function RezervasyonList({
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] text-stone-500 font-semibold uppercase tracking-wider">Tarih</label>
+                <label className="text-[10px] text-stone-500 font-semibold uppercase tracking-wider">Tarih (başlangıç)</label>
                 <input
                   type="date"
                   value={dateFilter}
                   onChange={e => setDateFilter(e.target.value)}
                   className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500 [color-scheme:dark]"
                 />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] text-stone-500 font-semibold uppercase tracking-wider">Bitiş</label>
+                <input
+                  type="date"
+                  value={dateToFilter}
+                  min={dateFilter || undefined}
+                  onChange={e => setDateToFilter(e.target.value)}
+                  className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500 [color-scheme:dark]"
+                />
+              </div>
+              {calisanlar.length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] text-stone-500 font-semibold uppercase tracking-wider">Çalışan</label>
+                  <select value={staffFilter} onChange={e => setStaffFilter(e.target.value)} className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                    <option value="all">Tümü</option>
+                    {calisanlar.map(c => <option key={c.id} value={c.id}>{c.ad}</option>)}
+                  </select>
+                </div>
+              )}
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] text-stone-500 font-semibold uppercase tracking-wider">Kaynak</label>
+                <select value={sourceFilter} onChange={e => setSourceFilter(e.target.value)} className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                  <option value="all">Tümü</option>
+                  <option value="form">Online form</option>
+                  <option value="phone">Telefon</option>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="ai">AI asistan</option>
+                </select>
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] text-stone-500 font-semibold uppercase tracking-wider">Alan</label>
@@ -188,10 +227,10 @@ export default function RezervasyonList({
                   {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </select>
               </div>
-              {(statusFilter !== 'all' || dateFilter || areaFilter !== 'all') && (
+              {anyFilter && (
                 <div className="flex items-end">
                   <button
-                    onClick={() => { setStatusFilter('all'); setDateFilter(''); setAreaFilter('all') }}
+                    onClick={() => { setStatusFilter('all'); setDateFilter(''); setDateToFilter(''); setAreaFilter('all'); setStaffFilter('all'); setSourceFilter('all') }}
                     className="bg-stone-800 hover:bg-stone-700 text-stone-400 rounded-lg px-3 py-1.5 text-xs font-medium transition"
                   >
                     Temizle
