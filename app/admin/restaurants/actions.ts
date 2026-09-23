@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { cookies }       from 'next/headers'
 import { createHmac }    from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
@@ -9,6 +10,17 @@ export type RestaurantState = { error: string | null; success: boolean }
 function hashPassword(password: string): string {
   const secret = process.env.ADMIN_SECRET! // S1-T3: fallback yok — env zorunlu
   return createHmac('sha256', secret).update(password).digest('hex')
+}
+
+// Server action'lar herkese açık POST uç noktasıdır; /admin proxy korumasına ek olarak
+// admin oturumu burada da doğrulanır (app/api/admin/* ile aynı cr_admin kontrolü).
+async function isAdmin(): Promise<boolean> {
+  const adminSecret   = process.env.ADMIN_SECRET ?? ''
+  const adminPassword = process.env.ADMIN_PASSWORD ?? ''
+  if (!adminSecret || !adminPassword) return false
+  const token = (await cookies()).get('cr_admin')?.value ?? ''
+  if (!token) return false
+  return token === createHmac('sha256', adminSecret).update(adminPassword).digest('base64')
 }
 
 function toSlug(name: string): string {
@@ -24,6 +36,7 @@ export async function createRestaurant(
   _prev: RestaurantState,
   formData: FormData
 ): Promise<RestaurantState> {
+  if (!await isAdmin()) return { error: 'Yetkisiz.', success: false }
   const name          = (formData.get('name')          as string)?.trim()
   const phone         = (formData.get('phone')         as string)?.trim() || null
   const address       = (formData.get('address')       as string)?.trim() || null
@@ -74,6 +87,7 @@ export async function createRestaurantUser(
   _prev: RestaurantState,
   formData: FormData,
 ): Promise<RestaurantState> {
+  if (!await isAdmin()) return { error: 'Yetkisiz.', success: false }
   const restaurant_id = (formData.get('restaurant_id') as string)?.trim()
   const username      = (formData.get('username')      as string)?.trim()
   const password      = (formData.get('password')      as string)?.trim()

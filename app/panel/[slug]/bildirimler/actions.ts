@@ -28,7 +28,7 @@ export async function saveTemplate(formData: FormData) {
   const payload = { isletme_id: session.restaurantId, ad: ad.trim(), icerik: icerik.trim(), tip: tip || 'sms' }
 
   if (id) {
-    const { error } = await db.from('bildirim_sablonlari').update(payload).eq('id', id)
+    const { error } = await db.from('bildirim_sablonlari').update(payload).eq('id', id).eq('isletme_id', session.restaurantId)
     if (error) return { success: false, error: error.message }
   } else {
     const { error } = await db.from('bildirim_sablonlari').insert(payload)
