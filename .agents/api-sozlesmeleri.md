@@ -59,3 +59,9 @@
 
 ## Manuel rezervasyon — `/api/panel/reservations`
 - Yukarıdaki (OP-03/OP-04) sözleşme; artık Bearer da kabul ediliyor.
+
+## Rezervasyon durumu — `PUT /api/panel/reservations/<id>/status`
+- Auth: cookie veya Bearer (yukarıdaki ortak kural). Body: `{ "status": "confirmed" | "cancelled" | "completed" | "pending" | "no_show" }`
+- `cancelled` için `canDeleteReservation(role)` gerekir (owner/super_admin) → aksi 403.
+- **200** `{ success: true, status }` · **404** kayıt bu işletmede yok · **409** `no_show` henüz DB'de etkin değil (SQL 09 öncesi) · **500** `{ error }` (Türkçe).
+- Durum gerçekten değiştiyse `confirmed`/`cancelled` müşteriye bildirim (işletmeye SMS yok).

@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import { verifySession } from '@/lib/panel-auth'
+import { getPanelApiSession } from '@/lib/panel-auth'
 import { canDeleteReservation } from '@/lib/roles'
 import { logGuestActivity, resolveGuestByPhone } from '@/lib/guest-activities'
 import { notifyStatusChange } from '@/lib/notification-orchestrator'
 
-const VALID_STATUSES = ['cancelled', 'completed', 'confirmed', 'pending']
+// no_show: DB status CHECK'ine SQL 09 ile eklenir; öncesinde 409 döner
+const VALID_STATUSES = ['cancelled', 'completed', 'confirmed', 'pending', 'no_show']
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const jar = await cookies()
-  const session = verifySession(jar.get('cr_panel')?.value ?? '')
+  const session = await getPanelApiSession(req)  // web cookie veya mobil Bearer
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
@@ -67,7 +66,13 @@ export async function PUT(
     .eq('restaurant_id', session.restaurantId)
     .select('id')
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error?.code === '23514' && status === 'no_show') {
+    return NextResponse.json({ error: '"Gelmedi" durumu henüz etkin değil (veritabanı güncellemesi bekliyor).' }, { status: 409 })
+  }
+  if (error) {
+    console.error('[status] güncelleme hatası:', error)
+    return NextResponse.json({ error: 'Durum güncellenemedi. Lütfen tekrar deneyin.' }, { status: 500 })
+  }
   if (!updated?.length) return NextResponse.json({ error: 'Rezervasyon bulunamadı' }, { status: 404 })
   // #7: gerçekten değiştiyse müşteriye onay/iptal bildirimi (akışı bekletmez)
   if (prev && prev.status !== status) void notifyStatusChange(id, status).catch(e => console.error('[status] bildirim:', e))

@@ -36,6 +36,7 @@ const STATUS_CLS: Record<string, string> = {
   confirmed: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25',
   cancelled: 'bg-red-500/15 text-red-400 border-red-500/20',
   completed: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
+  no_show:   'bg-stone-500/15 text-stone-300 border-stone-500/25',
 }
 
 const STATUS_TR: Record<string, string> = {
@@ -43,6 +44,7 @@ const STATUS_TR: Record<string, string> = {
   confirmed: 'Onaylı',
   cancelled: 'İptal',
   completed: 'Tamamlandı',
+  no_show:   'Gelmedi',
 }
 
 export default function RezervasyonList({
