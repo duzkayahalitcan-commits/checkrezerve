@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const {
       restaurant_id, customer_name, phone, email, party_size,
       date, time, table_id, service_id, staff_id, masa_tipi_id,
-      zone_id, special_requests, sms_consent,
+      zone_id, zone_name, special_requests, sms_consent,
     } = body
 
     if (!restaurant_id || !customer_name || !phone || !date || !time) {
@@ -134,6 +134,8 @@ export async function POST(request: NextRequest) {
       masa_tipi_id:     safeMasaTipiId  || null,
       table_id:         safeTableId     || null,
       zone_id:          safeZoneId      || null,
+      // #6: form gönderiyordu ama kaydedilmiyordu; mobil sadece zone_name yazıyor → iki kanal tutarlı
+      zone_name:        typeof zone_name === 'string' && zone_name.trim() ? zone_name.trim().slice(0, 100) : null,
       special_requests: special_requests?.trim() || null,
       sms_consent:      sms_consent === true, // LG-02: sadece ayrı pazarlama kutusu
       cancellation_token: generateCancellationToken(),
