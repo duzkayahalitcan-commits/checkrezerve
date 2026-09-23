@@ -1,19 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import { verifySession } from '@/lib/panel-auth'
+import { getPanelApiSession } from '@/lib/panel-auth'
 
-async function getSession() {
-  const jar = await cookies()
-  const token = jar.get('cr_panel')?.value
-  return token ? verifySession(token) : null
-}
 
 // NOT: DB'de toplam_seans ana kolondur. seans_sayisi kolonu da vardir (migration artigi)
 // ama kod sadece toplam_seans kullanir.
 
 export async function GET(req: NextRequest) {
-  const session = await getSession()
+  const session = await getPanelApiSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const restaurantId = req.nextUrl.searchParams.get('restaurant_id')
@@ -34,7 +28,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getSession()
+  const session = await getPanelApiSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
@@ -65,7 +59,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const session = await getSession()
+  const session = await getPanelApiSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
@@ -85,7 +79,7 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const session = await getSession()
+  const session = await getPanelApiSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()

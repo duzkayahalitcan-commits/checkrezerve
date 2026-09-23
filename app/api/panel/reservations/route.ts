@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import { createHash, randomBytes } from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import { verifySession } from '@/lib/panel-auth'
+import { getPanelApiSession } from '@/lib/panel-auth'
 import { isValidPhone, phoneKey } from '@/lib/phone'
 
 // OP-03: Panelden manuel (telefonla gelen) rezervasyon.
@@ -14,13 +13,9 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const TIME_RE = /^\d{2}:\d{2}$/
 
-async function getSession() {
-  const jar = await cookies()
-  return verifySession(jar.get('cr_panel')?.value ?? '')
-}
 
 export async function GET(req: NextRequest) {
-  const session = await getSession()
+  const session = await getPanelApiSession(req)
   if (!session) return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 })
 
   const key = phoneKey(req.nextUrl.searchParams.get('phone'))
@@ -46,7 +41,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getSession()
+  const session = await getPanelApiSession(req)
   if (!session) return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 })
 
   const body = await req.json().catch(() => null)

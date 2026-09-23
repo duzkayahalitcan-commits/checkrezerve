@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import { verifySession } from '@/lib/panel-auth'
+import { getPanelApiSession } from '@/lib/panel-auth'
 
 // POST /api/panel/seans-dus { reservation_id }
 // Rezervasyonun musteri_paket_id'si varsa ve seans_dusuldu=false ise:
@@ -12,8 +11,7 @@ import { verifySession } from '@/lib/panel-auth'
 // - kullanilan >= toplam ise aktif = false
 
 export async function POST(req: NextRequest) {
-  const jar = await cookies()
-  const session = verifySession(jar.get('cr_panel')?.value ?? '')
+  const session = await getPanelApiSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()

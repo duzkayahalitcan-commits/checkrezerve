@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import { verifySession } from '@/lib/panel-auth'
+import { getPanelApiSession } from '@/lib/panel-auth'
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const jar = await cookies()
-  const session = verifySession(jar.get('cr_panel')?.value ?? '')
+  const session = await getPanelApiSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params

@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verifySession } from '@/lib/panel-auth'
+import { getPanelApiSession } from '@/lib/panel-auth'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { canManageStaff, canManageServices, canManageTables } from '@/lib/roles'
 
@@ -55,13 +54,9 @@ function filterPayload(table: AllowedTable, payload: Record<string, unknown>): R
   return filtered
 }
 
-async function getSession() {
-  const jar = await cookies()
-  return verifySession(jar.get('cr_panel')?.value ?? '')
-}
 
 export async function POST(req: NextRequest) {
-  const session = await getSession()
+  const session = await getPanelApiSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
@@ -113,7 +108,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const session = await getSession()
+  const session = await getPanelApiSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { table, id, payload } = await req.json()
@@ -136,7 +131,7 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const session = await getSession()
+  const session = await getPanelApiSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { table, id } = await req.json()
@@ -168,7 +163,7 @@ export async function DELETE(req: NextRequest) {
 
 // StaffManager hizmet listesi / çalışan-hizmet eşleşmesi için salt okunur sorgu
 export async function GET(req: NextRequest) {
-  const session = await getSession()
+  const session = await getPanelApiSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { searchParams } = new URL(req.url)

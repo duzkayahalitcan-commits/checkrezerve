@@ -30,3 +30,32 @@
   - **200** `{ success: true, id }` · **400** eksik/geçersiz alan, başka işletmenin çalışanı/hizmeti · **409** aynı çalışan aynı saatte dolu · **401** oturum yok · **500** `{ error }` (Türkçe).
   - `walk_in: true` (OP-04): `source='walk_in'` (SQL 06 uygulanmadıysa `'phone'` + not başına `[Walk-in]`). Tarih/saati istemci 'şimdi' olarak gönderir.
   - Not: müşteriye onay SMS'i **gönderilmez** (bilinçli; telefonda zaten konuşuldu). İstenirse sabah karar.
+
+---
+
+# Mobil için panel API'leri (2026-09-23 akşam)
+
+**Ortak kimlik doğrulama (`getPanelApiSession`, `lib/panel-auth.ts`):**
+- Web: `cr_panel` cookie. Mobil: `Authorization: Bearer <Supabase access_token>`.
+- Bearer'da kullanıcı `profiles` üzerinden çözülür; **yalnızca** `role ∈ {super_admin, business_owner, business_manager}` ve `isletme_id` dolu ise kabul edilir.
+- **İşletme (tenant) her zaman oturumdan** (`profiles.isletme_id`) gelir. Body/query'deki `restaurant_id` oturumla uyuşmazsa 403; id ile yapılan güncelleme/silmeler oturumun işletmesiyle filtrelenir (başka işletmenin kaydı → 404/boş).
+- Yetki: `lib/roles.ts` (`canManageServices`, `canManageStaff`, `canDeleteReservation` …) cookie ile aynı.
+- Hata gövdesi: `{ "error": "<mesaj>" }`. 401 = oturum yok/geçersiz, 403 = yetki/tenant.
+
+## Hizmet / çalışan / çalışma saati / çalışan-hizmet — `/api/panel-tables`
+- `GET ?table=<t>[&calisan_id=]` · `POST { table, payload }` · `PATCH { table, id, payload }` · `DELETE { table, id }`
+- `table ∈ hizmetler, calisanlar, tables, special_areas, calisan_saatler, calisan_hizmetler`
+- `hizmetler` alanları: `ad, sure_dakika, fiyat, kategori, renk, aktif` · `calisanlar`: `ad, soyad, uzmanlik, telefon, email, pozisyon, foto_url, aktif`
+- `restaurant_id` payload'dan alınmaz, oturumdan eklenir. `calisan_saatler`/`calisan_hizmetler` için `calisan_id` bu işletmeye ait olmalı (403).
+- `calisan_hizmetler` DELETE `id` = `"<calisan_id>_<hizmet_id>"`.
+
+## Paketler — `/api/panel/paketler`
+- `GET ?restaurant_id=` (oturumla aynı olmalı) · `POST { restaurant_id, ad, toplam_seans, gecerlilik_gun, fiyat?, hizmet_id? }` · `PATCH { id, ad?, toplam_seans?, gecerlilik_gun?, fiyat?, hizmet_id?, aktif? }` · `DELETE { id }` (pasifleştirir)
+
+## Üye paketleri — `/api/panel/musteri-paketleri`, `/api/panel/paket-odeme/[id]`, `/api/panel/seans-dus`
+- `GET ?restaurant_id=` · `POST { restaurant_id, paket_id, musteri_id, calisan_id? }` · `PATCH { id, action: "yenile" }`
+- `PUT /api/panel/paket-odeme/<musteri_paket_id>` `{ odenen_miktar }` → `{ success, odenen_tutar, odeme_durumu }`
+- `POST /api/panel/seans-dus` `{ reservation_id }` → `{ success, kalan_seans, kullanilan_seans, aktif }`
+
+## Manuel rezervasyon — `/api/panel/reservations`
+- Yukarıdaki (OP-03/OP-04) sözleşme; artık Bearer da kabul ediliyor.
