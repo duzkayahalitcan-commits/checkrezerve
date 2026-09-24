@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createHash, randomBytes } from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { rateLimit } from '@/lib/rate-limit'
@@ -11,12 +12,46 @@ function generateCancellationToken(): string {
   return createHash('sha256').update(randomBytes(32)).digest('hex').slice(0, 32)
 }
 
+// SC-06: sunucu tarafı şema. Alan adları mevcut istemcilerle (web BookingForm, mobil) aynı.
+const optStr = (max: number) => z.string().max(max).optional().nullable()
+const BodySchema = z.object({
+  restaurant_id:    z.string().uuid(),
+  customer_name:    z.string().trim().min(1).max(100),
+  phone:            z.string().trim().min(1).max(30),
+  email:            z.union([z.string().trim().email().max(200), z.literal('')]).optional().nullable(),
+  party_size:       z.union([z.number(), z.string()]).optional().nullable(),
+  date:             z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  time:             z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/),
+  table_id:         optStr(64),
+  service_id:       optStr(64),
+  staff_id:         optStr(64),
+  masa_tipi_id:     optStr(64),
+  zone_id:          optStr(64),
+  zone_name:        optStr(100),
+  special_requests: optStr(1000),
+  sms_consent:      z.boolean().optional().nullable(),
+  source:           optStr(20),
+})
+
+const FIELD_TR: Record<string, string> = {
+  restaurant_id: 'işletme', customer_name: 'ad soyad', phone: 'telefon', email: 'e-posta',
+  date: 'tarih', time: 'saat', special_requests: 'not', zone_name: 'bölge',
+}
+
 export async function POST(request: NextRequest) {
   const limited = await rateLimit(request, { prefix: 'rezervasyon', max: 10, windowMs: 60_000 })
   if (limited) return limited
 
   try {
-    const body = await request.json()
+    const parsed = BodySchema.safeParse(await request.json().catch(() => null))
+    if (!parsed.success) {
+      const field = String(parsed.error.issues[0]?.path?.[0] ?? '')
+      return NextResponse.json(
+        { error: `Geçersiz veya eksik alan: ${FIELD_TR[field] ?? field}. Lütfen kontrol edip tekrar deneyin.` },
+        { status: 400 },
+      )
+    }
+    const body = parsed.data
     const {
       restaurant_id, customer_name, phone, email, party_size,
       date, time, table_id, service_id, staff_id, masa_tipi_id,
@@ -85,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     // ── S2-T1: Temporal Reservation Guard — masa çakışma + kapasite kontrolü ──
     if (safeTableId) {
-      const partySize = parseInt(party_size, 10) || 1
+      const partySize = parseInt(String(party_size ?? ''), 10) || 1
       const { data: check, error: rpcErr } = await getSupabaseAdmin().rpc('check_reservation_availability', {
         p_restaurant_id: restaurant_id,
         p_table_id:      safeTableId,
@@ -168,7 +203,7 @@ export async function POST(request: NextRequest) {
       guest_name:       customer_name.trim(),
       guest_phone:      phone.trim(),
       guest_email:      email?.trim() || appUserEmail || null,
-      party_size:       parseInt(party_size, 10) || 1,
+      party_size:       parseInt(String(party_size ?? ''), 10) || 1,
       reserved_date:    date,
       reserved_time:    time,
       hizmet_id:        safeHizmetId,
