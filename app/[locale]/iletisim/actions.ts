@@ -1,6 +1,7 @@
 'use server'
 
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { rateLimitAction } from '@/lib/rate-limit'
 
 export type ContactState = { error: string | null; success: boolean }
 
@@ -15,6 +16,10 @@ export async function submitContact(
   const email        = (formData.get('email')        as string)?.trim()
   const businessName = (formData.get('businessName') as string)?.trim()
   const message      = (formData.get('message')      as string)?.trim()
+
+  // SC-03: iletişim formu (saatte 5 / IP)
+  const limited = await rateLimitAction({ prefix: 'contact', max: 5, windowMs: 60 * 60_000 })
+  if (limited) return { error: limited, success: false }
 
   if (!firstName || firstName.length < 2)    return { error: 'Ad alanı zorunludur (en az 2 karakter).', success: false }
   if (!lastName || lastName.length < 2)      return { error: 'Soyad alanı zorunludur (en az 2 karakter).', success: false }

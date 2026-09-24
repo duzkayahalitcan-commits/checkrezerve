@@ -2,6 +2,7 @@
 
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
+import { rateLimitAction } from '@/lib/rate-limit'
 
 export type LeadState = { error: string | null; success: boolean }
 
@@ -17,6 +18,10 @@ export async function createLead(
   const email       = (formData.get('email')       as string)?.trim()
   const category    = (formData.get('category')    as string)?.trim()
   const kvkk        = formData.get('kvkk') as string | null
+
+  // SC-03: başvuru formu (saatte 5 / IP)
+  const limited = await rateLimitAction({ prefix: 'lead', max: 5, windowMs: 60 * 60_000 })
+  if (limited) return { error: limited, success: false }
 
   if (!name)     return { error: 'İşletme adı zorunludur.',      success: false }
   if (!category) return { error: 'Firma türü seçiniz.',          success: false }

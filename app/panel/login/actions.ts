@@ -5,6 +5,7 @@ import { createClient }      from '@supabase/supabase-js'
 import { cookies }           from 'next/headers'
 import { redirect }          from 'next/navigation'
 import { getSupabaseAdmin }  from '@/lib/supabase'
+import { rateLimitAction } from '@/lib/rate-limit'
 
 function hashPassword(password: string): string {
   const secret = process.env.ADMIN_SECRET
@@ -46,6 +47,11 @@ export async function panelLoginAction(
   if (!username || !password) {
     return { error: 'errorRequired' as const }
   }
+
+  // SC-03: IP ve kullanıcı adı başına 15 dakikada 10 deneme. Aşılınca genel "geçersiz" mesajı
+  // (brute force'a limitin ne zaman dolduğunu söylememek için).
+  const limited = await rateLimitAction({ prefix: 'panel-login', max: 10, windowMs: 15 * 60_000, extraKey: username })
+  if (limited) return { error: 'errorInvalid' as const }
 
   await new Promise(r => setTimeout(r, 300)) // brute-force gecikmesi
 

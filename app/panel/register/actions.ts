@@ -1,6 +1,9 @@
 'use server'
+import { rateLimitAction } from '@/lib/rate-limit'
 
 export async function sendTelegramNotification(businessName: string, email: string) {
+  // SC-03: kimliksiz çağrılabilen action → Telegram'a spam atılmasın (saatte 5 / IP)
+  if (await rateLimitAction({ prefix: 'register-telegram', max: 5, windowMs: 60 * 60_000 })) return
   const token = process.env.TELEGRAM_BOT_TOKEN
   const chatId = process.env.TELEGRAM_CHAT_ID
   if (!token || !chatId) return
