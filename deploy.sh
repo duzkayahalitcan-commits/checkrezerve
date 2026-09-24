@@ -42,7 +42,7 @@ rsync -avz \
   --exclude=.next \
   --exclude=middleware.ts \
   --exclude='.codegraph' \
-  --exclude='.env*.bak' \
+  --exclude='.env*' \
   -e 'ssh -i ~/.ssh/checkrezerve_vps' \
   ~/Desktop/checkrezerve/ \
   root@178.105.51.245:/opt/checkrezerve/
