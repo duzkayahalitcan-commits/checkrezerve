@@ -20,7 +20,8 @@ type Restaurant = {
 
 const FEATURES = [
   { key: 'waitlist',        label: 'Bekleme Listesi' },
-  { key: 'deposit_required', label: 'Depozito Zorunlu' },
+  // Karar #8: tahsilat yok, sadece tutar gösteriliyor — 'Zorunlu' yanıltıcıydı
+  { key: 'deposit_required', label: 'Ön ödeme tutarını göster' },
   { key: 'voice_assistant',  label: 'Sesli Asistan' },
   { key: 'auto_confirm',     label: 'Otomatik Onay' },
   { key: 'reminder_sms',     label: 'Hatırlatma SMS' },
