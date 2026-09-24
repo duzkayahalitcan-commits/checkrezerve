@@ -94,18 +94,22 @@ export async function GET(req: NextRequest) {
       const { title, body } = buildMessage(termName, kalan, (rec.paket_adi as string) ?? '', (rec.isletme_adi as string) ?? '')
 
       // Kanal tercihi: gönderim anında DB'den GÜNCEL etkin kanallar
-      let aktifKanallar: string[] = ['email', 'sms', 'whatsapp'] // varsayılan
+      // Karar #13: kanal tercihi okunamazsa GÖNDERME (önceden varsayılan email+sms+whatsapp'a
+      // düşüyordu → müşterinin kapattığı kanala mesaj gidebilirdi). Eşik işaretlenmez, sonraki
+      // çalıştırmada tekrar denenir.
+      let aktifKanallar: string[]
       try {
-        const { data: kan } = await db.rpc('get_aktif_kanallar', {
+        const { data: kan, error: kanError } = await db.rpc('get_aktif_kanallar', {
           p_musteri_id: rec.musteri_id as string,
           p_restaurant_id: rec.restaurant_id as string,
         })
-        if (kan && Array.isArray(kan) && kan.length > 0) {
-          aktifKanallar = kan as string[]
-        }
-      } catch {
-        // RPC hatası → varsayılan kanallarla devam
+        if (kanError) throw kanError
+        aktifKanallar = Array.isArray(kan) ? (kan as string[]) : []
+      } catch (e) {
+        console.error('[paket-hatirlatma] kanal tercihi okunamadı, gönderilmedi:', id, e)
+        continue
       }
+      if (aktifKanallar.length === 0) continue // müşteri tüm kanalları kapatmış
 
       // n8n webhook'a bildir (kanal tercihi + kademe + mesaj)
       if (n8nBase) {
