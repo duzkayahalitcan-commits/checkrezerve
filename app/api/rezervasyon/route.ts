@@ -5,6 +5,7 @@ import { rateLimit } from '@/lib/rate-limit'
 import { notifyReservationEvent } from '@/lib/notification-orchestrator'
 import { logGuestActivity, resolveGuestByPhone } from '@/lib/guest-activities'
 import { isValidPhone } from '@/lib/phone'
+import { checkFeatureFlag } from '@/lib/feature-flags'
 
 function generateCancellationToken(): string {
   return createHash('sha256').update(randomBytes(32)).digest('hex').slice(0, 32)
@@ -131,6 +132,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // OP-07: işletme 'Otomatik Onay' (auto_confirm) flag'ini açtıysa rezervasyon doğrudan onaylı;
+    // kapalıysa (varsayılan) önceki gibi 'pending' → panelde "Onay Bekleyen" sayacında görünür.
+    const autoConfirm = await checkFeatureFlag(restaurant_id, 'auto_confirm').catch(() => false)
+
     const insertPayload: Record<string, unknown> = {
       restaurant_id,
       guest_name:       customer_name.trim(),
@@ -149,7 +154,7 @@ export async function POST(request: NextRequest) {
       special_requests: special_requests?.trim() || null,
       sms_consent:      sms_consent === true, // LG-02: sadece ayrı pazarlama kutusu
       cancellation_token: generateCancellationToken(),
-      status: 'pending',
+      status: autoConfirm ? 'confirmed' : 'pending',
       source: isApp ? 'app' : 'form',
     }
 
