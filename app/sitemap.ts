@@ -1,12 +1,21 @@
 import type { MetadataRoute } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import { routing } from '@/i18n/routing'
 
 const BASE = 'https://checkrezerve.com'
 const LOCALES = ['tr', 'en', 'de', 'ar', 'da', 'es', 'ru'] as const
 
+// PF-03: yerelleştirilmiş yol (ör. en '/kayit' → '/register'). Önceden tüm dillerde Türkçe yol
+// yazılıyordu → sitemap URL'leri 307 ile yönleniyordu.
+function localizedPath(path: string, locale: string): string {
+  const p = (routing.pathnames as Record<string, string | Record<string, string>>)[path]
+  if (!p) return path
+  return typeof p === 'string' ? p : (p[locale] ?? path)
+}
+
 function localeUrl(path: string, locale: string): string {
-  const normalized = path === '/' ? '' : path
-  return `${BASE}/${locale}${normalized}`
+  const lp = localizedPath(path, locale)
+  return `${BASE}/${locale}${lp === '/' ? '' : lp}`
 }
 
 type PageEntry = {
@@ -24,7 +33,6 @@ const STATIC_PAGES: PageEntry[] = [
   { path: '/hakkimizda',        priority: 0.7, freq: 'monthly' },
   { path: '/iletisim',          priority: 0.7, freq: 'monthly' },
   { path: '/blog',              priority: 0.6, freq: 'weekly'  },
-  { path: '/giris',             priority: 0.5, freq: 'yearly'  },
   { path: '/gizlilik',          priority: 0.3, freq: 'yearly'  },
   { path: '/kullanim-kosullari',priority: 0.3, freq: 'yearly'  },
   { path: '/kvkk',              priority: 0.3, freq: 'yearly'  },
@@ -33,10 +41,7 @@ const STATIC_PAGES: PageEntry[] = [
   { path: '/cerez-politikasi',  priority: 0.3, freq: 'yearly'  },
   { path: '/kullanim-sartlari', priority: 0.3, freq: 'yearly'  },
   { path: '/kvkk-basvuru',      priority: 0.3, freq: 'yearly'  },
-  { path: '/sifre-sifirla',     priority: 0.2, freq: 'yearly'  },
   { path: '/rezervasyon',       priority: 0.7, freq: 'weekly'  },
-  { path: '/profil',            priority: 0.4, freq: 'monthly' },
-  { path: '/favorilerim',       priority: 0.4, freq: 'monthly' },
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -69,7 +74,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const supabase = createClient(url, key)
       const { data: restaurants } = await supabase
         .from('restaurants')
-        .select('slug, updated_at')
+        .select('slug, created_at')   // restaurants'ta updated_at yok → sorgu hata verip işletmeler hiç eklenmiyordu
         .eq('is_active', true)
 
       if (restaurants) {
@@ -79,7 +84,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           for (const locale of LOCALES) {
             entries.push({
               url: localeUrl(businessPath, locale),
-              lastModified: r.updated_at ? new Date(r.updated_at) : new Date(),
+              lastModified: r.created_at ? new Date(r.created_at) : new Date(),
               changeFrequency: 'daily' as const,
               priority: 0.7,
               alternates: {

@@ -8,7 +8,6 @@ import SmoothScroll from "@/components/SmoothScroll";
 import NavigationProgress from "@/components/ui/NavigationProgress";
 import ChatWidget from "@/components/ChatWidget";
 import CookieBanner from "@/components/CookieBanner";
-import type { Metadata } from "next";
 
 type Props = {
   children: React.ReactNode;
@@ -19,18 +18,10 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { locale } = await params;
-  const baseUrl = 'https://checkrezerve.com';
-  return {
-    alternates: {
-      canonical: `${baseUrl}/${locale}`,
-      languages: Object.fromEntries(
-        routing.locales.map(l => [l, `${baseUrl}/${l}`])
-      ),
-    },
-  };
-}
+// PF-03: Önceden burada tüm alt sayfalar için canonical = https://checkrezerve.com/<locale> (ana sayfa)
+// ve hreflang = ana sayfalar veriliyordu → /tr/sss, /tr/iletisim vb. kendini ana sayfanın kopyası
+// ilan ediyordu. Kaldırıldı: canonical'ı olmayan sayfa kendi URL'sini canonical sayılır; hreflang
+// sitemap.xml'de (yerelleştirilmiş yollarla) veriliyor.
 
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params;
