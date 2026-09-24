@@ -132,6 +132,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // OP-08: aynı çalışana çakışan rezervasyon (hizmet süresine göre aralık çakışması).
+    // "Fark etmez" (staff_id yok/__any__) → kontrol yok. Not: kontrol-sonra-yaz, tam atomik değil.
+    const calisanId = staff_id && staff_id !== '__any__' && UUID_RE.test(staff_id) ? staff_id : null
+    if (calisanId) {
+      const toMin = (t: string) => { const [h, m] = String(t).slice(0, 5).split(':').map(Number); return h * 60 + m }
+      const db = getSupabaseAdmin()
+      const [{ data: newHz }, { data: sameDay }] = await Promise.all([
+        safeHizmetId ? db.from('hizmetler').select('sure_dakika').eq('id', safeHizmetId).maybeSingle() : Promise.resolve({ data: null }),
+        db.from('reservations').select('reserved_time, hizmetler(sure_dakika)')
+          .eq('restaurant_id', restaurant_id).eq('calisan_id', calisanId)
+          .eq('reserved_date', date).neq('status', 'cancelled'),
+      ])
+      const newStart = toMin(time)
+      const newEnd = newStart + ((newHz as { sure_dakika: number | null } | null)?.sure_dakika || 30)
+      const clash = (sameDay ?? []).some(r => {
+        const hz = (Array.isArray(r.hizmetler) ? r.hizmetler[0] : r.hizmetler) as { sure_dakika: number | null } | null
+        const st = toMin(r.reserved_time as string)
+        return st < newEnd && newStart < st + (hz?.sure_dakika || 30)
+      })
+      if (clash) {
+        return NextResponse.json(
+          { error: 'Seçtiğiniz çalışanın bu saatte başka bir randevusu var. Lütfen başka bir saat seçin.' },
+          { status: 409 },
+        )
+      }
+    }
+
     // OP-07: işletme 'Otomatik Onay' (auto_confirm) flag'ini açtıysa rezervasyon doğrudan onaylı;
     // kapalıysa (varsayılan) önceki gibi 'pending' → panelde "Onay Bekleyen" sayacında görünür.
     const autoConfirm = await checkFeatureFlag(restaurant_id, 'auto_confirm').catch(() => false)
@@ -145,7 +172,7 @@ export async function POST(request: NextRequest) {
       reserved_date:    date,
       reserved_time:    time,
       hizmet_id:        safeHizmetId,
-      calisan_id:       (staff_id && staff_id !== '__any__') ? staff_id : null,
+      calisan_id:       calisanId,
       masa_tipi_id:     safeMasaTipiId  || null,
       table_id:         safeTableId     || null,
       zone_id:          safeZoneId      || null,
