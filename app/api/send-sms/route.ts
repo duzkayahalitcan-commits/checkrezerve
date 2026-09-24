@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import twilio from 'twilio';
 import { z } from 'zod';
-import { cookies } from 'next/headers';
 import { rateLimit } from '@/lib/rate-limit';
-import { verifyPanelToken } from '@/lib/middleware-auth';
+import { getPanelApiSession } from '@/lib/panel-auth';
+import { getSupabaseAdmin } from '@/lib/supabase';
+import { phoneKey } from '@/lib/phone';
 
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
@@ -22,10 +23,9 @@ export async function POST(req: NextRequest) {
 
   // Güvenlik: Yalnızca oturum açmış panel kullanıcıları SMS gönderebilir.
   // (SMS = ücretli Twilio çağrısı; anonim erişim spam/maliyet istismarına açıktır.)
-  const jar = await cookies();
-  const raw = jar.get('cr_panel')?.value ?? '';
-  const secret = process.env.ADMIN_SECRET;
-  if (!secret || !verifyPanelToken(raw, secret)) {
+  // Web (cr_panel) veya mobil (Bearer) panel oturumu; işletme oturumdan
+  const session = await getPanelApiSession(req);
+  if (!session) {
     return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 });
   }
 
@@ -36,6 +36,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Geçersiz istek.', details: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
     const { to, message } = parsed.data;
+
+    // Gece kararı #5: yalnız bu işletmenin rezervasyonlarındaki numaralara gönderilir
+    // (önceden herhangi bir numaraya serbest metin gidebiliyordu → maliyet/oltalama riski)
+    // guest_phone DB'de karışık biçimde (boşluklu dahil) → son 7 haneyle aday çek, anahtarla eşleştir
+    const key = phoneKey(to);
+    const { data: candidates } = key.length >= 10
+      ? await getSupabaseAdmin().from('reservations').select('guest_phone')
+          .eq('restaurant_id', session.restaurantId).ilike('guest_phone', `%${key.slice(-2)}`).limit(500)
+      : { data: [] as { guest_phone: string }[] };
+    if (!(candidates ?? []).some(c => phoneKey(c.guest_phone) === key)) {
+      return NextResponse.json({ error: 'Bu numara işletmenizin rezervasyonlarında kayıtlı değil.' }, { status: 403 });
+    }
 
     // Normalize Turkish phone numbers to E.164
     const phone = to.startsWith('+') ? to : `+90${to.replace(/^0/, '').replace(/\D/g, '')}`;
@@ -48,8 +60,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'SMS send failed';
-    console.error('[send-sms]', message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[send-sms]', err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: 'SMS gönderilemedi. Lütfen tekrar deneyin.' }, { status: 500 });
   }
 }
