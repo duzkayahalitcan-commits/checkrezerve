@@ -19,6 +19,8 @@ services:
     image: checkrezerve:latest
     container_name: checkrezerve-blue
     restart: unless-stopped
+    depends_on:
+      - redis
     expose:
       - "3001"
     environment:
@@ -48,6 +50,8 @@ services:
       ADMIN_PASSWORD:                  ${ADMIN_PASSWORD:-}
       CRON_SECRET:                     ${CRON_SECRET}
       N8N_DB_PASSWORD:                 ${N8N_DB_PASSWORD}
+      # Rate-limit sayaçları (iki slot ortak). Boşsa uygulama bellek içi sayaca düşer.
+      REDIS_URL:                       ${REDIS_URL:-}
       NODE_ENV:  production
       PORT:      3001
       # PDF menü ayrıştırıcı (pdfminer.six) — image içine build sırasında kurulur
@@ -73,6 +77,8 @@ services:
     image: checkrezerve:latest
     container_name: checkrezerve-green
     restart: unless-stopped
+    depends_on:
+      - redis
     expose:
       - "3002"
     environment:
@@ -102,6 +108,8 @@ services:
       ADMIN_PASSWORD:                  ${ADMIN_PASSWORD:-}
       CRON_SECRET:                     ${CRON_SECRET}
       N8N_DB_PASSWORD:                 ${N8N_DB_PASSWORD}
+      # Rate-limit sayaçları (iki slot ortak). Boşsa uygulama bellek içi sayaca düşer.
+      REDIS_URL:                       ${REDIS_URL:-}
       NODE_ENV:  production
       PORT:      3002
       # PDF menü ayrıştırıcı (pdfminer.six) — image içine build sırasında kurulur
@@ -142,6 +150,25 @@ services:
       # faster_whisper (CTranslate2, int8 CPU) — openai/whisper PyTorch FP32'den
       # 4-10x hızlı; /asr API'si birebir aynı (transcribe route'u değişmedi)
       ASR_ENGINE: faster_whisper
+    networks:
+      - app-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: checkrezerve-redis
+    restart: unless-stopped
+    # Yalnız app-net içinden erişilir (port publish YOK). Kalıcılık kapalı: sadece rate-limit sayaçları.
+    # REDIS_PASSWORD .env'de boşsa şifresiz çalışır.
+    command: ["sh", "-c", "exec redis-server --save '' --appendonly no --maxmemory 64mb --maxmemory-policy allkeys-lru --requirepass \"$${REDIS_PASSWORD}\""]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" --no-auth-warning ping | grep -q PONG"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     networks:
       - app-net
 

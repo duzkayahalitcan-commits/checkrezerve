@@ -26,6 +26,8 @@ function getRedis(): Redis | null {
         enableOfflineQueue: false,
       })
       redis.on('error', () => { redisError = true })
+      // ioredis kendisi yeniden bağlanır; önceden tek bir hata Redis'i süreç boyunca devre dışı bırakıyordu
+      redis.on('ready', () => { redisError = false })
     } catch {
       redis = null
     }
