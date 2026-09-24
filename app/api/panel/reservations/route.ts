@@ -21,14 +21,14 @@ export async function GET(req: NextRequest) {
   const key = phoneKey(req.nextUrl.searchParams.get('phone'))
   if (key.length < 10) return NextResponse.json({ guest: null })
 
-  // guest_phone DB'de karışık biçimde → son 10 haneyle aday çek, anahtarla eşleştir
+  // guest_phone DB'de karışık biçimde → son 2 haneyle aday çek, phoneKey ile eşleştir
   const { data, error } = await getSupabaseAdmin()
     .from('reservations')
     .select('guest_name, guest_phone, guest_email, reserved_date')
     .eq('restaurant_id', session.restaurantId)
-    .ilike('guest_phone', `%${key.slice(-7)}`)
+    .ilike('guest_phone', `%${key.slice(-2)}`)   // boşluklu kayıtlar (0532 123 45 67) son 7 haneyle eşleşmiyordu
     .order('reserved_date', { ascending: false })
-    .limit(20)
+    .limit(200)
   if (error) {
     console.error('[panel/reservations GET]', error)
     return NextResponse.json({ guest: null })
