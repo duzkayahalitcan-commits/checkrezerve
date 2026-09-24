@@ -104,22 +104,14 @@ export default function MisafirList({
     const hasTag = current.includes(tagName)
 
     try {
-      const { createClient } = await import('@supabase/supabase-js')
-      const client = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
-
-      if (hasTag) {
-        // RLS izin vermezse delete hata vermeden 0 satır siler → satır sayısını da kontrol et
-        const { data, error } = await client.from('guest_tag_assignments').delete().match({ guest_id: guestId, tag_id: tag.id }).select('tag_id')
-        if (error || !data?.length) throw error ?? new Error('etiket silinmedi')
-        setGuestTags(prev => ({ ...prev, [guestId]: current.filter(t => t !== tagName) }))
-      } else {
-        const { error } = await client.from('guest_tag_assignments').insert({ guest_id: guestId, tag_id: tag.id })
-        if (error) throw error
-        setGuestTags(prev => ({ ...prev, [guestId]: [...current, tagName] }))
-      }
+      // Karar #7: yazma sunucuda (tenant kontrollü API), tarayıcıdan anon client ile değil
+      const res = await fetch('/api/panel/misafir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guest_id: guestId, tag_id: tag.id, action: hasTag ? 'remove' : 'add' }),
+      })
+      if (!res.ok) throw new Error('etiket güncellenemedi')
+      setGuestTags(prev => ({ ...prev, [guestId]: hasTag ? current.filter(t => t !== tagName) : [...current, tagName] }))
       void logActivity(guestId, 'tag_change', `${hasTag ? 'Etiket kaldırıldı' : 'Etiket eklendi'}: ${tagName}`)
       toast.show(hasTag ? 'Etiket kaldırıldı' : 'Etiket eklendi', 'success')
     } catch {
@@ -283,13 +275,12 @@ export default function MisafirList({
                               if (!guest.id || !noteText.trim()) return
                               setSavingNote(true)
                               try {
-                                const { createClient } = await import('@supabase/supabase-js')
-                                const client = createClient(
-                                  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                                  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-                                )
-                                const { error } = await client.from('guests').update({ notes: noteText.trim() }).eq('id', guest.id)
-                                if (error) throw error
+                                const res = await fetch('/api/panel/misafir', {
+                                  method: 'PATCH',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ guest_id: guest.id, notes: noteText.trim() }),
+                                })
+                                if (!res.ok) throw new Error('not kaydedilemedi')
                                 void logActivity(guest.id, 'note', `Not güncellendi: ${noteText.trim().slice(0, 80)}`)
                                 toast.show('Not kaydedildi', 'success')
                               } catch {

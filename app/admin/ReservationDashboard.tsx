@@ -66,14 +66,17 @@ export function ReservationDashboard({
   // Durum güncelle (server action yerine doğrudan API çağrısı)
   async function updateStatus(id: string, status: Reservation['status']) {
     setUpdating(id)
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    const client = createClient(url, key)
-    // RLS izin vermezse update hata vermeden 0 satır etkiler → satır sayısını da kontrol et
-    const { data, error } = await client.from('reservations').update({ status }).eq('id', id).select('id')
-    if (error || !data?.length) {
-      console.error('[admin] rezervasyon durum güncellenemedi:', error ?? 'etkilenen satır yok', { id, status })
+    // Karar #7: yazma sunucuda (cr_admin kontrollü API)
+    const res = await fetch('/api/admin/reservation-status', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status }),
+    }).catch(() => null)
+    if (!res?.ok) {
+      console.error('[admin] rezervasyon durum güncellenemedi:', res?.status, { id, status })
       alert('Durum güncellenemedi.')
+    } else {
+      setReservations(prev => prev.map(r => r.id === id ? { ...r, status } : r))
     }
     setUpdating(null)
   }
