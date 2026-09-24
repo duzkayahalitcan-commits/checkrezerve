@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server'
 import { routing } from '@/i18n/routing'
 import { headers } from 'next/headers'
 import { hasLocale } from 'next-intl'
+import Link from 'next/link'
 
 export default async function NotFound() {
   // Root not-found (global 404) — locale'i request'ten tespit et.
@@ -30,12 +31,12 @@ export default async function NotFound() {
       />
       <h1 className="text-3xl sm:text-4xl font-bold mb-4">{t('title')}</h1>
       <p className="text-zinc-400 mb-8 max-w-md">{t('subtitle')}</p>
-      <a
+      <Link
         href="/"
         className="rounded-full bg-[#E53935] hover:bg-red-700 text-white px-8 py-3 text-sm font-semibold transition-colors"
       >
         {t('button')}
-      </a>
+      </Link>
     </div>
   )
 }

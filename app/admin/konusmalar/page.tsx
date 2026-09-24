@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import ConversationsClient from './ConversationsClient'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Admin — Konuşma Geçmişi',
@@ -53,12 +54,12 @@ export default async function ConversationsPage() {
             <h1 className="text-base font-bold text-white">checkrezerve</h1>
             <p className="text-xs text-stone-500">Konuşma Geçmişi</p>
           </div>
-          <a
+          <Link
             href="/admin"
             className="text-xs text-stone-500 hover:text-stone-300 transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5"
           >
             ← Panel
-          </a>
+          </Link>
         </div>
       </div>
 

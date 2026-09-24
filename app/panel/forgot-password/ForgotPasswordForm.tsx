@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { Mail, ArrowLeft } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
+import Link from 'next/link'
 
 export default function ForgotPasswordForm() {
   const t = useTranslations('auth')
@@ -50,13 +51,13 @@ export default function ForgotPasswordForm() {
           <p className="text-white font-semibold text-lg">{t('forgotPasswordSent')}</p>
           <p className="text-zinc-500 text-sm mt-2 leading-relaxed">{t('forgotPasswordEmailSent')}</p>
         </div>
-        <a
+        <Link
           href="/panel/login"
           className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-red-400 font-semibold transition-colors"
         >
           <ArrowLeft size={14} />
           {t('forgotPasswordBackToLogin')}
-        </a>
+        </Link>
       </div>
     )
   }
@@ -135,13 +136,13 @@ export default function ForgotPasswordForm() {
 
       {/* Giriş sayfasına dön */}
       <p className="text-center text-xs text-zinc-600 pt-2">
-        <a
+        <Link
           href="/panel/login"
           className="text-red-400 hover:text-red-300 font-semibold transition-colors inline-flex items-center gap-1"
         >
           <ArrowLeft size={12} />
           {t('forgotPasswordBackToLogin')}
-        </a>
+        </Link>
       </p>
     </form>
   )

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Link } from '@/i18n/navigation'
 
 export default function CancelForm({ token }: { reservationId: string; token: string }) {
   const [loading, setLoading] = useState(false)
@@ -43,12 +44,12 @@ export default function CancelForm({ token }: { reservationId: string; token: st
       >
         {loading ? 'İptal ediliyor...' : 'Evet, İptal Et'}
       </button>
-      <a
+      <Link
         href="/"
         className="block w-full text-center text-sm text-zinc-400 hover:text-zinc-600 transition-colors"
       >
         Hayır, Ana Sayfaya Dön
-      </a>
+      </Link>
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { useActionState, useState, useEffect, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { Eye, EyeOff, LogIn } from 'lucide-react'
 import { panelLoginAction } from './actions'
+import Link from 'next/link'
 
 export default function LoginForm() {
   const t = useTranslations('panel')
@@ -113,12 +114,12 @@ export default function LoginForm() {
           />
           <span className="text-zinc-500 text-xs font-medium cursor-pointer select-none">{t('rememberMe')}</span>
         </label>
-        <a
+        <Link
           href="/panel/forgot-password"
           className="text-xs font-semibold text-zinc-500 hover:text-red-400 transition-colors"
         >
           {t('forgotPassword')}
-        </a>
+        </Link>
       </div>
 
       {/* Hata mesajı */}
@@ -161,9 +162,9 @@ export default function LoginForm() {
       {/* Kayıt linki */}
       <p className="text-center text-xs text-zinc-600 pt-2">
         {t('noAccount')}{' '}
-        <a href="/panel/register" className="text-red-400 hover:text-red-300 font-semibold transition-colors">
+        <Link href="/panel/register" className="text-red-400 hover:text-red-300 font-semibold transition-colors">
           {t('registerBusiness')} →
-        </a>
+        </Link>
       </p>
     </form>
   )

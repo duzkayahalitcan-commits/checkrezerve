@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 
 export default function LocaleNotFound() {
   const t = useTranslations('notFound')
@@ -17,18 +18,18 @@ export default function LocaleNotFound() {
       <h1 className="text-3xl sm:text-4xl font-bold mb-4">{t('title')}</h1>
       <p className="text-zinc-400 mb-8 max-w-md">{t('subtitle')}</p>
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
-        <a
+        <Link
           href="/"
           className="rounded-full bg-[#E53935] hover:bg-red-700 text-white px-8 py-3 text-sm font-semibold transition-colors"
         >
           {t('button')}
-        </a>
-        <a
+        </Link>
+        <Link
           href="/rezervasyon"
           className="rounded-full border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-white px-8 py-3 text-sm font-semibold transition-colors"
         >
           {tRez('makeReservation')}
-        </a>
+        </Link>
       </div>
     </div>
   )

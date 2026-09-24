@@ -8,6 +8,7 @@ import { Calendar, User as UserIcon, Heart, Settings, LogOut } from 'lucide-reac
 import LanguageSelector from './LanguageSelector'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
+import NextLink from 'next/link'
 
 export default function MarketingHeader() {
   const t = useTranslations('nav')
@@ -164,13 +165,13 @@ export default function MarketingHeader() {
                       >
                         <LogOut size={15} className="shrink-0" /> Çıkış Yap
                       </button>
-                      <a
+                      <NextLink
                         href="/panel/login"
                       onClick={() => setUserMenuOpen(false)}
                       className="flex items-center gap-2 px-4 py-2.5 text-xs text-zinc-400 hover:bg-zinc-50 transition-colors border-t border-zinc-100 mt-1"
                     >
                       <Settings size={13} className="shrink-0" /> Yönetici Paneli
-                    </a>
+                    </NextLink>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -241,14 +242,14 @@ export default function MarketingHeader() {
                 {user ? (
                   <>
                     <p className="text-sm text-white/60 text-center truncate">{user.email}</p>
-                    <a
+                    <NextLink
                       href="/panel/login"
                       onClick={() => setMobileOpen(false)}
                       className="flex items-center justify-center gap-2 w-full text-center rounded-full border border-white/20 text-white py-3.5 text-base font-semibold hover:bg-white/10 transition-colors"
                     >
                       <Settings size={16} />
                       Yönetici Paneli
-                    </a>
+                    </NextLink>
                     <button
                       aria-label="Dil seçimi"
                       onClick={() => { setMobileOpen(false); handleSignOut() }}

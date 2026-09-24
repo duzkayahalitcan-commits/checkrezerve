@@ -6,6 +6,7 @@ import { createLead, type LeadState } from './actions'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { POPULAR_COUNTRIES, OTHER_COUNTRIES, type CountryEntry } from '@/lib/countries'
+import { Link } from '@/i18n/navigation'
 
 const initial: LeadState = { error: null, success: false }
 
@@ -274,7 +275,7 @@ export default function KayitPage() {
                 className="mt-0.5 w-4 h-4 rounded border-zinc-300 accent-red-600 cursor-pointer"
               />
               <label htmlFor="kvkk" className="text-xs text-zinc-500 leading-relaxed cursor-pointer">
-                <a href="/kvkk" className="underline hover:text-zinc-700">KVKK Aydınlatma Metni</a>
+                <Link href="/kvkk" className="underline hover:text-zinc-700">KVKK Aydınlatma Metni</Link>
                 {`'ni okudum, kişisel verilerimin işlenmesine ve ticari ileti gönderilmesine açık rıza veriyorum.`}
               </label>
             </div>

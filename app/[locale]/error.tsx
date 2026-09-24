@@ -25,6 +25,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
         >
           {t('retry')}
         </button>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- hata sonrası tam sayfa yenileme bilinçli (bozuk istemci durumunu temizler) */}
         <a
           href="/"
           className="rounded-full border border-zinc-700 hover:border-zinc-500 text-zinc-300 px-8 py-3 text-sm font-semibold transition-colors"

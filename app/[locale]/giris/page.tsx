@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
+import NextLink from 'next/link'
 
 type Tab = 'login' | 'signup'
 
@@ -225,14 +226,14 @@ function GirisForm() {
           {/* Yönetici linki */}
           <div className="mt-8 pt-6 border-t border-zinc-100 text-center">
             <p className="text-xs text-zinc-400 mb-2">{t('businessOwner', {defaultValue: 'İşletme sahibi misiniz?'})}</p>
-            <a
+            <NextLink
               href="/panel/login"
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-zinc-600 hover:text-red-600 transition-colors"
             >
               <span>⚙️</span>
               {t('panelLink', {defaultValue: "Yönetici Paneli'ne giriş yapın"})}
               <span>→</span>
-            </a>
+            </NextLink>
           </div>
 
           <p className="text-center text-xs text-zinc-300 mt-6">

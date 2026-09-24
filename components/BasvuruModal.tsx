@@ -3,6 +3,7 @@
 import { useState, useEffect, useActionState } from 'react'
 import Image from 'next/image'
 import { createLead, type LeadState } from '@/app/[locale]/kayit/actions'
+import { Link } from '@/i18n/navigation'
 
 const SECTORS = ['Restoran', 'Berber', 'Kuaför', 'Spa', 'Güzellik Salonu', 'Kafe', 'Bar', 'Diğer']
 const FEATURES = ['Demo ve kurulum ücretsiz', 'Kredi kartı gerekmez', 'Uzman ekibimiz kurar']
@@ -128,7 +129,7 @@ function ModalContent({ onClose }: { onClose: () => void }) {
               className="mt-0.5 w-4 h-4 rounded border-zinc-300 accent-red-600 cursor-pointer"
             />
             <label htmlFor="kvkk-modal" className="text-xs text-zinc-500 leading-relaxed cursor-pointer">
-              <a href="/kvkk" className="underline hover:text-zinc-700">KVKK Aydınlatma Metni</a>
+              <Link href="/kvkk" className="underline hover:text-zinc-700">KVKK Aydınlatma Metni</Link>
               {"'ni okudum, kişisel verilerimin işlenmesine ve ticari ileti gönderilmesine açık rıza veriyorum."}
             </label>
           </div>

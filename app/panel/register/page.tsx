@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
 import { sendTelegramNotification } from './actions'
+import Link from 'next/link'
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
@@ -53,7 +54,7 @@ export default function RegisterPage() {
               <div className="text-4xl">✅</div>
               <p className="text-white font-semibold">Kayıt başarılı!</p>
               <p className="text-stone-400 text-sm">E-posta adresinizi doğrulayın, ardından giriş yapabilirsiniz.</p>
-              <a href="/panel/login" className="block text-amber-500 hover:text-amber-400 text-sm transition">← Giriş sayfasına dön</a>
+              <Link href="/panel/login" className="block text-amber-500 hover:text-amber-400 text-sm transition">← Giriş sayfasına dön</Link>
             </div>
           ) : (
             <>
@@ -77,7 +78,7 @@ export default function RegisterPage() {
                   className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-semibold rounded-lg py-2.5 text-sm transition">
                   {loading ? 'Kaydediliyor...' : 'İşletmeyi Kaydet'}
                 </button>
-                <a href="/panel/login" className="block text-center text-stone-500 hover:text-stone-300 text-xs transition">← Giriş sayfasına dön</a>
+                <Link href="/panel/login" className="block text-center text-stone-500 hover:text-stone-300 text-xs transition">← Giriş sayfasına dön</Link>
               </form>
             </>
           )}
