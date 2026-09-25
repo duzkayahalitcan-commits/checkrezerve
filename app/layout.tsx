@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   keywords: ['restoran rezervasyon', 'online rezervasyon', 'masa rezervasyonu', 'randevu sistemi', 'checkrezerve', 'berber randevu', 'kuaför randevu'],
   authors: [{ name: 'CheckRezerve' }],
   creator: 'CheckRezerve',
-  alternates: { canonical: BASE_URL },
+  // PF-03: canonical burada verilmez — kök düzeyde sabit canonical tüm sayfaları ana sayfanın kopyası ilan ediyordu
   robots: { index: true, follow: true },
   verification: { google: 'PLACEHOLDER_GOOGLE_SEARCH_CONSOLE' },
   icons: {
