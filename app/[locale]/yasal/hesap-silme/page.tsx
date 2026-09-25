@@ -11,7 +11,7 @@ export async function generateMetadata({
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'accountDelete' })
   return {
-    title: `${t('title')} | CheckRezerve`,
+    title: `${t('title')}`,
     description: t('intro'),
   }
 }

@@ -9,7 +9,8 @@ import LanguageSelector from '@/components/LanguageSelector'
 export const revalidate = 600
 
 export const metadata: Metadata = {
-  title: 'CheckRezerve — Rezervasyon',
+  // Marka başta; kök '%s | CheckRezerve' şablonu uygulanmasın (çift marka olmasın)
+  title: { absolute: 'CheckRezerve — Rezervasyon' },
   description: 'Restoran, güzellik salonu ve spa rezervasyonu — saniyeler içinde.',
   openGraph: {
     title: 'CheckRezerve — Rezervasyon',

@@ -8,7 +8,7 @@ import { Link } from '@/i18n/navigation'
 import { Map, Bot, Sparkles, QrCode, ShieldCheck, Ban, Undo2, Phone, Lock, Flag } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Fiyatlar — CheckRezerve',
+  title: 'Fiyatlar',
   description:
     'Komisyon yok, gizli ücret yok. Küçük işletmeden zincir restoran operasyonlarına kadar her büyüklük için şeffaf fiyatlandırma.',
 }

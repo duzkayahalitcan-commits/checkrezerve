@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ogImageUrl = `https://checkrezerve.com/api/og?title=${encodeURIComponent(r.name)}&type=${encodeURIComponent(typeLabel)}${r.address ? `&address=${encodeURIComponent(r.address)}` : ''}`
 
   return {
-    title: `${r.name} — CheckRezerve`,
+    title: `${r.name}`,
     description: r.description ?? `${r.name} için online rezervasyon yapın.`,
     openGraph: {
       title: r.name,

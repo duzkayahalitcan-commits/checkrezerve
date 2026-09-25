@@ -3,7 +3,7 @@ import LegalDraftPage from '@/components/LegalDraftPage'
 
 // LG-10 — TASLAK: köşeli parantezli alanlar Halitcan tarafından doldurulmalı.
 export const metadata: Metadata = {
-  title: 'Künye ve İletişim (Taslak) | CheckRezerve',
+  title: 'Künye ve İletişim (Taslak)',
   robots: { index: false, follow: false },
 }
 

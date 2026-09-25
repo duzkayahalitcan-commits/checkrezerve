@@ -7,7 +7,7 @@ import MarketingHeader from '@/components/MarketingHeader'
 import MarketingFooter from '@/components/MarketingFooter'
 
 export const metadata: Metadata = {
-  title: 'Hakkımızda — CheckRezerve',
+  title: 'Hakkımızda',
   description: 'CheckRezerve ekibi, hikâyemiz ve misyonumuz. Rezervasyon yönetimini kolaylaştırmak için buradayız.',
 }
 

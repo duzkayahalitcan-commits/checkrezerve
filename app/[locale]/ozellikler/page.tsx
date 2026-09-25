@@ -6,7 +6,7 @@ import MarketingFooter from '@/components/MarketingFooter'
 import RevealSection from '@/components/RevealSection'
 
 export const metadata: Metadata = {
-  title: 'Özellikler — CheckRezerve',
+  title: 'Özellikler',
   description: 'AI sesli onay, anlık takip, ön ödeme, CRM ve daha fazlası. CheckRezerve\'in tüm güçlü özellikleriyle tanışın.',
 }
 

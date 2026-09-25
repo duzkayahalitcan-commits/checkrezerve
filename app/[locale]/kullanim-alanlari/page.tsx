@@ -6,7 +6,7 @@ import MarketingFooter from '@/components/MarketingFooter'
 import SectorTabs from './SectorTabs'
 
 export const metadata: Metadata = {
-  title: 'Kullanım Alanları — CheckRezerve',
+  title: 'Kullanım Alanları',
   description: 'Restoran, spa, kuaför, otel, etkinlik mekanı ve daha fazlası için CheckRezerve rezervasyon altyapısı.',
 }
 

@@ -3,7 +3,7 @@ import LegalDraftPage from '@/components/LegalDraftPage'
 
 // LG-05 — TASLAK: hukukçu onayından önce yayına alınmamalı ve ödeme akışına bağlanmamalı.
 export const metadata: Metadata = {
-  title: 'Mesafeli Satış Sözleşmesi ve Ön Bilgilendirme (Taslak) | CheckRezerve',
+  title: 'Mesafeli Satış Sözleşmesi ve Ön Bilgilendirme (Taslak)',
   robots: { index: false, follow: false },
 }
 

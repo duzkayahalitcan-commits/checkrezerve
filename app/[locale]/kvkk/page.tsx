@@ -4,7 +4,7 @@ import { Link } from '@/i18n/navigation'
 import LegalSidebar from '@/components/LegalSidebar'
 
 export const metadata: Metadata = {
-  title: 'Personal Data Protection Policy — CheckRezerve',
+  title: 'Personal Data Protection Policy',
   description: 'CheckRezerve Teknoloji personal data protection and processing policy.',
 }
 

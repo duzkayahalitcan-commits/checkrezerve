@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'İletişim — CheckRezerve',
+  title: 'İletişim',
   description: 'CheckRezerve ile iletişime geçin. Demo talep edin, fiyat sorun veya destek alın.',
 }
 

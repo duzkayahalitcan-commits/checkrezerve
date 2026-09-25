@@ -3,7 +3,7 @@ import LegalDraftPage from '@/components/LegalDraftPage'
 
 // LG-06 — TASLAK: hukukçu onayından önce yayına alınmamalı.
 export const metadata: Metadata = {
-  title: 'Abonelik İptal ve İade Politikası (Taslak) | CheckRezerve',
+  title: 'Abonelik İptal ve İade Politikası (Taslak)',
   robots: { index: false, follow: false },
 }
 

@@ -12,7 +12,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getTypesForKey } from './categories'
 
 export const metadata: Metadata = {
-  title: 'Online Rezervasyon — CheckRezerve',
+  title: 'Online Rezervasyon',
   description: 'Restoran, kuaför, spa ve daha fazlası için online rezervasyon yapın. Hızlı, kolay ve ücretsiz.',
   openGraph: {
     title: 'Online Rezervasyon — CheckRezerve',
