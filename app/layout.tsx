@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   creator: 'CheckRezerve',
   // PF-03: canonical burada verilmez — kök düzeyde sabit canonical tüm sayfaları ana sayfanın kopyası ilan ediyordu
   robots: { index: true, follow: true },
-  verification: { google: 'PLACEHOLDER_GOOGLE_SEARCH_CONSOLE' },
+  // Google Search Console doğrulaması: gerçek kod alınınca ekle → verification: { google: '<kod>' }
   icons: {
     icon: [
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
