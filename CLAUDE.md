@@ -250,5 +250,5 @@ Görevi ikiye böl: "veri mi, UI mı?" → veri tarafı `database`, UI tarafı `
 | Cron | Zamanlama | İş |
 |---|---|---|
 | nginx watchdog (`/opt/checkrezerve`) | `*/5 * * * *` | checkrezerve-nginx down/exit ise recreate. Log: `/var/log/nginx-watchdog.log` |
-| paket-hatirlatma tetikleyici | `0 9 * * *` | `curl -H "Authorization: Bearer <CRON_SECRET>" .../api/cron/paket-hatirlatma` — **⚠ token için hotfix bekliyor** |
+| paket-hatirlatma tetikleyici | `0 9 * * *` | `/usr/local/bin/cron-paket-hatirlatma.sh` — CRON_SECRET'ı çalışma anında `/opt/checkrezerve/.env`'den okur, `.../api/cron/paket-hatirlatma` çağırır. Log: `/var/log/paket-hatirlatma-cron.log` (her gün 200, 2026-09-25 doğrulandı) |
 | fail2ban GitHub Actions whitelist refresh | `0 4 * * 1` | `update-fail2ban-github-whitelist.sh` — `api.github.com/meta` `.actions` CIDR'lerini çekip fail2ban whitelist'i yazar. Amaç: CI deploy SSH oturumlarının banlanmasını önlemek |
