@@ -1,8 +1,15 @@
-# Durum — 23–25 Eylül 2026 (web: checkrezerve)
+# Durum — 23–26 Eylül 2026 (web: checkrezerve)
 
 > **Güncelleme 25 Eylül ~10:00 UTC:** aşağıdaki 'bekleyen' commit'lerin hepsi + altyapı kararları deploy edildi. Bkz. §0.
 
 > Tek sayfalık güncel durum. Ayrıntılar: `gece-raporu-2026-09-23.md`, `ozellik-denetimi-2026-09-23.md`, API sözleşmeleri `api-sozlesmeleri.md`.
+
+## 00. 25/26 Eylül gece — son durum (canlı image `515ab093f0f7`, main `91f1cbc`)
+- **Deploy edilen:** `74f25f9` (kök layout sabit canonical kaldırıldı), `7149d61` (12 sayfada çift marka soneki), `91f1cbc` (PLACEHOLDER Google doğrulama etiketi kaldırıldı), `2f035b8` (CLAUDE.md cron notu). Geri dönüş: `checkrezerve:rollback-20260925` (`6b844241ffae`).
+- **Doğrulandı (canlı):** 6 container ayakta, `/api/health` ok + `redis: ok`; `/tr/sss`, `/tr/iletisim`, `/tr/isletme/mario-berber`, `/tr` → canonical etiketi yok (self-canonical), başlıklar tek marka ("İletişim | CheckRezerve", ana sayfa "CheckRezerve — Rezervasyon"), `google-site-verification` yok; olmayan sayfa 404, mevcut 200.
+- **CRON_SECRET:** GitHub secret prod `.env` değeriyle güncellendi (25 Eylül 23:22 UTC, değer görüntülenmedi). İş akışı **elle tetiklenmedi** (gerçek hatırlatma göndermemek için). İlk otomatik çalışma 26 Eylül; sonucu aşağıdaki 🔴 bölümüne zamanlanmış görev (`checkrezerve-hatirlatma-kontrol-20260926`, 26 Eylül 12:00 UTC, uygulama açıkken çalışır) yazacak ve yalnız bu dosyayı commit edecek (push yok).
+- **VPS:** `/opt/checkrezerve/.env` ve yedekleri `600`. GitHub secret'ları `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` silindi (kalan: `APP_URL`, `CRON_SECRET`).
+- **Deploy notu:** zsh'de `--exclude=.env*` tırnaksız yazılınca rsync hiç çalışmıyor ("no matches found") → her zaman `--exclude='.env*'`. VPS'te git dışı kalan dosyalar: `CLAUDE.md.backup`, `public/images/` altında 2 görsel, `scripts/__pycache__` (bilinçli bırakıldı).
 
 ## 0. 25 Eylül deploy'u (image `6b844241ffae`, main `74f25f9` öncesi `51d13c7` + canonical düzeltmesi bekliyor)
 - **Deploy edilen:** §2'deki 13 commit + `57b0ee6` (deploy.yml silindi), `1add13b` (deploy.sh `.env*` hariç), `b8c7965` (Redis), `51d13c7` (gerçek 404).
@@ -10,16 +17,16 @@
 - **.env:** `REDIS_PASSWORD` (48 hex, VPS'te üretildi, hiç gösterilmedi) + `REDIS_URL=redis://:***@checkrezerve-redis:6379` eklendi.
 - **Doğrulama (canlı):** 6 container ayakta (redis healthy, şifresiz erişim NOAUTH); `/api/health` → `redis: ok`; `/tr/bu-sayfa-yok`, `/tr/isletme/olmayan`, `/tr/rezervasyon/<olmayan>` → **404**, mevcut sayfalar 200; sitemap 210 URL, işletme sayfaları var, `/en/register` (yerel yol), profil yok; rate-limit 11. istekte 429 (Redis'te `rl:*` anahtarları, gerçek IP); `send-sms` oturumsuz 401 (403 dalı panel oturumu olmadan test edilmedi).
 - **Deploy sırasında bulunan:** rsync `--delete` olmadığı için git'te silinen dosyalar VPS'te kalıyordu (`[locale]/loading.tsx` dahil → 404 düzeltmesi etkisiz olurdu). Silinen 10 dosya VPS'ten elle kaldırıldı; VPS'e özgü `public/images` altındaki 2 görsel, `CLAUDE.md.backup`, `__pycache__` bırakıldı.
-- **Deploy BEKLEYEN:** `74f25f9` — kök `app/layout.tsx`'teki sabit canonical (canlıda `/tr/sss` → `https://checkrezerve.com`). Yerelde doğrulandı.
+- ~~Deploy BEKLEYEN: `74f25f9`~~ → 26 Eylül'de deploy edildi (bkz. §00).
 
 ### 🔴 Açık: günlük rezervasyon hatırlatmaları 13 Eylül'den beri gitmiyor
 GitHub Actions `daily-reminders.yml` her gün **401** (son 12 çalıştırmanın hepsi). GitHub `CRON_SECRET` secret'ı (11 Nisan) prod `.env`'dekinden farklı; prod `.env` ve container tutarlı (64 karakter). Çözüm: GitHub secret'ı prod değeriyle güncellemek (onay bekliyor). Paket hatırlatma VPS cron'u sağlıklı (her gün 200; CLAUDE.md'deki "token hotfix bekliyor" notu eskimiş).
 
 ### Diğer notlar
-- Mevcut bazı sayfa başlıkları çift sonekli ("İletişim — CheckRezerve | CheckRezerve"): kök şablon `%s | CheckRezerve` + sayfa başlığındaki "— CheckRezerve".
-- Kök metadata'da `verification: { google: 'PLACEHOLDER_GOOGLE_SEARCH_CONSOLE' }` sahte doğrulama etiketi basıyor.
-- VPS `/opt/checkrezerve/.env` izni `644` (herkes okuyabilir) → `600` önerilir.
-- GitHub secret'ları `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` artık kullanılmıyor (deploy.yml silindi) → silinebilir.
+- ✅ Mevcut bazı sayfa başlıkları çift sonekli ("İletişim — CheckRezerve | CheckRezerve"): kök şablon `%s | CheckRezerve` + sayfa başlığındaki "— CheckRezerve". — **26 Eylül'de yapıldı.**
+- ✅ Kök metadata'da `verification: { google: 'PLACEHOLDER_GOOGLE_SEARCH_CONSOLE' }` sahte doğrulama etiketi basıyor. — **26 Eylül'de yapıldı.**
+- ✅ VPS `/opt/checkrezerve/.env` izni `644` (herkes okuyabilir) → `600` önerilir. — **26 Eylül'de yapıldı.**
+- ✅ GitHub secret'ları `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` artık kullanılmıyor (deploy.yml silindi) → silinebilir. — **26 Eylül'de yapıldı.**
 
 ## 1. Canlıda ne var
 | | |
